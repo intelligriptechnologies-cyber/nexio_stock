@@ -49,3 +49,30 @@ class SignOffHistoryResponse(BaseModel):
 
 class PendingVoidResponse(BaseModel):
     invoices: list[InvoicePublic]
+
+class LowStockItem(BaseModel):
+    product_id: int
+    barcode: str
+    brand: str
+    size_label: str
+    current_stock: int
+    effective_threshold: int
+
+
+class LowStockResponse(BaseModel):
+    items: list[LowStockItem]
+    # When the list was last computed (UTC). Always set on a fresh
+    # compute; lets the UI show "evaluated 3 minutes ago".
+    evaluated_at: datetime
+
+
+__all__ = [
+    "EodTotalsResponse",
+    "LowStockItem",
+    "LowStockResponse",
+    "PaymentModeTotal",
+    "PendingVoidResponse",
+    "SignOffHistoryResponse",
+    "SignOffRequest",
+    "SignOffResponse",
+]

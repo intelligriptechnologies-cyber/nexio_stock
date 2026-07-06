@@ -17,6 +17,7 @@ from app.logging_config import get_logger
 from app.models.user import User, UserRole
 from app.schemas.eod import (
     EodTotalsResponse,
+    LowStockResponse,
     PaymentModeTotal,
     PendingVoidResponse,
     SignOffHistoryResponse,
@@ -185,3 +186,38 @@ async def void_queue(
         await db.refresh(r, attribute_names=["payments"])
         invoices.append(InvoicePublic.model_validate(r))
     return PendingVoidResponse(invoices=invoices)
+
+@router.get(
+    "/low-stock",
+    response_model=LowStockResponse,
+    summary="Products at or below their effective threshold (D-34, R-15, #7)",
+)
+async def low_stock(
+    db: DbSession,
+    _user: User = Depends(require_role(*_read_roles)),
+) -> LowStockResponse:
+    """List products whose current derived stock is at or below their
+    effective threshold (per-product override, falling back to the
+    shop-wide default). Computed on demand; the in-process scheduler
+    in `app.main.lifespan` also calls this on a timer for the
+    background-job AC."""
+    from datetime import UTC, datetime
+
+    from app.schemas.eod import LowStockItem
+    from app.services.low_stock import compute_low_stock
+
+    rows = await compute_low_stock(db, shop_id=_user.shop_id)
+    return LowStockResponse(
+        items=[
+            LowStockItem(
+                product_id=row.product.id,
+                barcode=row.product.barcode,
+                brand=row.product.brand,
+                size_label=row.product.size_label,
+                current_stock=row.current_stock,
+                effective_threshold=row.effective_threshold,
+            )
+            for row in rows
+        ],
+        evaluated_at=datetime.now(UTC),
+    )

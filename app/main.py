@@ -1,11 +1,14 @@
 """FastAPI app factory + lifespan."""
 from __future__ import annotations
 
+import asyncio
+import contextlib
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from sqlalchemy import select
 
 from app.api import (
     _test_only,
@@ -38,8 +41,69 @@ async def lifespan(_: FastAPI) -> AsyncIterator[None]:
     # Touch the engine so any DSN problem surfaces here, not on first request.
     engine = get_engine()
     log.info("db.engine_ready", url=str(engine.url).split("@")[-1])  # log host only
-    yield
-    log.info("shutdown")
+
+    # Background low-stock evaluator (D-34, R-15, #7). The task wakes
+    # every LOW_STOCK_INTERVAL_MIN minutes, walks the shop list, and
+    # logs how many products are at or below threshold. Skipped in
+    # tests to keep the test suite deterministic.
+    bg_task: asyncio.Task[None] | None = None
+    if settings.app_env != "test":
+        bg_task = asyncio.create_task(_low_stock_loop())
+
+    try:
+        yield
+    finally:
+        if bg_task is not None:
+            bg_task.cancel()
+            with contextlib.suppress(asyncio.CancelledError, Exception):
+                await bg_task
+        log.info("shutdown")
+
+
+async def _low_stock_loop() -> None:
+    """Periodic low-stock evaluator. Logs a single info line per
+    iteration with the count of products at or below threshold."""
+    from app.config import get_settings
+    from app.db import get_sessionmaker
+    from app.models.shop import Shop
+    from app.services.low_stock import compute_low_stock
+
+    settings = get_settings()
+    interval_s = max(60, settings.low_stock_interval_min * 60)
+    log = get_logger("app.low_stock")
+    log.info("low_stock.loop_started", interval_s=interval_s)
+
+    while True:
+        try:
+            await asyncio.sleep(interval_s)
+            session_factory = get_sessionmaker()
+            async with session_factory() as session, session.begin():
+                shops = (
+                    await session.execute(select(Shop.id))
+                ).scalars().all()
+                total = 0
+                for shop_id in shops:
+                    rows = await compute_low_stock(session, shop_id=shop_id)
+                    if rows:
+                        log.info(
+                            "low_stock.evaluated",
+                            shop_id=shop_id,
+                            count=len(rows),
+                            most_urgent={
+                                "barcode": rows[0].product.barcode,
+                                "current_stock": rows[0].current_stock,
+                                "effective_threshold": rows[0].effective_threshold,
+                            },
+                        )
+                    total += len(rows)
+                if total == 0:
+                    log.info("low_stock.evaluated", total=0)
+        except asyncio.CancelledError:
+            raise
+        except Exception as exc:
+            log.error("low_stock.loop_error", error=str(exc))
+            # Don't tight-loop on errors; the sleep at the top gives
+            # a natural backoff.
 
 
 def create_app() -> FastAPI:

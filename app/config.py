@@ -33,6 +33,8 @@ class Settings(BaseSettings):
 
     # CORS — JSON array of origins in env, e.g. ["http://localhost:5173"]
     cors_allow_origins: list[str] = Field(default_factory=list)
+    # Background-task knobs (#7)
+    low_stock_interval_min: int = 5
 
 
 @lru_cache(maxsize=1)
