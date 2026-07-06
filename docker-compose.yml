@@ -1,0 +1,22 @@
+name: barstock
+
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: barstock-db
+    environment:
+      POSTGRES_USER: barstock
+      POSTGRES_PASSWORD: barstock
+      POSTGRES_DB: barstock
+    ports:
+      - "5432:5432"
+    volumes:
+      - barstock_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U barstock -d barstock"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  barstock_pgdata:

@@ -2,6 +2,36 @@
 __pycache__/
 *.py[codz]
 *$py.class
+*.pyc
+
+# Test / lint / type caches
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+htmlcov/
+.coverage
+.coverage.*
+*.cover
+
+# Virtual envs / local state
+.venv/
+venv/
+.env
+.envrc
+*.sqlite
+*.sqlite-journal
+*.log
+
+# IDE
+.vscode/
+.idea/
+.DS_Store
+
+# Build / dist
+build/
+dist/
+*.egg-info/
+.eggs/
 
 # C extensions
 *.so

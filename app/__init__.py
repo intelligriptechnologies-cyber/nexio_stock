@@ -1,0 +1,1 @@
+"""Barstock application package."""
