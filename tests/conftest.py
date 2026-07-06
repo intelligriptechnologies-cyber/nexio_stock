@@ -119,10 +119,11 @@ async def _truncate_tables(test_db_dsn: str) -> AsyncIterator[None]:
 
     Session = get_sessionmaker()
     async with Session() as session, session.begin():
-        # Log tables first (FK to users), then users, then shops.
+        # Products first (FK to shops), then log tables (FK to users),
+        # then users, then shops.
         await session.execute(
             text(
-                "TRUNCATE TABLE invoicing_logs, stockin_logs, admin_logs, "
+                "TRUNCATE TABLE products, invoicing_logs, stockin_logs, "
                 "users, shops RESTART IDENTITY CASCADE"
             )
         )
@@ -266,45 +267,62 @@ async def superadmin(db_session: AsyncSession) -> User:
     )
 
 
-async def _logged_in_client(client: AsyncClient, *, path: str, payload: dict) -> str:
-    resp = await client.post(path, json=payload)
+async def _make_logged_in_client(
+    app, *, path: str, payload: dict
+) -> AsyncClient:
+    """Create a fresh AsyncClient pre-populated with a Bearer token.
+
+    Each *role* fixture returns its own AsyncClient so tests can request
+    multiple role clients in the same test without them stomping on each
+    other's Authorization header.
+    """
+    transport = ASGITransport(app=app)
+    ac = AsyncClient(transport=transport, base_url="http://test")
+    resp = await ac.post(path, json=payload)
     assert resp.status_code == 200, f"login failed: {resp.status_code} {resp.text}"
-    return resp.json()["access_token"]
+    ac.headers["Authorization"] = f"Bearer {resp.json()['access_token']}"
+    return ac
 
 
 @pytest_asyncio.fixture
-async def owner_client(client: AsyncClient, owner: User) -> AsyncClient:
-    token = await _logged_in_client(
-        client, path="/auth/login", payload={"phone": owner.phone, "password": "ownerpass"}
+async def owner_client(owner: User) -> AsyncClient:
+    from app.main import app
+
+    return await _make_logged_in_client(
+        app,
+        path="/auth/login",
+        payload={"phone": owner.phone, "password": "ownerpass"},
     )
-    client.headers["Authorization"] = f"Bearer {token}"
-    return client
 
 
 @pytest_asyncio.fixture
-async def receiver_client(client: AsyncClient, receiver: User) -> AsyncClient:
-    token = await _logged_in_client(
-        client, path="/auth/login", payload={"phone": receiver.phone, "password": "recvpass"}
+async def receiver_client(receiver: User) -> AsyncClient:
+    from app.main import app
+
+    return await _make_logged_in_client(
+        app,
+        path="/auth/login",
+        payload={"phone": receiver.phone, "password": "recvpass"},
     )
-    client.headers["Authorization"] = f"Bearer {token}"
-    return client
 
 
 @pytest_asyncio.fixture
-async def cashier_client(client: AsyncClient, cashier: User) -> AsyncClient:
-    token = await _logged_in_client(
-        client, path="/auth/login", payload={"phone": cashier.phone, "password": "cashpass"}
+async def cashier_client(cashier: User) -> AsyncClient:
+    from app.main import app
+
+    return await _make_logged_in_client(
+        app,
+        path="/auth/login",
+        payload={"phone": cashier.phone, "password": "cashpass"},
     )
-    client.headers["Authorization"] = f"Bearer {token}"
-    return client
 
 
 @pytest_asyncio.fixture
-async def superadmin_client(client: AsyncClient, superadmin: User) -> AsyncClient:
-    token = await _logged_in_client(
-        client,
+async def superadmin_client(superadmin: User) -> AsyncClient:
+    from app.main import app
+
+    return await _make_logged_in_client(
+        app,
         path="/auth/login/superadmin",
         payload={"username": superadmin.username, "password": "rootpass1"},
     )
-    client.headers["Authorization"] = f"Bearer {token}"
-    return client

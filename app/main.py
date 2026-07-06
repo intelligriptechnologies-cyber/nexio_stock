@@ -7,7 +7,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.api import _test_only, auth, health, staff, users
+from app.api import _test_only, auth, health, products, staff, users
 from app.config import get_settings
 from app.db import get_engine
 from app.logging_config import configure_logging, get_logger
@@ -55,6 +55,7 @@ def create_app() -> FastAPI:
     app.include_router(auth.router)
     app.include_router(staff.router)
     app.include_router(users.router)
+    app.include_router(products.router)
 
     # Test-only routes — used by tests to exercise role gates end-to-end.
     # Removed in #3 (when /lots lands) and #4 (when /checkout lands).

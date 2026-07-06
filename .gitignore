@@ -246,3 +246,6 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Serena MCP project-local state
+.serena/

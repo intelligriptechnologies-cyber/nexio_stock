@@ -24,6 +24,11 @@ class Shop(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[str] = mapped_column(String(200), nullable=False)
     code: Mapped[str] = mapped_column(String(50), unique=True, nullable=False)
+    # Shop-wide default for low-stock threshold (D-34). Per-product override
+    # on `Product.low_stock_threshold` wins; NULL there falls back to this.
+    # Lives here (not on Product) so a freshly-initialised catalog has a
+    # sensible default before any per-product tuning (#7).
+    low_stock_threshold_default: Mapped[int | None] = mapped_column(nullable=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         server_default=func.now(),
