@@ -123,7 +123,7 @@ async def _truncate_tables(test_db_dsn: str) -> AsyncIterator[None]:
         # then users, then shops.
         await session.execute(
             text(
-                "TRUNCATE TABLE products, invoicing_logs, stockin_logs, "
+                "TRUNCATE TABLE lot_lines, lots, products, invoicing_logs, stockin_logs, "
                 "users, shops RESTART IDENTITY CASCADE"
             )
         )
