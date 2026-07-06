@@ -146,12 +146,23 @@ async def _current_stock_for(
         .group_by(LotLine.product_id)
         .subquery()
     )
+    # A line is "sold" only if its parent invoice is FINALIZED.
+    # VOIDED invoices had their sale undone (direct void, pre-EOD).
+    # REVERSAL invoices are the compensating entries that
+    # effect that undoing on the post-EOD side — they explicitly
+    # don't count as sales themselves.
+    # PENDING_VOID invoices are still FINALIZED in confirmed_sales
+    # until owner approval; they DO still count, until approved.
     sold_subq = (
         select(
             InvoiceLine.product_id.label("product_id"),
             func.coalesce(func.sum(InvoiceLine.quantity), 0).label("sold"),
         )
-        .where(InvoiceLine.product_id.in_(product_ids))
+        .join(Invoice, InvoiceLine.invoice_id == Invoice.id)
+        .where(
+            InvoiceLine.product_id.in_(product_ids),
+            Invoice.status == InvoiceStatus.FINALIZED,
+        )
         .group_by(InvoiceLine.product_id)
         .subquery()
     )

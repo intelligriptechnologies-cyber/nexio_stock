@@ -44,12 +44,10 @@ if TYPE_CHECKING:
 
 
 class InvoiceStatus(str, enum.Enum):
-    OPEN = "open"  # cart built but not finalized (we never persist OPEN; see note)
     FINALIZED = "finalized"  # paid, line items immutable
-    VOIDED = "voided"  # pre-EOD-signoff void
-    # Post-EOD-signoff void is recorded as a separate `Invoice` row with
-    # status=REVERSAL and a `reverses_invoice_id` FK; the original
-    # confirmed_sales row stays untouched (D-37). Landed in #5.
+    VOIDED = "voided"  # pre-EOD-signoff direct void (#5)
+    REVERSAL = "reversal"  # post-EOD compensating entry that undoes a FINALIZED
+    PENDING_VOID = "pending_void"  # post-EOD, owner approval requested (#5)
 
 
 class PaymentMode(str, enum.Enum):
@@ -94,6 +92,26 @@ class Invoice(Base):
     )
     # A short free-form note the cashier can attach (rare). Optional.
     note: Mapped[str | None] = mapped_column(String(200), nullable=True)
+    # For REVERSAL rows: which FINALIZED invoice this reverses. NULL
+    # for normal invoices. D-37 says the original is never edited; a
+    # REVERSAL row references it instead. set null on delete so a
+    # corrupted delete of the original doesn't cascade to the
+    # compensating row.
+    reverses_invoice_id: Mapped[int | None] = mapped_column(
+        ForeignKey("invoices.id", ondelete="set null"),
+        nullable=True,
+        index=True,
+    )
+    # For PENDING_VOID rows: the user who requested the void and when.
+    # Cleared when the request is approved (reversal created) or
+    # rejected (status reverts to FINALIZED).
+    void_requested_by_user_id: Mapped[int | None] = mapped_column(
+        ForeignKey("users.id", ondelete="set null"),
+        nullable=True,
+    )
+    void_requested_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
 
     lines: Mapped[list[InvoiceLine]] = relationship(
         back_populates="invoice", cascade="all, delete-orphan"
