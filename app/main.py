@@ -18,6 +18,7 @@ from app.api import (
     health,
     lots,
     products,
+    shops,
     staff,
     users,
     voids,
@@ -135,6 +136,7 @@ def create_app() -> FastAPI:
     app.include_router(checkout.router)
     app.include_router(voids.router)
     app.include_router(dashboard.router)
+    app.include_router(shops.router)
 
     # Test-only routes — used by tests to exercise role gates end-to-end.
     # Removed in #3 (when /lots lands) and #4 (when /checkout lands).

@@ -222,10 +222,20 @@ async def get_invoice_pdf(
     if actor_role != UserRole.SUPERADMIN and invoice.shop_id != actor_shop_id:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="invoice not found")
 
-    # Render the PDF.
+    # Render the PDF, passing shop-level config (#8) so the
+    # GSTIN and configurable excise-duty placeholder line are
+    # surfaced. No CGST/SGST percentage is hardcoded — the duty
+    # rate is whatever the owner has set on the Shop row.
+    from app.models.shop import Shop
     from app.services.invoice_pdf import render_invoice_pdf
 
-    pdf_bytes = render_invoice_pdf(invoice)
+    shop = await db.get(Shop, invoice.shop_id)
+    pdf_bytes = render_invoice_pdf(
+        invoice,
+        shop_name=shop.name if shop is not None else "(unknown)",
+        shop_gstin=shop.gstin if shop is not None else None,
+        shop_excise_duty_rate=shop.excise_duty_rate if shop is not None else None,
+    )
     return Response(
         content=pdf_bytes,
         media_type="application/pdf",
