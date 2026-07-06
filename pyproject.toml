@@ -22,6 +22,7 @@ dependencies = [
     "structlog>=24.1.0",
     "httpx>=0.27.0",
     "tenacity>=8.5.0",
+    "reportlab>=4.2.0",
 ]
 
 [project.optional-dependencies]
@@ -76,6 +77,12 @@ ignore = [
 ]
 "app/models/user.py" = [
     "UP042",  # `class UserRole(str, enum.Enum)` is the canonical FastAPI pattern
+]
+"app/models/invoice.py" = [
+    "UP042",  # `class InvoiceStatus(str, enum.Enum)` and `PaymentMode` are
+    # the canonical FastAPI pattern (StrEnum is 3.11+ and ruff's UP042
+    # fires inconsistently when other Enums in the same file use the
+    # str-inheriting form).
 ]
 "app/schemas/auth.py" = [
     "S105",   # "bearer" is the OAuth token type literal, not a password

@@ -29,6 +29,12 @@ class Shop(Base):
     # Lives here (not on Product) so a freshly-initialised catalog has a
     # sensible default before any per-product tuning (#7).
     low_stock_threshold_default: Mapped[int | None] = mapped_column(nullable=True)
+    # Monotonic per-shop invoice counter. Incremented under the row lock
+    # at checkout finalize so concurrent finalizes get distinct
+    # invoice_numbers (see app.services.checkout).
+    last_invoice_number: Mapped[int] = mapped_column(
+        nullable=False, default=0, server_default="0"
+    )
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         server_default=func.now(),
