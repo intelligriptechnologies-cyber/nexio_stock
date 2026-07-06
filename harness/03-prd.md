@@ -1,5 +1,7 @@
 # 03 — PRD: Barstock (liquor counter inventory & billing system)
 
+**Status: FROZEN (approved 2026-07-06); re-frozen after Phase 4 absence hunt (2026-07-06) — see R-40 through R-46 and the updated Deferred Items table below.**
+
 ## Problem statement
 
 A friend's liquor retail shop in Odisha, India needs a system to run its counter operations end to end: receive stock in labeled lots, sell products via barcode scan across multiple simultaneous billing counters, record payment mode, reconcile the day's cash/UPI/card totals at close, and maintain the audit trail a regulated, cash-heavy retail business needs. The system must be usable by low-computer-literacy staff and hold up to real transaction volume (2-3 concurrent counters, ~2000 invoices/day combined).
@@ -30,12 +32,14 @@ A friend's liquor retail shop in Odisha, India needs a system to run its counter
 - **R-2**: `receiver_user` can only create/manage stock Lots; `cashier_user` can only run checkout/invoicing; neither can perform the other's action (D-25).
 - **R-3**: `owner` has superset permissions (can act as receiver or cashier, plus manage products/prices/thresholds and view reports) via one account, no separate logins needed (D-26).
 - **R-4**: `receiver_user`/`cashier_user` are full persistent accounts (name, phone, PIN/password) created once by the owner and reused via normal login — not re-registered per shift (D-27).
-- **R-5**: `superadmin` has cross-shop access for support/debugging; every superadmin action is written to the audit log and visible to the affected shop's owner (D-28, R-16).
+- **R-5**: `superadmin` has cross-shop access for support/debugging; every superadmin action is written to `admin_logs` and visible to the affected shop's owner (D-28, R-37).
 
 ### Core domain model
 - **R-6**: `Lot` is a first-class entity: a stock receipt event with date, receiving user, and line items+quantities received. Per-SKU stock is derived from lots received minus sold (D-17).
 - **R-7**: Each bottle size of a brand is a separate `Product` record with its own barcode, price, and stock count (D-19).
 - **R-8**: `Invoice` lifecycle: Open cart (mutable) → Finalized+Paid (payment mode recorded, line items immutable) → Void, either pre-signoff (direct) or post-signoff (compensating reversal entry with owner approval) (D-18, D-37).
+- **R-40**: Payment defaults to one mode per invoice, but the payment structure supports an optional split across multiple modes (e.g., part cash + part UPI) when the cashier chooses to use it (D-59).
+- **R-41**: Void remains whole-invoice only — no line-item-level partial returns. A partial return is handled operationally (void the invoice, create a new one for retained items) (D-60).
 - **R-9**: Hard invariants enforced by the system at all times: stock quantity never goes negative; finalized invoice line items are immutable; every invoice line resolves to a real, in-stock product at scan time (D-20).
 - **R-10**: Barcode/SKU identity uses whatever barcode is already printed on the bottle, scanned as-is; manual entry is the fallback when unreadable/absent — no sticker-generation pipeline in v1 (D-7).
 
@@ -45,9 +49,10 @@ A friend's liquor retail shop in Odisha, India needs a system to run its counter
 - **R-13**: Stock decrement at checkout finalize must be concurrency-safe (DB-level locking/transactions) to support 2-3 concurrent billing counters without overselling (D-39, R-9).
 - **R-14**: On connectivity loss, cart-building stays client-side; the finalize call queues locally and retries on reconnect. A queued call that now fails invariant checks (e.g., stock changed) surfaces a clear error to the cashier rather than silently failing or double-selling (D-8, D-29).
 - **R-15**: EOD reconciliation is a manual, staff-triggered action, not a scheduled job; low-stock checking is a background scheduled job (D-32, D-33).
+- **R-44**: EOD sign-off is one shop-wide action covering all concurrent counters' (D-39) sales together for that day, not a per-counter independent sign-off — all counters' rows move into `confirmed_sales` together under one action (D-63).
 
 ### Data and persistence
-- **R-16**: An explicit `audit_log` records user, action, timestamp, and affected record for key actions: lot received, invoice finalized, void requested/approved, superadmin cross-shop access (D-46).
+- **R-16**: ~~Unified `audit_log`~~ **superseded by R-37/R-38** — see Observability below (D-46, D-47).
 - **R-17**: `shop_id` is present on every relevant table from the first migration, even with one shop at launch (D-35, D-3).
 - **R-18**: Two-tier sales storage: a working/"concurrent" table holds the current day's in-progress transactions; on EOD sign-off, that day's rows move into a locked `confirmed_sales` table (D-36).
 - **R-19**: No automatic data deletion — retain indefinitely (D-36).
@@ -57,12 +62,19 @@ A friend's liquor retail shop in Odisha, India needs a system to run its counter
 - **R-21**: Role-based authorization matching R-1 through R-5, enforced server-side, not just hidden in the UI.
 - **R-22**: Per-person login (PIN/password) at the counter, reconciled against D-38's low-literacy constraint — exact login UX (e.g., large PIN pad vs typed password) is an implementation detail to resolve in design, not fixed here.
 
+### Observability
+- **R-37**: Business event logging uses domain-specific tables, not one generic log: `invoicing_logs` (cart opened, item scanned/removed, checkout finalized, void requested/approved — with before/after detail), `stockin_logs` (lot received, quantities, receiving user), and `admin_logs` (superadmin cross-shop access and other cross-cutting actions) (D-47). This is the audit trail underpinning R-5's superadmin visibility and R-8/D-37's void-approval trail.
+- **R-38**: Technical/debug logging (errors, exceptions, request info) uses standard Python structured logging (INFO/WARNING/ERROR) to stdout/file, viewed via the hosting platform's log dashboard (Supabase/Railway) — no separate error-tracking/APM service in v1 (D-48).
+- **R-39**: Business event logs (R-37) and technical/debug logs (R-38) are treated as distinct concerns with different storage and audiences — R-37 is durable product data queryable by the owner/superadmin, R-38 is developer-facing operational tooling (D-49).
+
 ### Frontend / UX
 - **R-23**: The entire UI is designed for low-computer-literacy users: minimize free-text entry (prefer scan/tap/select), large/clear controls, linear step-by-step flows, strong visual (not just textual) feedback for success/error (D-38). This is a first-order constraint across every screen, not just checkout.
 - **R-24**: Checkout screen: scanner-driven, cart shows scanned items with brand/price running total; cashier can remove a wrongly-scanned item before finalize (D-43); one clear "confirm/checkout" action.
 - **R-25**: Lot-receiving screen: receiver scans/enters items and quantities for a new lot.
 - **R-26**: Owner dashboard: EOD totals (sales count, revenue, cash/UPI/card split), low-stock list, void-approval queue.
 - **R-27**: Manual barcode entry is a plain fallback field at both checkout and receiving, per R-10.
+- **R-42**: A bulk product-catalog import screen (CSV/spreadsheet upload of barcode/brand/price/etc.) exists alongside the one-by-one product-creation path, to make initial catalog population practical at D-5's assumed scale (D-61).
+- **R-43**: Checkout produces a PDF invoice, generated after an on-screen preview — no physical receipt-printer hardware integration in v1 (D-62).
 
 ### Failure modes and recovery
 - **R-28**: An in-progress (pre-finalize) cart is not persisted — a crash/power loss loses only the unfinished cart, no data-integrity impact since nothing is committed until finalize (D-42).
@@ -108,6 +120,16 @@ A friend's liquor retail shop in Odisha, India needs a system to run its counter
 | Cart persistence across crash | Not built — unfinished cart is simply lost | D-42 |
 | Exact excise duty structure / GST line format | Placeholder tax line; must be confirmed with Odisha excise rules before ship | D-23 |
 | Distinct product catalog size | Assume several hundred–low thousands of SKUs pending real data | D-5 |
+| Cost/purchase price per lot, profit/margin reporting | Not tracked in v1 | D-50 |
+| Discounts and cash rounding on invoices | Not built — exact sum of listed prices | D-51 |
+| Duplicate barcode handling | DB-level unique constraint, rejected at creation | D-52 |
+| Password/PIN reset flow | Owner resets staff PINs; superadmin resets owner passwords; no email-based reset | D-53 |
+| Database backup/disaster recovery | Rely on hosting platform's (Supabase/Railway) built-in backups | D-54 |
+| Day boundary for EOD (trading past midnight) | Calendar day in IST | D-55 |
+| Concurrent sessions/devices per account | No restriction in v1 | D-56 |
+| Multi-day trend/analytics reporting | Per-day totals only in v1; data retained for future trend views | D-57 |
+| Provisioning a new shop (D-3) | Manual superadmin action, no self-service signup | D-58 |
+| Partial/line-item-level returns | Not built — whole-invoice void only | D-60 |
 
 ## Appendix: Decisions ledger (verbatim)
 
@@ -211,7 +233,15 @@ D-44 | No accounting-software export (e.g., Tally) in v1 -- the app's own EOD/re
 
 D-45 | Hosting/on-call: the dev (superadmin) hosts on Supabase/Railway (D-8) and is the informal on-call contact if the friend's shop's system goes down -- no formal SLA. | A more formal shared-responsibility or uptime-SLA arrangement | User accepted recommendation as reasonable for a friend's-shop-scale v1; can formalize later if this grows to more shops (D-3).
 
-D-46 | Explicit `audit_log` table/feature in v1 scope: records user, action, timestamp, and affected record for key actions (lot received, invoice finalized, void requested/approved, superadmin cross-shop access). Formalizes what D-28 and D-37 already implicitly require. | Relying only on per-table created_by/updated_at fields, no unified log | User accepted recommendation. Makes D-28's owner-visible superadmin access and D-37's void-approval trail straightforward to query/display rather than implicit assumptions.
+D-46 | ~~Explicit unified `audit_log` table~~ **SUPERSEDED by D-47** — replaced with domain-specific log tables instead of one generic table. | Relying only on per-table created_by/updated_at fields, no unified log | User accepted recommendation at the time; later replaced with a more specific structure once "logging details" were grilled further in a follow-up PRD-review pass (D-47).
+
+## From follow-up brainstorm on logging detail (2026-07-06, during Phase 3 PRD review)
+
+D-47 | Business event logging is split into **domain-specific log tables**, not one generic audit_log: `invoicing_logs` (cart opened, item scanned/removed, checkout finalized, void requested/approved — with before/after detail) and `stockin_logs` (lot received, quantities, receiving user). A small `admin_logs` table separately covers cross-cutting/superadmin actions (D-28's cross-shop access visibility). | Single unified audit_log (D-46, now superseded); or domain tables kept alongside a unified log | User: "invoicing_logs + stockin_logs for now" and confirmed domain-specific tables should replace the unified table rather than duplicate alongside it. Purpose-built tables can hold domain-specific fields (e.g., stockin_logs' quantity/brand) naturally and are easier to query per screen (R-24 checkout screen, R-25 receiving screen).
+
+D-48 | Technical/debug logging (errors, exceptions, request info) uses standard Python structured logging (INFO/WARNING/ERROR levels) written to stdout/file, viewed via the hosting platform's (Supabase/Railway, D-8/D-45) built-in log dashboard — no separate error-tracking/APM service (e.g., Sentry) in v1. | Integrating a dedicated third-party error-tracking/APM service | User accepted recommendation. Matches the friend's-shop-scale, solo-dev-operated deployment (D-45) — avoids an extra external service/cost; can upgrade later without changing how the app logs internally.
+
+D-49 | Logging is explicitly split into two distinct concerns going forward: **business event logs** (D-47's invoicing_logs/stockin_logs/admin_logs — durable, queryable, part of the product's audit trail) vs. **technical/debug logs** (D-48's stdout structured logs — operational, for the developer, not shown to shop users). | Treating all logging as one undifferentiated concept | User's original ask ("logging.details") conflated both; clarified via follow-up questions into two purposes that need different storage/visibility (D-47 is product data, D-48 is ops tooling).
 
 ## Open threads carried into Phase 2 (not yet resolved, just surfaced)
 
@@ -222,3 +252,33 @@ D-46 | Explicit `audit_log` table/feature in v1 scope: records user, action, tim
 - ~~"Complete software is v1" definition~~ RESOLVED — frozen feature list (D-41).
 - ~~Low-stock alert threshold definition~~ RESOLVED — per-product configurable with shop-wide default (D-34), background job + in-app notification (D-33).
 - ~~Multi-shop schema decisions~~ RESOLVED — shop_id on every table from day one (D-35).
+
+## From Phase 4 absence hunt (2026-07-06)
+
+D-50 | Cost/purchase price per lot and profit/margin reporting are **not tracked in v1** — Lot records received quantity only, no cost-price field. | Adding a cost-price field to Lot now for margin reporting | Absence hunt found this was never discussed despite D-12's "competitively good" bar. Simplest default: defer; revisit if profit reporting is explicitly wanted later.
+
+D-51 | No discount field and no cash-rounding logic in v1 — invoice total is the exact sum of scanned line items at listed price. | Building discount/rounding support now | Absence hunt finding; never discussed, no evidence it's needed yet.
+
+D-52 | Barcode is a unique constraint at the database level; creating a second product with an existing barcode is rejected with an error at creation time. | Allowing duplicate barcodes / silent overwrite | Absence hunt finding. Straightforward correctness default, consistent with D-20's invariant-enforcement pattern.
+
+D-53 | No self-service password/PIN reset in v1: owner resets a receiver/cashier's PIN from their own dashboard (per D-27's owner-creates-accounts model); superadmin resets an owner's password. No email-based reset flow. | Email-based self-service password reset | Absence hunt finding. No email requirement was ever established for staff accounts, so email-based reset isn't available data; the owner/superadmin reset path fits the existing account-creation model.
+
+D-54 | Database backup/disaster-recovery relies on the hosting platform's (Supabase/Railway, D-8/D-45) built-in backup features at whatever tier is provisioned — no custom backup pipeline in v1. | Building a custom backup/export pipeline | Absence hunt finding. D-36 established indefinite retention but not backup cadence against a platform incident; deferring to the platform's own tooling is the simplest safe default at this scale.
+
+D-55 | A "day" for EOD purposes (D-32, D-36) is a calendar day in IST; a shop trading past midnight signs off covering only up to sign-off time, with the next day starting fresh at the next sign-off. | Modeling a shop-defined "business day" that can span past midnight | Absence hunt finding; never discussed. Revisit only if the friend's shop's actual hours make this a real problem.
+
+D-56 | No restriction on concurrent sessions/devices per account in v1 — a login can be active on multiple devices simultaneously. | Enforcing single-session-per-account | Absence hunt finding. Not a realistic risk at this shop's scale; simplest default is no restriction.
+
+D-57 | v1 dashboard reporting (R-26) shows per-day totals only, queryable by date (data is retained indefinitely per D-36/R-19); multi-day trend views/charts (weekly/monthly, brand-wise analytics) are a named v1.1 candidate, not built now. | Building multi-day trend/analytics views now | Absence hunt finding. D-12's "competitively good" bar gestures at this but nothing in the frozen PRD required it; per-day data being retained means it can be added later without a data migration.
+
+D-58 | Provisioning a new shop (D-3/D-35) is a manual superadmin action (creating the shop row and its first owner account directly) — no self-service shop-signup flow in v1. | Building a self-service "add a new shop" onboarding flow | Absence hunt finding. Consistent with D-45's informal, dev-operated deployment model at this scale.
+
+D-59 | Payment mode defaults to one-per-invoice, but the invoice payment structure supports optionally splitting across multiple modes (e.g., part cash + part UPI) when the cashier chooses to. Not a forced multi-line entry for every sale -- single-mode is the fast/default path, multi-mode is an available option. | Strictly one mode per invoice, no split-payment path at all | User: "by default one choice, but option to choose multi-modes to address this." Extends D-15/D-40's payment recording to a payment-lines structure (one or more rows per invoice) rather than a single field, but the common case (one mode) stays as simple as before.
+
+D-60 | Void remains whole-invoice only (per D-18/D-37) — no partial/line-item-level returns in v1. A partial return is handled operationally as: void the whole invoice, then create a new invoice for the retained items. | Building line-item-level partial return/reversal support | User accepted recommendation. Keeps the void model exactly as already frozen (D-18/D-37), no new data-model complexity.
+
+D-61 | Bulk product catalog import (CSV/spreadsheet upload of barcode/brand/price/etc.) is in v1 scope, alongside the one-by-one product-creation path (R-7/R-10/R-27). | One-by-one product entry only, no bulk import | User accepted recommendation. Given D-5's assumed catalog size (hundreds-low-thousands of SKUs), one-by-one entry would be a real launch blocker; this is now part of the v1 feature set, not deferred.
+
+D-62 | Checkout produces a **PDF invoice**, generated after an on-screen preview — no physical receipt-printer/thermal-printer hardware integration in v1. | On-screen only (no PDF/printing at all); or physical receipt-printer integration | User: "pdf will be generated, after onscreen preview." Middle ground between the two originally offered options — avoids printer-hardware integration scope while still giving a durable, shareable/printable document beyond just an on-screen view.
+
+D-63 | End-of-day sign-off (D-32/D-36) is **one shop-wide action** covering all concurrent counters' (D-39) sales together for that day — not a per-counter independent sign-off. All counters' rows for the day move into `confirmed_sales` together under one EOD action. | Each counter/cashier signing off independently | User accepted recommendation. Matches the original reconciliation goal as a single daily total; keeps D-36's two-tier storage model as a single day-granularity lock, not needing a per-counter dimension.
