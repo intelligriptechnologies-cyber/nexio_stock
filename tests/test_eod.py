@@ -1,0 +1,374 @@
+"""EOD sign-off + dashboard tests (R-26, R-44, D-32, D-36, D-63)."""
+from __future__ import annotations
+
+import uuid
+from datetime import date, timedelta
+
+import pytest
+from httpx import AsyncClient
+from sqlalchemy import select
+
+from app.models.invoice import EodSignOff, Invoice
+
+# --- helpers ---
+
+
+async def _seed_product(client: AsyncClient, barcode: str) -> None:
+    resp = await client.post(
+        "/products",
+        json={"barcode": barcode, "brand": "X", "size_label": "750ml", "price": "100.00"},
+    )
+    assert resp.status_code == 201, resp.text
+
+
+async def _seed_lot(
+    receiver_client: AsyncClient, *, items: list[tuple[str, int]]
+) -> None:
+    resp = await receiver_client.post(
+        "/lots",
+        json={"lines": [{"barcode": bc, "quantity": q} for bc, q in items]},
+    )
+    assert resp.status_code == 201
+
+
+async def _finalize(
+    cashier_client: AsyncClient,
+    *,
+    barcode: str,
+    quantity: int,
+    amount: str,
+    mode: str = "cash",
+) -> dict:
+    resp = await cashier_client.post(
+        "/checkout/finalize",
+        headers={"Idempotency-Key": f"k-{uuid.uuid4().hex}"},
+        json={
+            "lines": [{"barcode": barcode, "quantity": quantity}],
+            "payments": [{"mode": mode, "amount": amount}],
+        },
+    )
+    assert resp.status_code == 201, resp.text
+    return resp.json()["invoice"]
+
+
+# --- sign-off happy path ---
+
+
+@pytest.mark.usefixtures("owner", "receiver", "cashier")
+async def test_owner_signs_off_today(
+    owner_client: AsyncClient,
+    receiver_client: AsyncClient,
+    cashier_client: AsyncClient,
+) -> None:
+    await _seed_product(owner_client, "8903000000001")
+    await _seed_lot(receiver_client, items=[("8903000000001", 5)])
+    await _finalize(cashier_client, barcode="8903000000001", quantity=1, amount="100.00")
+    await _finalize(
+        cashier_client, barcode="8903000000001", quantity=2, amount="200.00", mode="upi"
+    )
+
+    today = date.today()
+    resp = await owner_client.post(
+        "/dashboard/eod/sign-off", json={"business_date": today.isoformat()}
+    )
+    assert resp.status_code == 201, resp.text
+    body = resp.json()
+    assert body["invoices_signed_off"] == 2
+
+
+@pytest.mark.usefixtures("owner", "receiver", "cashier")
+async def test_double_sign_off_returns_409(
+    owner_client: AsyncClient,
+    receiver_client: AsyncClient,
+    cashier_client: AsyncClient,
+) -> None:
+    await _seed_product(owner_client, "8903000000002")
+    await _seed_lot(receiver_client, items=[("8903000000002", 5)])
+    await _finalize(cashier_client, barcode="8903000000002", quantity=1, amount="100.00")
+
+    today = date.today().isoformat()
+    first = await owner_client.post(
+        "/dashboard/eod/sign-off", json={"business_date": today}
+    )
+    assert first.status_code == 201
+    second = await owner_client.post(
+        "/dashboard/eod/sign-off", json={"business_date": today}
+    )
+    assert second.status_code == 409
+    assert second.json()["detail"]["code"] == "already_signed_off"
+
+
+@pytest.mark.usefixtures("owner", "receiver", "cashier")
+async def test_future_date_rejected(
+    owner_client: AsyncClient,
+) -> None:
+    future = (date.today() + timedelta(days=2)).isoformat()
+    resp = await owner_client.post(
+        "/dashboard/eod/sign-off", json={"business_date": future}
+    )
+    assert resp.status_code == 400
+    assert resp.json()["detail"]["code"] == "future_date"
+
+
+@pytest.mark.usefixtures("owner", "receiver", "cashier")
+async def test_cashier_cannot_sign_off(cashier_client: AsyncClient) -> None:
+    today = date.today().isoformat()
+    resp = await cashier_client.post(
+        "/dashboard/eod/sign-off", json={"business_date": today}
+    )
+    assert resp.status_code == 403
+
+
+# --- the post-EOD checkout gate ---
+
+
+@pytest.mark.usefixtures("owner", "receiver", "cashier")
+async def test_checkout_rejected_after_eod_sign_off(
+    owner_client: AsyncClient,
+    receiver_client: AsyncClient,
+    cashier_client: AsyncClient,
+) -> None:
+    await _seed_product(owner_client, "8903000000003")
+    await _seed_lot(receiver_client, items=[("8903000000003", 5)])
+    # Sign off the day.
+    today = date.today().isoformat()
+    so = await owner_client.post(
+        "/dashboard/eod/sign-off", json={"business_date": today}
+    )
+    assert so.status_code == 201
+
+    # Now a finalize attempt must fail.
+    resp = await cashier_client.post(
+        "/checkout/finalize",
+        headers={"Idempotency-Key": f"k-{uuid.uuid4().hex}"},
+        json={
+            "lines": [{"barcode": "8903000000003", "quantity": 1}],
+            "payments": [{"mode": "cash", "amount": "100.00"}],
+        },
+    )
+    assert resp.status_code == 409
+    assert resp.json()["detail"]["code"] == "eod_signed_off"
+
+
+# --- totals / dashboard ---
+
+
+@pytest.mark.usefixtures("owner", "receiver", "cashier")
+async def test_eod_totals_for_signed_off_day(
+    owner_client: AsyncClient,
+    receiver_client: AsyncClient,
+    cashier_client: AsyncClient,
+) -> None:
+    await _seed_product(owner_client, "8903000000004")
+    await _seed_lot(receiver_client, items=[("8903000000004", 5)])
+    await _finalize(cashier_client, barcode="8903000000004", quantity=1, amount="100.00", mode="cash")
+    await _finalize(cashier_client, barcode="8903000000004", quantity=1, amount="100.00", mode="upi")
+
+    today = date.today().isoformat()
+    so = await owner_client.post(
+        "/dashboard/eod/sign-off", json={"business_date": today}
+    )
+    assert so.status_code == 201
+
+    totals = await owner_client.get(
+        "/dashboard/eod-totals", params={"business_date": today}
+    )
+    assert totals.status_code == 200
+    body = totals.json()
+    assert body["signed_off"] is True
+    assert body["invoice_count"] == 2
+    assert body["revenue"] == "200.00"
+    modes = {p["mode"]: p["amount"] for p in body["payments_by_mode"]}
+    assert modes == {"cash": "100.00", "upi": "100.00"}
+
+
+@pytest.mark.usefixtures("owner", "receiver", "cashier")
+async def test_eod_totals_for_unsigned_day_returns_zero_signed_off_false(
+    owner_client: AsyncClient,
+    receiver_client: AsyncClient,
+    cashier_client: AsyncClient,
+) -> None:
+    await _seed_product(owner_client, "8903000000005")
+    await _seed_lot(receiver_client, items=[("8903000000005", 5)])
+    await _finalize(cashier_client, barcode="8903000000005", quantity=1, amount="100.00")
+
+    # Don't sign off; query totals for today.
+    today = date.today().isoformat()
+    totals = await owner_client.get(
+        "/dashboard/eod-totals", params={"business_date": today}
+    )
+    body = totals.json()
+    assert body["signed_off"] is False
+    # Revenue/invoice_count still reflect the day's activity.
+    assert body["invoice_count"] == 1
+    assert body["revenue"] == "100.00"
+
+
+@pytest.mark.usefixtures("owner", "receiver", "cashier")
+async def test_eod_totals_excludes_voided_and_reversal_from_revenue(
+    owner_client: AsyncClient,
+    receiver_client: AsyncClient,
+    cashier_client: AsyncClient,
+    db_session,
+) -> None:
+    """A direct-voided invoice should not contribute to the day's
+    revenue, and a REVERSAL row should net out."""
+    await _seed_product(owner_client, "8903000000006")
+    await _seed_lot(receiver_client, items=[("8903000000006", 5)])
+    inv1 = await _finalize(cashier_client, barcode="8903000000006", quantity=1, amount="100.00")
+    await _finalize(cashier_client, barcode="8903000000006", quantity=1, amount="100.00")
+    # Direct-void the first.
+    await cashier_client.post(f"/invoices/{inv1['id']}/void")
+
+    today = date.today().isoformat()
+    await owner_client.post(
+        "/dashboard/eod/sign-off", json={"business_date": today}
+    )
+
+    totals = await owner_client.get(
+        "/dashboard/eod-totals", params={"business_date": today}
+    )
+    body = totals.json()
+    # Only the un-voided invoice counts.
+    assert body["invoice_count"] == 1
+    assert body["revenue"] == "100.00"
+    assert body["voided_count"] == 1
+    assert body["reversal_count"] == 0
+
+
+# --- history ---
+
+
+@pytest.mark.usefixtures("owner", "receiver", "cashier")
+async def test_eod_history_lists_signoffs_in_descending_order(
+    owner_client: AsyncClient,
+    receiver_client: AsyncClient,
+    cashier_client: AsyncClient,
+) -> None:
+    await _seed_product(owner_client, "8903000000007")
+    await _seed_lot(receiver_client, items=[("8903000000007", 5)])
+    await _finalize(cashier_client, barcode="8903000000007", quantity=1, amount="100.00")
+
+    today = date.today().isoformat()
+    yesterday = (date.today() - timedelta(days=1)).isoformat()
+    await owner_client.post(
+        "/dashboard/eod/sign-off", json={"business_date": yesterday}
+    )
+    await owner_client.post(
+        "/dashboard/eod/sign-off", json={"business_date": today}
+    )
+
+    h = await owner_client.get("/dashboard/eod-history")
+    assert h.status_code == 200
+    body = h.json()
+    assert len(body["signoffs"]) == 2
+    # Descending by business_date.
+    assert body["signoffs"][0]["business_date"].startswith(today)
+    assert body["signoffs"][1]["business_date"].startswith(yesterday)
+
+
+@pytest.mark.usefixtures("owner", "receiver", "cashier")
+async def test_eod_history_filters_by_date_range(
+    owner_client: AsyncClient,
+    receiver_client: AsyncClient,
+    cashier_client: AsyncClient,
+) -> None:
+    await _seed_product(owner_client, "8903000000008")
+    await _seed_lot(receiver_client, items=[("8903000000008", 5)])
+    await _finalize(cashier_client, barcode="8903000000008", quantity=1, amount="100.00")
+
+    today = date.today()
+    two_days_ago = today - timedelta(days=2)
+    five_days_ago = today - timedelta(days=5)
+
+    for d in (five_days_ago, two_days_ago, today):
+        await owner_client.post(
+            "/dashboard/eod/sign-off", json={"business_date": d.isoformat()}
+        )
+
+    h = await owner_client.get(
+        "/dashboard/eod-history",
+        params={
+            "from_date": (today - timedelta(days=3)).isoformat(),
+            "to_date": today.isoformat(),
+        },
+    )
+    body = h.json()
+    dates = [s["business_date"][:10] for s in body["signoffs"]]
+    # Only today and two_days_ago; the 5-days-ago entry is filtered out.
+    assert two_days_ago.isoformat() in dates
+    assert today.isoformat() in dates
+    assert five_days_ago.isoformat() not in dates
+
+
+# --- void queue ---
+
+
+@pytest.mark.usefixtures("owner", "receiver", "cashier")
+async def test_void_queue_lists_pending_invoices(
+    cashier_client: AsyncClient,
+    owner_client: AsyncClient,
+    receiver_client: AsyncClient,
+    db_session,
+) -> None:
+    await _seed_product(owner_client, "8903000000009")
+    await _seed_lot(receiver_client, items=[("8903000000009", 5)])
+    inv = await _finalize(cashier_client, barcode="8903000000009", quantity=1, amount="100.00")
+    # Mark signed-off + request void to make it PENDING_VOID.
+    inv_row = (
+        await db_session.execute(select(Invoice).where(Invoice.id == inv["id"]))
+    ).scalar_one()
+    inv_row.eod_signed_off = True
+    await db_session.commit()
+    await cashier_client.post(f"/invoices/{inv['id']}/void")
+
+    q = await owner_client.get("/dashboard/void-queue")
+    assert q.status_code == 200
+    body = q.json()
+    assert len(body["invoices"]) == 1
+    assert body["invoices"][0]["id"] == inv["id"]
+    assert body["invoices"][0]["status"] == "pending_void"
+
+
+@pytest.mark.usefixtures("owner", "receiver", "cashier")
+async def test_void_queue_excludes_resolved_voids(
+    cashier_client: AsyncClient,
+    owner_client: AsyncClient,
+    receiver_client: AsyncClient,
+    db_session,
+) -> None:
+    await _seed_product(owner_client, "8903000000010")
+    await _seed_lot(receiver_client, items=[("8903000000010", 5)])
+    inv = await _finalize(cashier_client, barcode="8903000000010", quantity=1, amount="100.00")
+    inv_row = (
+        await db_session.execute(select(Invoice).where(Invoice.id == inv["id"]))
+    ).scalar_one()
+    inv_row.eod_signed_off = True
+    await db_session.commit()
+    await cashier_client.post(f"/invoices/{inv['id']}/void")
+    # Approve it — it should leave the queue.
+    await owner_client.post(f"/invoices/{inv['id']}/void/approve")
+
+    q = await owner_client.get("/dashboard/void-queue")
+    assert q.json()["invoices"] == []
+
+
+# --- eod_signoffs table ---
+
+
+@pytest.mark.usefixtures("owner", "receiver", "cashier")
+async def test_eod_signoff_record_persists(
+    owner_client: AsyncClient,
+    receiver_client: AsyncClient,
+    cashier_client: AsyncClient,
+    db_session,
+) -> None:
+    await _seed_product(owner_client, "8903000000011")
+    await _seed_lot(receiver_client, items=[("8903000000011", 5)])
+    await _finalize(cashier_client, barcode="8903000000011", quantity=1, amount="100.00")
+    await owner_client.post(
+        "/dashboard/eod/sign-off", json={"business_date": date.today().isoformat()}
+    )
+    rows = (await db_session.execute(select(EodSignOff))).scalars().all()
+    assert len(rows) == 1
+    assert rows[0].invoices_signed_off == 1

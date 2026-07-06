@@ -76,6 +76,11 @@ def _error_to_http(exc: CheckoutError) -> HTTPException:
             status_code=status.HTTP_400_BAD_REQUEST,
             detail={"code": code, "message": exc.message},
         )
+    if code == "eod_signed_off":
+        return HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail={"code": code, "message": exc.message},
+        )
     # Fallback — surface as 500, but log the unmapped code so we can
     # tighten the mapping later.
     log.error("checkout.unmapped_error_code", code=code, message=exc.message)

@@ -20,11 +20,13 @@ get distinct numbers.
 from __future__ import annotations
 
 import enum
+from datetime import date as date_cls
 from datetime import datetime
 from decimal import Decimal
 from typing import TYPE_CHECKING
 
 from sqlalchemy import (
+    Date,
     DateTime,
     Enum,
     ForeignKey,
@@ -86,9 +88,17 @@ class Invoice(Base):
     finalized_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )
-    # #6 will flip this true on EOD sign-off.
+    # #6 flips this true on EOD sign-off. The exact UTC timestamp and
+    # the owner who signed off are recorded for audit (R-26).
     eod_signed_off: Mapped[bool] = mapped_column(
         nullable=False, default=False, server_default="false"
+    )
+    eod_signed_off_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+    eod_signed_off_by_user_id: Mapped[int | None] = mapped_column(
+        ForeignKey("users.id", ondelete="set null"),
+        nullable=True,
     )
     # A short free-form note the cashier can attach (rare). Optional.
     note: Mapped[str | None] = mapped_column(String(200), nullable=True)
@@ -183,6 +193,47 @@ class Payment(Base):
     amount: Mapped[Decimal] = mapped_column(Numeric(12, 2), nullable=False)
 
     invoice: Mapped[Invoice] = relationship(back_populates="payments")
+
+
+class EodSignOff(Base):
+    """One row per EOD sign-off action (R-44, D-32, D-36, D-63).
+
+    Records that the owner marked the day `business_date` as closed.
+    The set of invoices signed off by this action are all rows in
+    `invoices` whose `eod_signed_off_at` matches this sign-off's
+    timestamp, scoped to the same shop and business_date.
+
+    The dashboard reads from this table to render the sign-off
+    history ("which days have I closed out?") rather than scanning
+    `invoices.eod_signed_off_at`, which is more natural for the
+    end-of-day action log shape.
+    """
+
+    __tablename__ = "eod_signoffs"
+    __table_args__ = (
+        UniqueConstraint("shop_id", "business_date", name="uq_eod_signoffs_shop_date"),
+    )
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    shop_id: Mapped[int] = mapped_column(
+        ForeignKey("shops.id", ondelete="restrict"),
+        nullable=False,
+    )
+    # The calendar day (in the shop's local timezone — IST for v1, D-55)
+    # that this sign-off covers. Stored as a Date so range queries and
+    # equality checks are unambiguous (no timezone / DST fuzziness).
+    business_date: Mapped[date_cls] = mapped_column(Date, nullable=False)
+    signed_off_by_user_id: Mapped[int] = mapped_column(
+        ForeignKey("users.id", ondelete="restrict"),
+        nullable=False,
+    )
+    signed_off_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+    invoices_signed_off: Mapped[int] = mapped_column(
+        Integer, nullable=False, default=0
+    )
+    notes: Mapped[str | None] = mapped_column(String(500), nullable=True)
 
 
 class IdempotencyKey(Base):

@@ -25,6 +25,7 @@ from __future__ import annotations
 
 from collections.abc import Iterable
 from dataclasses import dataclass
+from datetime import UTC, datetime
 from decimal import Decimal
 from typing import NamedTuple
 
@@ -92,6 +93,20 @@ def _check_idempotency_key_present(key: str | None) -> str:
     if len(k) > 80:
         raise CheckoutError("idempotency_key_too_long", "Idempotency-Key max length is 80")
     return k
+
+async def _is_today_signed_off(db: AsyncSession, *, shop_id: int) -> bool:
+    """True if the shop has an EodSignOff for today's calendar date
+    (in the server's local time — see D-55)."""
+    from app.models.invoice import EodSignOff
+
+    today = datetime.now(UTC).astimezone().date()
+    rows = await db.execute(
+        select(EodSignOff.id).where(
+            EodSignOff.shop_id == shop_id,
+            EodSignOff.business_date == today,
+        )
+    )
+    return rows.first() is not None
 
 
 async def _resolve_products_for_cart(
@@ -237,6 +252,18 @@ async def finalize_checkout(
     total_paid = sum((p.amount for p in payments), Decimal("0"))
     if total_paid <= 0:
         raise CheckoutError("zero_payment", "payment total must be > 0")
+
+    # 0. EOD gate (#6): if today is already EOD-signed-off for this
+    #    shop, refuse — the cashier can't add invoices to a closed
+    #    day. We check BEFORE the idempotency replay so a retried
+    #    finalize from a signed-off day also fails (the user needs
+    #    to unsign the day or use a new idempotency key on a new day).
+    if await _is_today_signed_off(db, shop_id=shop_id):
+        raise CheckoutError(
+            "eod_signed_off",
+            "today is already EOD-signed-off for this shop; no further "
+            "checkouts are allowed",
+        )
 
     # 1. Idempotency replay — if a prior call stored this key, return
     #    the same invoice. We check BEFORE doing any work, so a retry

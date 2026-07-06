@@ -1,0 +1,190 @@
+"""Owner dashboard — EOD totals, sign-off history, void queue (R-26).
+
+Owner + superadmin only for the EOD actions; the read-only totals
+endpoints are also open to receiver (so they can see "today is
+closed" on the receiving screen) and cashier (so the checkout
+screen can show "today is closed, you can't ring up more sales").
+"""
+from __future__ import annotations
+
+from datetime import date as date_cls
+from typing import Annotated
+
+from fastapi import APIRouter, Depends, HTTPException, Query, status
+
+from app.api.deps import DbSession, require_role
+from app.logging_config import get_logger
+from app.models.user import User, UserRole
+from app.schemas.eod import (
+    EodTotalsResponse,
+    PaymentModeTotal,
+    PendingVoidResponse,
+    SignOffHistoryResponse,
+    SignOffRequest,
+    SignOffResponse,
+)
+from app.services.eod import (
+    EodError,
+    get_day_totals,
+    list_pending_voids,
+    list_signoff_history,
+    sign_off_day,
+)
+
+router = APIRouter(prefix="/dashboard", tags=["dashboard"])
+log = get_logger(__name__)
+
+_owner_only = (UserRole.OWNER,)
+_read_roles = (UserRole.OWNER, UserRole.RECEIVER_USER, UserRole.CASHIER_USER, UserRole.SUPERADMIN)
+
+
+def _error_to_http(exc: EodError) -> HTTPException:
+    if exc.code == "already_signed_off":
+        return HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail={"code": exc.code, "message": exc.message},
+        )
+    if exc.code in ("future_date",):
+        return HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail={"code": exc.code, "message": exc.message},
+        )
+    log.error("eod.unmapped_error_code", code=exc.code, message=exc.message)
+    return HTTPException(
+        status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        detail={"code": exc.code, "message": exc.message},
+    )
+
+
+@router.post(
+    "/eod/sign-off",
+    response_model=SignOffResponse,
+    status_code=status.HTTP_201_CREATED,
+    summary="Owner marks a business date as closed (R-44, D-32, D-63)",
+)
+async def sign_off(
+    payload: SignOffRequest,
+    db: DbSession,
+    _user: User = Depends(require_role(*_owner_only)),
+) -> SignOffResponse:
+    actor_id = _user.id
+    actor_shop_id = _user.shop_id
+
+    try:
+        result = await sign_off_day(
+            db,
+            shop_id=actor_shop_id,
+            business_date=payload.business_date,
+            signed_off_by_user_id=actor_id,
+            notes=payload.notes,
+        )
+    except EodError as exc:
+        await db.rollback()
+        raise _error_to_http(exc) from exc
+
+    await db.commit()
+    log.info(
+        "eod.signed_off",
+        actor_user_id=actor_id,
+        shop_id=actor_shop_id,
+        business_date=payload.business_date.isoformat(),
+        invoices_signed_off=result.invoices_signed_off,
+    )
+    return SignOffResponse(
+        business_date=result.sign_off.business_date,
+        signed_off_at=result.sign_off.signed_off_at,
+        signed_off_by_user_id=result.sign_off.signed_off_by_user_id,
+        invoices_signed_off=result.invoices_signed_off,
+    )
+
+
+@router.get(
+    "/eod-totals",
+    response_model=EodTotalsResponse,
+    summary="Aggregate revenue + payment-mode split for a business date",
+)
+async def eod_totals(
+    db: DbSession,
+    _user: User = Depends(require_role(*_read_roles)),
+    business_date: Annotated[
+        date_cls,
+        Query(description="Calendar date in the shop's local timezone (IST for v1)"),
+    ] = ...,
+) -> EodTotalsResponse:
+    totals = await get_day_totals(
+        db, shop_id=_user.shop_id, business_date=business_date
+    )
+    return EodTotalsResponse(
+        business_date=totals.business_date,
+        signed_off=totals.signed_off,
+        invoice_count=totals.invoice_count,
+        revenue=totals.revenue,
+        voided_count=totals.voided_count,
+        reversal_count=totals.reversal_count,
+        payments_by_mode=[
+            PaymentModeTotal(mode=mode, amount=amount)
+            for mode, amount in sorted(totals.payments_by_mode.items())
+        ],
+    )
+
+
+@router.get(
+    "/eod-history",
+    response_model=SignOffHistoryResponse,
+    summary="List past EOD sign-offs (R-19: data retained indefinitely)",
+)
+async def eod_history(
+    db: DbSession,
+    _user: User = Depends(require_role(*_read_roles)),
+    from_date: Annotated[date_cls | None, Query()] = None,
+    to_date: Annotated[date_cls | None, Query()] = None,
+    limit: Annotated[int, Query(ge=1, le=365)] = 90,
+) -> SignOffHistoryResponse:
+    rows = await list_signoff_history(
+        db,
+        shop_id=_user.shop_id,
+        from_date=from_date,
+        to_date=to_date,
+        limit=limit,
+    )
+    return SignOffHistoryResponse(
+        signoffs=[
+            SignOffResponse(
+                business_date=row.business_date,
+                signed_off_at=row.signed_off_at,
+                signed_off_by_user_id=row.signed_off_by_user_id,
+                invoices_signed_off=row.invoices_signed_off,
+            )
+            for row in rows
+        ]
+    )
+
+
+@router.get(
+    "/void-queue",
+    response_model=PendingVoidResponse,
+    summary="Invoices awaiting owner approval/rejection of a post-EOD void",
+)
+async def void_queue(
+    db: DbSession,
+    _user: User = Depends(require_role(*_read_roles)),
+    limit: Annotated[int, Query(ge=1, le=200)] = 50,
+) -> PendingVoidResponse:
+    rows = await list_pending_voids(
+        db, shop_id=_user.shop_id, limit=limit
+    )
+    # Eager-load the lines for the response shape.
+    if rows:
+        await db.refresh(rows[0], attribute_names=["lines"])
+        # Refresh the rest individually. (Bulk selectinload is
+        # cleaner, but the list is small.)
+        for r in rows[1:]:
+            await db.refresh(r, attribute_names=["lines"])
+
+    from app.schemas.checkout import InvoicePublic
+
+    invoices: list[InvoicePublic] = []
+    for r in rows:
+        await db.refresh(r, attribute_names=["payments"])
+        invoices.append(InvoicePublic.model_validate(r))
+    return PendingVoidResponse(invoices=invoices)

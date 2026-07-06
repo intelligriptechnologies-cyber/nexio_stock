@@ -7,6 +7,7 @@ shop exists at launch (D-3).
 from __future__ import annotations
 
 from app.models.invoice import (
+    EodSignOff,
     IdempotencyKey,
     Invoice,
     InvoiceLine,
@@ -22,6 +23,7 @@ from app.models.user import User, UserRole
 
 __all__ = [
     "AdminLog",
+    "EodSignOff",
     "IdempotencyKey",
     "Invoice",
     "InvoiceLine",
