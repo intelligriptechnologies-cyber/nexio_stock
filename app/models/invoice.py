@@ -52,6 +52,21 @@ class InvoiceStatus(str, enum.Enum):
     PENDING_VOID = "pending_void"  # post-EOD, owner approval requested (#5)
 
 
+# Module-level constant for the statuses that count as "sold" in the
+# stock-derivation and revenue-aggregation queries. The set is the
+# single source of truth — checkout's _current_stock_for, the
+# dashboard's get_day_totals, and #7's low-stock query all filter
+# against it. Currently {FINALIZED} — a single-element set. If you
+# add a new status that should count (e.g. a "RETURNED" status that
+# nets out instead of fully reverses), add it here AND update the
+# queries that consume this set.
+#
+# Lives at module level (not on the InvoiceStatus class) because
+# `InvoiceStatus(str, enum.Enum)` coerces any plain class attribute
+# to a string at class-construction time.
+STATUSES_COUNTING_AS_SOLD: frozenset[InvoiceStatus] = frozenset({InvoiceStatus.FINALIZED})
+
+
 class PaymentMode(str, enum.Enum):
     CASH = "cash"
     UPI = "upi"

@@ -16,6 +16,7 @@ from sqlalchemy import select
 from sqlalchemy.dialects.postgresql.asyncpg import AsyncAdapt_asyncpg_dbapi
 from sqlalchemy.exc import IntegrityError
 
+from app.api._errors import is_unique_violation
 from app.api.deps import DbSession, require_role
 from app.logging_config import get_logger
 from app.models.user import User, UserRole
@@ -26,26 +27,7 @@ router = APIRouter(prefix="/staff", tags=["staff"])
 log = get_logger(__name__)
 
 
-def _is_unique_violation(exc: BaseException) -> bool:
-    """True if `exc` (or any exception in its __cause__ chain) is a
-    Postgres UNIQUE constraint violation.
 
-    SQLAlchemy 2.0 async + asyncpg can surface this as any of:
-      - sqlalchemy.exc.IntegrityError
-      - sqlalchemy.dialects.postgresql.asyncpg.AsyncAdapt_asyncpg_dbapi.IntegrityError
-      - asyncpg.exceptions.UniqueViolationError (via __cause__)
-    """
-    seen: set[int] = set()
-    cur: BaseException | None = exc
-    while cur is not None and id(cur) not in seen:
-        seen.add(id(cur))
-        cls = type(cur).__name__
-        if cls == "UniqueViolationError":
-            return True
-        if isinstance(cur, (IntegrityError, AsyncAdapt_asyncpg_dbapi.IntegrityError)):
-            return True
-        cur = cur.__cause__
-    return False
 
 
 @router.post(
@@ -96,7 +78,7 @@ async def create_staff(
     except (IntegrityError, AsyncAdapt_asyncpg_dbapi.IntegrityError) as exc:
         # asyncpg's UniqueViolationError surfaces as either class depending
         # on the SQLAlchemy version and code path. Map both to 409.
-        if _is_unique_violation(exc):
+        if is_unique_violation(exc):
             log.info(
                 "staff.created.duplicate",
                 shop_id=actor_shop_id,

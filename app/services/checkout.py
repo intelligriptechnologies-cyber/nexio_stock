@@ -33,6 +33,7 @@ from sqlalchemy import func, literal, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.invoice import (
+    STATUSES_COUNTING_AS_SOLD,
     IdempotencyKey,
     Invoice,
     InvoiceLine,
@@ -161,13 +162,15 @@ async def _current_stock_for(
         .group_by(LotLine.product_id)
         .subquery()
     )
-    # A line is "sold" only if its parent invoice is FINALIZED.
-    # VOIDED invoices had their sale undone (direct void, pre-EOD).
-    # REVERSAL invoices are the compensating entries that
-    # effect that undoing on the post-EOD side — they explicitly
-    # don't count as sales themselves.
-    # PENDING_VOID invoices are still FINALIZED in confirmed_sales
-    # until owner approval; they DO still count, until approved.
+    # A line counts as "sold" only if its parent invoice is in a
+    # status listed in `STATUSES_COUNTING_AS_SOLD` (module-level
+    # constant in app.models.invoice). That set is the single source
+    # of truth — the dashboard's revenue query and #7's low-stock
+    # query filter against the same set. Currently a single-element
+    # set, so we use `==` rather than `IN (...)` to keep the SQL
+    # conventional and avoid SQLAlchemy's IN-clause quirks on a
+    # one-element tuple.
+    assert frozenset({InvoiceStatus.FINALIZED}) == STATUSES_COUNTING_AS_SOLD
     sold_subq = (
         select(
             InvoiceLine.product_id.label("product_id"),

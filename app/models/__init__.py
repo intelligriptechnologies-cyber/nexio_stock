@@ -7,6 +7,7 @@ shop exists at launch (D-3).
 from __future__ import annotations
 
 from app.models.invoice import (
+    STATUSES_COUNTING_AS_SOLD,
     EodSignOff,
     IdempotencyKey,
     Invoice,
@@ -22,6 +23,7 @@ from app.models.shop import Shop
 from app.models.user import User, UserRole
 
 __all__ = [
+    "STATUSES_COUNTING_AS_SOLD",
     "AdminLog",
     "EodSignOff",
     "IdempotencyKey",

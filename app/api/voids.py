@@ -42,32 +42,26 @@ _request_void_roles = (UserRole.CASHIER_USER, UserRole.OWNER)
 _owner_only = (UserRole.OWNER,)
 
 
+_VOID_CODE_TO_STATUS: dict[str, int] = {
+    "not_found": status.HTTP_404_NOT_FOUND,
+    "already_voided": status.HTTP_409_CONFLICT,
+    "is_reversal": status.HTTP_409_CONFLICT,
+    "already_pending": status.HTTP_409_CONFLICT,
+    "not_pending": status.HTTP_409_CONFLICT,
+    "use_direct_void": status.HTTP_409_CONFLICT,
+    "post_eod_requires_approval": status.HTTP_409_CONFLICT,
+    "not_signed_off": status.HTTP_409_CONFLICT,
+    "bad_status": status.HTTP_409_CONFLICT,
+}
+
+
 def _error_to_http(exc: VoidError) -> HTTPException:
-    code = exc.code
-    if code == "not_found":
-        return HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail={"code": code, "message": exc.message},
-        )
-    if code in (
-        "already_voided",
-        "is_reversal",
-        "already_pending",
-        "not_pending",
-        "use_direct_void",
-        "post_eod_requires_approval",
-        "not_signed_off",
-        "bad_status",
-    ):
-        return HTTPException(
-            status_code=status.HTTP_409_CONFLICT,
-            detail={"code": code, "message": exc.message},
-        )
-    log.error("void.unmapped_error_code", code=code, message=exc.message)
-    return HTTPException(
-        status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-        detail={"code": code, "message": exc.message},
-    )
+    from app.api._errors import map_error_to_http
+
+    http = map_error_to_http(exc, code_to_status=_VOID_CODE_TO_STATUS)
+    if http.status_code == 500:
+        log.error("void.unmapped_error_code", code=exc.code, message=exc.message)
+    return http
 
 
 @router.post(

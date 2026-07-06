@@ -51,43 +51,29 @@ log = get_logger(__name__)
 _checkout_roles = (UserRole.CASHIER_USER, UserRole.OWNER)
 
 
+# Maps the CheckoutError `code` to an HTTP status. Lives in module
+# scope so map_error_to_http can capture it once.
+_CHECKOUT_CODE_TO_STATUS: dict[str, int] = {
+    "insufficient_stock": status.HTTP_409_CONFLICT,
+    "unknown_barcode": status.HTTP_404_NOT_FOUND,
+    "eod_signed_off": status.HTTP_409_CONFLICT,
+    "idempotency_key_required": status.HTTP_400_BAD_REQUEST,
+    "idempotency_key_too_long": status.HTTP_400_BAD_REQUEST,
+    "empty_cart": status.HTTP_400_BAD_REQUEST,
+    "bad_quantity": status.HTTP_400_BAD_REQUEST,
+    "no_payments": status.HTTP_400_BAD_REQUEST,
+    "zero_payment": status.HTTP_400_BAD_REQUEST,
+    "payment_mismatch": status.HTTP_400_BAD_REQUEST,
+}
+
+
 def _error_to_http(exc: CheckoutError) -> HTTPException:
-    code = exc.code
-    if code in ("insufficient_stock",):
-        return HTTPException(
-            status_code=status.HTTP_409_CONFLICT,
-            detail={"code": code, "message": exc.message},
-        )
-    if code in ("unknown_barcode",):
-        return HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail={"code": code, "message": exc.message},
-        )
-    if code in (
-        "idempotency_key_required",
-        "idempotency_key_too_long",
-        "empty_cart",
-        "bad_quantity",
-        "no_payments",
-        "zero_payment",
-        "payment_mismatch",
-    ):
-        return HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail={"code": code, "message": exc.message},
-        )
-    if code == "eod_signed_off":
-        return HTTPException(
-            status_code=status.HTTP_409_CONFLICT,
-            detail={"code": code, "message": exc.message},
-        )
-    # Fallback — surface as 500, but log the unmapped code so we can
-    # tighten the mapping later.
-    log.error("checkout.unmapped_error_code", code=code, message=exc.message)
-    return HTTPException(
-        status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-        detail={"code": code, "message": exc.message},
-    )
+    from app.api._errors import map_error_to_http
+
+    http = map_error_to_http(exc, code_to_status=_CHECKOUT_CODE_TO_STATUS)
+    if http.status_code == 500:
+        log.error("checkout.unmapped_error_code", code=exc.code, message=exc.message)
+    return http
 
 
 @router.post(

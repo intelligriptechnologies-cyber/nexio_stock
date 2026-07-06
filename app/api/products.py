@@ -19,6 +19,7 @@ from sqlalchemy import select
 from sqlalchemy.dialects.postgresql.asyncpg import AsyncAdapt_asyncpg_dbapi
 from sqlalchemy.exc import IntegrityError
 
+from app.api._errors import is_unique_violation
 from app.api.deps import DbSession, require_role
 from app.logging_config import get_logger
 from app.models.product import Product
@@ -39,20 +40,6 @@ log = get_logger(__name__)
 # flows (#3 receiving, #4 checkout). Owner and superadmin have it too.
 _lookup_roles = (UserRole.OWNER, UserRole.RECEIVER_USER, UserRole.CASHIER_USER, UserRole.SUPERADMIN)
 _write_roles = (UserRole.OWNER, UserRole.SUPERADMIN)
-
-
-def _is_unique_violation(exc: BaseException) -> bool:
-    """True if `exc` (or its __cause__ chain) is a Postgres unique violation."""
-    seen: set[int] = set()
-    cur: BaseException | None = exc
-    while cur is not None and id(cur) not in seen:
-        seen.add(id(cur))
-        if type(cur).__name__ == "UniqueViolationError":
-            return True
-        if isinstance(cur, AsyncAdapt_asyncpg_dbapi.IntegrityError):
-            return True
-        cur = cur.__cause__
-    return False
 
 
 @router.post(
@@ -94,7 +81,7 @@ async def create_product(
     try:
         await db.commit()
     except (IntegrityError, AsyncAdapt_asyncpg_dbapi.IntegrityError) as exc:
-        if _is_unique_violation(exc):
+        if is_unique_violation(exc):
             await db.rollback()
             raise HTTPException(
                 status_code=status.HTTP_409_CONFLICT,
@@ -327,7 +314,7 @@ async def import_products_csv(
         try:
             await db.flush()
         except (IntegrityError, AsyncAdapt_asyncpg_dbapi.IntegrityError) as exc:
-            if _is_unique_violation(exc):
+            if is_unique_violation(exc):
                 # Roll back so the failed INSERT doesn't leave the
                 # session in a DEACTIVE state. The `product` instance
                 # becomes detached automatically; we don't need to

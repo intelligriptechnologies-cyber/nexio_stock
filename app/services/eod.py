@@ -31,6 +31,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.invoice import (
+    STATUSES_COUNTING_AS_SOLD,
     EodSignOff,
     Invoice,
     InvoiceStatus,
@@ -166,16 +167,20 @@ async def get_day_totals(
 
     # Use FINALIZED only for revenue (REVERSAL nets out, VOIDED
     # contributes nothing — same filter as the stock derivation).
+    # Use the module-level STATUSES_COUNTING_AS_SOLD predicate for
+    # revenue + count — same one the stock-derivation query uses.
     revenue = sum(
-        (inv.total_amount for inv in invoices if inv.status == InvoiceStatus.FINALIZED),
+        (inv.total_amount for inv in invoices if inv.status in STATUSES_COUNTING_AS_SOLD),
         Decimal("0"),
     )
-    invoice_count = sum(1 for inv in invoices if inv.status == InvoiceStatus.FINALIZED)
+    invoice_count = sum(
+        1 for inv in invoices if inv.status in STATUSES_COUNTING_AS_SOLD
+    )
     voided_count = sum(1 for inv in invoices if inv.status == InvoiceStatus.VOIDED)
     reversal_count = sum(1 for inv in invoices if inv.status == InvoiceStatus.REVERSAL)
 
     # Payment-mode split. Eager-load payments once.
-    invoice_ids = [inv.id for inv in invoices if inv.status == InvoiceStatus.FINALIZED]
+    invoice_ids = [inv.id for inv in invoices if inv.status in STATUSES_COUNTING_AS_SOLD]
     payments_by_mode: dict[str, Decimal] = defaultdict(lambda: Decimal("0"))
     if invoice_ids:
         payment_rows = (

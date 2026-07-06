@@ -38,22 +38,19 @@ _owner_only = (UserRole.OWNER,)
 _read_roles = (UserRole.OWNER, UserRole.RECEIVER_USER, UserRole.CASHIER_USER, UserRole.SUPERADMIN)
 
 
+_EOD_CODE_TO_STATUS: dict[str, int] = {
+    "already_signed_off": status.HTTP_409_CONFLICT,
+    "future_date": status.HTTP_400_BAD_REQUEST,
+}
+
+
 def _error_to_http(exc: EodError) -> HTTPException:
-    if exc.code == "already_signed_off":
-        return HTTPException(
-            status_code=status.HTTP_409_CONFLICT,
-            detail={"code": exc.code, "message": exc.message},
-        )
-    if exc.code in ("future_date",):
-        return HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail={"code": exc.code, "message": exc.message},
-        )
-    log.error("eod.unmapped_error_code", code=exc.code, message=exc.message)
-    return HTTPException(
-        status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-        detail={"code": exc.code, "message": exc.message},
-    )
+    from app.api._errors import map_error_to_http
+
+    http = map_error_to_http(exc, code_to_status=_EOD_CODE_TO_STATUS)
+    if http.status_code == 500:
+        log.error("eod.unmapped_error_code", code=exc.code, message=exc.message)
+    return http
 
 
 @router.post(
