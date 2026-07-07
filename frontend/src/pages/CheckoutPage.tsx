@@ -84,12 +84,14 @@ export function CheckoutPage() {
     refreshQueueSnapshot();
   }, [retryQueue.pending, refreshQueueSnapshot]);
 
-  // Prefetch the catalog on mount (D-30).
+  // Prefetch the catalog on mount, and again if the acting shop changes
+  // (superadmin, D-66) so the cache doesn't serve another shop's products.
   useEffect(() => {
-    prefetchCatalog()
+    setCatalogReady(false);
+    prefetchCatalog(actingShopId)
       .then(() => setCatalogReady(true))
       .catch((e) => setError(`Catalog load failed: ${e instanceof Error ? e.message : e}`));
-  }, []);
+  }, [actingShopId]);
 
   const totalCents = useMemo(
     () =>
@@ -116,7 +118,7 @@ export function CheckoutPage() {
       setError(null);
       setInfo(null);
       try {
-        const product = await resolveBarcode(code);
+        const product = await resolveBarcode(code, actingShopId);
         setCart((prev) => {
           const existing = prev.find((l) => l.product.barcode === code);
           if (existing) {
@@ -137,7 +139,7 @@ export function CheckoutPage() {
         }
       }
     },
-    []
+    [actingShopId]
   );
 
   const removeLine = (lineId: string) => {
@@ -364,7 +366,7 @@ export function CheckoutPage() {
               onClick={() => {
                 invalidateCache();
                 setCatalogReady(false);
-                void prefetchCatalog().then(() => setCatalogReady(true));
+                void prefetchCatalog(actingShopId).then(() => setCatalogReady(true));
               }}
               className="rounded-md bg-surface-container-high px-stack-gap py-1 text-on-surface-variant"
             >

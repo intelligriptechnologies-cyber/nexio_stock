@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { ApiError } from "../api/client";
 import { getInvoice, type InvoicePublic } from "../api/checkout";
-import { approveVoid, listPendingVoids, rejectVoid, type PendingVoidInvoice } from "../api/voids";
+import { approveVoid, listPendingVoids, rejectVoid } from "../api/voids";
 import { useAuth } from "../auth/AuthProvider";
 import { useShopScope } from "../auth/ShopScopeProvider";
 
@@ -12,7 +12,7 @@ function moneyFmt(s: string): string {
 export function VoidApprovalsPage() {
   const { user } = useAuth();
   const { actingShopId } = useShopScope();
-  const [items, setItems] = useState<PendingVoidInvoice[] | null>(null);
+  const [items, setItems] = useState<InvoicePublic[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [busyId, setBusyId] = useState<number | null>(null);
   const [info, setInfo] = useState<string | null>(null);
@@ -25,7 +25,7 @@ export function VoidApprovalsPage() {
     setItems(null);
     try {
       const res = await listPendingVoids(actingShopId);
-      setItems(res.pending);
+      setItems(res.invoices);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Load failed.");
     }

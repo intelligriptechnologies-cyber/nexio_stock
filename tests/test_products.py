@@ -1,8 +1,13 @@
 """Product catalog + CSV import tests (D-7, D-19, D-52, D-61, R-7, R-10, R-27, R-42)."""
 from __future__ import annotations
 
+from decimal import Decimal
+
 import pytest
 from httpx import AsyncClient
+
+from app.models.product import Product
+from app.models.shop import Shop
 
 SAMPLE_PRODUCT = {
     "barcode": "8901234567890",
@@ -111,6 +116,68 @@ async def test_list_filters_to_own_shop(owner_client: AsyncClient, superadmin_cl
     r2 = await superadmin_client.get("/products")
     assert r2.status_code == 200
     assert len(r2.json()) == 1  # only one product in the system
+
+
+@pytest.mark.usefixtures("owner", "receiver", "cashier")
+async def test_superadmin_shop_id_scopes_list_and_lookup(
+    owner_client: AsyncClient,
+    superadmin_client: AsyncClient,
+    db_session,
+    shop,
+) -> None:
+    # Barcode is globally unique (D-52), so two shops can never collide on
+    # one — this test exercises the acting-shop scoping itself (D-66),
+    # which the checkout/receiving catalog cache uses, not collision
+    # avoidance.
+    cr = await owner_client.post("/products", json=SAMPLE_PRODUCT)
+    assert cr.status_code == 201
+
+    shop2 = Shop(code="shop2", name="Shop Two")
+    db_session.add(shop2)
+    await db_session.flush()
+    product2 = Product(
+        shop_id=shop2.id,
+        barcode="8909999999999",
+        brand="Other Brand",
+        size_label="180ml",
+        price=Decimal("90.00"),
+        is_active=True,
+    )
+    db_session.add(product2)
+    await db_session.commit()
+
+    # Unscoped: superadmin browses across both shops (unchanged behavior).
+    r_all = await superadmin_client.get("/products")
+    assert r_all.status_code == 200
+    assert len(r_all.json()) == 2
+
+    # Scoped to shop 1: only shop 1's product.
+    r_shop1 = await superadmin_client.get("/products", params={"shop_id": shop.id})
+    assert r_shop1.status_code == 200
+    assert [p["barcode"] for p in r_shop1.json()] == [SAMPLE_PRODUCT["barcode"]]
+
+    # Lookup scoped to shop 2 for shop 2's barcode succeeds.
+    r_lookup_ok = await superadmin_client.get(
+        "/products/lookup", params={"barcode": product2.barcode, "shop_id": shop2.id}
+    )
+    assert r_lookup_ok.status_code == 200
+
+    # Same barcode scoped to shop 1 instead 404s — the acting shop's
+    # catalog, not a global one, is what a scan should resolve against.
+    r_lookup_wrong_shop = await superadmin_client.get(
+        "/products/lookup", params={"barcode": product2.barcode, "shop_id": shop.id}
+    )
+    assert r_lookup_wrong_shop.status_code == 404
+
+    # Unscoped lookup is still a global search (unchanged behavior).
+    r_lookup_unscoped = await superadmin_client.get(
+        "/products/lookup", params={"barcode": product2.barcode}
+    )
+    assert r_lookup_unscoped.status_code == 200
+
+    # Non-superadmin can't use shop_id to look at another shop.
+    r_bad = await owner_client.get("/products", params={"shop_id": shop2.id})
+    assert r_bad.status_code == 400
 
 
 @pytest.mark.usefixtures("owner", "receiver", "cashier")

@@ -31,10 +31,11 @@ export function ReceivingPage() {
   const [lastLot, setLastLot] = useState<LotPublic | null>(null);
 
   useEffect(() => {
-    prefetchCatalog()
+    setCatalogReady(false);
+    prefetchCatalog(actingShopId)
       .then(() => setCatalogReady(true))
       .catch((e) => setError(`Catalog load failed: ${e instanceof Error ? e.message : e}`));
-  }, []);
+  }, [actingShopId]);
 
   const addByBarcode = useCallback(
     async (raw: string) => {
@@ -44,7 +45,7 @@ export function ReceivingPage() {
       setInfo(null);
       try {
         const { resolveBarcode } = await import("../api/catalog");
-        const product = await resolveBarcode(code);
+        const product = await resolveBarcode(code, actingShopId);
         setLines((prev) => {
           const existing = prev.find((l) => l.barcode === code);
           if (existing) {
@@ -74,7 +75,7 @@ export function ReceivingPage() {
         }
       }
     },
-    []
+    [actingShopId]
   );
 
   const handleSubmitBarcode = (e: React.FormEvent) => {
@@ -137,7 +138,7 @@ export function ReceivingPage() {
       // product records don't carry stock (the backend computes it from
       // lots). Force a refresh so the next /products lookup is fresh.
       invalidateCache();
-      void prefetchCatalog().then(() => setCatalogReady(true));
+      void prefetchCatalog(actingShopId).then(() => setCatalogReady(true));
       setInfo(`Lot #${lot.id} saved with ${lot.lines.length} line(s).`);
     } catch (e) {
       if (e instanceof ApiError) {

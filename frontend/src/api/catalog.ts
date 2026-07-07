@@ -17,16 +17,28 @@ export interface CatalogProduct {
 }
 
 let cache: Map<string, CatalogProduct> | null = null;
+let cacheShopId: number | null | undefined = undefined;
 let inflight: Promise<Map<string, CatalogProduct>> | null = null;
 
-export async function prefetchCatalog(): Promise<Map<string, CatalogProduct>> {
-  if (cache) return cache;
-  if (inflight) return inflight;
+// `shopId` is the superadmin's acting shop (ShopScopeProvider, D-66). A
+// superadmin scanning during checkout/receiving is acting on one specific
+// shop, so the catalog fetched here should reflect that shop rather than
+// every shop superadmin can browse elsewhere (barcode is globally unique
+// per D-52, so this isn't about avoiding a collision — it's the same
+// one-chosen-shop model every other superadmin write already follows).
+// The cache is invalidated whenever the acting shop changes.
+export async function prefetchCatalog(
+  shopId?: number | null
+): Promise<Map<string, CatalogProduct>> {
+  if (cache && cacheShopId === (shopId ?? null)) return cache;
+  if (inflight && cacheShopId === (shopId ?? null)) return inflight;
+  const qs = shopId != null ? `&shop_id=${shopId}` : "";
   inflight = (async () => {
-    const items = await api<CatalogProduct[]>("/products?active_only=true&limit=500");
+    const items = await api<CatalogProduct[]>(`/products?active_only=true&limit=500${qs}`);
     const m = new Map<string, CatalogProduct>();
     for (const p of items) m.set(p.barcode, p);
     cache = m;
+    cacheShopId = shopId ?? null;
     inflight = null;
     return m;
   })().catch((e) => {
@@ -36,12 +48,16 @@ export async function prefetchCatalog(): Promise<Map<string, CatalogProduct>> {
   return inflight;
 }
 
-export async function resolveBarcode(barcode: string): Promise<CatalogProduct> {
-  if (!cache) await prefetchCatalog();
+export async function resolveBarcode(
+  barcode: string,
+  shopId?: number | null
+): Promise<CatalogProduct> {
+  if (!cache || cacheShopId !== (shopId ?? null)) await prefetchCatalog(shopId);
   const hit = cache!.get(barcode);
   if (hit) return hit;
+  const qs = shopId != null ? `&shop_id=${shopId}` : "";
   const fetched = await api<CatalogProduct>(
-    `/products/lookup?barcode=${encodeURIComponent(barcode)}`
+    `/products/lookup?barcode=${encodeURIComponent(barcode)}${qs}`
   );
   cache!.set(fetched.barcode, fetched);
   return fetched;
@@ -49,6 +65,7 @@ export async function resolveBarcode(barcode: string): Promise<CatalogProduct> {
 
 export function invalidateCache(): void {
   cache = null;
+  cacheShopId = undefined;
   inflight = null;
 }
 

@@ -44,8 +44,11 @@ export function listRecentLots(limit = 20): Promise<{ lots: LotPublic[] }> {
 // Resolve barcode via the cached catalog (shared with checkout) and fall
 // back to /products/lookup on a miss. Re-exported so the receiving page
 // doesn't need to import catalog.ts directly.
-export async function resolveForReceiving(barcode: string): Promise<CatalogProduct> {
-  return resolveBarcode(barcode);
+export async function resolveForReceiving(
+  barcode: string,
+  shopId?: number | null
+): Promise<CatalogProduct> {
+  return resolveBarcode(barcode, shopId);
 }
 
 export class LotValidationError extends Error {

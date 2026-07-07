@@ -105,12 +105,27 @@ async def list_products(
     q: Annotated[str | None, Query(description="Substring match on brand")] = None,
     limit: Annotated[int, Query(ge=1, le=500)] = 100,
     offset: Annotated[int, Query(ge=0)] = 0,
+    shop_id: Annotated[
+        int | None,
+        Query(description="Superadmin only: scope the listing to one shop (D-66)"),
+    ] = None,
 ) -> list[ProductPublic]:
     actor_role = _user.role
     actor_shop_id = _user.shop_id
     stmt = select(Product)
     if actor_role != UserRole.SUPERADMIN:
+        if shop_id is not None and shop_id != actor_shop_id:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="only superadmin may specify shop_id",
+            )
         stmt = stmt.where(Product.shop_id == actor_shop_id)
+    elif shop_id is not None:
+        # Superadmin scoped to one shop via the acting-shop picker (D-66) —
+        # the checkout/receiving catalog cache should reflect the shop
+        # being operated on, not every shop. Omit shop_id to keep the
+        # cross-shop browse behavior the admin products list still uses.
+        stmt = stmt.where(Product.shop_id == shop_id)
     if active_only:
         stmt = stmt.where(Product.is_active.is_(True))
     if q:
@@ -129,6 +144,10 @@ async def lookup_product(
     db: DbSession,
     _user: User = Depends(require_role(*_lookup_roles)),
     barcode: Annotated[str, Query(min_length=1, max_length=64)] = ...,
+    shop_id: Annotated[
+        int | None,
+        Query(description="Superadmin only: scope the lookup to one shop (D-66)"),
+    ] = None,
 ) -> ProductPublic:
     """Scan-time product fetch. The locally-cached catalog (R-12 / D-30)
     lives client-side; this endpoint is the cold-start / cache-miss path
@@ -138,7 +157,20 @@ async def lookup_product(
     actor_shop_id = _user.shop_id
     stmt = select(Product).where(Product.barcode == barcode)
     if actor_role != UserRole.SUPERADMIN:
+        if shop_id is not None and shop_id != actor_shop_id:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="only superadmin may specify shop_id",
+            )
         stmt = stmt.where(Product.shop_id == actor_shop_id)
+    elif shop_id is not None:
+        # Superadmin scoped to its acting shop (D-66): a scan during
+        # checkout/receiving should resolve against that shop's catalog,
+        # not browse across every shop. Barcode is globally unique (D-52)
+        # so this can't disambiguate a collision — there isn't one to
+        # disambiguate — it just matches the acting-shop-scoped model
+        # every other superadmin action uses.
+        stmt = stmt.where(Product.shop_id == shop_id)
     product = (await db.execute(stmt)).scalar_one_or_none()
     if product is None or not product.is_active:
         raise HTTPException(

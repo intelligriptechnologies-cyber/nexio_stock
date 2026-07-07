@@ -181,6 +181,33 @@ async def test_cashier_can_request_void_on_signed_off_invoice(
 
 
 @pytest.mark.usefixtures("owner", "receiver", "cashier")
+async def test_request_void_reason_reaches_backend_as_json_body(
+    cashier_client: AsyncClient, owner_client: AsyncClient, receiver_client: AsyncClient, db_session
+) -> None:
+    # Regression: the frontend sends `reason` as a JSON body field
+    # (`json: { reason }`), not a query param — the endpoint must accept it
+    # that way.
+    await _seed_product(owner_client, "8902000000011", price="100.00")
+    await _seed_lot(receiver_client, items=[("8902000000011", 5)])
+    inv = await _finalize(
+        cashier_client, barcode="8902000000011", quantity=1, amount="100.00"
+    )
+    await _mark_signed_off(db_session, inv["id"])
+
+    resp = await cashier_client.post(
+        f"/invoices/{inv['id']}/void", json={"reason": "Wrong item scanned"}
+    )
+    assert resp.status_code == 200
+
+    log = (
+        await db_session.execute(
+            select(InvoicingLog).where(InvoicingLog.event_type == "invoice.void_requested")
+        )
+    ).scalar_one()
+    assert log.payload["reason"] == "Wrong item scanned"
+
+
+@pytest.mark.usefixtures("owner", "receiver", "cashier")
 async def test_cashier_cannot_approve_pending_void(
     cashier_client: AsyncClient, owner_client: AsyncClient, receiver_client: AsyncClient, db_session
 ) -> None:
@@ -209,7 +236,7 @@ async def test_owner_approving_pending_void_creates_reversal(
     await cashier_client.post(f"/invoices/{inv['id']}/void")
 
     approve = await owner_client.post(
-        f"/invoices/{inv['id']}/void/approve", params={"reason": "Customer returned"}
+        f"/invoices/{inv['id']}/void/approve", json={"reason": "Customer returned"}
     )
     assert approve.status_code == 200
     body = approve.json()
@@ -232,6 +259,15 @@ async def test_owner_approving_pending_void_creates_reversal(
     assert len(rev.lines) == 1
     assert rev.lines[0].line_total < 0
 
+    # Regression: `reason` must actually reach the backend as a JSON body
+    # field (it was previously bound as an unused query param).
+    approved_log = (
+        await db_session.execute(
+            select(InvoicingLog).where(InvoicingLog.event_type == "invoice.void_approved")
+        )
+    ).scalar_one()
+    assert approved_log.payload["reason"] == "Customer returned"
+
 
 @pytest.mark.usefixtures("owner", "receiver", "cashier")
 async def test_owner_rejecting_pending_void_reverts_to_finalized(
@@ -246,7 +282,7 @@ async def test_owner_rejecting_pending_void_reverts_to_finalized(
     await cashier_client.post(f"/invoices/{inv['id']}/void")
 
     reject = await owner_client.post(
-        f"/invoices/{inv['id']}/void/reject", params={"reason": "Verified sale"}
+        f"/invoices/{inv['id']}/void/reject", json={"reason": "Verified sale"}
     )
     assert reject.status_code == 200
     assert reject.json()["status"] == "finalized"

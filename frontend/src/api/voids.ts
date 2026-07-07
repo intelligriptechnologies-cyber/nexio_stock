@@ -13,17 +13,8 @@
 import { api } from "./client";
 import type { InvoicePublic } from "./checkout";
 
-export interface PendingVoidInvoice {
-  id: number;
-  invoice_number: number;
-  total_amount: string;
-  finalized_at: string;
-  requested_by: number;
-  cashier_user_id: number;
-}
-
 export interface PendingVoidResponse {
-  pending: PendingVoidInvoice[];
+  invoices: InvoicePublic[];
 }
 
 export function requestVoid(invoiceId: number, reason?: string): Promise<InvoicePublic> {
