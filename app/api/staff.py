@@ -21,7 +21,7 @@ from app.api._errors import is_unique_violation
 from app.api.deps import DbSession, require_role, resolve_write_shop_id
 from app.logging_config import get_logger
 from app.models.user import User, UserRole
-from app.schemas.auth import StaffCreate, UserPublic
+from app.schemas.auth import StaffCreate, StaffPasswordReset, UserPublic
 from app.security.passwords import hash_password
 
 router = APIRouter(prefix="/staff", tags=["staff"])
@@ -111,3 +111,40 @@ async def list_staff(
         stmt = select(User)
     rows = (await db.execute(stmt.order_by(User.id))).scalars().all()
     return [UserPublic.model_validate(r) for r in rows]
+
+
+@router.patch(
+    "/{user_id}/password",
+    response_model=UserPublic,
+    summary="Owner resets a receiver_user or cashier_user's password/PIN (issue #17)",
+)
+async def reset_staff_password(
+    user_id: int,
+    payload: StaffPasswordReset,
+    db: DbSession,
+    user: User = Depends(require_role(UserRole.OWNER, UserRole.SUPERADMIN)),
+) -> UserPublic:
+    stmt = select(User).where(User.id == user_id)
+    if user.role == UserRole.OWNER:
+        stmt = stmt.where(User.shop_id == user.shop_id)
+    target = (await db.execute(stmt)).scalar_one_or_none()
+    if target is None or target.role not in (UserRole.RECEIVER_USER, UserRole.CASHIER_USER):
+        # 404 rather than 403 here: an owner scanning IDs shouldn't be able
+        # to tell an out-of-shop account from an owner/superadmin account
+        # from a nonexistent one.
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="staff account not found",
+        )
+
+    target.password_hash = hash_password(payload.password)
+    await db.commit()
+    await db.refresh(target)
+
+    log.info(
+        "staff.password_reset",
+        actor_user_id=user.id,
+        target_user_id=target.id,
+        shop_id=target.shop_id,
+    )
+    return UserPublic.model_validate(target)

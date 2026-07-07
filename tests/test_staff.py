@@ -8,7 +8,7 @@ from httpx import AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.shop import Shop
-from app.models.user import User
+from app.models.user import User, UserRole
 
 
 @pytest.mark.usefixtures("owner", "receiver", "cashier")
@@ -169,3 +169,85 @@ async def test_receiver_cannot_create_staff(receiver_client: AsyncClient) -> Non
         },
     )
     assert resp.status_code == 403
+
+
+@pytest.mark.usefixtures("owner")
+async def test_owner_resets_staff_password(
+    owner_client: AsyncClient, receiver: User
+) -> None:
+    resp = await owner_client.patch(
+        f"/staff/{receiver.id}/password",
+        json={"password": "newrecvpass"},
+    )
+    assert resp.status_code == 200
+    assert resp.json()["id"] == receiver.id
+
+    # Old password no longer works, new one does.
+    stale = await owner_client.post(
+        "/auth/login", json={"phone": receiver.phone, "password": "recvpass"}
+    )
+    assert stale.status_code == 401
+    fresh = await owner_client.post(
+        "/auth/login", json={"phone": receiver.phone, "password": "newrecvpass"}
+    )
+    assert fresh.status_code == 200
+
+
+@pytest.mark.usefixtures("owner")
+async def test_owner_cannot_reset_password_for_other_shop_staff(
+    owner_client: AsyncClient, db_session: AsyncSession
+) -> None:
+    shop2 = Shop(code="shop2-staffreset", name="Shop Two")
+    db_session.add(shop2)
+    await db_session.flush()
+    other = User(
+        shop_id=shop2.id,
+        role=UserRole.CASHIER_USER,
+        username="othercash",
+        full_name="Other Cashier",
+        phone="+15555550400",
+        password_hash="x",
+        is_active=True,
+    )
+    db_session.add(other)
+    await db_session.commit()
+    await db_session.refresh(other)
+
+    resp = await owner_client.patch(
+        f"/staff/{other.id}/password",
+        json={"password": "whatever1"},
+    )
+    assert resp.status_code == 404
+
+
+@pytest.mark.usefixtures("owner")
+async def test_owner_cannot_reset_own_password_via_staff_endpoint(
+    owner_client: AsyncClient, owner: User
+) -> None:
+    resp = await owner_client.patch(
+        f"/staff/{owner.id}/password",
+        json={"password": "newownerpass"},
+    )
+    assert resp.status_code == 404
+
+
+@pytest.mark.usefixtures("owner", "receiver")
+async def test_receiver_cannot_reset_staff_password(
+    receiver_client: AsyncClient, receiver: User
+) -> None:
+    resp = await receiver_client.patch(
+        f"/staff/{receiver.id}/password",
+        json={"password": "whatever1"},
+    )
+    assert resp.status_code == 403
+
+
+@pytest.mark.usefixtures("owner", "receiver")
+async def test_superadmin_resets_staff_password_any_shop(
+    superadmin_client: AsyncClient, receiver: User
+) -> None:
+    resp = await superadmin_client.patch(
+        f"/staff/{receiver.id}/password",
+        json={"password": "supersetpass"},
+    )
+    assert resp.status_code == 200

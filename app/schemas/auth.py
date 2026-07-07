@@ -81,6 +81,14 @@ class StaffCreate(BaseModel):
         return v
 
 
+class StaffPasswordReset(BaseModel):
+    """Owner (or superadmin) resets a staff member's password/PIN (issue #17)."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    password: str = Field(min_length=4, max_length=128)
+
+
 class SuperAdminCreate(BaseModel):
     """Bootstrap superadmin (CLI-only, never exposed as a route)."""
 

@@ -3,6 +3,7 @@ import { ApiError } from "../api/client";
 import {
   createStaff,
   listStaff,
+  resetStaffPassword,
   type StaffCreatePayload,
   type StaffMember,
   type StaffRole,
@@ -55,6 +56,25 @@ export function StaffPage() {
       }
     } finally {
       setBusy(false);
+    }
+  };
+
+  const onResetPassword = async (staffMember: StaffMember) => {
+    const password = window.prompt(
+      `New PIN/password for ${staffMember.username} (4+ characters):`
+    );
+    if (password === null) return; // cancelled
+    if (password.length < 4) {
+      setError("New PIN/password must be at least 4 characters.");
+      return;
+    }
+    setError(null);
+    setInfo(null);
+    try {
+      await resetStaffPassword(staffMember.id, password);
+      setInfo(`Reset PIN for ${staffMember.username}.`);
+    } catch (e) {
+      setError(e instanceof ApiError ? e.detail : e instanceof Error ? e.message : "Reset failed.");
     }
   };
 
@@ -111,7 +131,7 @@ export function StaffPage() {
                   <td className="py-2 font-mono text-label-md">{s.phone}</td>
                   <td className="py-2">{s.is_active ? "yes" : "no"}</td>
                   <td className="py-2 text-right">
-                    <ResetPinButton />
+                    <ResetPinButton onClick={() => void onResetPassword(s)} />
                   </td>
                 </tr>
               ))}
@@ -221,12 +241,12 @@ function Field({
   );
 }
 
-function ResetPinButton() {
+function ResetPinButton({ onClick }: { onClick: () => void }) {
   return (
     <button
       type="button"
-      title="Password reset endpoint not yet shipped in v1 of the backend"
-      onClick={() => alert("Reset PIN is not yet implemented in the backend — see issue #17.")}
+      title="Reset this staff member's PIN/password"
+      onClick={onClick}
       className="rounded-md bg-surface-container-high px-stack-gap py-1 text-label-md text-on-surface-variant"
     >
       Reset
