@@ -5,7 +5,7 @@ import { LoginPage } from "./pages/LoginPage";
 import { SuperadminLoginPage } from "./pages/SuperadminLoginPage";
 import { ForbiddenPage } from "./pages/ForbiddenPage";
 import { HomeRedirect } from "./pages/HomeRedirect";
-import { CheckoutPlaceholder } from "./pages/CheckoutPlaceholder";
+import { CheckoutPage } from "./pages/CheckoutPage";
 import { ReceivingPlaceholder } from "./pages/ReceivingPlaceholder";
 import { DashboardPlaceholder } from "./pages/DashboardPlaceholder";
 import { AdminPlaceholder } from "./pages/AdminPlaceholder";
@@ -48,7 +48,7 @@ export default function App() {
         element={
           <Protected allow={["cashier_user", "owner"]}>
             <AuthedShell>
-              <CheckoutPlaceholder />
+              <CheckoutPage />
             </AuthedShell>
           </Protected>
         }
