@@ -1,0 +1,49 @@
+// Wrappers for the existing void endpoints (see app/api/voids.py and
+// app/api/dashboard.py). All three mutation endpoints are POST and are
+// described in the backend's docstring:
+//
+//   POST /invoices/{id}/void            request a void
+//                                        pre-EOD: voids directly
+//                                        post-EOD: creates PENDING_VOID
+//   POST /invoices/{id}/void/approve    owner only — creates REVERSAL
+//   POST /invoices/{id}/void/reject     owner only — reverts to FINALIZED
+//
+// The pending-void queue list is at GET /dashboard/void-queue.
+
+import { api } from "./client";
+import type { InvoicePublic } from "./checkout";
+
+export interface PendingVoidInvoice {
+  id: number;
+  invoice_number: number;
+  total_amount: string;
+  finalized_at: string;
+  requested_by: number;
+  cashier_user_id: number;
+}
+
+export interface PendingVoidResponse {
+  pending: PendingVoidInvoice[];
+}
+
+export function requestVoid(invoiceId: number, reason?: string): Promise<InvoicePublic> {
+  return api<InvoicePublic>(`/invoices/${invoiceId}/void`, {
+    method: "POST",
+    json: reason ? { reason } : {},
+  });
+}
+
+export function approveVoid(invoiceId: number): Promise<InvoicePublic> {
+  return api<InvoicePublic>(`/invoices/${invoiceId}/void/approve`, { method: "POST" });
+}
+
+export function rejectVoid(invoiceId: number, reason?: string): Promise<InvoicePublic> {
+  return api<InvoicePublic>(`/invoices/${invoiceId}/void/reject`, {
+    method: "POST",
+    json: reason ? { reason } : {},
+  });
+}
+
+export function listPendingVoids(): Promise<PendingVoidResponse> {
+  return api<PendingVoidResponse>("/dashboard/void-queue");
+}

@@ -10,6 +10,8 @@ import { ReceivingPage } from "./pages/ReceivingPage";
 import { DashboardPlaceholder } from "./pages/DashboardPlaceholder";
 import { AdminPlaceholder } from "./pages/AdminPlaceholder";
 import { ProductsPage } from "./pages/ProductsPage";
+import { VoidApprovalsPage } from "./pages/VoidApprovalsPage";
+import { InvoiceLookupPage } from "./pages/InvoiceLookupPage";
 
 function Protected({ allow, children }: { allow: Role[]; children: JSX.Element }) {
   const { user, isReady } = useAuth();
@@ -90,6 +92,26 @@ export default function App() {
           <Protected allow={["owner"]}>
             <AuthedShell>
               <ProductsPage />
+            </AuthedShell>
+          </Protected>
+        }
+      />
+      <Route
+        path="/admin/voids"
+        element={
+          <Protected allow={["owner"]}>
+            <AuthedShell>
+              <VoidApprovalsPage />
+            </AuthedShell>
+          </Protected>
+        }
+      />
+      <Route
+        path="/invoices"
+        element={
+          <Protected allow={["cashier_user", "owner"]}>
+            <AuthedShell>
+              <InvoiceLookupPage />
             </AuthedShell>
           </Protected>
         }

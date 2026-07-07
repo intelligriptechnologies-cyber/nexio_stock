@@ -10,6 +10,7 @@ interface NavItem {
 
 const ITEMS: NavItem[] = [
   { to: "/checkout", label: "Checkout", roles: ["cashier_user", "owner"] },
+  { to: "/invoices", label: "Invoices", roles: ["cashier_user", "owner"] },
   { to: "/receiving", label: "Receiving", roles: ["receiver_user", "owner"] },
   { to: "/dashboard", label: "Dashboard", roles: ["owner"] },
   { to: "/admin/products", label: "Products", roles: ["owner"] },
