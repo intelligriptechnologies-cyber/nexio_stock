@@ -47,7 +47,7 @@ export function Sidebar() {
         }`}
         aria-label="Main navigation"
       >
-        <div className="flex h-16 items-center px-stack-gap text-headline-md font-bold">
+        <div className="flex h-16 items-center pl-16 pr-stack-gap text-headline-md font-bold md:px-stack-gap">
           Barstock
         </div>
         <ShopPicker />

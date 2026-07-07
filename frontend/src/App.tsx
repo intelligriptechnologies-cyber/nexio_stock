@@ -33,9 +33,9 @@ function AuthedShell({ children }: { children: JSX.Element }) {
   const { user } = useAuth();
   if (!user) return <Navigate to="/login" replace />;
   return (
-    <div className="flex h-full bg-surface">
+    <div className="h-full bg-surface">
       <Sidebar />
-      <main className="flex-1 overflow-y-auto p-stack-gap md:p-gutter">{children}</main>
+      <main className="h-full overflow-y-auto p-stack-gap md:ml-64 md:p-gutter">{children}</main>
     </div>
   );
 }
