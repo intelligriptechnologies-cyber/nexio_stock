@@ -9,6 +9,7 @@ import { CheckoutPage } from "./pages/CheckoutPage";
 import { ReceivingPage } from "./pages/ReceivingPage";
 import { DashboardPlaceholder } from "./pages/DashboardPlaceholder";
 import { AdminPlaceholder } from "./pages/AdminPlaceholder";
+import { ProductsPage } from "./pages/ProductsPage";
 
 function Protected({ allow, children }: { allow: Role[]; children: JSX.Element }) {
   const { user, isReady } = useAuth();
@@ -74,11 +75,21 @@ export default function App() {
         }
       />
       <Route
-        path="/admin/*"
+        path="/admin"
         element={
           <Protected allow={["owner", "superadmin"]}>
             <AuthedShell>
               <AdminPlaceholder />
+            </AuthedShell>
+          </Protected>
+        }
+      />
+      <Route
+        path="/admin/products"
+        element={
+          <Protected allow={["owner"]}>
+            <AuthedShell>
+              <ProductsPage />
             </AuthedShell>
           </Protected>
         }
