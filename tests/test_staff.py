@@ -5,6 +5,10 @@ from __future__ import annotations
 
 import pytest
 from httpx import AsyncClient
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.models.shop import Shop
+from app.models.user import User
 
 
 @pytest.mark.usefixtures("owner", "receiver", "cashier")
@@ -104,6 +108,37 @@ async def test_duplicate_phone_rejected_with_409(
             "full_name": "Dupe Phone",
             "phone": "+15555550002",  # collision
             "password": "duppass",
+        },
+    )
+    assert resp.status_code == 409
+
+
+@pytest.mark.usefixtures("owner")
+async def test_duplicate_phone_rejected_across_shops_with_409(
+    superadmin_client: AsyncClient, owner: User, db_session: AsyncSession
+) -> None:
+    """Regression: phone must be globally unique, not just per-shop.
+
+    Login for shop-scoped roles looks a user up by phone alone (it has no
+    way to know the shop ahead of time), so two different shops' users
+    sharing a phone made that lookup match multiple rows and crash with
+    MultipleResultsFound (500) instead of ever reaching password checks —
+    which showed up as "owner/staff login doesn't redirect anywhere".
+    """
+    shop2 = Shop(code="shop2-staffdupe", name="Shop Two")
+    db_session.add(shop2)
+    await db_session.flush()
+    await db_session.commit()
+
+    resp = await superadmin_client.post(
+        "/staff",
+        json={
+            "role": "cashier_user",
+            "username": "newu2",
+            "full_name": "Cross Shop Dupe",
+            "phone": owner.phone,  # collides with owner's phone in a different shop
+            "password": "duppass",
+            "shop_id": shop2.id,
         },
     )
     assert resp.status_code == 409

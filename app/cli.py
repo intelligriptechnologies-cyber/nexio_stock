@@ -10,6 +10,7 @@ real shop onboarding will use (superadmin runs them once at provisioning).
 from __future__ import annotations
 
 import asyncio
+import secrets
 import sys
 from getpass import getpass
 
@@ -55,7 +56,10 @@ async def _createsuperadmin(username: str, password: str) -> None:
             role=UserRole.SUPERADMIN,
             username=username,
             full_name="Super Admin",
-            phone="0000000000",  # superadmin is not a shop user; no real phone
+            # Superadmin isn't a shop user and never logs in by phone, but
+            # `phone` is globally unique now (see migration f66dd42ad7e7),
+            # so each superadmin still needs a distinct placeholder.
+            phone="SA" + secrets.token_hex(9),
             password_hash=hash_password(password),
             is_active=True,
         )
@@ -64,7 +68,9 @@ async def _createsuperadmin(username: str, password: str) -> None:
     _print(f"superadmin '{username}' created")
 
 
-async def _createshop(code: str, name: str, owner_username: str, owner_password: str) -> None:
+async def _createshop(
+    code: str, name: str, owner_username: str, owner_password: str, owner_phone: str
+) -> None:
     settings = get_settings()
     configure_logging(settings.log_level)
     log = get_logger("cli.createshop")
@@ -101,7 +107,10 @@ async def _createshop(code: str, name: str, owner_username: str, owner_password:
             role=UserRole.OWNER,
             username=owner_username,
             full_name="Shop Owner",
-            phone="0000000001",  # placeholder; owner can update later
+            # phone is globally unique across all shops (D-64 regression fix,
+            # migration f66dd42ad7e7), so every new owner needs a real,
+            # distinct phone — no more shared "0000000001" placeholder.
+            phone=owner_phone,
             password_hash=hash_password(owner_password),
             is_active=True,
         )
@@ -124,7 +133,7 @@ def main(argv: list[str] | None = None) -> None:
             "usage:\n"
             "  barstock createsuperuser [--username NAME] [--password PW]\n"
             "  barstock createshop --code CODE --name NAME --owner-username NAME "
-            "[--owner-password PW]\n"
+            "--owner-phone PHONE [--owner-password PW]\n"
         )
         return
 
@@ -154,6 +163,7 @@ def main(argv: list[str] | None = None) -> None:
         name = None
         owner_username = None
         owner_password = None
+        owner_phone = None
         i = 0
         while i < len(args):
             if args[i] == "--code" and i + 1 < len(args):
@@ -168,6 +178,9 @@ def main(argv: list[str] | None = None) -> None:
             elif args[i] == "--owner-password" and i + 1 < len(args):
                 owner_password = args[i + 1]
                 i += 2
+            elif args[i] == "--owner-phone" and i + 1 < len(args):
+                owner_phone = args[i + 1]
+                i += 2
             else:
                 _print(f"unknown arg: {args[i]}")
                 raise SystemExit(2)
@@ -176,7 +189,12 @@ def main(argv: list[str] | None = None) -> None:
             raise SystemExit(2)
         if not owner_password:
             owner_password = getpass("owner password (min 4): ")
-        asyncio.run(_createshop(code, name, owner_username, owner_password))
+        if not owner_phone:
+            # phone is globally unique across all shops (see migration
+            # f66dd42ad7e7) — a shared placeholder would fail on the
+            # second shop, so a real distinct phone is required here.
+            owner_phone = input("owner phone (7-15 digits, unique across all shops): ").strip()
+        asyncio.run(_createshop(code, name, owner_username, owner_password, owner_phone))
     else:
         _print(f"unknown command: {cmd}")
         raise SystemExit(2)

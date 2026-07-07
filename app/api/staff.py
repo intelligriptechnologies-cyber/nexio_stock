@@ -4,8 +4,9 @@ accounts (D-27, R-4, R-21).
 Strictly:
   - Only owners (and superadmins) can hit these endpoints.
   - The owner can only create receiver_user or cashier_user accounts for
-    their own shop (the schema-level UNIQUE(shop_id, username) and
-    UNIQUE(shop_id, phone) constraints enforce uniqueness per shop).
+    their own shop. Username is unique per shop (UNIQUE(shop_id, username));
+    phone is unique across *all* shops (UNIQUE(phone)) since shop login
+    looks a user up by phone alone (see app.api.auth._authenticate).
   - The owner cannot create another owner — owner accounts are provisioned
     by superadmin (D-58).
 """
@@ -76,7 +77,10 @@ async def create_staff(
             await db.rollback()
             raise HTTPException(
                 status_code=status.HTTP_409_CONFLICT,
-                detail="username or phone already exists in this shop",
+                detail=(
+                    "username already exists in this shop, or phone is "
+                    "already registered (phone must be unique across all shops)"
+                ),
             ) from exc
         raise
     await db.refresh(new_user)

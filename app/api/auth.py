@@ -122,7 +122,7 @@ async def login_shop(payload: LoginRequest, db: DbSession) -> TokenResponse:
         )
     user = await _authenticate(
         db,
-        shop_id=None,  # phone is globally unique with a UNIQUE(shop_id, phone) constraint
+        shop_id=None,  # phone is globally unique across all shops (UNIQUE(phone))
         identifier_field="phone",
         identifier_value=payload.phone,
         password=payload.password,

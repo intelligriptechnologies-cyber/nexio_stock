@@ -3,6 +3,11 @@ from __future__ import annotations
 
 import pytest
 from httpx import AsyncClient
+from sqlalchemy.exc import IntegrityError
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.models.user import User, UserRole
+from app.security.passwords import hash_password
 
 
 @pytest.mark.usefixtures("owner", "receiver", "cashier", "superadmin")
@@ -83,3 +88,27 @@ async def test_shop_login_requires_phone_and_password(client: AsyncClient) -> No
 async def test_superadmin_login_requires_username_and_password(client: AsyncClient) -> None:
     resp = await client.post("/auth/login/superadmin", json={"username": "root"})
     assert resp.status_code == 422  # missing password
+
+
+@pytest.mark.usefixtures("superadmin")
+async def test_superadmin_username_must_be_globally_unique(
+    superadmin: User, db_session: AsyncSession
+) -> None:
+    """Regression: shop_id is NULL for every superadmin, and a unique
+    constraint on (shop_id, username) is a no-op across NULL shop_ids —
+    so without a dedicated constraint, two superadmins could share a
+    username and login-by-username would crash with MultipleResultsFound.
+    """
+    dupe = User(
+        shop_id=None,
+        role=UserRole.SUPERADMIN,
+        username=superadmin.username,  # collision
+        full_name="Impostor",
+        phone="SA-impostor-0001",
+        password_hash=hash_password("whatever1"),
+        is_active=True,
+    )
+    db_session.add(dupe)
+    with pytest.raises(IntegrityError):
+        await db_session.flush()
+    await db_session.rollback()

@@ -18,7 +18,17 @@ import enum
 from datetime import datetime
 from typing import TYPE_CHECKING
 
-from sqlalchemy import Boolean, DateTime, Enum, ForeignKey, String, UniqueConstraint, func
+from sqlalchemy import (
+    Boolean,
+    DateTime,
+    Enum,
+    ForeignKey,
+    Index,
+    String,
+    UniqueConstraint,
+    func,
+    text,
+)
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db import Base
@@ -48,8 +58,26 @@ SHOP_SCOPED_ROLES: frozenset[UserRole] = frozenset(
 class User(Base):
     __tablename__ = "users"
     __table_args__ = (
+        # Username only needs to be unique within a shop for shop-scoped
+        # roles — login for those roles goes by phone, not username.
         UniqueConstraint("shop_id", "username", name="uq_users_shop_username"),
-        UniqueConstraint("shop_id", "phone", name="uq_users_shop_phone"),
+        # Phone is the shop-scoped login identifier and must be globally
+        # unique across *all* shops (not just within one), since login
+        # looks a user up by phone alone without knowing which shop they
+        # belong to. A per-shop constraint here would let two different
+        # shops' owners share a phone number, which login's single-row
+        # lookup can't disambiguate — it would raise MultipleResultsFound.
+        UniqueConstraint("phone", name="uq_users_phone"),
+        # Superadmin has no shop_id, so the (shop_id, username) constraint
+        # above is a no-op for those rows (NULL <> NULL in a unique
+        # constraint). Superadmin logs in by username, so it needs its own
+        # uniqueness guarantee, scoped to shop_id IS NULL.
+        Index(
+            "uq_users_username_superadmin",
+            "username",
+            unique=True,
+            postgresql_where=text("shop_id IS NULL"),
+        ),
     )
 
     id: Mapped[int] = mapped_column(primary_key=True)
