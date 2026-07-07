@@ -12,6 +12,7 @@ import { AdminPlaceholder } from "./pages/AdminPlaceholder";
 import { ProductsPage } from "./pages/ProductsPage";
 import { VoidApprovalsPage } from "./pages/VoidApprovalsPage";
 import { InvoiceLookupPage } from "./pages/InvoiceLookupPage";
+import { StaffPage } from "./pages/StaffPage";
 
 function Protected({ allow, children }: { allow: Role[]; children: JSX.Element }) {
   const { user, isReady } = useAuth();
@@ -102,6 +103,16 @@ export default function App() {
           <Protected allow={["owner"]}>
             <AuthedShell>
               <VoidApprovalsPage />
+            </AuthedShell>
+          </Protected>
+        }
+      />
+      <Route
+        path="/admin/staff"
+        element={
+          <Protected allow={["owner"]}>
+            <AuthedShell>
+              <StaffPage />
             </AuthedShell>
           </Protected>
         }
