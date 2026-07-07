@@ -1,0 +1,171 @@
+import { useEffect, useState } from "react";
+import { ApiError } from "../api/client";
+import { getMyShop, updateMyShop, type ShopPublic } from "../api/shops";
+
+export function ShopConfigPage() {
+  const [shop, setShop] = useState<ShopPublic | null>(null);
+  const [gstin, setGstin] = useState("");
+  const [dutyRate, setDutyRate] = useState("");
+  const [threshold, setThreshold] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [info, setInfo] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+
+  const reload = async () => {
+    setError(null);
+    setInfo(null);
+    try {
+      const s = await getMyShop();
+      setShop(s);
+      setGstin(s.gstin ?? "");
+      setDutyRate(s.excise_duty_rate ?? "");
+      setThreshold(
+        s.low_stock_threshold_default === null ? "" : String(s.low_stock_threshold_default)
+      );
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Load failed.");
+    }
+  };
+
+  useEffect(() => {
+    void reload();
+  }, []);
+
+  const save = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setBusy(true);
+    setError(null);
+    setInfo(null);
+    try {
+      const payload: {
+        gstin: string | null;
+        excise_duty_rate: string | null;
+        low_stock_threshold_default: number | null;
+      } = {
+        gstin: gstin.trim() ? gstin.trim() : null,
+        excise_duty_rate: dutyRate.trim() ? dutyRate.trim() : null,
+        low_stock_threshold_default: threshold.trim() ? Number(threshold.trim()) : null,
+      };
+      const updated = await updateMyShop(payload);
+      setShop(updated);
+      setInfo("Shop config saved.");
+    } catch (e) {
+      if (e instanceof ApiError) {
+        if (e.status === 400) setError(`Validation error: ${e.detail}`);
+        else if (e.status === 0) setError("Network error — save failed.");
+        else setError(e.detail);
+      } else {
+        setError(e instanceof Error ? e.message : "Save failed.");
+      }
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <div className="flex flex-col gap-stack-gap">
+      <h1 className="text-headline-lg text-primary">Shop Config</h1>
+
+      {shop && (
+        <div className="rounded-md bg-surface-container p-stack-gap text-label-md">
+          <div>
+            <span className="text-on-surface-variant">Shop name: </span>
+            <strong>{shop.name}</strong>
+          </div>
+          <div>
+            <span className="text-on-surface-variant">Shop code: </span>
+            <span className="font-mono">{shop.code}</span>
+          </div>
+        </div>
+      )}
+
+      <form
+        onSubmit={save}
+        className="grid grid-cols-1 gap-stack-gap rounded-lg bg-surface-container p-gutter md:grid-cols-2"
+      >
+        <Field
+          label="GSTIN (15 uppercase alphanumerics)"
+          value={gstin}
+          onChange={setGstin}
+          maxLength={15}
+          placeholder="e.g. 21ABCDE1234F1Z5"
+        />
+        <Field
+          label="Excise duty rate (% placeholder, 0–100)"
+          value={dutyRate}
+          onChange={setDutyRate}
+          type="number"
+          step="0.01"
+          min="0"
+          max="100"
+          placeholder="e.g. 0.00 — confirm against Odisha State Excise before relying on it"
+        />
+        <Field
+          label="Default low-stock threshold"
+          value={threshold}
+          onChange={setThreshold}
+          type="number"
+          min="0"
+          placeholder="Per-product overrides win"
+        />
+        <button
+          type="submit"
+          disabled={busy}
+          className="md:col-span-2 min-h-touchTarget rounded-md bg-accent text-label-xl text-on-accent disabled:opacity-50"
+        >
+          {busy ? "Saving…" : "Save shop config"}
+        </button>
+      </form>
+
+      {error && (
+        <div role="alert" className="rounded-md bg-error px-stack-gap py-3 text-on-error">
+          {error}
+        </div>
+      )}
+      {info && (
+        <div role="status" className="rounded-md bg-success px-stack-gap py-3 text-on-secondary">
+          {info}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function Field({
+  label,
+  value,
+  onChange,
+  type = "text",
+  step,
+  min,
+  max,
+  maxLength,
+  placeholder,
+}: {
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+  type?: string;
+  step?: string;
+  min?: string;
+  max?: string;
+  maxLength?: number;
+  placeholder?: string;
+}) {
+  return (
+    <label className="flex flex-col gap-1 text-label-md">
+      {label}
+      <input
+        type={type}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        step={step}
+        min={min}
+        max={max}
+        maxLength={maxLength}
+        placeholder={placeholder}
+        className="min-h-touchTarget-sm rounded-md border border-outline bg-surface px-stack-gap text-body-md"
+      />
+    </label>
+  );
+}

@@ -13,6 +13,7 @@ import { ProductsPage } from "./pages/ProductsPage";
 import { VoidApprovalsPage } from "./pages/VoidApprovalsPage";
 import { InvoiceLookupPage } from "./pages/InvoiceLookupPage";
 import { StaffPage } from "./pages/StaffPage";
+import { ShopConfigPage } from "./pages/ShopConfigPage";
 
 function Protected({ allow, children }: { allow: Role[]; children: JSX.Element }) {
   const { user, isReady } = useAuth();
@@ -113,6 +114,16 @@ export default function App() {
           <Protected allow={["owner"]}>
             <AuthedShell>
               <StaffPage />
+            </AuthedShell>
+          </Protected>
+        }
+      />
+      <Route
+        path="/admin/shop"
+        element={
+          <Protected allow={["owner"]}>
+            <AuthedShell>
+              <ShopConfigPage />
             </AuthedShell>
           </Protected>
         }
