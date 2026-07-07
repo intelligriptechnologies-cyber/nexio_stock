@@ -13,6 +13,9 @@ import {
   type PaymentMode,
   type InvoicePublic,
 } from "../api/checkout";
+import { enqueueFinalize, listQueued, clearQueued } from "../api/finalize-queue";
+import { useOnlineStatus } from "../hooks/useOnlineStatus";
+import { useRetryQueue } from "../hooks/useRetryQueue";
 
 interface CartLine {
   lineId: string;
@@ -46,6 +49,18 @@ function formatPaymentLabel(m: PaymentMode): string {
 }
 
 export function CheckoutPage() {
+  const online = useOnlineStatus();
+  const retryQueue = useRetryQueue({
+    onFlush: (outcomes) => {
+      const failed = outcomes.filter((o) => !o.ok);
+      if (failed.length === 0) return;
+      const lines = failed
+        .map((o) => `Queued sale ${o.key.slice(0, 6)}: HTTP ${o.status} — ${o.detail}`)
+        .join("\n");
+      setError((prev) => (prev ? `${prev}\n${lines}` : lines));
+    },
+  });
+
   const [cart, setCart] = useState<CartLine[]>([]);
   const [barcode, setBarcode] = useState("");
   const [payments, setPayments] = useState<PaymentSplit[]>([{ mode: "cash", amount: "0.00" }]);
@@ -56,6 +71,16 @@ export function CheckoutPage() {
   const [catalogReady, setCatalogReady] = useState(false);
   const [lastInvoice, setLastInvoice] = useState<InvoicePublic | null>(null);
   const idempotencyKeyRef = useRef<string>(uid());
+  const [queuedSnapshot, setQueuedSnapshot] = useState(() => listQueued());
+
+  const refreshQueueSnapshot = useCallback(() => {
+    setQueuedSnapshot(listQueued());
+  }, []);
+
+  // Sync snapshot when the queue changes (auto-flush effects etc.).
+  useEffect(() => {
+    refreshQueueSnapshot();
+  }, [retryQueue.pending, refreshQueueSnapshot]);
 
   // Prefetch the catalog on mount (D-30).
   useEffect(() => {
@@ -168,15 +193,14 @@ export function CheckoutPage() {
       return;
     }
     setBusy(true);
+    const body = {
+      lines: cart.map((l) => ({ barcode: l.product.barcode, quantity: l.quantity })),
+      payments: payments.map((p) => ({ mode: p.mode, amount: moneyString(parseMoney(p.amount)) })),
+      note: note.trim() || undefined,
+    };
+    const idemKey = idempotencyKeyRef.current;
     try {
-      const res = await finalizeCheckout(
-        {
-          lines: cart.map((l) => ({ barcode: l.product.barcode, quantity: l.quantity })),
-          payments: payments.map((p) => ({ mode: p.mode, amount: moneyString(parseMoney(p.amount)) })),
-          note: note.trim() || undefined,
-        },
-        idempotencyKeyRef.current
-      );
+      const res = await finalizeCheckout(body, idemKey);
       setLastInvoice(res.invoice);
       setCart([]);
       setPayments([{ mode: "cash", amount: "0.00" }]);
@@ -185,16 +209,43 @@ export function CheckoutPage() {
       setInfo(res.is_replay ? "Idempotent replay — same invoice shown." : "Invoice created.");
     } catch (e) {
       if (e instanceof ApiError) {
-        if (e.status === 409) setError("Stock changed since scan — refresh the cart.");
-        else if (e.status === 400) setError(`Validation error: ${e.detail}`);
-        else if (e.status === 0) setError("Network error — finalize failed.");
-        else setError(e.detail);
+        // Network / timeout / 429 -> queue for retry. The local cart is
+        // cleared so the cashier can keep ringing; on a successful retry
+        // we display the resulting invoice via the queue hook below.
+        if (e.status === 0 || e.status === 408 || e.status === 429) {
+          enqueueFinalize({ idempotencyKey: idemKey, body });
+          setCart([]);
+          setPayments([{ mode: "cash", amount: "0.00" }]);
+          setNote("");
+          idempotencyKeyRef.current = uid();
+          setInfo(
+            online
+              ? "Network blip — finalize queued for automatic retry."
+              : "Offline — finalize queued. It will retry automatically when you're back online."
+          );
+          void retryQueue.flush();
+        } else if (e.status === 409) {
+          setError("Stock changed since scan — refresh the cart.");
+        } else if (e.status === 400) {
+          setError(`Validation error: ${e.detail}`);
+        } else {
+          // 5xx / other 4xx: surface directly. Invariant failures (e.g.
+          // insufficient_stock) must NOT be silently dropped.
+          setError(e.detail);
+        }
       } else {
         setError("Unknown error finalizing invoice.");
       }
     } finally {
       setBusy(false);
     }
+  };
+
+  // (online status + retry queue wired at the top of the component.)
+
+  const handleDismissQueued = (key: string) => {
+    clearQueued(key);
+    refreshQueueSnapshot();
   };
 
   const downloadPdf = async () => {
@@ -227,7 +278,76 @@ export function CheckoutPage() {
   };
 
   return (
-    <div className="grid gap-gutter lg:grid-cols-[2fr_1fr]">
+    <div className="grid gap-gutter">
+      {/* Connectivity + queue banner */}
+      <div className="flex flex-col gap-stack-gap" aria-live="polite">
+        {!online && (
+          <div
+            role="status"
+            className="flex items-center gap-stack-gap rounded-md bg-warning px-stack-gap py-3 text-on-accent"
+          >
+            <span className="text-headline-md">⚠</span>
+            <div className="flex-1">
+              <div className="text-label-xl">You&apos;re offline</div>
+              <div className="text-label-md">
+                Sales will be queued locally and retry when connectivity returns.
+              </div>
+            </div>
+          </div>
+        )}
+        {queuedSnapshot.length > 0 && (
+          <div
+            role="region"
+            aria-label="Pending finalize queue"
+            className="flex flex-col gap-stack-gap rounded-md bg-surface-container p-stack-gap"
+          >
+            <div className="flex items-center justify-between">
+              <div className="text-label-xl text-primary">
+                Pending finalize queue ({queuedSnapshot.length})
+              </div>
+              <div className="flex gap-stack-gap">
+                <button
+                  type="button"
+                  onClick={() => {
+                    void retryQueue.flush();
+                    refreshQueueSnapshot();
+                  }}
+                  className="min-h-touchTarget-sm rounded-md bg-accent px-stack-gap text-label-md text-on-accent disabled:opacity-50"
+                  disabled={!online}
+                >
+                  Retry now
+                </button>
+              </div>
+            </div>
+            <ul className="flex flex-col gap-stack-gap">
+              {queuedSnapshot.map((q) => (
+                <li
+                  key={q.idempotencyKey}
+                  className="flex items-center justify-between rounded-md bg-surface px-stack-gap py-2 text-label-md"
+                >
+                  <div className="flex flex-col">
+                    <span className="font-mono">{q.idempotencyKey.slice(0, 12)}…</span>
+                    <span className="text-on-surface-variant">
+                      {q.body.lines.length} line(s) · attempts {q.attempts}
+                      {q.lastError ? ` · last error: ${q.lastError}` : ""}
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => handleDismissQueued(q.idempotencyKey)}
+                    className="h-12 w-12 rounded-md bg-error text-on-error"
+                    aria-label="Dismiss queued sale"
+                  >
+                    ×
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+      </div>
+
+      <div className="grid gap-gutter lg:grid-cols-[2fr_1fr]">
       {/* LEFT — cart */}
       <section className="flex flex-col gap-stack-gap rounded-lg bg-surface-container p-gutter">
         <header className="flex items-center justify-between">
@@ -499,6 +619,7 @@ export function CheckoutPage() {
           </div>
         </div>
       )}
+      </div>
     </div>
   );
 }
