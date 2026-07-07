@@ -6,7 +6,7 @@ import { SuperadminLoginPage } from "./pages/SuperadminLoginPage";
 import { ForbiddenPage } from "./pages/ForbiddenPage";
 import { HomeRedirect } from "./pages/HomeRedirect";
 import { CheckoutPage } from "./pages/CheckoutPage";
-import { ReceivingPlaceholder } from "./pages/ReceivingPlaceholder";
+import { ReceivingPage } from "./pages/ReceivingPage";
 import { DashboardPlaceholder } from "./pages/DashboardPlaceholder";
 import { AdminPlaceholder } from "./pages/AdminPlaceholder";
 
@@ -58,7 +58,7 @@ export default function App() {
         element={
           <Protected allow={["receiver_user", "owner"]}>
             <AuthedShell>
-              <ReceivingPlaceholder />
+              <ReceivingPage />
             </AuthedShell>
           </Protected>
         }
