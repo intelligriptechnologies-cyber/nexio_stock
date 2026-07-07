@@ -10,6 +10,8 @@ import {
   type ProductUpdatePayload,
 } from "../api/products";
 import { invalidateCache } from "../api/catalog";
+import { useAuth } from "../auth/AuthProvider";
+import { useShopScope } from "../auth/ShopScopeProvider";
 
 type Tab = "list" | "create" | "import";
 
@@ -276,6 +278,8 @@ function EditRow({
 }
 
 function CreateTab({ onCreated }: { onCreated: () => void }) {
+  const { user } = useAuth();
+  const { actingShopId } = useShopScope();
   const [barcode, setBarcode] = useState("");
   const [brand, setBrand] = useState("");
   const [sizeLabel, setSizeLabel] = useState("");
@@ -287,6 +291,10 @@ function CreateTab({ onCreated }: { onCreated: () => void }) {
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (user?.role === "superadmin" && actingShopId === null) {
+      setError("Pick a shop first (top of the sidebar).");
+      return;
+    }
     setBusy(true);
     setError(null);
     setInfo(null);
@@ -303,7 +311,7 @@ function CreateTab({ onCreated }: { onCreated: () => void }) {
         if (!Number.isInteger(n) || n < 0) throw new Error("Threshold must be a non-negative integer.");
         payload.low_stock_threshold = n;
       }
-      const created = await createProduct(payload);
+      const created = await createProduct(payload, actingShopId);
       invalidateCache();
       setInfo(`Created ${created.brand} ${created.size_label} (${created.barcode}).`);
       setBarcode("");
@@ -391,6 +399,8 @@ function Field({
 }
 
 function ImportTab() {
+  const { user } = useAuth();
+  const { actingShopId } = useShopScope();
   const [file, setFile] = useState<File | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -401,11 +411,15 @@ function ImportTab() {
       setError("Pick a CSV file first.");
       return;
     }
+    if (user?.role === "superadmin" && actingShopId === null) {
+      setError("Pick a shop first (top of the sidebar).");
+      return;
+    }
     setBusy(true);
     setError(null);
     setResult(null);
     try {
-      const res = await importProductsCsv(file);
+      const res = await importProductsCsv(file, actingShopId);
       setResult(res);
       invalidateCache();
     } catch (e) {

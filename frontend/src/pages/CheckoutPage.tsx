@@ -16,6 +16,7 @@ import {
 import { enqueueFinalize, listQueued, clearQueued } from "../api/finalize-queue";
 import { useOnlineStatus } from "../hooks/useOnlineStatus";
 import { useRetryQueue } from "../hooks/useRetryQueue";
+import { useShopScope } from "../auth/ShopScopeProvider";
 
 interface CartLine {
   lineId: string;
@@ -50,6 +51,7 @@ function formatPaymentLabel(m: PaymentMode): string {
 
 export function CheckoutPage() {
   const online = useOnlineStatus();
+  const { actingShopId } = useShopScope();
   const retryQueue = useRetryQueue({
     onFlush: (outcomes) => {
       const failed = outcomes.filter((o) => !o.ok);
@@ -200,7 +202,7 @@ export function CheckoutPage() {
     };
     const idemKey = idempotencyKeyRef.current;
     try {
-      const res = await finalizeCheckout(body, idemKey);
+      const res = await finalizeCheckout(body, idemKey, actingShopId);
       setLastInvoice(res.invoice);
       setCart([]);
       setPayments([{ mode: "cash", amount: "0.00" }]);
@@ -213,7 +215,10 @@ export function CheckoutPage() {
         // cleared so the cashier can keep ringing; on a successful retry
         // we display the resulting invoice via the queue hook below.
         if (e.status === 0 || e.status === 408 || e.status === 429) {
-          enqueueFinalize({ idempotencyKey: idemKey, body });
+          enqueueFinalize({
+            idempotencyKey: idemKey,
+            body: actingShopId != null ? { ...body, shop_id: actingShopId } : body,
+          });
           setCart([]);
           setPayments([{ mode: "cash", amount: "0.00" }]);
           setNote("");

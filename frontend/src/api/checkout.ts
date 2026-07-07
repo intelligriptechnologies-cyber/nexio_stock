@@ -51,11 +51,13 @@ export interface CheckoutFinalizeResponse {
 
 export function finalizeCheckout(
   payload: { lines: CheckoutLine[]; payments: PaymentInput[]; note?: string },
-  idempotencyKey: string
+  idempotencyKey: string,
+  shopId?: number | null
 ): Promise<CheckoutFinalizeResponse> {
+  const json = shopId != null ? { ...payload, shop_id: shopId } : payload;
   return api<CheckoutFinalizeResponse>("/checkout/finalize", {
     method: "POST",
-    json: payload,
+    json,
     idempotencyKey,
   });
 }

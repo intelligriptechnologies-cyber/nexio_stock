@@ -17,6 +17,7 @@ export interface QueuedFinalize {
     lines: { barcode: string; quantity: number }[];
     payments: { mode: string; amount: string }[];
     note?: string;
+    shop_id?: number;
   };
   enqueuedAt: number;
   lastError: string | null;

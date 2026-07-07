@@ -1,6 +1,7 @@
 """Product catalog + bulk CSV import (D-7, D-19, D-52, D-61, R-7, R-10, R-27, R-42).
 
-All endpoints are owner-only. The /lookup endpoint is the scanner's
+Write endpoints are owner (own shop) or superadmin (any shop, via an
+explicit shop_id — D-64/D-65). The /lookup endpoint is the scanner's
 product-fetch path used by the cashier in #4 and the receiver in #3 — it's
 read-only and accepts a barcode (scanned or manually typed per the
 fallback in R-10/R-27) and returns the product record. It's exposed
@@ -14,13 +15,13 @@ import io
 from decimal import Decimal, InvalidOperation
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile, status
+from fastapi import APIRouter, Depends, File, Form, HTTPException, Query, UploadFile, status
 from sqlalchemy import select
 from sqlalchemy.dialects.postgresql.asyncpg import AsyncAdapt_asyncpg_dbapi
 from sqlalchemy.exc import IntegrityError
 
 from app.api._errors import is_unique_violation
-from app.api.deps import DbSession, require_role
+from app.api.deps import DbSession, require_role, resolve_write_shop_id
 from app.logging_config import get_logger
 from app.models.product import Product
 from app.models.user import User, UserRole
@@ -53,20 +54,13 @@ async def create_product(
     db: DbSession,
     _user: User = Depends(require_role(*_write_roles)),
 ) -> ProductPublic:
-    # The owner can only create products in their own shop (D-35, R-21).
-    # superadmin creates products for a specific shop via a future
-    # provisioning endpoint; for v1 we always scope to the owner's shop.
-    if _user.role == UserRole.SUPERADMIN:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="superadmin must scope product creation to a shop "
-            "(per-shop endpoint not yet implemented in v1)",
-        )
     # Eagerly capture: the auth dep's session is closing around the time
     # this handler's `db` session takes over, and detached User objects
     # trigger a lazy load on attribute access.
     actor_id = _user.id
-    actor_shop_id = _user.shop_id
+    # Owner/receiver/cashier create in their own shop; superadmin must
+    # name the target shop explicitly (D-64/D-65).
+    actor_shop_id = await resolve_write_shop_id(db, _user, payload.shop_id)
 
     product = Product(
         shop_id=actor_shop_id,
@@ -206,24 +200,21 @@ async def import_products_csv(
     db: DbSession,
     _user: User = Depends(require_role(*_write_roles)),
     file: UploadFile = File(..., description="CSV with header row"),
+    shop_id: Annotated[
+        int | None,
+        Form(description="Superadmin-only (D-65): target shop for the import"),
+    ] = None,
 ) -> ProductImportResponse:
     """Bulk import per D-61 / R-42. Returns 200 even when some rows fail —
     per-row errors are listed in the response so the cashier-facing UI
     can show "X succeeded, Y failed" rather than silently partial-failing.
     A row fails if validation rejects it OR if its barcode collides with
     an existing product (D-52)."""
-    if _user.role == UserRole.SUPERADMIN:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="superadmin must scope product creation to a shop "
-            "(per-shop endpoint not yet implemented in v1)",
-        )
-
     # Capture actor fields up front — `_user` is detached after the
     # auth dep's session closes, and accessing `.id` / `.shop_id` later
     # triggers a lazy load on a closed session.
     actor_id = _user.id
-    actor_shop_id = _user.shop_id
+    actor_shop_id = await resolve_write_shop_id(db, _user, shop_id)
 
     raw = await file.read()
     try:

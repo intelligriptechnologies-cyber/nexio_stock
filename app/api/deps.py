@@ -15,6 +15,7 @@ from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db import get_db
+from app.models.shop import Shop
 from app.models.user import SHOP_SCOPED_ROLES, User, UserRole
 from app.security.jwt import TokenError, decode_access_token
 
@@ -82,6 +83,40 @@ def require_role(*allowed: UserRole):
         return user
 
     return _guard
+
+
+async def resolve_write_shop_id(
+    db: AsyncSession, user: User, requested_shop_id: int | None
+) -> int:
+    """Resolve which shop a write action targets (D-64/D-65).
+
+    Owner/receiver/cashier always write to their own shop — a
+    `requested_shop_id` from them is rejected rather than silently
+    ignored, since silently accepting-but-ignoring it would mask a client
+    bug. Superadmin has no shop_id of its own (D-3), so it must name the
+    target shop explicitly; the shop must exist.
+    """
+    if user.role == UserRole.SUPERADMIN:
+        if requested_shop_id is None:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="superadmin must specify shop_id for this action",
+            )
+        shop = await db.get(Shop, requested_shop_id)
+        if shop is None:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"shop {requested_shop_id} not found",
+            )
+        return requested_shop_id
+
+    if requested_shop_id is not None and requested_shop_id != user.shop_id:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="only superadmin may specify shop_id",
+        )
+    assert user.shop_id is not None
+    return user.shop_id
 
 
 def require_shop_scope(user: User) -> None:

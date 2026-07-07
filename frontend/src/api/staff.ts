@@ -36,6 +36,10 @@ export function listStaff(): Promise<StaffMember[]> {
   return api<StaffMember[]>("/staff");
 }
 
-export function createStaff(payload: StaffCreatePayload): Promise<StaffMember> {
-  return api<StaffMember>("/staff", { method: "POST", json: payload });
+export function createStaff(
+  payload: StaffCreatePayload,
+  shopId?: number | null
+): Promise<StaffMember> {
+  const json = shopId != null ? { ...payload, shop_id: shopId } : payload;
+  return api<StaffMember>("/staff", { method: "POST", json });
 }

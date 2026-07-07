@@ -46,6 +46,9 @@ class CheckoutFinalizeRequest(BaseModel):
     lines: list[CheckoutLine] = Field(min_length=1, max_length=200)
     payments: list[PaymentInput] = Field(min_length=1, max_length=10)
     note: str | None = Field(default=None, max_length=200)
+    # Superadmin-only (D-65): names the target shop. Owner/cashier must
+    # omit this — their own shop_id is used implicitly.
+    shop_id: int | None = Field(default=None)
 
     @model_validator(mode="after")
     def _payments_nonempty_amount(self) -> CheckoutFinalizeRequest:

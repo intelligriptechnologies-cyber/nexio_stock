@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { useAuth, type Role } from "../auth/AuthProvider";
+import { ShopPicker } from "./ShopPicker";
 
 interface NavItem {
   to: string;
@@ -9,14 +10,14 @@ interface NavItem {
 }
 
 const ITEMS: NavItem[] = [
-  { to: "/checkout", label: "Checkout", roles: ["cashier_user", "owner"] },
-  { to: "/invoices", label: "Invoices", roles: ["cashier_user", "owner"] },
-  { to: "/receiving", label: "Receiving", roles: ["receiver_user", "owner"] },
-  { to: "/dashboard", label: "Dashboard", roles: ["owner"] },
-  { to: "/admin/products", label: "Products", roles: ["owner"] },
-  { to: "/admin/staff", label: "Staff", roles: ["owner"] },
-  { to: "/admin/shop", label: "Shop Config", roles: ["owner"] },
-  { to: "/admin/voids", label: "Void Approvals", roles: ["owner"] },
+  { to: "/checkout", label: "Checkout", roles: ["cashier_user", "owner", "superadmin"] },
+  { to: "/invoices", label: "Invoices", roles: ["cashier_user", "owner", "superadmin"] },
+  { to: "/receiving", label: "Receiving", roles: ["receiver_user", "owner", "superadmin"] },
+  { to: "/dashboard", label: "Dashboard", roles: ["owner", "superadmin"] },
+  { to: "/admin/products", label: "Products", roles: ["owner", "superadmin"] },
+  { to: "/admin/staff", label: "Staff", roles: ["owner", "superadmin"] },
+  { to: "/admin/shop", label: "Shop Config", roles: ["owner", "superadmin"] },
+  { to: "/admin/voids", label: "Void Approvals", roles: ["owner", "superadmin"] },
 ];
 
 export function Sidebar() {
@@ -49,6 +50,7 @@ export function Sidebar() {
         <div className="flex h-16 items-center px-stack-gap text-headline-md font-bold">
           Barstock
         </div>
+        <ShopPicker />
         <nav className="flex flex-1 flex-col gap-1 px-2">
           {items.map((it) => (
             <NavLink

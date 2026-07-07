@@ -2,21 +2,29 @@ import { useEffect, useState } from "react";
 import { ApiError } from "../api/client";
 import { getInvoice, type InvoicePublic } from "../api/checkout";
 import { approveVoid, listPendingVoids, rejectVoid, type PendingVoidInvoice } from "../api/voids";
+import { useAuth } from "../auth/AuthProvider";
+import { useShopScope } from "../auth/ShopScopeProvider";
 
 function moneyFmt(s: string): string {
   return `₹${s}`;
 }
 
 export function VoidApprovalsPage() {
+  const { user } = useAuth();
+  const { actingShopId } = useShopScope();
   const [items, setItems] = useState<PendingVoidInvoice[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [busyId, setBusyId] = useState<number | null>(null);
   const [info, setInfo] = useState<string | null>(null);
 
   const reload = async () => {
+    if (user?.role === "superadmin" && actingShopId === null) {
+      setItems(null);
+      return;
+    }
     setItems(null);
     try {
-      const res = await listPendingVoids();
+      const res = await listPendingVoids(actingShopId);
       setItems(res.pending);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Load failed.");
@@ -25,7 +33,7 @@ export function VoidApprovalsPage() {
 
   useEffect(() => {
     void reload();
-  }, []);
+  }, [actingShopId]);
 
   const act = async (id: number, fn: () => Promise<unknown>, label: string) => {
     setBusyId(id);

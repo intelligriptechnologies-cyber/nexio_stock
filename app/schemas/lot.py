@@ -33,6 +33,9 @@ class LotCreate(BaseModel):
     reference: str | None = Field(default=None, max_length=100)
     notes: str | None = Field(default=None, max_length=500)
     lines: list[LotLineCreate] = Field(min_length=1, max_length=500)
+    # Superadmin-only (D-65): names the target shop, since superadmin has
+    # no shop_id of its own. Owner/receiver must omit this.
+    shop_id: int | None = Field(default=None)
 
     @model_validator(mode="after")
     def _unique_barcodes(self) -> LotCreate:

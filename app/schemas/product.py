@@ -17,7 +17,7 @@ _SIZE_LABEL_RE = re.compile(r"^\S.{0,62}$")  # 1-63 non-whitespace-leading
 
 
 class ProductCreate(BaseModel):
-    """Owner creates a single product (D-7, D-19, R-7)."""
+    """Owner (or superadmin, D-64/D-65) creates a single product (D-7, D-19, R-7)."""
 
     model_config = ConfigDict(extra="forbid")
 
@@ -26,6 +26,10 @@ class ProductCreate(BaseModel):
     size_label: str = Field(min_length=1, max_length=64)
     price: Decimal = Field(gt=Decimal("0"), max_digits=12, decimal_places=2)
     low_stock_threshold: int | None = Field(default=None, ge=0)
+    # Superadmin-only (D-65): names the target shop, since superadmin has
+    # no shop_id of its own. Owner/receiver/cashier must omit this — their
+    # own shop_id is used implicitly.
+    shop_id: int | None = Field(default=None)
 
     @field_validator("barcode")
     @classmethod

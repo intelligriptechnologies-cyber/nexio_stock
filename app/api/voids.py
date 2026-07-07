@@ -9,16 +9,16 @@ Endpoints (all require a bearer token):
   POST /invoices/{id}/void/reject     owner rejects a pending void
 
 Authorization:
-  - request void: cashier + owner
-  - approve / reject: owner only (D-13 — not superadmin; D-25 — not
-    cashier)
+  - request void: cashier + owner (+ superadmin, any shop, D-64)
+  - approve / reject: owner (+ superadmin, any shop, D-64); not
+    cashier (D-25)
 
 Every state change writes one `invoicing_logs` row with the before /
 after state and the acting user.
 """
 from __future__ import annotations
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Body, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps import DbSession, require_role
@@ -38,8 +38,30 @@ from app.services.voids import (
 router = APIRouter(prefix="/invoices", tags=["invoices"])
 log = get_logger(__name__)
 
-_request_void_roles = (UserRole.CASHIER_USER, UserRole.OWNER)
-_owner_only = (UserRole.OWNER,)
+_request_void_roles = (UserRole.CASHIER_USER, UserRole.OWNER, UserRole.SUPERADMIN)
+_owner_only = (UserRole.OWNER, UserRole.SUPERADMIN)
+
+
+async def _resolve_void_shop_id(db: AsyncSession, user: User, invoice_id: int) -> int:
+    """Shop for a void action on an existing invoice (D-64).
+
+    Owner/cashier are scoped to their own shop as before — cross-shop
+    invoice_ids simply don't resolve (tenant isolation is preserved via
+    the shop_id filter downstream). Superadmin has no shop_id of its own,
+    but the invoice itself unambiguously names its shop, so there's
+    nothing to ask superadmin to supply — we just look it up.
+    """
+    if user.role != UserRole.SUPERADMIN:
+        return user.shop_id
+
+    from sqlalchemy import select
+
+    shop_id = (
+        await db.execute(select(Invoice.shop_id).where(Invoice.id == invoice_id))
+    ).scalar_one_or_none()
+    if shop_id is None:
+        _not_found()
+    return shop_id
 
 
 _VOID_CODE_TO_STATUS: dict[str, int] = {
@@ -73,10 +95,10 @@ async def request_void(
     invoice_id: int,
     db: DbSession,
     _user: User = Depends(require_role(*_request_void_roles)),
-    reason: str | None = None,
+    reason: str | None = Body(default=None, embed=True),
 ) -> InvoicePublic:
     actor_id = _user.id
-    actor_shop_id = _user.shop_id
+    actor_shop_id = await _resolve_void_shop_id(db, _user, invoice_id)
 
     invoice = await _load_invoice(db, invoice_id, actor_shop_id)
     was_eod_signed_off = invoice.eod_signed_off
@@ -140,10 +162,10 @@ async def approve_void(
     invoice_id: int,
     db: DbSession,
     _user: User = Depends(require_role(*_owner_only)),
-    reason: str | None = None,
+    reason: str | None = Body(default=None, embed=True),
 ) -> InvoicePublic:
     actor_id = _user.id
-    actor_shop_id = _user.shop_id
+    actor_shop_id = await _resolve_void_shop_id(db, _user, invoice_id)
 
     try:
         result = await approve_post_eod_void(
@@ -191,10 +213,10 @@ async def reject_void(
     invoice_id: int,
     db: DbSession,
     _user: User = Depends(require_role(*_owner_only)),
-    reason: str | None = None,
+    reason: str | None = Body(default=None, embed=True),
 ) -> InvoicePublic:
     actor_id = _user.id
-    actor_shop_id = _user.shop_id
+    actor_shop_id = await _resolve_void_shop_id(db, _user, invoice_id)
 
     try:
         updated = await reject_post_eod_void(

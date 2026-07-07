@@ -29,10 +29,11 @@ export interface LotPublic {
   lines: LotLinePublic[];
 }
 
-export function createLot(payload: LotCreate): Promise<LotPublic> {
+export function createLot(payload: LotCreate, shopId?: number | null): Promise<LotPublic> {
+  const json = shopId != null ? { ...payload, shop_id: shopId } : payload;
   return api<LotPublic>("/lots", {
     method: "POST",
-    json: payload,
+    json,
   });
 }
 
@@ -56,9 +57,12 @@ export class LotValidationError extends Error {
 // Wrap createLot so the page only handles ApiError for surface mapping;
 // the backend rejects duplicate barcodes within a single lot with a 400
 // (the model_validator raises ValueError on duplicates).
-export async function createLotSafe(payload: LotCreate): Promise<LotPublic> {
+export async function createLotSafe(
+  payload: LotCreate,
+  shopId?: number | null
+): Promise<LotPublic> {
   try {
-    return await createLot(payload);
+    return await createLot(payload, shopId);
   } catch (e) {
     if (e instanceof ApiError) throw new LotValidationError(e.status, e.detail);
     throw e;

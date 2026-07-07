@@ -1,8 +1,12 @@
 import { useEffect, useState } from "react";
 import { ApiError } from "../api/client";
 import { getMyShop, updateMyShop, type ShopPublic } from "../api/shops";
+import { useAuth } from "../auth/AuthProvider";
+import { useShopScope } from "../auth/ShopScopeProvider";
 
 export function ShopConfigPage() {
+  const { user } = useAuth();
+  const { actingShopId } = useShopScope();
   const [shop, setShop] = useState<ShopPublic | null>(null);
   const [gstin, setGstin] = useState("");
   const [dutyRate, setDutyRate] = useState("");
@@ -12,10 +16,14 @@ export function ShopConfigPage() {
   const [busy, setBusy] = useState(false);
 
   const reload = async () => {
+    if (user?.role === "superadmin" && actingShopId === null) {
+      setShop(null);
+      return;
+    }
     setError(null);
     setInfo(null);
     try {
-      const s = await getMyShop();
+      const s = await getMyShop(actingShopId);
       setShop(s);
       setGstin(s.gstin ?? "");
       setDutyRate(s.excise_duty_rate ?? "");
@@ -29,10 +37,14 @@ export function ShopConfigPage() {
 
   useEffect(() => {
     void reload();
-  }, []);
+  }, [actingShopId]);
 
   const save = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (user?.role === "superadmin" && actingShopId === null) {
+      setError("Pick a shop first (top of the sidebar).");
+      return;
+    }
     setBusy(true);
     setError(null);
     setInfo(null);
@@ -46,7 +58,7 @@ export function ShopConfigPage() {
         excise_duty_rate: dutyRate.trim() ? dutyRate.trim() : null,
         low_stock_threshold_default: threshold.trim() ? Number(threshold.trim()) : null,
       };
-      const updated = await updateMyShop(payload);
+      const updated = await updateMyShop(payload, actingShopId);
       setShop(updated);
       setInfo("Shop config saved.");
     } catch (e) {
@@ -65,6 +77,12 @@ export function ShopConfigPage() {
   return (
     <div className="flex flex-col gap-stack-gap">
       <h1 className="text-headline-lg text-primary">Shop Config</h1>
+
+      {user?.role === "superadmin" && actingShopId === null && (
+        <div className="rounded-md bg-surface-container p-stack-gap text-on-surface-variant">
+          Pick a shop first (top of the sidebar).
+        </div>
+      )}
 
       {shop && (
         <div className="rounded-md bg-surface-container p-stack-gap text-label-md">

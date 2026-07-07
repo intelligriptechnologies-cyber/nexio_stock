@@ -25,7 +25,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from app.api.deps import DbSession, require_role
+from app.api.deps import DbSession, require_role, resolve_write_shop_id
 from app.logging_config import get_logger
 from app.models.invoice import (
     Invoice,
@@ -47,8 +47,9 @@ from app.services.checkout import (
 router = APIRouter(tags=["checkout"])
 log = get_logger(__name__)
 
-# Cashier-only for checkout; owner can also do it (D-26 superset).
-_checkout_roles = (UserRole.CASHIER_USER, UserRole.OWNER)
+# Cashier-only for checkout; owner can also do it (D-26 superset);
+# superadmin can too, for any shop, via an explicit shop_id (D-64/D-65).
+_checkout_roles = (UserRole.CASHIER_USER, UserRole.OWNER, UserRole.SUPERADMIN)
 
 
 # Maps the CheckoutError `code` to an HTTP status. Lives in module
@@ -97,7 +98,7 @@ async def finalize(
     # Eagerly capture so subsequent log writes / idempotency-key writes
     # don't trigger lazy loads on a detached User.
     actor_id = _user.id
-    actor_shop_id = _user.shop_id
+    actor_shop_id = await resolve_write_shop_id(db, _user, payload.shop_id)
 
     cart = [
         CartLine(barcode=line.barcode, quantity=line.quantity)

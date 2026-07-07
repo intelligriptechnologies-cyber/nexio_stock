@@ -50,7 +50,7 @@ class UserPublic(BaseModel):
 
 
 class StaffCreate(BaseModel):
-    """Owner creates a receiver_user or cashier_user (D-27, R-4)."""
+    """Owner (or superadmin, D-64/D-65) creates a receiver_user or cashier_user (D-27, R-4)."""
 
     model_config = ConfigDict(extra="forbid")
 
@@ -59,6 +59,10 @@ class StaffCreate(BaseModel):
     full_name: str = Field(min_length=1, max_length=200)
     phone: str = Field(min_length=7, max_length=20)
     password: str = Field(min_length=4, max_length=128)
+    # Superadmin-only (D-65): names the target shop. Owner must omit this.
+    # Note: this is still not the shop-provisioning path (D-58) — the role
+    # validator below still forbids creating an owner account here.
+    shop_id: int | None = Field(default=None)
 
     @field_validator("role")
     @classmethod

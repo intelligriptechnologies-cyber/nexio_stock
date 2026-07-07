@@ -22,6 +22,16 @@ class ShopPublic(BaseModel):
     low_stock_threshold_default: int | None
 
 
+class ShopSummary(BaseModel):
+    """Minimal shop identity — superadmin's shop picker (D-64/D-65)."""
+
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    name: str
+    code: str
+
+
 class ShopUpdate(BaseModel):
     """Owner updates shop-level config. All fields optional; only the
     ones the client sends are written."""
@@ -43,6 +53,8 @@ class ShopUpdate(BaseModel):
         ),
     )
     low_stock_threshold_default: int | None = Field(default=None, ge=0)
+    # Superadmin-only (D-65): names the target shop. Owner must omit this.
+    shop_id: int | None = Field(default=None)
 
     @field_validator("gstin")
     @classmethod

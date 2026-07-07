@@ -9,12 +9,16 @@ import {
   type SignOffResponse,
 } from "../api/dashboard";
 import { ApiError } from "../api/client";
+import { useAuth } from "../auth/AuthProvider";
+import { useShopScope } from "../auth/ShopScopeProvider";
 
 function moneyFmt(s: string): string {
   return `₹${Number(s).toLocaleString("en-IN", { maximumFractionDigits: 2 })}`;
 }
 
 export function DashboardPage() {
+  const { user } = useAuth();
+  const { actingShopId } = useShopScope();
   const [today, setToday] = useState<EodTotalsResponse | null>(null);
   const [lowStock, setLowStock] = useState<LowStockResponse | null>(null);
   const [history, setHistory] = useState<SignOffResponse[] | null>(null);
@@ -23,10 +27,20 @@ export function DashboardPage() {
   const [busy, setBusy] = useState(false);
 
   const reload = async () => {
+    if (user?.role === "superadmin" && actingShopId === null) {
+      setToday(null);
+      setLowStock(null);
+      setHistory(null);
+      return;
+    }
     setError(null);
     setInfo(null);
     try {
-      const [t, l, h] = await Promise.all([getEodTotals(), getLowStock(), getEodHistory(20)]);
+      const [t, l, h] = await Promise.all([
+        getEodTotals(undefined, actingShopId),
+        getLowStock(undefined, actingShopId),
+        getEodHistory(20, actingShopId),
+      ]);
       setToday(t);
       setLowStock(l);
       setHistory(h.signoffs);
@@ -37,7 +51,7 @@ export function DashboardPage() {
 
   useEffect(() => {
     void reload();
-  }, []);
+  }, [actingShopId]);
 
   const signOff = async () => {
     if (!today) return;
@@ -46,7 +60,7 @@ export function DashboardPage() {
     setError(null);
     setInfo(null);
     try {
-      const res = await signOffEod(today.business_date);
+      const res = await signOffEod(today.business_date, actingShopId);
       setInfo(`Signed off ${res.business_date} — ${res.invoices_signed_off} invoices locked.`);
       await reload();
     } catch (e) {
@@ -70,6 +84,11 @@ export function DashboardPage() {
         </button>
       </header>
 
+      {user?.role === "superadmin" && actingShopId === null && (
+        <div className="rounded-md bg-surface-container p-stack-gap text-on-surface-variant">
+          Pick a shop first (top of the sidebar).
+        </div>
+      )}
       {error && (
         <div role="alert" className="rounded-md bg-error px-stack-gap py-3 text-on-error">
           {error}

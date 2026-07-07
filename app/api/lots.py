@@ -5,9 +5,10 @@ or more line items. Each line carries a barcode + quantity; the server
 resolves each barcode to a Product in the receiver's own shop.
 
 Authorization:
-  - owner / receiver_user may create and list lots
+  - owner / receiver_user may create and list lots (own shop)
   - cashier_user is rejected with 403 (D-25)
-  - superadmin is rejected (D-13: no day-to-day shop ops)
+  - superadmin may create/list/get for any shop via an explicit
+    shop_id on create, and unscoped reads otherwise (D-64/D-65)
 
 Stock is NOT stored on the Product row — it's derived from the LotLine
 quantities. After this endpoint succeeds, the affected products'
@@ -25,7 +26,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.api.deps import DbSession, require_role
+from app.api.deps import DbSession, require_role, resolve_write_shop_id
 from app.logging_config import get_logger
 from app.models.log import StockinLog
 from app.models.lot import Lot, LotLine
@@ -36,8 +37,8 @@ from app.schemas.lot import LotCreate, LotListResponse, LotPublic
 router = APIRouter(prefix="/lots", tags=["lots"])
 log = get_logger(__name__)
 
-# Owner is a superset of receiver per D-26.
-_lot_writer_roles = (UserRole.RECEIVER_USER, UserRole.OWNER)
+# Owner is a superset of receiver per D-26; superadmin per D-64.
+_lot_writer_roles = (UserRole.RECEIVER_USER, UserRole.OWNER, UserRole.SUPERADMIN)
 
 
 @router.post(
@@ -55,7 +56,7 @@ async def create_lot(
     # lazy load on a detached User (the auth dep's session has closed by
     # the time we'd otherwise read these).
     actor_id = _user.id
-    actor_shop_id = _user.shop_id
+    actor_shop_id = await resolve_write_shop_id(db, _user, payload.shop_id)
 
     # Resolve every barcode to a product in the receiver's shop, in one
     # round-trip rather than N queries.
@@ -153,12 +154,12 @@ async def list_lots(
     limit: Annotated[int, Query(ge=1, le=200)] = 50,
     offset: Annotated[int, Query(ge=0)] = 0,
 ) -> LotListResponse:
-    actor_shop_id = _user.shop_id
+    stmt = select(Lot)
+    if _user.role != UserRole.SUPERADMIN:
+        stmt = stmt.where(Lot.shop_id == _user.shop_id)
     lots = (
         await db.execute(
-            select(Lot)
-            .where(Lot.shop_id == actor_shop_id)
-            .order_by(Lot.received_at.desc(), Lot.id.desc())
+            stmt.order_by(Lot.received_at.desc(), Lot.id.desc())
             .limit(limit)
             .offset(offset)
         )
@@ -178,12 +179,10 @@ async def get_lot(
     db: DbSession,
     _user: User = Depends(require_role(*_lot_writer_roles)),
 ) -> LotPublic:
-    actor_shop_id = _user.shop_id
-    lot = (
-        await db.execute(
-            select(Lot).where(Lot.id == lot_id, Lot.shop_id == actor_shop_id)
-        )
-    ).scalar_one_or_none()
+    stmt = select(Lot).where(Lot.id == lot_id)
+    if _user.role != UserRole.SUPERADMIN:
+        stmt = stmt.where(Lot.shop_id == _user.shop_id)
+    lot = (await db.execute(stmt)).scalar_one_or_none()
     if lot is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="lot not found")
     await _load_lines(db, lot)

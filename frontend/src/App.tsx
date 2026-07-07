@@ -51,7 +51,7 @@ export default function App() {
       <Route
         path="/checkout"
         element={
-          <Protected allow={["cashier_user", "owner"]}>
+          <Protected allow={["cashier_user", "owner", "superadmin"]}>
             <AuthedShell>
               <CheckoutPage />
             </AuthedShell>
@@ -61,7 +61,7 @@ export default function App() {
       <Route
         path="/receiving"
         element={
-          <Protected allow={["receiver_user", "owner"]}>
+          <Protected allow={["receiver_user", "owner", "superadmin"]}>
             <AuthedShell>
               <ReceivingPage />
             </AuthedShell>
@@ -71,7 +71,7 @@ export default function App() {
       <Route
         path="/dashboard"
         element={
-          <Protected allow={["owner"]}>
+          <Protected allow={["owner", "superadmin"]}>
             <AuthedShell>
               <DashboardPage />
             </AuthedShell>
@@ -91,7 +91,7 @@ export default function App() {
       <Route
         path="/admin/products"
         element={
-          <Protected allow={["owner"]}>
+          <Protected allow={["owner", "superadmin"]}>
             <AuthedShell>
               <ProductsPage />
             </AuthedShell>
@@ -101,7 +101,7 @@ export default function App() {
       <Route
         path="/admin/voids"
         element={
-          <Protected allow={["owner"]}>
+          <Protected allow={["owner", "superadmin"]}>
             <AuthedShell>
               <VoidApprovalsPage />
             </AuthedShell>
@@ -111,7 +111,7 @@ export default function App() {
       <Route
         path="/admin/staff"
         element={
-          <Protected allow={["owner"]}>
+          <Protected allow={["owner", "superadmin"]}>
             <AuthedShell>
               <StaffPage />
             </AuthedShell>
@@ -121,7 +121,7 @@ export default function App() {
       <Route
         path="/admin/shop"
         element={
-          <Protected allow={["owner"]}>
+          <Protected allow={["owner", "superadmin"]}>
             <AuthedShell>
               <ShopConfigPage />
             </AuthedShell>
@@ -131,7 +131,7 @@ export default function App() {
       <Route
         path="/invoices"
         element={
-          <Protected allow={["cashier_user", "owner"]}>
+          <Protected allow={["cashier_user", "owner", "superadmin"]}>
             <AuthedShell>
               <InvoiceLookupPage />
             </AuthedShell>

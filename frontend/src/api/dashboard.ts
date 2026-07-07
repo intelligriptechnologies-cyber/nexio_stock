@@ -54,22 +54,39 @@ export interface LowStockResponse {
   evaluated_at: string;
 }
 
-export function getEodTotals(businessDate?: string): Promise<EodTotalsResponse> {
-  const q = businessDate ? `?business_date=${encodeURIComponent(businessDate)}` : "";
-  return api<EodTotalsResponse>(`/dashboard/eod-totals${q}`);
+function shopQuery(shopId?: number | null): string {
+  return shopId != null ? `shop_id=${shopId}` : "";
 }
 
-export function signOffEod(businessDate?: string): Promise<SignOffResponse> {
+export function getEodTotals(
+  businessDate?: string,
+  shopId?: number | null
+): Promise<EodTotalsResponse> {
+  const parts = [
+    businessDate ? `business_date=${encodeURIComponent(businessDate)}` : "",
+    shopQuery(shopId),
+  ].filter(Boolean);
+  return api<EodTotalsResponse>(`/dashboard/eod-totals${parts.length ? `?${parts.join("&")}` : ""}`);
+}
+
+export function signOffEod(
+  businessDate?: string,
+  shopId?: number | null
+): Promise<SignOffResponse> {
+  const body: Record<string, unknown> = businessDate ? { business_date: businessDate } : {};
+  if (shopId != null) body.shop_id = shopId;
   return api<SignOffResponse>("/dashboard/eod/sign-off", {
     method: "POST",
-    json: businessDate ? { business_date: businessDate } : {},
+    json: body,
   });
 }
 
-export function getEodHistory(limit = 30): Promise<SignOffHistoryResponse> {
-  return api<SignOffHistoryResponse>(`/dashboard/eod-history?limit=${limit}`);
+export function getEodHistory(limit = 30, shopId?: number | null): Promise<SignOffHistoryResponse> {
+  const parts = [`limit=${limit}`, shopQuery(shopId)].filter(Boolean);
+  return api<SignOffHistoryResponse>(`/dashboard/eod-history?${parts.join("&")}`);
 }
 
-export function getLowStock(limit = 50): Promise<LowStockResponse> {
-  return api<LowStockResponse>(`/dashboard/low-stock?limit=${limit}`);
+export function getLowStock(limit = 50, shopId?: number | null): Promise<LowStockResponse> {
+  const parts = [`limit=${limit}`, shopQuery(shopId)].filter(Boolean);
+  return api<LowStockResponse>(`/dashboard/low-stock?${parts.join("&")}`);
 }

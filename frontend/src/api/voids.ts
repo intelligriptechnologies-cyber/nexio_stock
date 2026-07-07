@@ -44,6 +44,7 @@ export function rejectVoid(invoiceId: number, reason?: string): Promise<InvoiceP
   });
 }
 
-export function listPendingVoids(): Promise<PendingVoidResponse> {
-  return api<PendingVoidResponse>("/dashboard/void-queue");
+export function listPendingVoids(shopId?: number | null): Promise<PendingVoidResponse> {
+  const qs = shopId != null ? `?shop_id=${shopId}` : "";
+  return api<PendingVoidResponse>(`/dashboard/void-queue${qs}`);
 }

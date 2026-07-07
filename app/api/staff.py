@@ -17,7 +17,7 @@ from sqlalchemy.dialects.postgresql.asyncpg import AsyncAdapt_asyncpg_dbapi
 from sqlalchemy.exc import IntegrityError
 
 from app.api._errors import is_unique_violation
-from app.api.deps import DbSession, require_role
+from app.api.deps import DbSession, require_role, resolve_write_shop_id
 from app.logging_config import get_logger
 from app.models.user import User, UserRole
 from app.schemas.auth import StaffCreate, UserPublic
@@ -48,19 +48,7 @@ async def create_staff(
             detail="owner has no shop_id",
         )
 
-    if user.role == UserRole.SUPERADMIN:
-        # Superadmin provisioning is a separate code path that ships when
-        # shop #2 is added (D-58). For v1, only the owner provisions staff
-        # for their own shop.
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=(
-                "superadmin must create staff via the per-shop provisioning "
-                "endpoint (not yet implemented in v1)"
-            ),
-        )
-
-    actor_shop_id = user.shop_id
+    actor_shop_id = await resolve_write_shop_id(db, user, payload.shop_id)
     actor_id = user.id
 
     new_user = User(

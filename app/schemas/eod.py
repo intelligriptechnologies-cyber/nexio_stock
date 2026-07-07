@@ -14,6 +14,8 @@ class SignOffRequest(BaseModel):
 
     business_date: date = Field(description="Calendar date to sign off")
     notes: str | None = Field(default=None, max_length=500)
+    # Superadmin-only (D-65): names the target shop. Owner must omit this.
+    shop_id: int | None = Field(default=None)
 
     @field_validator("business_date")
     @classmethod

@@ -2,6 +2,8 @@ import { useEffect, useState, useCallback } from "react";
 import { ApiError } from "../api/client";
 import { invalidateCache, prefetchCatalog } from "../api/catalog";
 import { createLotSafe, type LotPublic } from "../api/lots";
+import { useAuth } from "../auth/AuthProvider";
+import { useShopScope } from "../auth/ShopScopeProvider";
 
 interface ReceivingLine {
   lineId: string;
@@ -16,6 +18,8 @@ function uid(): string {
 }
 
 export function ReceivingPage() {
+  const { user } = useAuth();
+  const { actingShopId } = useShopScope();
   const [barcode, setBarcode] = useState("");
   const [reference, setReference] = useState("");
   const [notes, setNotes] = useState("");
@@ -113,13 +117,20 @@ export function ReceivingPage() {
       setError("Scan at least one product before saving.");
       return;
     }
+    if (user?.role === "superadmin" && actingShopId === null) {
+      setError("Pick a shop first (top of the sidebar).");
+      return;
+    }
     setBusy(true);
     try {
-      const lot = await createLotSafe({
-        reference: reference.trim() || undefined,
-        notes: notes.trim() || undefined,
-        lines: lines.map((l) => ({ barcode: l.barcode, quantity: l.quantity })),
-      });
+      const lot = await createLotSafe(
+        {
+          reference: reference.trim() || undefined,
+          notes: notes.trim() || undefined,
+          lines: lines.map((l) => ({ barcode: l.barcode, quantity: l.quantity })),
+        },
+        actingShopId
+      );
       setLastLot(lot);
       resetForm();
       // Catalog's effective stock now reflects the lot — but the cached

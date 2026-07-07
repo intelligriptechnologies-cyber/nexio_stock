@@ -7,8 +7,12 @@ import {
   type StaffMember,
   type StaffRole,
 } from "../api/staff";
+import { useAuth } from "../auth/AuthProvider";
+import { useShopScope } from "../auth/ShopScopeProvider";
 
 export function StaffPage() {
+  const { user } = useAuth();
+  const { actingShopId } = useShopScope();
   const [items, setItems] = useState<StaffMember[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [info, setInfo] = useState<string | null>(null);
@@ -30,11 +34,15 @@ export function StaffPage() {
   }, []);
 
   const onCreate = async (payload: StaffCreatePayload) => {
+    if (user?.role === "superadmin" && actingShopId === null) {
+      setError("Pick a shop first (top of the sidebar).");
+      return;
+    }
     setBusy(true);
     setError(null);
     setInfo(null);
     try {
-      const created = await createStaff(payload);
+      const created = await createStaff(payload, actingShopId);
       setInfo(`Created ${created.role} ${created.username}.`);
       await reload();
     } catch (e) {

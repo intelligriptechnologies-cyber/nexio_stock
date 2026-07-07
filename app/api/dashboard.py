@@ -12,7 +12,7 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 
-from app.api.deps import DbSession, require_role
+from app.api.deps import DbSession, require_role, resolve_write_shop_id
 from app.logging_config import get_logger
 from app.models.user import User, UserRole
 from app.schemas.eod import (
@@ -35,7 +35,7 @@ from app.services.eod import (
 router = APIRouter(prefix="/dashboard", tags=["dashboard"])
 log = get_logger(__name__)
 
-_owner_only = (UserRole.OWNER,)
+_owner_only = (UserRole.OWNER, UserRole.SUPERADMIN)
 _read_roles = (UserRole.OWNER, UserRole.RECEIVER_USER, UserRole.CASHIER_USER, UserRole.SUPERADMIN)
 
 
@@ -66,7 +66,7 @@ async def sign_off(
     _user: User = Depends(require_role(*_owner_only)),
 ) -> SignOffResponse:
     actor_id = _user.id
-    actor_shop_id = _user.shop_id
+    actor_shop_id = await resolve_write_shop_id(db, _user, payload.shop_id)
 
     try:
         result = await sign_off_day(
@@ -108,9 +108,13 @@ async def eod_totals(
         date_cls,
         Query(description="Calendar date in the shop's local timezone (IST for v1)"),
     ] = ...,
+    shop_id: Annotated[
+        int | None, Query(description="Superadmin-only (D-65): target shop")
+    ] = None,
 ) -> EodTotalsResponse:
+    actor_shop_id = await resolve_write_shop_id(db, _user, shop_id)
     totals = await get_day_totals(
-        db, shop_id=_user.shop_id, business_date=business_date
+        db, shop_id=actor_shop_id, business_date=business_date
     )
     return EodTotalsResponse(
         business_date=totals.business_date,
@@ -137,10 +141,14 @@ async def eod_history(
     from_date: Annotated[date_cls | None, Query()] = None,
     to_date: Annotated[date_cls | None, Query()] = None,
     limit: Annotated[int, Query(ge=1, le=365)] = 90,
+    shop_id: Annotated[
+        int | None, Query(description="Superadmin-only (D-65): target shop")
+    ] = None,
 ) -> SignOffHistoryResponse:
+    actor_shop_id = await resolve_write_shop_id(db, _user, shop_id)
     rows = await list_signoff_history(
         db,
-        shop_id=_user.shop_id,
+        shop_id=actor_shop_id,
         from_date=from_date,
         to_date=to_date,
         limit=limit,
@@ -167,9 +175,13 @@ async def void_queue(
     db: DbSession,
     _user: User = Depends(require_role(*_read_roles)),
     limit: Annotated[int, Query(ge=1, le=200)] = 50,
+    shop_id: Annotated[
+        int | None, Query(description="Superadmin-only (D-65): target shop")
+    ] = None,
 ) -> PendingVoidResponse:
+    actor_shop_id = await resolve_write_shop_id(db, _user, shop_id)
     rows = await list_pending_voids(
-        db, shop_id=_user.shop_id, limit=limit
+        db, shop_id=actor_shop_id, limit=limit
     )
     # Eager-load the lines for the response shape.
     if rows:
@@ -195,6 +207,9 @@ async def void_queue(
 async def low_stock(
     db: DbSession,
     _user: User = Depends(require_role(*_read_roles)),
+    shop_id: Annotated[
+        int | None, Query(description="Superadmin-only (D-65): target shop")
+    ] = None,
 ) -> LowStockResponse:
     """List products whose current derived stock is at or below their
     effective threshold (per-product override, falling back to the
@@ -206,7 +221,8 @@ async def low_stock(
     from app.schemas.eod import LowStockItem
     from app.services.low_stock import compute_low_stock
 
-    rows = await compute_low_stock(db, shop_id=_user.shop_id)
+    actor_shop_id = await resolve_write_shop_id(db, _user, shop_id)
+    rows = await compute_low_stock(db, shop_id=actor_shop_id)
     return LowStockResponse(
         items=[
             LowStockItem(

@@ -43,17 +43,25 @@ export function listProducts(opts?: { q?: string; includeInactive?: boolean }): 
   return api<Product[]>(`/products?${params.toString()}`);
 }
 
-export function createProduct(payload: ProductCreatePayload): Promise<Product> {
-  return api<Product>("/products", { method: "POST", json: payload });
+export function createProduct(
+  payload: ProductCreatePayload,
+  shopId?: number | null
+): Promise<Product> {
+  const json = shopId != null ? { ...payload, shop_id: shopId } : payload;
+  return api<Product>("/products", { method: "POST", json });
 }
 
 export function updateProduct(id: number, payload: ProductUpdatePayload): Promise<Product> {
   return api<Product>(`/products/${id}`, { method: "PATCH", json: payload });
 }
 
-export async function importProductsCsv(file: File): Promise<ProductImportResponse> {
+export async function importProductsCsv(
+  file: File,
+  shopId?: number | null
+): Promise<ProductImportResponse> {
   const fd = new FormData();
   fd.append("file", file);
+  if (shopId != null) fd.append("shop_id", String(shopId));
   const res = await fetch(
     `${(import.meta.env.VITE_API_BASE as string | undefined) ?? ""}/products/import-csv`,
     {
