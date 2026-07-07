@@ -50,7 +50,7 @@ def get_engine() -> AsyncEngine:
                 pool_size=10,
                 max_overflow=20,
             )
-        return _engine
+    return _engine
 
 
 def get_sessionmaker() -> async_sessionmaker[AsyncSession]:
