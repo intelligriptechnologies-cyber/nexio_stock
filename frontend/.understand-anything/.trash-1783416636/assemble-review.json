@@ -1,0 +1,16 @@
+{
+  "fixedSectionOk": true,
+  "nodesRecovered": 1,
+  "edgesRestored": 2,
+  "crossBatchEdgesAdded": 0,
+  "typesRemapped": 0,
+  "complexityRemapped": 0,
+  "notes": [
+    "Fixed section not reviewed in detail here since the report only listed 'Could not fix' items with no per-pattern breakdown in this run; final node/edge counts (145 nodes / 338 edges pre-review) look consistent with the 7 batch inputs (145 nodes, 340 edges) minus 2 dropped dangling edges.",
+    "The two dropped 'calls' edges (LoginPage -> class:src/api/client.ts:Api, SuperadminLoginPage -> class:src/api/client.ts:Api) were NOT an LLM guessing error. src/api/client.ts:60 has `export const Api = { loginSuperadmin, loginShop, me, logout }`, and both LoginPage.tsx and SuperadminLoginPage.tsx genuinely call `Api.loginShop(...)` / `Api.loginSuperadmin(...)`. The batch-2 structural extraction for client.ts simply missed this exported const object (it only picked up the `ApiError` class and the `api` function), so no node existed for it. Recreated node `class:src/api/client.ts:Api` (lineRange [60,72], complexity simple) and restored both `calls` edges at their original weight (0.7).",
+    "Considered redirecting the two dropped edges to `function:src/api/client.ts:api` (the lowercase fetch wrapper) as suggested, but rejected that: `api()` is the low-level generic wrapper, not what LoginPage/SuperadminLoginPage actually invoke. Recreating the missing `Api` node is more accurate than redirecting to a different, existing node.",
+    "Cross-batch import check: all 83 import relationships in scan-result.json's importMap already have corresponding `imports` edges in the assembled graph (verified programmatically) -- no missing cross-batch edges needed. This also confirms the merge script's note 'Skipped 1 importMap source files with no file: node in graph' (tailwind.config.ts -> src/theme/tokens.ts) was a false negative in the script's own recovery pass (it only looks for `file:`-prefixed nodes, missing `config:`-prefixed ones), not an actual gap -- the edge already exists.",
+    "All 56 scanned files are represented as nodes: 46 as `file:` nodes and 10 as `config:` nodes (package.json, tsconfig*.json, eslint.config.js, playwright.config.ts, postcss.config.cjs, tailwind.config.ts, vite.config.ts). No missing-id or unknown-type/complexity issues were found beyond the one described above.",
+    "Post-fix validation: 146 nodes, 340 edges, 0 dangling edges, 0 duplicate node IDs."
+  ]
+}

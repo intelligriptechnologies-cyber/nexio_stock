@@ -1,0 +1,1215 @@
+{
+  "scriptCompleted": true,
+  "filesAnalyzed": 4,
+  "filesSkipped": [],
+  "results": [
+    {
+      "path": "src/api/finalize-queue.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 123,
+      "nonEmptyLines": 113,
+      "functions": [
+        {
+          "name": "readQueue",
+          "startLine": 29,
+          "endLine": 39,
+          "params": []
+        },
+        {
+          "name": "writeQueue",
+          "startLine": 41,
+          "endLine": 47,
+          "params": [
+            "items"
+          ]
+        },
+        {
+          "name": "enqueueFinalize",
+          "startLine": 49,
+          "endLine": 63,
+          "params": [
+            "item"
+          ]
+        },
+        {
+          "name": "listQueued",
+          "startLine": 65,
+          "endLine": 67,
+          "params": []
+        },
+        {
+          "name": "clearQueued",
+          "startLine": 69,
+          "endLine": 71,
+          "params": [
+            "key"
+          ]
+        },
+        {
+          "name": "flushQueue",
+          "startLine": 85,
+          "endLine": 123,
+          "params": []
+        }
+      ],
+      "exports": [
+        {
+          "name": "enqueueFinalize",
+          "line": 49,
+          "isDefault": false
+        },
+        {
+          "name": "listQueued",
+          "line": 65,
+          "isDefault": false
+        },
+        {
+          "name": "clearQueued",
+          "line": 69,
+          "isDefault": false
+        },
+        {
+          "name": "flushQueue",
+          "line": 85,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "readQueue",
+          "callee": "localStorage.getItem",
+          "lineNumber": 31
+        },
+        {
+          "caller": "readQueue",
+          "callee": "JSON.parse",
+          "lineNumber": 33
+        },
+        {
+          "caller": "readQueue",
+          "callee": "Array.isArray",
+          "lineNumber": 34
+        },
+        {
+          "caller": "writeQueue",
+          "callee": "localStorage.removeItem",
+          "lineNumber": 43
+        },
+        {
+          "caller": "writeQueue",
+          "callee": "localStorage.setItem",
+          "lineNumber": 45
+        },
+        {
+          "caller": "writeQueue",
+          "callee": "JSON.stringify",
+          "lineNumber": 45
+        },
+        {
+          "caller": "enqueueFinalize",
+          "callee": "readQueue",
+          "lineNumber": 52
+        },
+        {
+          "caller": "enqueueFinalize",
+          "callee": "q.findIndex",
+          "lineNumber": 53
+        },
+        {
+          "caller": "enqueueFinalize",
+          "callee": "Date.now",
+          "lineNumber": 56
+        },
+        {
+          "caller": "enqueueFinalize",
+          "callee": "q.push",
+          "lineNumber": 61
+        },
+        {
+          "caller": "enqueueFinalize",
+          "callee": "writeQueue",
+          "lineNumber": 62
+        },
+        {
+          "caller": "listQueued",
+          "callee": "readQueue",
+          "lineNumber": 66
+        },
+        {
+          "caller": "clearQueued",
+          "callee": "writeQueue",
+          "lineNumber": 70
+        },
+        {
+          "caller": "clearQueued",
+          "callee": "readQueue().filter",
+          "lineNumber": 70
+        },
+        {
+          "caller": "clearQueued",
+          "callee": "readQueue",
+          "lineNumber": 70
+        },
+        {
+          "caller": "flushQueue",
+          "callee": "readQueue",
+          "lineNumber": 86
+        },
+        {
+          "caller": "flushQueue",
+          "callee": "await api",
+          "lineNumber": 90
+        },
+        {
+          "caller": "flushQueue",
+          "callee": "writeQueue",
+          "lineNumber": 96
+        },
+        {
+          "caller": "flushQueue",
+          "callee": "readQueue().filter",
+          "lineNumber": 96
+        },
+        {
+          "caller": "flushQueue",
+          "callee": "readQueue",
+          "lineNumber": 96
+        },
+        {
+          "caller": "flushQueue",
+          "callee": "outcomes.push",
+          "lineNumber": 97
+        },
+        {
+          "caller": "flushQueue",
+          "callee": "String",
+          "lineNumber": 100
+        },
+        {
+          "caller": "flushQueue",
+          "callee": "writeQueue",
+          "lineNumber": 102
+        },
+        {
+          "caller": "flushQueue",
+          "callee": "readQueue().map",
+          "lineNumber": 103
+        },
+        {
+          "caller": "flushQueue",
+          "callee": "readQueue",
+          "lineNumber": 103
+        },
+        {
+          "caller": "flushQueue",
+          "callee": "outcomes.push",
+          "lineNumber": 109
+        }
+      ],
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 4,
+        "functionCount": 6,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "src/hooks/useOnlineStatus.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 22,
+      "nonEmptyLines": 20,
+      "functions": [
+        {
+          "name": "useOnlineStatus",
+          "startLine": 7,
+          "endLine": 22,
+          "params": []
+        }
+      ],
+      "exports": [
+        {
+          "name": "useOnlineStatus",
+          "line": 7,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "useOnlineStatus",
+          "callee": "useState",
+          "lineNumber": 8
+        },
+        {
+          "caller": "useOnlineStatus",
+          "callee": "useEffect",
+          "lineNumber": 11
+        },
+        {
+          "caller": "up",
+          "callee": "setOnline",
+          "lineNumber": 12
+        },
+        {
+          "caller": "down",
+          "callee": "setOnline",
+          "lineNumber": 13
+        },
+        {
+          "caller": "useOnlineStatus",
+          "callee": "window.addEventListener",
+          "lineNumber": 14
+        },
+        {
+          "caller": "useOnlineStatus",
+          "callee": "window.addEventListener",
+          "lineNumber": 15
+        },
+        {
+          "caller": "useOnlineStatus",
+          "callee": "window.removeEventListener",
+          "lineNumber": 17
+        },
+        {
+          "caller": "useOnlineStatus",
+          "callee": "window.removeEventListener",
+          "lineNumber": 18
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "src/hooks/useRetryQueue.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 60,
+      "nonEmptyLines": 52,
+      "functions": [
+        {
+          "name": "useRetryQueue",
+          "startLine": 21,
+          "endLine": 60,
+          "params": [
+            "options"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "useRetryQueue",
+          "line": 21,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "useRetryQueue",
+          "callee": "useOnlineStatus",
+          "lineNumber": 22
+        },
+        {
+          "caller": "useRetryQueue",
+          "callee": "useState",
+          "lineNumber": 23
+        },
+        {
+          "caller": "useRetryQueue",
+          "callee": "listQueued",
+          "lineNumber": 23
+        },
+        {
+          "caller": "useRetryQueue",
+          "callee": "useRef",
+          "lineNumber": 24
+        },
+        {
+          "caller": "useRetryQueue",
+          "callee": "useRef",
+          "lineNumber": 25
+        },
+        {
+          "caller": "useRetryQueue",
+          "callee": "useCallback",
+          "lineNumber": 28
+        },
+        {
+          "caller": "useRetryQueue",
+          "callee": "flushQueue",
+          "lineNumber": 32
+        },
+        {
+          "caller": "useRetryQueue",
+          "callee": "setPending",
+          "lineNumber": 33
+        },
+        {
+          "caller": "useRetryQueue",
+          "callee": "listQueued",
+          "lineNumber": 33
+        },
+        {
+          "caller": "useRetryQueue",
+          "callee": "onFlushRef.current",
+          "lineNumber": 34
+        },
+        {
+          "caller": "useRetryQueue",
+          "callee": "useEffect",
+          "lineNumber": 42
+        },
+        {
+          "caller": "useRetryQueue",
+          "callee": "flush",
+          "lineNumber": 44
+        },
+        {
+          "caller": "useRetryQueue",
+          "callee": "useEffect",
+          "lineNumber": 53
+        },
+        {
+          "caller": "useRetryQueue",
+          "callee": "window.setInterval",
+          "lineNumber": 55
+        },
+        {
+          "caller": "useRetryQueue",
+          "callee": "setPending",
+          "lineNumber": 55
+        },
+        {
+          "caller": "useRetryQueue",
+          "callee": "listQueued",
+          "lineNumber": 55
+        },
+        {
+          "caller": "useRetryQueue",
+          "callee": "window.clearInterval",
+          "lineNumber": 56
+        }
+      ],
+      "metrics": {
+        "importCount": 2,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "src/pages/CheckoutPage.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 632,
+      "nonEmptyLines": 590,
+      "functions": [
+        {
+          "name": "moneyString",
+          "startLine": 34,
+          "endLine": 36,
+          "params": [
+            "cents"
+          ]
+        },
+        {
+          "name": "parseMoney",
+          "startLine": 38,
+          "endLine": 42,
+          "params": [
+            "s"
+          ]
+        },
+        {
+          "name": "uid",
+          "startLine": 44,
+          "endLine": 46,
+          "params": []
+        },
+        {
+          "name": "formatPaymentLabel",
+          "startLine": 48,
+          "endLine": 50,
+          "params": [
+            "m"
+          ]
+        },
+        {
+          "name": "CheckoutPage",
+          "startLine": 52,
+          "endLine": 632,
+          "params": []
+        }
+      ],
+      "exports": [
+        {
+          "name": "CheckoutPage",
+          "line": 52,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "moneyString",
+          "callee": "(cents / 100).toFixed",
+          "lineNumber": 35
+        },
+        {
+          "caller": "parseMoney",
+          "callee": "Number.parseFloat",
+          "lineNumber": 39
+        },
+        {
+          "caller": "parseMoney",
+          "callee": "Number.isFinite",
+          "lineNumber": 40
+        },
+        {
+          "caller": "parseMoney",
+          "callee": "Math.round",
+          "lineNumber": 41
+        },
+        {
+          "caller": "uid",
+          "callee": "Math.random().toString(36).slice",
+          "lineNumber": 45
+        },
+        {
+          "caller": "uid",
+          "callee": "Math.random().toString",
+          "lineNumber": 45
+        },
+        {
+          "caller": "uid",
+          "callee": "Math.random",
+          "lineNumber": 45
+        },
+        {
+          "caller": "CheckoutPage",
+          "callee": "useOnlineStatus",
+          "lineNumber": 53
+        },
+        {
+          "caller": "CheckoutPage",
+          "callee": "useShopScope",
+          "lineNumber": 54
+        },
+        {
+          "caller": "CheckoutPage",
+          "callee": "useRetryQueue",
+          "lineNumber": 55
+        },
+        {
+          "caller": "CheckoutPage",
+          "callee": "outcomes.filter",
+          "lineNumber": 57
+        },
+        {
+          "caller": "CheckoutPage",
+          "callee": "failed\n        .map((o) => `Queued sale ${o.key.slice(0, 6)}: HTTP ${o.status} — ${o.detail}`)\n        .join",
+          "lineNumber": 59
+        },
+        {
+          "caller": "CheckoutPage",
+          "callee": "failed\n        .map",
+          "lineNumber": 59
+        },
+        {
+          "caller": "CheckoutPage",
+          "callee": "o.key.slice",
+          "lineNumber": 60
+        },
+        {
+          "caller": "CheckoutPage",
+          "callee": "setError",
+          "lineNumber": 62
+        },
+        {
+          "caller": "CheckoutPage",
+          "callee": "useState",
+          "lineNumber": 66
+        },
+        {
+          "caller": "CheckoutPage",
+          "callee": "useState",
+          "lineNumber": 67
+        },
+        {
+          "caller": "CheckoutPage",
+          "callee": "useState",
+          "lineNumber": 68
+        },
+        {
+          "caller": "CheckoutPage",
+          "callee": "useState",
+          "lineNumber": 69
+        },
+        {
+          "caller": "CheckoutPage",
+          "callee": "useState",
+          "lineNumber": 70
+        },
+        {
+          "caller": "CheckoutPage",
+          "callee": "useState",
+          "lineNumber": 71
+        },
+        {
+          "caller": "CheckoutPage",
+          "callee": "useState",
+          "lineNumber": 72
+        },
+        {
+          "caller": "CheckoutPage",
+          "callee": "useState",
+          "lineNumber": 73
+        },
+        {
+          "caller": "CheckoutPage",
+          "callee": "useState",
+          "lineNumber": 74
+        },
+        {
+          "caller": "CheckoutPage",
+          "callee": "useRef",
+          "lineNumber": 75
+        },
+        {
+          "caller": "CheckoutPage",
+          "callee": "uid",
+          "lineNumber": 75
+        },
+        {
+          "caller": "CheckoutPage",
+          "callee": "useState",
+          "lineNumber": 76
+        },
+        {
+          "caller": "CheckoutPage",
+          "callee": "listQueued",
+          "lineNumber": 76
+        },
+        {
+          "caller": "CheckoutPage",
+          "callee": "useCallback",
+          "lineNumber": 78
+        },
+        {
+          "caller": "CheckoutPage",
+          "callee": "setQueuedSnapshot",
+          "lineNumber": 79
+        },
+        {
+          "caller": "CheckoutPage",
+          "callee": "listQueued",
+          "lineNumber": 79
+        },
+        {
+          "caller": "CheckoutPage",
+          "callee": "useEffect",
+          "lineNumber": 83
+        },
+        {
+          "caller": "CheckoutPage",
+          "callee": "refreshQueueSnapshot",
+          "lineNumber": 84
+        },
+        {
+          "caller": "CheckoutPage",
+          "callee": "useEffect",
+          "lineNumber": 89
+        },
+        {
+          "caller": "CheckoutPage",
+          "callee": "setCatalogReady",
+          "lineNumber": 90
+        },
+        {
+          "caller": "CheckoutPage",
+          "callee": "prefetchCatalog(actingShopId)\n      .then(() => setCatalogReady(true))\n      .catch",
+          "lineNumber": 91
+        },
+        {
+          "caller": "CheckoutPage",
+          "callee": "prefetchCatalog(actingShopId)\n      .then",
+          "lineNumber": 91
+        },
+        {
+          "caller": "CheckoutPage",
+          "callee": "prefetchCatalog",
+          "lineNumber": 91
+        },
+        {
+          "caller": "CheckoutPage",
+          "callee": "setCatalogReady",
+          "lineNumber": 92
+        },
+        {
+          "caller": "CheckoutPage",
+          "callee": "setError",
+          "lineNumber": 93
+        },
+        {
+          "caller": "CheckoutPage",
+          "callee": "useMemo",
+          "lineNumber": 96
+        },
+        {
+          "caller": "CheckoutPage",
+          "callee": "cart.reduce",
+          "lineNumber": 98
+        },
+        {
+          "caller": "CheckoutPage",
+          "callee": "parseMoney",
+          "lineNumber": 99
+        },
+        {
+          "caller": "CheckoutPage",
+          "callee": "useMemo",
+          "lineNumber": 105
+        },
+        {
+          "caller": "CheckoutPage",
+          "callee": "moneyString",
+          "lineNumber": 105
+        },
+        {
+          "caller": "CheckoutPage",
+          "callee": "useEffect",
+          "lineNumber": 108
+        },
+        {
+          "caller": "CheckoutPage",
+          "callee": "setPayments",
+          "lineNumber": 110
+        },
+        {
+          "caller": "CheckoutPage",
+          "callee": "moneyString",
+          "lineNumber": 110
+        },
+        {
+          "caller": "CheckoutPage",
+          "callee": "useCallback",
+          "lineNumber": 114
+        },
+        {
+          "caller": "CheckoutPage",
+          "callee": "raw.trim",
+          "lineNumber": 116
+        },
+        {
+          "caller": "CheckoutPage",
+          "callee": "setError",
+          "lineNumber": 118
+        },
+        {
+          "caller": "CheckoutPage",
+          "callee": "setInfo",
+          "lineNumber": 119
+        },
+        {
+          "caller": "CheckoutPage",
+          "callee": "resolveBarcode",
+          "lineNumber": 121
+        },
+        {
+          "caller": "CheckoutPage",
+          "callee": "setCart",
+          "lineNumber": 122
+        },
+        {
+          "caller": "CheckoutPage",
+          "callee": "prev.find",
+          "lineNumber": 123
+        },
+        {
+          "caller": "CheckoutPage",
+          "callee": "prev.map",
+          "lineNumber": 125
+        },
+        {
+          "caller": "CheckoutPage",
+          "callee": "uid",
+          "lineNumber": 129
+        },
+        {
+          "caller": "CheckoutPage",
+          "callee": "setInfo",
+          "lineNumber": 131
+        },
+        {
+          "caller": "CheckoutPage",
+          "callee": "setError",
+          "lineNumber": 134
+        },
+        {
+          "caller": "CheckoutPage",
+          "callee": "setError",
+          "lineNumber": 135
+        },
+        {
+          "caller": "CheckoutPage",
+          "callee": "setError",
+          "lineNumber": 136
+        },
+        {
+          "caller": "CheckoutPage",
+          "callee": "setError",
+          "lineNumber": 138
+        },
+        {
+          "caller": "removeLine",
+          "callee": "setCart",
+          "lineNumber": 146
+        },
+        {
+          "caller": "removeLine",
+          "callee": "prev.filter",
+          "lineNumber": 146
+        },
+        {
+          "caller": "removeLine",
+          "callee": "setError",
+          "lineNumber": 147
+        },
+        {
+          "caller": "changeQty",
+          "callee": "setCart",
+          "lineNumber": 151
+        },
+        {
+          "caller": "changeQty",
+          "callee": "prev\n        .map",
+          "lineNumber": 152
+        },
+        {
+          "caller": "changeQty",
+          "callee": "Math.max",
+          "lineNumber": 154
+        },
+        {
+          "caller": "setPaymentMode",
+          "callee": "setPayments",
+          "lineNumber": 160
+        },
+        {
+          "caller": "setPaymentMode",
+          "callee": "p.map",
+          "lineNumber": 160
+        },
+        {
+          "caller": "setPaymentAmount",
+          "callee": "setPayments",
+          "lineNumber": 164
+        },
+        {
+          "caller": "setPaymentAmount",
+          "callee": "p.map",
+          "lineNumber": 164
+        },
+        {
+          "caller": "addPayment",
+          "callee": "setPayments",
+          "lineNumber": 168
+        },
+        {
+          "caller": "removePayment",
+          "callee": "setPayments",
+          "lineNumber": 172
+        },
+        {
+          "caller": "removePayment",
+          "callee": "p.filter",
+          "lineNumber": 172
+        },
+        {
+          "caller": "CheckoutPage",
+          "callee": "useMemo",
+          "lineNumber": 175
+        },
+        {
+          "caller": "CheckoutPage",
+          "callee": "payments.reduce",
+          "lineNumber": 176
+        },
+        {
+          "caller": "CheckoutPage",
+          "callee": "parseMoney",
+          "lineNumber": 176
+        },
+        {
+          "caller": "handleSubmitBarcode",
+          "callee": "e.preventDefault",
+          "lineNumber": 187
+        },
+        {
+          "caller": "handleSubmitBarcode",
+          "callee": "addByBarcode",
+          "lineNumber": 188
+        },
+        {
+          "caller": "handleSubmitBarcode",
+          "callee": "setBarcode",
+          "lineNumber": 189
+        },
+        {
+          "caller": "finalize",
+          "callee": "setError",
+          "lineNumber": 193
+        },
+        {
+          "caller": "finalize",
+          "callee": "setInfo",
+          "lineNumber": 194
+        },
+        {
+          "caller": "finalize",
+          "callee": "setError",
+          "lineNumber": 196
+        },
+        {
+          "caller": "finalize",
+          "callee": "setBusy",
+          "lineNumber": 199
+        },
+        {
+          "caller": "finalize",
+          "callee": "cart.map",
+          "lineNumber": 201
+        },
+        {
+          "caller": "finalize",
+          "callee": "payments.map",
+          "lineNumber": 202
+        },
+        {
+          "caller": "finalize",
+          "callee": "moneyString",
+          "lineNumber": 202
+        },
+        {
+          "caller": "finalize",
+          "callee": "parseMoney",
+          "lineNumber": 202
+        },
+        {
+          "caller": "finalize",
+          "callee": "note.trim",
+          "lineNumber": 203
+        },
+        {
+          "caller": "finalize",
+          "callee": "finalizeCheckout",
+          "lineNumber": 207
+        },
+        {
+          "caller": "finalize",
+          "callee": "setLastInvoice",
+          "lineNumber": 208
+        },
+        {
+          "caller": "finalize",
+          "callee": "setCart",
+          "lineNumber": 209
+        },
+        {
+          "caller": "finalize",
+          "callee": "setPayments",
+          "lineNumber": 210
+        },
+        {
+          "caller": "finalize",
+          "callee": "setNote",
+          "lineNumber": 211
+        },
+        {
+          "caller": "finalize",
+          "callee": "uid",
+          "lineNumber": 212
+        },
+        {
+          "caller": "finalize",
+          "callee": "setInfo",
+          "lineNumber": 213
+        },
+        {
+          "caller": "finalize",
+          "callee": "enqueueFinalize",
+          "lineNumber": 220
+        },
+        {
+          "caller": "finalize",
+          "callee": "setCart",
+          "lineNumber": 224
+        },
+        {
+          "caller": "finalize",
+          "callee": "setPayments",
+          "lineNumber": 225
+        },
+        {
+          "caller": "finalize",
+          "callee": "setNote",
+          "lineNumber": 226
+        },
+        {
+          "caller": "finalize",
+          "callee": "uid",
+          "lineNumber": 227
+        },
+        {
+          "caller": "finalize",
+          "callee": "setInfo",
+          "lineNumber": 228
+        },
+        {
+          "caller": "finalize",
+          "callee": "retryQueue.flush",
+          "lineNumber": 233
+        },
+        {
+          "caller": "finalize",
+          "callee": "setError",
+          "lineNumber": 235
+        },
+        {
+          "caller": "finalize",
+          "callee": "setError",
+          "lineNumber": 237
+        },
+        {
+          "caller": "finalize",
+          "callee": "setError",
+          "lineNumber": 241
+        },
+        {
+          "caller": "finalize",
+          "callee": "setError",
+          "lineNumber": 244
+        },
+        {
+          "caller": "finalize",
+          "callee": "setBusy",
+          "lineNumber": 247
+        },
+        {
+          "caller": "handleDismissQueued",
+          "callee": "clearQueued",
+          "lineNumber": 254
+        },
+        {
+          "caller": "handleDismissQueued",
+          "callee": "refreshQueueSnapshot",
+          "lineNumber": 255
+        },
+        {
+          "caller": "downloadPdf",
+          "callee": "sessionStorage.getItem",
+          "lineNumber": 261
+        },
+        {
+          "caller": "downloadPdf",
+          "callee": "downloadInvoicePdf",
+          "lineNumber": 263
+        },
+        {
+          "caller": "downloadPdf",
+          "callee": "URL.createObjectURL",
+          "lineNumber": 264
+        },
+        {
+          "caller": "downloadPdf",
+          "callee": "document.createElement",
+          "lineNumber": 265
+        },
+        {
+          "caller": "downloadPdf",
+          "callee": "a.click",
+          "lineNumber": 268
+        },
+        {
+          "caller": "downloadPdf",
+          "callee": "URL.revokeObjectURL",
+          "lineNumber": 269
+        },
+        {
+          "caller": "downloadPdf",
+          "callee": "setError",
+          "lineNumber": 271
+        },
+        {
+          "caller": "refreshInvoice",
+          "callee": "getInvoice",
+          "lineNumber": 280
+        },
+        {
+          "caller": "refreshInvoice",
+          "callee": "setLastInvoice",
+          "lineNumber": 281
+        },
+        {
+          "caller": "CheckoutPage",
+          "callee": "retryQueue.flush",
+          "lineNumber": 319
+        },
+        {
+          "caller": "CheckoutPage",
+          "callee": "refreshQueueSnapshot",
+          "lineNumber": 320
+        },
+        {
+          "caller": "CheckoutPage",
+          "callee": "queuedSnapshot.map",
+          "lineNumber": 330
+        },
+        {
+          "caller": "CheckoutPage",
+          "callee": "q.idempotencyKey.slice",
+          "lineNumber": 336
+        },
+        {
+          "caller": "CheckoutPage",
+          "callee": "handleDismissQueued",
+          "lineNumber": 344
+        },
+        {
+          "caller": "CheckoutPage",
+          "callee": "invalidateCache",
+          "lineNumber": 367
+        },
+        {
+          "caller": "CheckoutPage",
+          "callee": "setCatalogReady",
+          "lineNumber": 368
+        },
+        {
+          "caller": "CheckoutPage",
+          "callee": "prefetchCatalog(actingShopId).then",
+          "lineNumber": 369
+        },
+        {
+          "caller": "CheckoutPage",
+          "callee": "prefetchCatalog",
+          "lineNumber": 369
+        },
+        {
+          "caller": "CheckoutPage",
+          "callee": "setCatalogReady",
+          "lineNumber": 369
+        },
+        {
+          "caller": "CheckoutPage",
+          "callee": "setBarcode",
+          "lineNumber": 382
+        },
+        {
+          "caller": "CheckoutPage",
+          "callee": "cart.map",
+          "lineNumber": 402
+        },
+        {
+          "caller": "CheckoutPage",
+          "callee": "changeQty",
+          "lineNumber": 417
+        },
+        {
+          "caller": "CheckoutPage",
+          "callee": "changeQty",
+          "lineNumber": 426
+        },
+        {
+          "caller": "CheckoutPage",
+          "callee": "moneyString",
+          "lineNumber": 434
+        },
+        {
+          "caller": "CheckoutPage",
+          "callee": "parseMoney",
+          "lineNumber": 434
+        },
+        {
+          "caller": "CheckoutPage",
+          "callee": "removeLine",
+          "lineNumber": 438
+        },
+        {
+          "caller": "CheckoutPage",
+          "callee": "payments.map",
+          "lineNumber": 469
+        },
+        {
+          "caller": "CheckoutPage",
+          "callee": "setPaymentMode",
+          "lineNumber": 473
+        },
+        {
+          "caller": "CheckoutPage",
+          "callee": "PAYMENT_MODES.map",
+          "lineNumber": 477
+        },
+        {
+          "caller": "CheckoutPage",
+          "callee": "formatPaymentLabel",
+          "lineNumber": 479
+        },
+        {
+          "caller": "CheckoutPage",
+          "callee": "setPaymentAmount",
+          "lineNumber": 488
+        },
+        {
+          "caller": "CheckoutPage",
+          "callee": "removePayment",
+          "lineNumber": 495
+        },
+        {
+          "caller": "CheckoutPage",
+          "callee": "moneyString",
+          "lineNumber": 510
+        },
+        {
+          "caller": "CheckoutPage",
+          "callee": "setNote",
+          "lineNumber": 520
+        },
+        {
+          "caller": "CheckoutPage",
+          "callee": "setLastInvoice",
+          "lineNumber": 576
+        },
+        {
+          "caller": "CheckoutPage",
+          "callee": "new Date(lastInvoice.finalized_at).toLocaleString",
+          "lineNumber": 585
+        },
+        {
+          "caller": "CheckoutPage",
+          "callee": "lastInvoice.lines.map",
+          "lineNumber": 597
+        },
+        {
+          "caller": "CheckoutPage",
+          "callee": "lastInvoice.payments.map",
+          "lineNumber": 619
+        },
+        {
+          "caller": "CheckoutPage",
+          "callee": "formatPaymentLabel",
+          "lineNumber": 621
+        }
+      ],
+      "metrics": {
+        "importCount": 7,
+        "exportCount": 1,
+        "functionCount": 5,
+        "classCount": 0
+      }
+    }
+  ]
+}

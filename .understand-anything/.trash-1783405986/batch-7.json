@@ -1,0 +1,95 @@
+{
+  "nodes": [
+    {
+      "id": "document:harness/00-intake.md",
+      "type": "document",
+      "name": "00-intake.md",
+      "filePath": "harness/00-intake.md",
+      "summary": "Initial intake notes for the Barstock project, restating the problem, listing unknowns, decomposing the raw feature wishlist, and surveying existing commercial liquor-POS market options before Phase 0 sign-off.",
+      "tags": ["documentation", "planning", "intake", "requirements-gathering"],
+      "complexity": "simple"
+    },
+    {
+      "id": "document:harness/01-branch-map.md",
+      "type": "document",
+      "name": "01-branch-map.md",
+      "filePath": "harness/01-branch-map.md",
+      "summary": "Structural map of the project split into 14 branches (personas, domain model, API surface, frontend, persistence, auth, integrations, observability, failure modes, testing, performance, deployment, compliance, and docs) used to sequence the Phase 2 grilling session.",
+      "tags": ["documentation", "planning", "architecture-map", "requirements-gathering"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "document:harness/02-ledger.md",
+      "type": "document",
+      "name": "02-ledger.md",
+      "filePath": "harness/02-ledger.md",
+      "summary": "Running decisions ledger capturing numbered decisions (D-#) made during Phase 0 confirmation, the Phase 2 grill, a follow-up logging brainstorm, and the Phase 4 absence hunt, plus a list of open threads not yet resolved.",
+      "tags": ["documentation", "decision-log", "planning", "requirements-gathering"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "document:harness/03-prd.md",
+      "type": "document",
+      "name": "03-prd.md",
+      "filePath": "harness/03-prd.md",
+      "summary": "Frozen product requirements document for Barstock, a scan-driven counter inventory and billing system for a liquor retail shop, covering goals, non-goals, per-branch requirements, personas, deferred v1 items, and an appendix reproducing the decisions ledger verbatim.",
+      "tags": ["documentation", "prd", "requirements", "planning"],
+      "complexity": "complex"
+    },
+    {
+      "id": "document:harness/04-absences.md",
+      "type": "document",
+      "name": "04-absences.md",
+      "filePath": "harness/04-absences.md",
+      "summary": "Absence-hunt findings document listing requirements or edge cases missing from the earlier PRD draft (feeding decisions R-40 through R-46) and their disposition before the PRD was re-frozen.",
+      "tags": ["documentation", "gap-analysis", "planning", "requirements-gathering"],
+      "complexity": "simple"
+    },
+    {
+      "id": "document:harness/prd_frontend.md",
+      "type": "document",
+      "name": "prd_frontend.md",
+      "filePath": "harness/prd_frontend.md",
+      "summary": "Frontend-specific PRD for the Barstock web SPA, defining the problem statement, solution approach, user stories, implementation and testing decisions, and out-of-scope items for the client application.",
+      "tags": ["documentation", "prd", "frontend", "requirements"],
+      "complexity": "moderate"
+    }
+  ],
+  "edges": [
+    {
+      "source": "document:harness/00-intake.md",
+      "target": "document:harness/01-branch-map.md",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:harness/01-branch-map.md",
+      "target": "document:harness/02-ledger.md",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:harness/02-ledger.md",
+      "target": "document:harness/03-prd.md",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "document:harness/04-absences.md",
+      "target": "document:harness/03-prd.md",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "document:harness/03-prd.md",
+      "target": "document:harness/prd_frontend.md",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    }
+  ]
+}

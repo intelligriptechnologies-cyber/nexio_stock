@@ -1,0 +1,438 @@
+{
+  "scriptCompleted": true,
+  "filesAnalyzed": 6,
+  "filesSkipped": [],
+  "results": [
+    {
+      "path": "harness/00-intake.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 69,
+      "nonEmptyLines": 49,
+      "sections": [
+        {
+          "heading": "00 — Intake",
+          "level": 1,
+          "line": 1
+        },
+        {
+          "heading": "Problem restatement",
+          "level": 2,
+          "line": 3
+        },
+        {
+          "heading": "Unknowns",
+          "level": 2,
+          "line": 9
+        },
+        {
+          "heading": "Decomposition of the raw wishlist",
+          "level": 2,
+          "line": 36
+        },
+        {
+          "heading": "Existing market options (answering your \"what's already out there\" question)",
+          "level": 2,
+          "line": 49
+        },
+        {
+          "heading": "Phase 0 confirmation — CLOSED",
+          "level": 2,
+          "line": 67
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 6
+      }
+    },
+    {
+      "path": "harness/01-branch-map.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 158,
+      "nonEmptyLines": 110,
+      "sections": [
+        {
+          "heading": "Branch Map",
+          "level": 1,
+          "line": 1
+        },
+        {
+          "heading": "UNMAPPED wishlist items check",
+          "level": 2,
+          "line": 5
+        },
+        {
+          "heading": "1. Users and personas",
+          "level": 2,
+          "line": 9
+        },
+        {
+          "heading": "2. Core domain model",
+          "level": 2,
+          "line": 20
+        },
+        {
+          "heading": "3. Backend / API surface",
+          "level": 2,
+          "line": 31
+        },
+        {
+          "heading": "4. Frontend / UX",
+          "level": 2,
+          "line": 41
+        },
+        {
+          "heading": "5. Data and persistence",
+          "level": 2,
+          "line": 52
+        },
+        {
+          "heading": "6. Auth, security, privacy",
+          "level": 2,
+          "line": 62
+        },
+        {
+          "heading": "7. External integrations",
+          "level": 2,
+          "line": 73
+        },
+        {
+          "heading": "8. Observability",
+          "level": 2,
+          "line": 82
+        },
+        {
+          "heading": "9. Failure modes and recovery",
+          "level": 2,
+          "line": 90
+        },
+        {
+          "heading": "10. Testing strategy",
+          "level": 2,
+          "line": 99
+        },
+        {
+          "heading": "11. Performance and scale",
+          "level": 2,
+          "line": 106
+        },
+        {
+          "heading": "12. Deployment and operations",
+          "level": 2,
+          "line": 114
+        },
+        {
+          "heading": "13. Compliance and constraints",
+          "level": 2,
+          "line": 123
+        },
+        {
+          "heading": "14. Docs and onboarding",
+          "level": 2,
+          "line": 133
+        },
+        {
+          "heading": "Grilling order (dependency sequence for Phase 2)",
+          "level": 2,
+          "line": 143
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 17
+      }
+    },
+    {
+      "path": "harness/02-ledger.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 155,
+      "nonEmptyLines": 81,
+      "sections": [
+        {
+          "heading": "02 — Decisions Ledger",
+          "level": 1,
+          "line": 1
+        },
+        {
+          "heading": "From Phase 0 confirmation (2026-07-06)",
+          "level": 2,
+          "line": 5
+        },
+        {
+          "heading": "From Phase 2 grill (2026-07-06)",
+          "level": 2,
+          "line": 39
+        },
+        {
+          "heading": "From follow-up brainstorm on logging detail (2026-07-06, during Phase 3 PRD review)",
+          "level": 2,
+          "line": 103
+        },
+        {
+          "heading": "From Phase 4 absence hunt (2026-07-06)",
+          "level": 2,
+          "line": 111
+        },
+        {
+          "heading": "Open threads carried into Phase 2 (not yet resolved, just surfaced)",
+          "level": 2,
+          "line": 147
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 6
+      }
+    },
+    {
+      "path": "harness/03-prd.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 284,
+      "nonEmptyLines": 186,
+      "sections": [
+        {
+          "heading": "03 — PRD: Barstock (liquor counter inventory & billing system)",
+          "level": 1,
+          "line": 1
+        },
+        {
+          "heading": "Problem statement",
+          "level": 2,
+          "line": 5
+        },
+        {
+          "heading": "Goals",
+          "level": 2,
+          "line": 9
+        },
+        {
+          "heading": "Non-goals (v1)",
+          "level": 2,
+          "line": 17
+        },
+        {
+          "heading": "Requirements by branch",
+          "level": 2,
+          "line": 28
+        },
+        {
+          "heading": "Users and personas",
+          "level": 3,
+          "line": 30
+        },
+        {
+          "heading": "Core domain model",
+          "level": 3,
+          "line": 37
+        },
+        {
+          "heading": "Backend / API surface",
+          "level": 3,
+          "line": 46
+        },
+        {
+          "heading": "Data and persistence",
+          "level": 3,
+          "line": 54
+        },
+        {
+          "heading": "Auth, security, privacy",
+          "level": 3,
+          "line": 61
+        },
+        {
+          "heading": "Observability",
+          "level": 3,
+          "line": 65
+        },
+        {
+          "heading": "Frontend / UX",
+          "level": 3,
+          "line": 70
+        },
+        {
+          "heading": "Failure modes and recovery",
+          "level": 3,
+          "line": 79
+        },
+        {
+          "heading": "Testing strategy",
+          "level": 3,
+          "line": 83
+        },
+        {
+          "heading": "Performance and scale",
+          "level": 3,
+          "line": 86
+        },
+        {
+          "heading": "Deployment and operations",
+          "level": 3,
+          "line": 89
+        },
+        {
+          "heading": "Compliance and constraints",
+          "level": 3,
+          "line": 92
+        },
+        {
+          "heading": "Docs and onboarding",
+          "level": 3,
+          "line": 97
+        },
+        {
+          "heading": "Roles summary",
+          "level": 2,
+          "line": 100
+        },
+        {
+          "heading": "Deferred items and their v1 defaults",
+          "level": 2,
+          "line": 109
+        },
+        {
+          "heading": "Appendix: Decisions ledger (verbatim)",
+          "level": 2,
+          "line": 134
+        },
+        {
+          "heading": "02 — Decisions Ledger",
+          "level": 1,
+          "line": 136
+        },
+        {
+          "heading": "From Phase 0 confirmation (2026-07-06)",
+          "level": 2,
+          "line": 140
+        },
+        {
+          "heading": "From Phase 2 grill (2026-07-06)",
+          "level": 2,
+          "line": 174
+        },
+        {
+          "heading": "From follow-up brainstorm on logging detail (2026-07-06, during Phase 3 PRD review)",
+          "level": 2,
+          "line": 238
+        },
+        {
+          "heading": "Open threads carried into Phase 2 (not yet resolved, just surfaced)",
+          "level": 2,
+          "line": 246
+        },
+        {
+          "heading": "From Phase 4 absence hunt (2026-07-06)",
+          "level": 2,
+          "line": 256
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 27
+      }
+    },
+    {
+      "path": "harness/04-absences.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 26,
+      "nonEmptyLines": 20,
+      "sections": [
+        {
+          "heading": "04 — Absence Hunt",
+          "level": 1,
+          "line": 1
+        },
+        {
+          "heading": "Findings",
+          "level": 2,
+          "line": 5
+        },
+        {
+          "heading": "Disposition",
+          "level": 2,
+          "line": 22
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 3
+      }
+    },
+    {
+      "path": "harness/prd_frontend.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 96,
+      "nonEmptyLines": 80,
+      "sections": [
+        {
+          "heading": "PRD: Barstock frontend (web SPA)",
+          "level": 1,
+          "line": 1
+        },
+        {
+          "heading": "Problem Statement",
+          "level": 2,
+          "line": 5
+        },
+        {
+          "heading": "Solution",
+          "level": 2,
+          "line": 9
+        },
+        {
+          "heading": "User Stories",
+          "level": 2,
+          "line": 15
+        },
+        {
+          "heading": "Implementation Decisions",
+          "level": 2,
+          "line": 55
+        },
+        {
+          "heading": "Testing Decisions",
+          "level": 2,
+          "line": 75
+        },
+        {
+          "heading": "Out of Scope",
+          "level": 2,
+          "line": 83
+        },
+        {
+          "heading": "Further Notes",
+          "level": 2,
+          "line": 92
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 8
+      }
+    }
+  ]
+}

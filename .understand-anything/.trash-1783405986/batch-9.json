@@ -1,0 +1,194 @@
+{
+  "nodes": [
+    {
+      "id": "file:tests/test_log_tables.py",
+      "type": "file",
+      "name": "test_log_tables.py",
+      "filePath": "tests/test_log_tables.py",
+      "summary": "Async integration tests verifying that the invoicing_logs, stockin_logs, and admin_logs tables exist in the database and that each contains its required columns.",
+      "tags": ["test", "database", "integration-test", "schema-verification"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_log_tables.py:test_three_log_tables_exist",
+      "type": "function",
+      "name": "test_three_log_tables_exist",
+      "filePath": "tests/test_log_tables.py",
+      "lineRange": [8, 18],
+      "summary": "Queries information_schema.tables to assert that invoicing_logs, stockin_logs, and admin_logs tables all exist in the database.",
+      "tags": ["test", "database", "schema-verification"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_log_tables.py:test_log_tables_have_required_columns",
+      "type": "function",
+      "name": "test_log_tables_have_required_columns",
+      "filePath": "tests/test_log_tables.py",
+      "lineRange": [21, 35],
+      "summary": "Queries information_schema.columns for each log table and asserts that the expected set of columns is present.",
+      "tags": ["test", "database", "schema-verification"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:tests/test_staff.py",
+      "type": "file",
+      "name": "test_staff.py",
+      "filePath": "tests/test_staff.py",
+      "summary": "API test suite covering staff management: owner-created receiver/cashier accounts, role escalation restrictions, duplicate username/phone conflict handling, shop-scoped staff listing, and permission checks preventing non-owners from creating staff.",
+      "tags": ["test", "api-handler", "staff-management", "authorization", "integration-test"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:tests/test_staff.py:test_owner_creates_receiver_user",
+      "type": "function",
+      "name": "test_owner_creates_receiver_user",
+      "filePath": "tests/test_staff.py",
+      "lineRange": [11, 26],
+      "summary": "Verifies that an owner can successfully create a receiver-role staff user via the API.",
+      "tags": ["test", "staff-management", "api-handler"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_staff.py:test_owner_creates_cashier_user",
+      "type": "function",
+      "name": "test_owner_creates_cashier_user",
+      "filePath": "tests/test_staff.py",
+      "lineRange": [30, 43],
+      "summary": "Verifies that an owner can successfully create a cashier-role staff user via the API.",
+      "tags": ["test", "staff-management", "api-handler"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_staff.py:test_owner_cannot_create_another_owner",
+      "type": "function",
+      "name": "test_owner_cannot_create_another_owner",
+      "filePath": "tests/test_staff.py",
+      "lineRange": [47, 58],
+      "summary": "Asserts that an owner is rejected when attempting to create another owner-role account, enforcing role restrictions.",
+      "tags": ["test", "authorization", "staff-management"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_staff.py:test_owner_cannot_create_superadmin",
+      "type": "function",
+      "name": "test_owner_cannot_create_superadmin",
+      "filePath": "tests/test_staff.py",
+      "lineRange": [62, 73],
+      "summary": "Asserts that an owner is rejected when attempting to create a superadmin-role account, enforcing privilege boundaries.",
+      "tags": ["test", "authorization", "staff-management"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_staff.py:test_duplicate_username_rejected_with_409",
+      "type": "function",
+      "name": "test_duplicate_username_rejected_with_409",
+      "filePath": "tests/test_staff.py",
+      "lineRange": [77, 91],
+      "summary": "Verifies that creating a staff user with a username that already exists in the shop returns a 409 conflict.",
+      "tags": ["test", "validation", "staff-management"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_staff.py:test_duplicate_phone_rejected_with_409",
+      "type": "function",
+      "name": "test_duplicate_phone_rejected_with_409",
+      "filePath": "tests/test_staff.py",
+      "lineRange": [95, 109],
+      "summary": "Verifies that creating a staff user with a phone number that already exists in the shop returns a 409 conflict.",
+      "tags": ["test", "validation", "staff-management"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_staff.py:test_owner_lists_only_their_shop_staff",
+      "type": "function",
+      "name": "test_owner_lists_only_their_shop_staff",
+      "filePath": "tests/test_staff.py",
+      "lineRange": [113, 121],
+      "summary": "Verifies that the staff listing endpoint returns only staff belonging to the requesting owner's own shop, enforcing multi-shop data isolation.",
+      "tags": ["test", "multi-tenancy", "staff-management", "authorization"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_staff.py:test_receiver_cannot_create_staff",
+      "type": "function",
+      "name": "test_receiver_cannot_create_staff",
+      "filePath": "tests/test_staff.py",
+      "lineRange": [125, 136],
+      "summary": "Asserts that a receiver-role user is forbidden from creating staff accounts, confirming role-based access control.",
+      "tags": ["test", "authorization", "staff-management"],
+      "complexity": "simple"
+    }
+  ],
+  "edges": [
+    {
+      "source": "file:tests/test_log_tables.py",
+      "target": "function:tests/test_log_tables.py:test_three_log_tables_exist",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:tests/test_log_tables.py",
+      "target": "function:tests/test_log_tables.py:test_log_tables_have_required_columns",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:tests/test_staff.py",
+      "target": "function:tests/test_staff.py:test_owner_creates_receiver_user",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:tests/test_staff.py",
+      "target": "function:tests/test_staff.py:test_owner_creates_cashier_user",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:tests/test_staff.py",
+      "target": "function:tests/test_staff.py:test_owner_cannot_create_another_owner",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:tests/test_staff.py",
+      "target": "function:tests/test_staff.py:test_owner_cannot_create_superadmin",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:tests/test_staff.py",
+      "target": "function:tests/test_staff.py:test_duplicate_username_rejected_with_409",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:tests/test_staff.py",
+      "target": "function:tests/test_staff.py:test_duplicate_phone_rejected_with_409",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:tests/test_staff.py",
+      "target": "function:tests/test_staff.py:test_owner_lists_only_their_shop_staff",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:tests/test_staff.py",
+      "target": "function:tests/test_staff.py:test_receiver_cannot_create_staff",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    }
+  ]
+}

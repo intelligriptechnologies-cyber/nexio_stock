@@ -1,0 +1,495 @@
+{
+  "nodes": [
+    {
+      "id": "file:e2e/checkout-resilience.spec.ts",
+      "type": "file",
+      "name": "checkout-resilience.spec.ts",
+      "filePath": "e2e/checkout-resilience.spec.ts",
+      "summary": "Playwright e2e spec verifying checkout flow resilience under network failures and offline conditions, using a cashier login helper to reach the POS screen.",
+      "tags": ["test", "e2e", "playwright", "checkout", "resilience"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:e2e/checkout-resilience.spec.ts:loginAsCashier",
+      "type": "function",
+      "name": "loginAsCashier",
+      "filePath": "e2e/checkout-resilience.spec.ts",
+      "lineRange": [20, 31],
+      "summary": "Test helper that drives the PIN-pad login UI to authenticate as a cashier before exercising checkout resilience scenarios.",
+      "tags": ["test-helper", "login", "playwright"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:e2e/checkout.spec.ts",
+      "type": "file",
+      "name": "checkout.spec.ts",
+      "filePath": "e2e/checkout.spec.ts",
+      "summary": "Playwright e2e spec covering the standard cashier checkout flow, from login through completing a sale.",
+      "tags": ["test", "e2e", "playwright", "checkout"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:e2e/checkout.spec.ts:loginAsCashier",
+      "type": "function",
+      "name": "loginAsCashier",
+      "filePath": "e2e/checkout.spec.ts",
+      "lineRange": [11, 22],
+      "summary": "Test helper that logs in as a cashier via the PIN-pad UI before checkout assertions run.",
+      "tags": ["test-helper", "login", "playwright"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:e2e/dashboard.spec.ts",
+      "type": "file",
+      "name": "dashboard.spec.ts",
+      "filePath": "e2e/dashboard.spec.ts",
+      "summary": "Playwright e2e spec validating the owner dashboard, using role-specific login helpers for owner and cashier scenarios.",
+      "tags": ["test", "e2e", "playwright", "dashboard"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:e2e/dashboard.spec.ts:loginAsOwner",
+      "type": "function",
+      "name": "loginAsOwner",
+      "filePath": "e2e/dashboard.spec.ts",
+      "lineRange": [3, 14],
+      "summary": "Test helper that logs in as a shop owner via the PIN-pad UI for dashboard test scenarios.",
+      "tags": ["test-helper", "login", "playwright"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:e2e/dashboard.spec.ts:loginAsCashier",
+      "type": "function",
+      "name": "loginAsCashier",
+      "filePath": "e2e/dashboard.spec.ts",
+      "lineRange": [16, 27],
+      "summary": "Test helper that logs in as a cashier via the PIN-pad UI to test dashboard access restrictions.",
+      "tags": ["test-helper", "login", "playwright"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:e2e/login.smoke.spec.ts",
+      "type": "file",
+      "name": "login.smoke.spec.ts",
+      "filePath": "e2e/login.smoke.spec.ts",
+      "summary": "Smoke test spec verifying the phone/PIN login flow renders and authenticates correctly against a live backend.",
+      "tags": ["test", "e2e", "playwright", "smoke-test", "login"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:e2e/login.smoke.spec.ts:loginAsPhone",
+      "type": "function",
+      "name": "loginAsPhone",
+      "filePath": "e2e/login.smoke.spec.ts",
+      "lineRange": [14, 26],
+      "summary": "Test helper that navigates to the login page and drives phone/PIN entry through the UI for a given phone number and PIN.",
+      "tags": ["test-helper", "login", "playwright"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:e2e/products.spec.ts",
+      "type": "file",
+      "name": "products.spec.ts",
+      "filePath": "e2e/products.spec.ts",
+      "summary": "Playwright e2e spec covering product catalog management, including owner and cashier permission checks.",
+      "tags": ["test", "e2e", "playwright", "products"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:e2e/products.spec.ts:loginAsOwner",
+      "type": "function",
+      "name": "loginAsOwner",
+      "filePath": "e2e/products.spec.ts",
+      "lineRange": [3, 14],
+      "summary": "Test helper that logs in as a shop owner via the PIN-pad UI for product management scenarios.",
+      "tags": ["test-helper", "login", "playwright"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:e2e/products.spec.ts:loginAsCashier",
+      "type": "function",
+      "name": "loginAsCashier",
+      "filePath": "e2e/products.spec.ts",
+      "lineRange": [16, 27],
+      "summary": "Test helper that logs in as a cashier via the PIN-pad UI to verify restricted access to product management.",
+      "tags": ["test-helper", "login", "playwright"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:e2e/receiving.spec.ts",
+      "type": "file",
+      "name": "receiving.spec.ts",
+      "filePath": "e2e/receiving.spec.ts",
+      "summary": "Playwright e2e spec verifying the stock receiving workflow using a receiver-role login helper.",
+      "tags": ["test", "e2e", "playwright", "receiving"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:e2e/receiving.spec.ts:loginAsReceiver",
+      "type": "function",
+      "name": "loginAsReceiver",
+      "filePath": "e2e/receiving.spec.ts",
+      "lineRange": [3, 14],
+      "summary": "Test helper that logs in as a receiving-role user via the PIN-pad UI before exercising receiving flows.",
+      "tags": ["test-helper", "login", "playwright"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:e2e/shop-config.spec.ts",
+      "type": "file",
+      "name": "shop-config.spec.ts",
+      "filePath": "e2e/shop-config.spec.ts",
+      "summary": "Playwright e2e spec covering shop configuration settings, verifying owner-only access versus cashier restrictions.",
+      "tags": ["test", "e2e", "playwright", "shop-config"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:e2e/shop-config.spec.ts:loginAsOwner",
+      "type": "function",
+      "name": "loginAsOwner",
+      "filePath": "e2e/shop-config.spec.ts",
+      "lineRange": [3, 14],
+      "summary": "Test helper that logs in as a shop owner via the PIN-pad UI for shop configuration test scenarios.",
+      "tags": ["test-helper", "login", "playwright"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:e2e/shop-config.spec.ts:loginAsCashier",
+      "type": "function",
+      "name": "loginAsCashier",
+      "filePath": "e2e/shop-config.spec.ts",
+      "lineRange": [16, 27],
+      "summary": "Test helper that logs in as a cashier via the PIN-pad UI to verify restricted access to shop configuration.",
+      "tags": ["test-helper", "login", "playwright"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:e2e/staff.spec.ts",
+      "type": "file",
+      "name": "staff.spec.ts",
+      "filePath": "e2e/staff.spec.ts",
+      "summary": "Playwright e2e spec covering staff management features, verifying owner-only access versus cashier restrictions.",
+      "tags": ["test", "e2e", "playwright", "staff"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:e2e/staff.spec.ts:loginAsOwner",
+      "type": "function",
+      "name": "loginAsOwner",
+      "filePath": "e2e/staff.spec.ts",
+      "lineRange": [3, 14],
+      "summary": "Test helper that logs in as a shop owner via the PIN-pad UI for staff management test scenarios.",
+      "tags": ["test-helper", "login", "playwright"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:e2e/staff.spec.ts:loginAsCashier",
+      "type": "function",
+      "name": "loginAsCashier",
+      "filePath": "e2e/staff.spec.ts",
+      "lineRange": [16, 27],
+      "summary": "Test helper that logs in as a cashier via the PIN-pad UI to verify restricted access to staff management.",
+      "tags": ["test-helper", "login", "playwright"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:e2e/voids.spec.ts",
+      "type": "file",
+      "name": "voids.spec.ts",
+      "filePath": "e2e/voids.spec.ts",
+      "summary": "Playwright e2e spec covering sale void/refund workflows, verifying owner and cashier permission boundaries.",
+      "tags": ["test", "e2e", "playwright", "voids"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:e2e/voids.spec.ts:loginAsOwner",
+      "type": "function",
+      "name": "loginAsOwner",
+      "filePath": "e2e/voids.spec.ts",
+      "lineRange": [3, 14],
+      "summary": "Test helper that logs in as a shop owner via the PIN-pad UI for void/refund test scenarios.",
+      "tags": ["test-helper", "login", "playwright"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:e2e/voids.spec.ts:loginAsCashier",
+      "type": "function",
+      "name": "loginAsCashier",
+      "filePath": "e2e/voids.spec.ts",
+      "lineRange": [16, 27],
+      "summary": "Test helper that logs in as a cashier via the PIN-pad UI to verify restricted access to void/refund operations.",
+      "tags": ["test-helper", "login", "playwright"],
+      "complexity": "simple"
+    },
+    {
+      "id": "config:eslint.config.js",
+      "type": "config",
+      "name": "eslint.config.js",
+      "filePath": "eslint.config.js",
+      "summary": "Flat ESLint configuration for the React/TypeScript frontend, wiring up TypeScript, React hooks, and React Refresh linting rules across the project.",
+      "tags": ["configuration", "linting", "typescript", "build-system"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "config:playwright.config.ts",
+      "type": "config",
+      "name": "playwright.config.ts",
+      "filePath": "playwright.config.ts",
+      "summary": "Playwright test runner configuration pointing at the e2e/ test directory, defining the base URL, Chromium project, retry/trace policy, and a webServer block that boots the built frontend against the FastAPI backend for CI.",
+      "tags": ["configuration", "testing", "playwright", "ci-cd"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "config:postcss.config.cjs",
+      "type": "config",
+      "name": "postcss.config.cjs",
+      "filePath": "postcss.config.cjs",
+      "summary": "PostCSS configuration enabling the Tailwind CSS and Autoprefixer plugins for the build pipeline.",
+      "tags": ["configuration", "css", "build-system"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:src/index.css",
+      "type": "file",
+      "name": "index.css",
+      "filePath": "src/index.css",
+      "summary": "Global stylesheet that loads Tailwind's base, components, and utilities layers and defines a few root-level style resets for the application.",
+      "tags": ["css", "global-styles", "tailwind"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:src/theme/tokens.ts",
+      "type": "file",
+      "name": "tokens.ts",
+      "filePath": "src/theme/tokens.ts",
+      "summary": "Design token module exporting a shared `tokens` object (colors, spacing, and related design constants) consumed by the Tailwind configuration to keep styling consistent across the app.",
+      "tags": ["design-tokens", "theme", "configuration"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:src/vite-env.d.ts",
+      "type": "file",
+      "name": "vite-env.d.ts",
+      "filePath": "src/vite-env.d.ts",
+      "summary": "Vite-generated ambient type declaration file that pulls in Vite's client types for the TypeScript compiler.",
+      "tags": ["type-definition", "vite", "typescript"],
+      "complexity": "simple"
+    },
+    {
+      "id": "config:tailwind.config.ts",
+      "type": "config",
+      "name": "tailwind.config.ts",
+      "filePath": "tailwind.config.ts",
+      "summary": "Tailwind CSS configuration that extends the default theme using the shared design tokens module and sets the content paths for class scanning.",
+      "tags": ["configuration", "tailwind", "css", "theme"],
+      "complexity": "simple"
+    },
+    {
+      "id": "config:vite.config.ts",
+      "type": "config",
+      "name": "vite.config.ts",
+      "filePath": "vite.config.ts",
+      "summary": "Vite build configuration wiring up the React plugin and dev server settings for the frontend application.",
+      "tags": ["configuration", "vite", "build-system"],
+      "complexity": "simple"
+    }
+  ],
+  "edges": [
+    {
+      "source": "file:e2e/checkout-resilience.spec.ts",
+      "target": "function:e2e/checkout-resilience.spec.ts:loginAsCashier",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:e2e/checkout.spec.ts",
+      "target": "function:e2e/checkout.spec.ts:loginAsCashier",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:e2e/dashboard.spec.ts",
+      "target": "function:e2e/dashboard.spec.ts:loginAsOwner",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:e2e/dashboard.spec.ts",
+      "target": "function:e2e/dashboard.spec.ts:loginAsCashier",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:e2e/login.smoke.spec.ts",
+      "target": "function:e2e/login.smoke.spec.ts:loginAsPhone",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:e2e/products.spec.ts",
+      "target": "function:e2e/products.spec.ts:loginAsOwner",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:e2e/products.spec.ts",
+      "target": "function:e2e/products.spec.ts:loginAsCashier",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:e2e/receiving.spec.ts",
+      "target": "function:e2e/receiving.spec.ts:loginAsReceiver",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:e2e/shop-config.spec.ts",
+      "target": "function:e2e/shop-config.spec.ts:loginAsOwner",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:e2e/shop-config.spec.ts",
+      "target": "function:e2e/shop-config.spec.ts:loginAsCashier",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:e2e/staff.spec.ts",
+      "target": "function:e2e/staff.spec.ts:loginAsOwner",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:e2e/staff.spec.ts",
+      "target": "function:e2e/staff.spec.ts:loginAsCashier",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:e2e/voids.spec.ts",
+      "target": "function:e2e/voids.spec.ts:loginAsOwner",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:e2e/voids.spec.ts",
+      "target": "function:e2e/voids.spec.ts:loginAsCashier",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "config:tailwind.config.ts",
+      "target": "file:src/theme/tokens.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "config:playwright.config.ts",
+      "target": "file:e2e/checkout.spec.ts",
+      "type": "configures",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "config:playwright.config.ts",
+      "target": "file:e2e/checkout-resilience.spec.ts",
+      "type": "configures",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "config:playwright.config.ts",
+      "target": "file:e2e/dashboard.spec.ts",
+      "type": "configures",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "config:playwright.config.ts",
+      "target": "file:e2e/login.smoke.spec.ts",
+      "type": "configures",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "config:playwright.config.ts",
+      "target": "file:e2e/products.spec.ts",
+      "type": "configures",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "config:playwright.config.ts",
+      "target": "file:e2e/receiving.spec.ts",
+      "type": "configures",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "config:playwright.config.ts",
+      "target": "file:e2e/shop-config.spec.ts",
+      "type": "configures",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "config:playwright.config.ts",
+      "target": "file:e2e/staff.spec.ts",
+      "type": "configures",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "config:playwright.config.ts",
+      "target": "file:e2e/voids.spec.ts",
+      "type": "configures",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "config:postcss.config.cjs",
+      "target": "file:src/index.css",
+      "type": "configures",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "config:tailwind.config.ts",
+      "target": "file:src/index.css",
+      "type": "configures",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "config:vite.config.ts",
+      "target": "file:src/main.tsx",
+      "type": "configures",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "file:src/index.css",
+      "target": "file:src/main.tsx",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    }
+  ]
+}

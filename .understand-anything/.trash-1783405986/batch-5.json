@@ -1,0 +1,541 @@
+{
+  "nodes": [
+    {
+      "id": "file:app/models/shop.py",
+      "type": "file",
+      "name": "shop.py",
+      "filePath": "app/models/shop.py",
+      "summary": "SQLAlchemy ORM model defining the Shop entity, the tenant/store record holding shop code, GST and excise settings, invoice numbering state, and low-stock defaults for the single-counter liquor billing system.",
+      "tags": ["data-model", "sqlalchemy", "multi-tenant", "orm"],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:app/models/shop.py:Shop",
+      "type": "class",
+      "name": "Shop",
+      "filePath": "app/models/shop.py",
+      "lineRange": [22, 65],
+      "summary": "ORM model for a single shop/tenant, storing identity (code, name), GST/excise configuration, default low-stock threshold, a running invoice number counter, and a relationship to its users.",
+      "tags": ["data-model", "orm-entity", "multi-tenant"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:tests/conftest.py",
+      "type": "file",
+      "name": "conftest.py",
+      "filePath": "tests/conftest.py",
+      "summary": "Pytest fixture module that provisions an isolated per-test Postgres database (via Alembic migrations and asyncpg), an async HTTP test client wired to the FastAPI app, and role-scoped user/client fixtures (owner, receiver, cashier, superadmin) shared across the test suite.",
+      "tags": ["test", "fixture", "pytest", "database-setup"],
+      "complexity": "complex",
+      "languageNotes": "Uses pytest-asyncio session/function-scoped fixtures plus asyncpg admin connections to create and tear down a disposable test database per test session."
+    },
+    {
+      "id": "function:tests/conftest.py:test_db_dsn",
+      "type": "function",
+      "name": "test_db_dsn",
+      "filePath": "tests/conftest.py",
+      "lineRange": [49, 112],
+      "summary": "Session-scoped fixture that creates a throwaway Postgres database for the test run, applies Alembic migrations against it, yields its DSN, and drops the database on teardown.",
+      "tags": ["fixture", "database-setup", "migration"],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:tests/conftest.py:_truncate_tables",
+      "type": "function",
+      "name": "_truncate_tables",
+      "filePath": "tests/conftest.py",
+      "lineRange": [116, 130],
+      "summary": "Truncates all application tables between tests so each test starts from a clean database state without re-running migrations.",
+      "tags": ["fixture", "database-setup", "cleanup"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/conftest.py:db_session",
+      "type": "function",
+      "name": "db_session",
+      "filePath": "tests/conftest.py",
+      "lineRange": [134, 147],
+      "summary": "Function-scoped fixture that truncates tables and yields a fresh SQLAlchemy async session bound to the test database for direct data setup/assertions in tests.",
+      "tags": ["fixture", "database-session", "test"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:tests/conftest.py:client",
+      "type": "function",
+      "name": "client",
+      "filePath": "tests/conftest.py",
+      "lineRange": [151, 168],
+      "summary": "Function-scoped fixture providing an async HTTP client (httpx AsyncClient over ASGITransport) wired directly to the FastAPI app for integration-style API tests.",
+      "tags": ["fixture", "http-client", "test"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:tests/conftest.py:_make_user",
+      "type": "function",
+      "name": "_make_user",
+      "filePath": "tests/conftest.py",
+      "lineRange": [188, 210],
+      "summary": "Helper that constructs and persists a User row with a hashed password for a given shop and role, backing the owner/receiver/cashier/superadmin fixtures.",
+      "tags": ["test-helper", "user-creation", "fixture"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:tests/conftest.py:owner",
+      "type": "function",
+      "name": "owner",
+      "filePath": "tests/conftest.py",
+      "lineRange": [219, 228],
+      "summary": "Fixture that creates an OWNER-role user scoped to the test shop via _make_user, for tests exercising owner-level permissions.",
+      "tags": ["fixture", "rbac", "owner-role"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/conftest.py:receiver",
+      "type": "function",
+      "name": "receiver",
+      "filePath": "tests/conftest.py",
+      "lineRange": [232, 241],
+      "summary": "Fixture that creates a RECEIVER-role user scoped to the test shop via _make_user, for tests exercising stock-receiving permissions.",
+      "tags": ["fixture", "rbac", "receiver-role"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/conftest.py:cashier",
+      "type": "function",
+      "name": "cashier",
+      "filePath": "tests/conftest.py",
+      "lineRange": [245, 254],
+      "summary": "Fixture that creates a CASHIER-role user scoped to the test shop via _make_user, for tests exercising checkout/billing permissions.",
+      "tags": ["fixture", "rbac", "cashier-role"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/conftest.py:superadmin",
+      "type": "function",
+      "name": "superadmin",
+      "filePath": "tests/conftest.py",
+      "lineRange": [258, 267],
+      "summary": "Fixture that creates a SUPERADMIN-role user via _make_user, for tests exercising cross-shop administrative permissions.",
+      "tags": ["fixture", "rbac", "superadmin-role"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/conftest.py:_make_logged_in_client",
+      "type": "function",
+      "name": "_make_logged_in_client",
+      "filePath": "tests/conftest.py",
+      "lineRange": [270, 284],
+      "summary": "Helper that logs a given user in through the auth endpoint and returns an authenticated async HTTP client, backing the owner_client/receiver_client/cashier_client/superadmin_client fixtures.",
+      "tags": ["test-helper", "authentication", "fixture"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:tests/test_low_stock.py",
+      "type": "file",
+      "name": "test_low_stock.py",
+      "filePath": "tests/test_low_stock.py",
+      "summary": "Integration tests for the low-stock alert list endpoint, covering shop-level default thresholds, per-product threshold overrides, stock depletion via sales, RBAC visibility for owner/receiver roles, urgency sorting, and exclusion of inactive products.",
+      "tags": ["test", "integration-test", "low-stock", "rbac"],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:tests/test_low_stock.py:_finalize",
+      "type": "function",
+      "name": "_finalize",
+      "filePath": "tests/test_low_stock.py",
+      "lineRange": [35, 52],
+      "summary": "Test helper that finalizes a checkout for a given barcode/quantity/amount via the cashier client, simulating a sale that depletes stock.",
+      "tags": ["test-helper", "checkout", "stock"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:tests/test_low_stock.py:test_no_default_no_overrides_returns_empty",
+      "type": "function",
+      "name": "test_no_default_no_overrides_returns_empty",
+      "filePath": "tests/test_low_stock.py",
+      "lineRange": [59, 69],
+      "summary": "Verifies the low-stock list is empty when neither a shop default nor a per-product threshold override is configured.",
+      "tags": ["test", "low-stock"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_low_stock.py:test_per_product_override_triggers_alert",
+      "type": "function",
+      "name": "test_per_product_override_triggers_alert",
+      "filePath": "tests/test_low_stock.py",
+      "lineRange": [73, 92],
+      "summary": "Verifies that setting a per-product low-stock threshold override causes the product to appear in the low-stock list once stock falls at or below it.",
+      "tags": ["test", "low-stock", "threshold-override"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:tests/test_low_stock.py:test_product_above_threshold_not_in_list",
+      "type": "function",
+      "name": "test_product_above_threshold_not_in_list",
+      "filePath": "tests/test_low_stock.py",
+      "lineRange": [96, 110],
+      "summary": "Verifies a product with stock above the shop's default low-stock threshold does not appear in the low-stock list.",
+      "tags": ["test", "low-stock", "shop-default"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:tests/test_low_stock.py:test_product_at_threshold_appears",
+      "type": "function",
+      "name": "test_product_at_threshold_appears",
+      "filePath": "tests/test_low_stock.py",
+      "lineRange": [114, 131],
+      "summary": "Verifies a product with stock exactly at the shop's default low-stock threshold is included in the low-stock list (inclusive boundary check).",
+      "tags": ["test", "low-stock", "boundary-condition"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:tests/test_low_stock.py:test_sale_brings_product_below_threshold",
+      "type": "function",
+      "name": "test_sale_brings_product_below_threshold",
+      "filePath": "tests/test_low_stock.py",
+      "lineRange": [135, 158],
+      "summary": "Verifies that finalizing a checkout which depletes stock below the threshold causes the product to newly appear in the low-stock list.",
+      "tags": ["test", "low-stock", "checkout"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:tests/test_low_stock.py:test_per_product_override_beats_shop_default",
+      "type": "function",
+      "name": "test_per_product_override_beats_shop_default",
+      "filePath": "tests/test_low_stock.py",
+      "lineRange": [162, 195],
+      "summary": "Verifies that a per-product low-stock threshold override takes precedence over the shop-wide default threshold when both are configured.",
+      "tags": ["test", "low-stock", "threshold-override"],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:tests/test_low_stock.py:test_list_sorted_most_urgent_first",
+      "type": "function",
+      "name": "test_list_sorted_most_urgent_first",
+      "filePath": "tests/test_low_stock.py",
+      "lineRange": [199, 216],
+      "summary": "Verifies the low-stock list is sorted with the most urgent (lowest relative stock) products first.",
+      "tags": ["test", "low-stock", "sorting"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:tests/test_low_stock.py:test_receiver_can_view_low_stock",
+      "type": "function",
+      "name": "test_receiver_can_view_low_stock",
+      "filePath": "tests/test_low_stock.py",
+      "lineRange": [220, 233],
+      "summary": "Verifies that a RECEIVER-role user is permitted to view the low-stock list, confirming RBAC allows receiving staff visibility into stock alerts.",
+      "tags": ["test", "low-stock", "rbac"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:tests/test_low_stock.py:test_low_stock_inactive_products_excluded",
+      "type": "function",
+      "name": "test_low_stock_inactive_products_excluded",
+      "filePath": "tests/test_low_stock.py",
+      "lineRange": [237, 256],
+      "summary": "Verifies that inactive (deactivated) products are excluded from the low-stock list even if their stock is below threshold.",
+      "tags": ["test", "low-stock", "product-status"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:tests/test_products.py",
+      "type": "file",
+      "name": "test_products.py",
+      "filePath": "tests/test_products.py",
+      "summary": "Integration tests for the product catalog API covering RBAC-gated creation, duplicate-barcode conflict handling, barcode lookup, shop-scoped listing (including superadmin cross-shop access), price/threshold updates, and CSV bulk import (happy path, per-row errors, missing columns, UTF-8 BOM handling).",
+      "tags": ["test", "integration-test", "product-catalog", "csv-import"],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:tests/test_products.py:test_owner_creates_product",
+      "type": "function",
+      "name": "test_owner_creates_product",
+      "filePath": "tests/test_products.py",
+      "lineRange": [21, 30],
+      "summary": "Verifies an OWNER-role user can successfully create a new product via the API.",
+      "tags": ["test", "product-catalog", "rbac"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_products.py:test_duplicate_barcode_rejected_with_409",
+      "type": "function",
+      "name": "test_duplicate_barcode_rejected_with_409",
+      "filePath": "tests/test_products.py",
+      "lineRange": [46, 55],
+      "summary": "Verifies creating a product with a barcode that already exists for the shop returns a 409 conflict response.",
+      "tags": ["test", "product-catalog", "validation"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_products.py:test_each_bottle_size_is_a_separate_product",
+      "type": "function",
+      "name": "test_each_bottle_size_is_a_separate_product",
+      "filePath": "tests/test_products.py",
+      "lineRange": [59, 69],
+      "summary": "Verifies that different bottle sizes of the same brand are tracked as distinct product records rather than being merged.",
+      "tags": ["test", "product-catalog", "data-model"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_products.py:test_lookup_by_barcode_succeeds_for_cashier",
+      "type": "function",
+      "name": "test_lookup_by_barcode_succeeds_for_cashier",
+      "filePath": "tests/test_products.py",
+      "lineRange": [73, 87],
+      "summary": "Verifies a CASHIER-role user can look up product details by scanning/entering a barcode during checkout.",
+      "tags": ["test", "product-catalog", "barcode-lookup"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:tests/test_products.py:test_manual_barcode_entry_falls_back_through_lookup",
+      "type": "function",
+      "name": "test_manual_barcode_entry_falls_back_through_lookup",
+      "filePath": "tests/test_products.py",
+      "lineRange": [97, 106],
+      "summary": "Verifies that manually typed barcode entry (as opposed to scanning) still resolves correctly through the product lookup endpoint.",
+      "tags": ["test", "product-catalog", "barcode-lookup"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_products.py:test_superadmin_shop_id_scopes_list_and_lookup",
+      "type": "function",
+      "name": "test_superadmin_shop_id_scopes_list_and_lookup",
+      "filePath": "tests/test_products.py",
+      "lineRange": [122, 180],
+      "summary": "Verifies that a superadmin's product list and lookup requests are correctly scoped by an explicit shop_id parameter across multiple shops, while a regular owner remains restricted to their own shop.",
+      "tags": ["test", "product-catalog", "multi-tenant", "rbac"],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:tests/test_products.py:test_owner_updates_price_and_threshold",
+      "type": "function",
+      "name": "test_owner_updates_price_and_threshold",
+      "filePath": "tests/test_products.py",
+      "lineRange": [184, 194],
+      "summary": "Verifies an owner can update a product's price and low-stock threshold override via a PATCH request.",
+      "tags": ["test", "product-catalog", "update"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_products.py:test_csv_import_happy_path",
+      "type": "function",
+      "name": "test_csv_import_happy_path",
+      "filePath": "tests/test_products.py",
+      "lineRange": [201, 215],
+      "summary": "Verifies a well-formed CSV file of products imports successfully via the bulk import endpoint.",
+      "tags": ["test", "csv-import", "product-catalog"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:tests/test_products.py:test_csv_import_per_row_errors_are_surfaced",
+      "type": "function",
+      "name": "test_csv_import_per_row_errors_are_surfaced",
+      "filePath": "tests/test_products.py",
+      "lineRange": [219, 242],
+      "summary": "Verifies that invalid individual rows within a CSV import are reported as per-row errors rather than failing the whole import.",
+      "tags": ["test", "csv-import", "error-handling"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:tests/test_products.py:test_csv_import_with_low_stock_threshold_column",
+      "type": "function",
+      "name": "test_csv_import_with_low_stock_threshold_column",
+      "filePath": "tests/test_products.py",
+      "lineRange": [246, 263],
+      "summary": "Verifies the CSV import correctly applies a per-product low-stock threshold column when present in the uploaded file.",
+      "tags": ["test", "csv-import", "low-stock"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:tests/test_products.py:test_csv_import_handles_utf8_bom",
+      "type": "function",
+      "name": "test_csv_import_handles_utf8_bom",
+      "filePath": "tests/test_products.py",
+      "lineRange": [288, 299],
+      "summary": "Verifies the CSV import correctly handles files that begin with a UTF-8 byte order mark (BOM), a common artifact from Excel exports.",
+      "tags": ["test", "csv-import", "encoding"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:tests/test_shops.py",
+      "type": "file",
+      "name": "test_shops.py",
+      "filePath": "tests/test_shops.py",
+      "summary": "Integration tests for shop configuration (GSTIN, excise duty rate) and invoice PDF generation, verifying RBAC restrictions, input validation, and that shop-specific tax settings and disclaimers render correctly on generated invoices rather than being hardcoded.",
+      "tags": ["test", "integration-test", "shop-config", "invoice-pdf"],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:tests/test_shops.py:_finalize",
+      "type": "function",
+      "name": "_finalize",
+      "filePath": "tests/test_shops.py",
+      "lineRange": [39, 51],
+      "summary": "Test helper that finalizes a checkout for a given barcode/quantity/amount via the cashier client, used to produce an invoice for PDF assertions.",
+      "tags": ["test-helper", "checkout", "invoice"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:tests/test_shops.py:test_get_shop_returns_defaults",
+      "type": "function",
+      "name": "test_get_shop_returns_defaults",
+      "filePath": "tests/test_shops.py",
+      "lineRange": [58, 70],
+      "summary": "Verifies the shop settings GET endpoint returns the expected default GSTIN and excise duty rate values for a newly created shop.",
+      "tags": ["test", "shop-config"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:tests/test_shops.py:test_owner_updates_gstin_and_duty_rate",
+      "type": "function",
+      "name": "test_owner_updates_gstin_and_duty_rate",
+      "filePath": "tests/test_shops.py",
+      "lineRange": [74, 89],
+      "summary": "Verifies an owner can update the shop's GSTIN and excise duty rate via a PATCH request and that the change is persisted.",
+      "tags": ["test", "shop-config", "update"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:tests/test_shops.py:test_pdf_includes_configured_gstin",
+      "type": "function",
+      "name": "test_pdf_includes_configured_gstin",
+      "filePath": "tests/test_shops.py",
+      "lineRange": [124, 142],
+      "summary": "Verifies that a shop's configured GSTIN appears in the generated invoice PDF text after a sale is finalized.",
+      "tags": ["test", "invoice-pdf", "shop-config"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:tests/test_shops.py:test_pdf_includes_configured_duty_rate",
+      "type": "function",
+      "name": "test_pdf_includes_configured_duty_rate",
+      "filePath": "tests/test_shops.py",
+      "lineRange": [146, 163],
+      "summary": "Verifies that a shop's configured excise duty rate appears in the generated invoice PDF text after a sale is finalized.",
+      "tags": ["test", "invoice-pdf", "shop-config"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:tests/test_shops.py:test_pdf_includes_placeholder_disclaimer",
+      "type": "function",
+      "name": "test_pdf_includes_placeholder_disclaimer",
+      "filePath": "tests/test_shops.py",
+      "lineRange": [167, 181],
+      "summary": "Verifies the generated invoice PDF includes a placeholder tax disclaimer text where applicable.",
+      "tags": ["test", "invoice-pdf", "disclaimer"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:tests/test_shops.py:test_pdf_does_not_hardcode_cgst_or_sgst",
+      "type": "function",
+      "name": "test_pdf_does_not_hardcode_cgst_or_sgst",
+      "filePath": "tests/test_shops.py",
+      "lineRange": [185, 205],
+      "summary": "Verifies the invoice PDF does not contain hardcoded CGST/SGST tax labels, ensuring tax terminology is driven by shop configuration rather than fixed literals.",
+      "tags": ["test", "invoice-pdf", "regression"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:tests/test_shops.py:test_shop_name_appears_on_invoice",
+      "type": "function",
+      "name": "test_shop_name_appears_on_invoice",
+      "filePath": "tests/test_shops.py",
+      "lineRange": [209, 226],
+      "summary": "Verifies the shop's name is correctly rendered on the generated invoice PDF for a finalized sale.",
+      "tags": ["test", "invoice-pdf", "shop-config"],
+      "complexity": "moderate"
+    }
+  ],
+  "edges": [
+    { "source": "file:app/models/shop.py", "target": "file:app/db.py", "type": "imports", "direction": "forward", "weight": 0.7 },
+    { "source": "file:tests/conftest.py", "target": "file:app/models/shop.py", "type": "imports", "direction": "forward", "weight": 0.7 },
+    { "source": "file:tests/conftest.py", "target": "file:app/models/user.py", "type": "imports", "direction": "forward", "weight": 0.7 },
+    { "source": "file:tests/conftest.py", "target": "file:app/security/passwords.py", "type": "imports", "direction": "forward", "weight": 0.7 },
+    { "source": "file:tests/test_low_stock.py", "target": "file:app/models/product.py", "type": "imports", "direction": "forward", "weight": 0.7 },
+    { "source": "file:tests/test_low_stock.py", "target": "file:app/models/shop.py", "type": "imports", "direction": "forward", "weight": 0.7 },
+    { "source": "file:tests/test_products.py", "target": "file:app/models/product.py", "type": "imports", "direction": "forward", "weight": 0.7 },
+    { "source": "file:tests/test_products.py", "target": "file:app/models/shop.py", "type": "imports", "direction": "forward", "weight": 0.7 },
+    { "source": "file:tests/test_shops.py", "target": "file:app/models/shop.py", "type": "imports", "direction": "forward", "weight": 0.7 },
+
+    { "source": "file:app/models/shop.py", "target": "class:app/models/shop.py:Shop", "type": "contains", "direction": "forward", "weight": 1.0 },
+    { "source": "file:app/models/shop.py", "target": "class:app/models/shop.py:Shop", "type": "exports", "direction": "forward", "weight": 0.8 },
+
+    { "source": "file:tests/conftest.py", "target": "function:tests/conftest.py:test_db_dsn", "type": "contains", "direction": "forward", "weight": 1.0 },
+    { "source": "file:tests/conftest.py", "target": "function:tests/conftest.py:_truncate_tables", "type": "contains", "direction": "forward", "weight": 1.0 },
+    { "source": "file:tests/conftest.py", "target": "function:tests/conftest.py:db_session", "type": "contains", "direction": "forward", "weight": 1.0 },
+    { "source": "file:tests/conftest.py", "target": "function:tests/conftest.py:client", "type": "contains", "direction": "forward", "weight": 1.0 },
+    { "source": "file:tests/conftest.py", "target": "function:tests/conftest.py:_make_user", "type": "contains", "direction": "forward", "weight": 1.0 },
+    { "source": "file:tests/conftest.py", "target": "function:tests/conftest.py:owner", "type": "contains", "direction": "forward", "weight": 1.0 },
+    { "source": "file:tests/conftest.py", "target": "function:tests/conftest.py:receiver", "type": "contains", "direction": "forward", "weight": 1.0 },
+    { "source": "file:tests/conftest.py", "target": "function:tests/conftest.py:cashier", "type": "contains", "direction": "forward", "weight": 1.0 },
+    { "source": "file:tests/conftest.py", "target": "function:tests/conftest.py:superadmin", "type": "contains", "direction": "forward", "weight": 1.0 },
+    { "source": "file:tests/conftest.py", "target": "function:tests/conftest.py:_make_logged_in_client", "type": "contains", "direction": "forward", "weight": 1.0 },
+    { "source": "file:tests/conftest.py", "target": "function:tests/conftest.py:test_db_dsn", "type": "exports", "direction": "forward", "weight": 0.8 },
+    { "source": "file:tests/conftest.py", "target": "function:tests/conftest.py:db_session", "type": "exports", "direction": "forward", "weight": 0.8 },
+    { "source": "file:tests/conftest.py", "target": "function:tests/conftest.py:client", "type": "exports", "direction": "forward", "weight": 0.8 },
+    { "source": "file:tests/conftest.py", "target": "function:tests/conftest.py:owner", "type": "exports", "direction": "forward", "weight": 0.8 },
+    { "source": "file:tests/conftest.py", "target": "function:tests/conftest.py:receiver", "type": "exports", "direction": "forward", "weight": 0.8 },
+    { "source": "file:tests/conftest.py", "target": "function:tests/conftest.py:cashier", "type": "exports", "direction": "forward", "weight": 0.8 },
+    { "source": "file:tests/conftest.py", "target": "function:tests/conftest.py:superadmin", "type": "exports", "direction": "forward", "weight": 0.8 },
+
+    { "source": "file:tests/conftest.py", "target": "class:app/models/shop.py:Shop", "type": "calls", "direction": "forward", "weight": 0.8 },
+    { "source": "function:tests/conftest.py:_make_user", "target": "class:app/models/user.py:User", "type": "calls", "direction": "forward", "weight": 0.8 },
+    { "source": "function:tests/conftest.py:_make_user", "target": "function:app/security/passwords.py:hash_password", "type": "calls", "direction": "forward", "weight": 0.8 },
+
+    { "source": "file:tests/test_low_stock.py", "target": "function:tests/test_low_stock.py:_finalize", "type": "contains", "direction": "forward", "weight": 1.0 },
+    { "source": "file:tests/test_low_stock.py", "target": "function:tests/test_low_stock.py:test_no_default_no_overrides_returns_empty", "type": "contains", "direction": "forward", "weight": 1.0 },
+    { "source": "file:tests/test_low_stock.py", "target": "function:tests/test_low_stock.py:test_per_product_override_triggers_alert", "type": "contains", "direction": "forward", "weight": 1.0 },
+    { "source": "file:tests/test_low_stock.py", "target": "function:tests/test_low_stock.py:test_product_above_threshold_not_in_list", "type": "contains", "direction": "forward", "weight": 1.0 },
+    { "source": "file:tests/test_low_stock.py", "target": "function:tests/test_low_stock.py:test_product_at_threshold_appears", "type": "contains", "direction": "forward", "weight": 1.0 },
+    { "source": "file:tests/test_low_stock.py", "target": "function:tests/test_low_stock.py:test_sale_brings_product_below_threshold", "type": "contains", "direction": "forward", "weight": 1.0 },
+    { "source": "file:tests/test_low_stock.py", "target": "function:tests/test_low_stock.py:test_per_product_override_beats_shop_default", "type": "contains", "direction": "forward", "weight": 1.0 },
+    { "source": "file:tests/test_low_stock.py", "target": "function:tests/test_low_stock.py:test_list_sorted_most_urgent_first", "type": "contains", "direction": "forward", "weight": 1.0 },
+    { "source": "file:tests/test_low_stock.py", "target": "function:tests/test_low_stock.py:test_receiver_can_view_low_stock", "type": "contains", "direction": "forward", "weight": 1.0 },
+    { "source": "file:tests/test_low_stock.py", "target": "function:tests/test_low_stock.py:test_low_stock_inactive_products_excluded", "type": "contains", "direction": "forward", "weight": 1.0 },
+
+    { "source": "function:tests/test_low_stock.py:test_product_above_threshold_not_in_list", "target": "class:app/models/shop.py:Shop", "type": "calls", "direction": "forward", "weight": 0.8 },
+    { "source": "function:tests/test_low_stock.py:test_product_at_threshold_appears", "target": "class:app/models/shop.py:Shop", "type": "calls", "direction": "forward", "weight": 0.8 },
+    { "source": "function:tests/test_low_stock.py:test_sale_brings_product_below_threshold", "target": "class:app/models/shop.py:Shop", "type": "calls", "direction": "forward", "weight": 0.8 },
+    { "source": "function:tests/test_low_stock.py:test_per_product_override_beats_shop_default", "target": "class:app/models/shop.py:Shop", "type": "calls", "direction": "forward", "weight": 0.8 },
+    { "source": "function:tests/test_low_stock.py:test_per_product_override_beats_shop_default", "target": "class:app/models/product.py:Product", "type": "calls", "direction": "forward", "weight": 0.8 },
+    { "source": "function:tests/test_low_stock.py:test_list_sorted_most_urgent_first", "target": "class:app/models/shop.py:Shop", "type": "calls", "direction": "forward", "weight": 0.8 },
+    { "source": "function:tests/test_low_stock.py:test_receiver_can_view_low_stock", "target": "class:app/models/shop.py:Shop", "type": "calls", "direction": "forward", "weight": 0.8 },
+    { "source": "function:tests/test_low_stock.py:test_low_stock_inactive_products_excluded", "target": "class:app/models/shop.py:Shop", "type": "calls", "direction": "forward", "weight": 0.8 },
+    { "source": "function:tests/test_low_stock.py:test_low_stock_inactive_products_excluded", "target": "class:app/models/product.py:Product", "type": "calls", "direction": "forward", "weight": 0.8 },
+
+    { "source": "file:tests/test_products.py", "target": "function:tests/test_products.py:test_owner_creates_product", "type": "contains", "direction": "forward", "weight": 1.0 },
+    { "source": "file:tests/test_products.py", "target": "function:tests/test_products.py:test_duplicate_barcode_rejected_with_409", "type": "contains", "direction": "forward", "weight": 1.0 },
+    { "source": "file:tests/test_products.py", "target": "function:tests/test_products.py:test_each_bottle_size_is_a_separate_product", "type": "contains", "direction": "forward", "weight": 1.0 },
+    { "source": "file:tests/test_products.py", "target": "function:tests/test_products.py:test_lookup_by_barcode_succeeds_for_cashier", "type": "contains", "direction": "forward", "weight": 1.0 },
+    { "source": "file:tests/test_products.py", "target": "function:tests/test_products.py:test_manual_barcode_entry_falls_back_through_lookup", "type": "contains", "direction": "forward", "weight": 1.0 },
+    { "source": "file:tests/test_products.py", "target": "function:tests/test_products.py:test_superadmin_shop_id_scopes_list_and_lookup", "type": "contains", "direction": "forward", "weight": 1.0 },
+    { "source": "file:tests/test_products.py", "target": "function:tests/test_products.py:test_owner_updates_price_and_threshold", "type": "contains", "direction": "forward", "weight": 1.0 },
+    { "source": "file:tests/test_products.py", "target": "function:tests/test_products.py:test_csv_import_happy_path", "type": "contains", "direction": "forward", "weight": 1.0 },
+    { "source": "file:tests/test_products.py", "target": "function:tests/test_products.py:test_csv_import_per_row_errors_are_surfaced", "type": "contains", "direction": "forward", "weight": 1.0 },
+    { "source": "file:tests/test_products.py", "target": "function:tests/test_products.py:test_csv_import_with_low_stock_threshold_column", "type": "contains", "direction": "forward", "weight": 1.0 },
+    { "source": "file:tests/test_products.py", "target": "function:tests/test_products.py:test_csv_import_handles_utf8_bom", "type": "contains", "direction": "forward", "weight": 1.0 },
+
+    { "source": "function:tests/test_products.py:test_superadmin_shop_id_scopes_list_and_lookup", "target": "class:app/models/shop.py:Shop", "type": "calls", "direction": "forward", "weight": 0.8 },
+    { "source": "function:tests/test_products.py:test_superadmin_shop_id_scopes_list_and_lookup", "target": "class:app/models/product.py:Product", "type": "calls", "direction": "forward", "weight": 0.8 },
+
+    { "source": "file:tests/test_shops.py", "target": "function:tests/test_shops.py:_finalize", "type": "contains", "direction": "forward", "weight": 1.0 },
+    { "source": "file:tests/test_shops.py", "target": "function:tests/test_shops.py:test_get_shop_returns_defaults", "type": "contains", "direction": "forward", "weight": 1.0 },
+    { "source": "file:tests/test_shops.py", "target": "function:tests/test_shops.py:test_owner_updates_gstin_and_duty_rate", "type": "contains", "direction": "forward", "weight": 1.0 },
+    { "source": "file:tests/test_shops.py", "target": "function:tests/test_shops.py:test_pdf_includes_configured_gstin", "type": "contains", "direction": "forward", "weight": 1.0 },
+    { "source": "file:tests/test_shops.py", "target": "function:tests/test_shops.py:test_pdf_includes_configured_duty_rate", "type": "contains", "direction": "forward", "weight": 1.0 },
+    { "source": "file:tests/test_shops.py", "target": "function:tests/test_shops.py:test_pdf_includes_placeholder_disclaimer", "type": "contains", "direction": "forward", "weight": 1.0 },
+    { "source": "file:tests/test_shops.py", "target": "function:tests/test_shops.py:test_pdf_does_not_hardcode_cgst_or_sgst", "type": "contains", "direction": "forward", "weight": 1.0 },
+    { "source": "file:tests/test_shops.py", "target": "function:tests/test_shops.py:test_shop_name_appears_on_invoice", "type": "contains", "direction": "forward", "weight": 1.0 },
+
+    { "source": "function:tests/test_shops.py:test_get_shop_returns_defaults", "target": "class:app/models/shop.py:Shop", "type": "calls", "direction": "forward", "weight": 0.8 },
+    { "source": "function:tests/test_shops.py:test_owner_updates_gstin_and_duty_rate", "target": "class:app/models/shop.py:Shop", "type": "calls", "direction": "forward", "weight": 0.8 },
+    { "source": "function:tests/test_shops.py:test_shop_name_appears_on_invoice", "target": "class:app/models/shop.py:Shop", "type": "calls", "direction": "forward", "weight": 0.8 },
+
+    { "source": "file:app/models/shop.py", "target": "file:tests/test_shops.py", "type": "tested_by", "direction": "forward", "weight": 0.5 },
+    { "source": "file:app/models/user.py", "target": "file:tests/conftest.py", "type": "tested_by", "direction": "forward", "weight": 0.5 },
+    { "source": "file:app/security/passwords.py", "target": "file:tests/conftest.py", "type": "tested_by", "direction": "forward", "weight": 0.5 },
+    { "source": "file:app/models/product.py", "target": "file:tests/test_products.py", "type": "tested_by", "direction": "forward", "weight": 0.5 },
+    { "source": "file:app/models/product.py", "target": "file:tests/test_low_stock.py", "type": "tested_by", "direction": "forward", "weight": 0.5 }
+  ]
+}

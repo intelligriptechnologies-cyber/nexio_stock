@@ -1,0 +1,916 @@
+{
+  "scriptCompleted": true,
+  "filesAnalyzed": 10,
+  "filesSkipped": [],
+  "results": [
+    {
+      "path": "src/App.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 145,
+      "nonEmptyLines": 140,
+      "functions": [
+        {
+          "name": "Protected",
+          "startLine": 18,
+          "endLine": 30,
+          "params": [
+            "{ allow, children }"
+          ]
+        },
+        {
+          "name": "AuthedShell",
+          "startLine": 32,
+          "endLine": 41,
+          "params": [
+            "{ children }"
+          ]
+        },
+        {
+          "name": "App",
+          "startLine": 43,
+          "endLine": 145,
+          "params": []
+        }
+      ],
+      "exports": [
+        {
+          "name": "App",
+          "line": 43,
+          "isDefault": true
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "Protected",
+          "callee": "useAuth",
+          "lineNumber": 19
+        },
+        {
+          "caller": "Protected",
+          "callee": "allow.includes",
+          "lineNumber": 28
+        },
+        {
+          "caller": "AuthedShell",
+          "callee": "useAuth",
+          "lineNumber": 33
+        }
+      ],
+      "metrics": {
+        "importCount": 15,
+        "exportCount": 1,
+        "functionCount": 3,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "src/auth/AuthProvider.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 101,
+      "nonEmptyLines": 87,
+      "functions": [
+        {
+          "name": "readSession",
+          "startLine": 29,
+          "endLine": 45,
+          "params": []
+        },
+        {
+          "name": "AuthProvider",
+          "startLine": 47,
+          "endLine": 81,
+          "params": [
+            "{ children }"
+          ]
+        },
+        {
+          "name": "useAuth",
+          "startLine": 83,
+          "endLine": 87,
+          "params": []
+        },
+        {
+          "name": "homePathFor",
+          "startLine": 90,
+          "endLine": 101,
+          "params": [
+            "role"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "AuthProvider",
+          "line": 47,
+          "isDefault": false
+        },
+        {
+          "name": "useAuth",
+          "line": 83,
+          "isDefault": false
+        },
+        {
+          "name": "homePathFor",
+          "line": 90,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "readSession",
+          "callee": "sessionStorage.getItem",
+          "lineNumber": 30
+        },
+        {
+          "caller": "readSession",
+          "callee": "sessionStorage.getItem",
+          "lineNumber": 31
+        },
+        {
+          "caller": "readSession",
+          "callee": "decodeJwt",
+          "lineNumber": 33
+        },
+        {
+          "caller": "readSession",
+          "callee": "isExpired",
+          "lineNumber": 34
+        },
+        {
+          "caller": "readSession",
+          "callee": "sessionStorage.removeItem",
+          "lineNumber": 35
+        },
+        {
+          "caller": "readSession",
+          "callee": "sessionStorage.removeItem",
+          "lineNumber": 36
+        },
+        {
+          "caller": "readSession",
+          "callee": "JSON.parse",
+          "lineNumber": 40
+        },
+        {
+          "caller": "AuthProvider",
+          "callee": "useState",
+          "lineNumber": 48
+        },
+        {
+          "caller": "AuthProvider",
+          "callee": "useState",
+          "lineNumber": 49
+        },
+        {
+          "caller": "AuthProvider",
+          "callee": "useState",
+          "lineNumber": 50
+        },
+        {
+          "caller": "AuthProvider",
+          "callee": "useEffect",
+          "lineNumber": 52
+        },
+        {
+          "caller": "AuthProvider",
+          "callee": "readSession",
+          "lineNumber": 53
+        },
+        {
+          "caller": "AuthProvider",
+          "callee": "setToken",
+          "lineNumber": 55
+        },
+        {
+          "caller": "AuthProvider",
+          "callee": "setUser",
+          "lineNumber": 56
+        },
+        {
+          "caller": "AuthProvider",
+          "callee": "setIsReady",
+          "lineNumber": 58
+        },
+        {
+          "caller": "AuthProvider",
+          "callee": "useCallback",
+          "lineNumber": 61
+        },
+        {
+          "caller": "AuthProvider",
+          "callee": "sessionStorage.setItem",
+          "lineNumber": 62
+        },
+        {
+          "caller": "AuthProvider",
+          "callee": "sessionStorage.setItem",
+          "lineNumber": 63
+        },
+        {
+          "caller": "AuthProvider",
+          "callee": "JSON.stringify",
+          "lineNumber": 63
+        },
+        {
+          "caller": "AuthProvider",
+          "callee": "setToken",
+          "lineNumber": 64
+        },
+        {
+          "caller": "AuthProvider",
+          "callee": "setUser",
+          "lineNumber": 65
+        },
+        {
+          "caller": "AuthProvider",
+          "callee": "useCallback",
+          "lineNumber": 68
+        },
+        {
+          "caller": "AuthProvider",
+          "callee": "sessionStorage.removeItem",
+          "lineNumber": 69
+        },
+        {
+          "caller": "AuthProvider",
+          "callee": "sessionStorage.removeItem",
+          "lineNumber": 70
+        },
+        {
+          "caller": "AuthProvider",
+          "callee": "setToken",
+          "lineNumber": 71
+        },
+        {
+          "caller": "AuthProvider",
+          "callee": "setUser",
+          "lineNumber": 72
+        },
+        {
+          "caller": "AuthProvider",
+          "callee": "useMemo",
+          "lineNumber": 75
+        },
+        {
+          "caller": "useAuth",
+          "callee": "useContext",
+          "lineNumber": 84
+        }
+      ],
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 3,
+        "functionCount": 4,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "src/auth/jwt.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 29,
+      "nonEmptyLines": 27,
+      "functions": [
+        {
+          "name": "decodeJwt",
+          "startLine": 13,
+          "endLine": 25,
+          "params": [
+            "token"
+          ]
+        },
+        {
+          "name": "isExpired",
+          "startLine": 27,
+          "endLine": 29,
+          "params": [
+            "payload",
+            "skewSeconds"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "decodeJwt",
+          "line": 13,
+          "isDefault": false
+        },
+        {
+          "name": "isExpired",
+          "line": 27,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "decodeJwt",
+          "callee": "token.split",
+          "lineNumber": 14
+        },
+        {
+          "caller": "decodeJwt",
+          "callee": "parts[1].replace(/-/g, \"+\").replace",
+          "lineNumber": 17
+        },
+        {
+          "caller": "decodeJwt",
+          "callee": "parts[1].replace",
+          "lineNumber": 17
+        },
+        {
+          "caller": "decodeJwt",
+          "callee": "atob",
+          "lineNumber": 18
+        },
+        {
+          "caller": "decodeJwt",
+          "callee": "\"==\".slice",
+          "lineNumber": 18
+        },
+        {
+          "caller": "decodeJwt",
+          "callee": "JSON.parse",
+          "lineNumber": 19
+        },
+        {
+          "caller": "isExpired",
+          "callee": "Date.now",
+          "lineNumber": 28
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 2,
+        "functionCount": 2,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "src/components/PinPad.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 94,
+      "nonEmptyLines": 89,
+      "functions": [
+        {
+          "name": "PinPad",
+          "startLine": 20,
+          "endLine": 94,
+          "params": [
+            "{\n  onDigit,\n  onBackspace,\n  onClear,\n  onSubmit,\n  disabled = false,\n  accentLabel = \"SUBMIT\",\n}"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "PinPad",
+          "line": 20,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "handleKey",
+          "callee": "/^[0-9]$/.test",
+          "lineNumber": 30
+        },
+        {
+          "caller": "handleKey",
+          "callee": "onDigit",
+          "lineNumber": 30
+        },
+        {
+          "caller": "handleKey",
+          "callee": "onBackspace",
+          "lineNumber": 31
+        },
+        {
+          "caller": "handleKey",
+          "callee": "onSubmit",
+          "lineNumber": 32
+        },
+        {
+          "caller": "handleKey",
+          "callee": "onClear",
+          "lineNumber": 33
+        },
+        {
+          "caller": "PinPad",
+          "callee": "KEYS.map",
+          "lineNumber": 43
+        },
+        {
+          "caller": "PinPad",
+          "callee": "onDigit",
+          "lineNumber": 76
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "src/main.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 19,
+      "nonEmptyLines": 18,
+      "metrics": {
+        "importCount": 4,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "src/pages/AdminPlaceholder.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 18,
+      "nonEmptyLines": 17,
+      "functions": [
+        {
+          "name": "AdminPlaceholder",
+          "startLine": 6,
+          "endLine": 18,
+          "params": []
+        }
+      ],
+      "exports": [
+        {
+          "name": "AdminPlaceholder",
+          "line": 6,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "AdminPlaceholder",
+          "callee": "useLocation",
+          "lineNumber": 7
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "src/pages/ForbiddenPage.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 29,
+      "nonEmptyLines": 28,
+      "functions": [
+        {
+          "name": "ForbiddenPage",
+          "startLine": 4,
+          "endLine": 29,
+          "params": []
+        }
+      ],
+      "exports": [
+        {
+          "name": "ForbiddenPage",
+          "line": 4,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "ForbiddenPage",
+          "callee": "useAuth",
+          "lineNumber": 5
+        }
+      ],
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "src/pages/HomeRedirect.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 11,
+      "nonEmptyLines": 10,
+      "functions": [
+        {
+          "name": "HomeRedirect",
+          "startLine": 6,
+          "endLine": 11,
+          "params": []
+        }
+      ],
+      "exports": [
+        {
+          "name": "HomeRedirect",
+          "line": 6,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "HomeRedirect",
+          "callee": "useAuth",
+          "lineNumber": 7
+        },
+        {
+          "caller": "HomeRedirect",
+          "callee": "homePathFor",
+          "lineNumber": 10
+        }
+      ],
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "src/pages/LoginPage.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 118,
+      "nonEmptyLines": 109,
+      "functions": [
+        {
+          "name": "LoginPage",
+          "startLine": 9,
+          "endLine": 118,
+          "params": []
+        }
+      ],
+      "exports": [
+        {
+          "name": "LoginPage",
+          "line": 9,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "LoginPage",
+          "callee": "useNavigate",
+          "lineNumber": 10
+        },
+        {
+          "caller": "LoginPage",
+          "callee": "useAuth",
+          "lineNumber": 11
+        },
+        {
+          "caller": "LoginPage",
+          "callee": "useState",
+          "lineNumber": 12
+        },
+        {
+          "caller": "LoginPage",
+          "callee": "useState",
+          "lineNumber": 13
+        },
+        {
+          "caller": "LoginPage",
+          "callee": "useState",
+          "lineNumber": 14
+        },
+        {
+          "caller": "LoginPage",
+          "callee": "useState",
+          "lineNumber": 15
+        },
+        {
+          "caller": "LoginPage",
+          "callee": "useState",
+          "lineNumber": 16
+        },
+        {
+          "caller": "handleDigit",
+          "callee": "setError",
+          "lineNumber": 19
+        },
+        {
+          "caller": "handleDigit",
+          "callee": "setPhone",
+          "lineNumber": 20
+        },
+        {
+          "caller": "handleDigit",
+          "callee": "setPassword",
+          "lineNumber": 21
+        },
+        {
+          "caller": "handleBackspace",
+          "callee": "setPhone",
+          "lineNumber": 24
+        },
+        {
+          "caller": "handleBackspace",
+          "callee": "p.slice",
+          "lineNumber": 24
+        },
+        {
+          "caller": "handleBackspace",
+          "callee": "setPassword",
+          "lineNumber": 25
+        },
+        {
+          "caller": "handleBackspace",
+          "callee": "p.slice",
+          "lineNumber": 25
+        },
+        {
+          "caller": "handleClear",
+          "callee": "setPhone",
+          "lineNumber": 28
+        },
+        {
+          "caller": "handleClear",
+          "callee": "setPassword",
+          "lineNumber": 29
+        },
+        {
+          "caller": "handleSubmit",
+          "callee": "setError",
+          "lineNumber": 32
+        },
+        {
+          "caller": "handleSubmit",
+          "callee": "setError",
+          "lineNumber": 35
+        },
+        {
+          "caller": "handleSubmit",
+          "callee": "setStage",
+          "lineNumber": 38
+        },
+        {
+          "caller": "handleSubmit",
+          "callee": "setError",
+          "lineNumber": 42
+        },
+        {
+          "caller": "handleSubmit",
+          "callee": "setLoading",
+          "lineNumber": 45
+        },
+        {
+          "caller": "handleSubmit",
+          "callee": "Api.loginShop",
+          "lineNumber": 47
+        },
+        {
+          "caller": "handleSubmit",
+          "callee": "Number",
+          "lineNumber": 50
+        },
+        {
+          "caller": "handleSubmit",
+          "callee": "Number",
+          "lineNumber": 51
+        },
+        {
+          "caller": "handleSubmit",
+          "callee": "String",
+          "lineNumber": 53
+        },
+        {
+          "caller": "handleSubmit",
+          "callee": "String",
+          "lineNumber": 54
+        },
+        {
+          "caller": "handleSubmit",
+          "callee": "String",
+          "lineNumber": 55
+        },
+        {
+          "caller": "handleSubmit",
+          "callee": "login",
+          "lineNumber": 57
+        },
+        {
+          "caller": "handleSubmit",
+          "callee": "navigate",
+          "lineNumber": 58
+        },
+        {
+          "caller": "handleSubmit",
+          "callee": "homePathFor",
+          "lineNumber": 58
+        },
+        {
+          "caller": "handleSubmit",
+          "callee": "setError",
+          "lineNumber": 61
+        },
+        {
+          "caller": "handleSubmit",
+          "callee": "setError",
+          "lineNumber": 62
+        },
+        {
+          "caller": "handleSubmit",
+          "callee": "setError",
+          "lineNumber": 63
+        },
+        {
+          "caller": "handleSubmit",
+          "callee": "setError",
+          "lineNumber": 65
+        },
+        {
+          "caller": "handleSubmit",
+          "callee": "setLoading",
+          "lineNumber": 68
+        },
+        {
+          "caller": "LoginPage",
+          "callee": "phone.slice",
+          "lineNumber": 72
+        },
+        {
+          "caller": "LoginPage",
+          "callee": "\"•\".repeat",
+          "lineNumber": 73
+        },
+        {
+          "caller": "LoginPage",
+          "callee": "navigate",
+          "lineNumber": 107
+        },
+        {
+          "caller": "LoginPage",
+          "callee": "setStage",
+          "lineNumber": 107
+        }
+      ],
+      "metrics": {
+        "importCount": 3,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "src/pages/SuperadminLoginPage.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 90,
+      "nonEmptyLines": 87,
+      "functions": [
+        {
+          "name": "SuperadminLoginPage",
+          "startLine": 6,
+          "endLine": 90,
+          "params": []
+        }
+      ],
+      "exports": [
+        {
+          "name": "SuperadminLoginPage",
+          "line": 6,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "SuperadminLoginPage",
+          "callee": "useNavigate",
+          "lineNumber": 7
+        },
+        {
+          "caller": "SuperadminLoginPage",
+          "callee": "useAuth",
+          "lineNumber": 8
+        },
+        {
+          "caller": "SuperadminLoginPage",
+          "callee": "useState",
+          "lineNumber": 9
+        },
+        {
+          "caller": "SuperadminLoginPage",
+          "callee": "useState",
+          "lineNumber": 10
+        },
+        {
+          "caller": "SuperadminLoginPage",
+          "callee": "useState",
+          "lineNumber": 11
+        },
+        {
+          "caller": "SuperadminLoginPage",
+          "callee": "useState",
+          "lineNumber": 12
+        },
+        {
+          "caller": "submit",
+          "callee": "e.preventDefault",
+          "lineNumber": 15
+        },
+        {
+          "caller": "submit",
+          "callee": "setError",
+          "lineNumber": 16
+        },
+        {
+          "caller": "submit",
+          "callee": "setLoading",
+          "lineNumber": 17
+        },
+        {
+          "caller": "submit",
+          "callee": "Api.loginSuperadmin",
+          "lineNumber": 19
+        },
+        {
+          "caller": "submit",
+          "callee": "Number",
+          "lineNumber": 22
+        },
+        {
+          "caller": "submit",
+          "callee": "Number",
+          "lineNumber": 23
+        },
+        {
+          "caller": "submit",
+          "callee": "String",
+          "lineNumber": 25
+        },
+        {
+          "caller": "submit",
+          "callee": "String",
+          "lineNumber": 26
+        },
+        {
+          "caller": "submit",
+          "callee": "String",
+          "lineNumber": 27
+        },
+        {
+          "caller": "submit",
+          "callee": "login",
+          "lineNumber": 29
+        },
+        {
+          "caller": "submit",
+          "callee": "navigate",
+          "lineNumber": 30
+        },
+        {
+          "caller": "submit",
+          "callee": "setError",
+          "lineNumber": 33
+        },
+        {
+          "caller": "submit",
+          "callee": "setError",
+          "lineNumber": 34
+        },
+        {
+          "caller": "submit",
+          "callee": "setError",
+          "lineNumber": 35
+        },
+        {
+          "caller": "submit",
+          "callee": "setError",
+          "lineNumber": 37
+        },
+        {
+          "caller": "submit",
+          "callee": "setLoading",
+          "lineNumber": 40
+        },
+        {
+          "caller": "SuperadminLoginPage",
+          "callee": "setUsername",
+          "lineNumber": 56
+        },
+        {
+          "caller": "SuperadminLoginPage",
+          "callee": "setPassword",
+          "lineNumber": 67
+        }
+      ],
+      "metrics": {
+        "importCount": 2,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    }
+  ]
+}

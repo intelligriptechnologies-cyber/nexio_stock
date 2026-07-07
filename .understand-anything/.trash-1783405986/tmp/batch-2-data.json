@@ -1,0 +1,493 @@
+{
+ "batchIndex": 2,
+ "files": [
+  {
+   "path": "app/api/auth.py",
+   "language": "python",
+   "sizeLines": 140,
+   "fileCategory": "code"
+  },
+  {
+   "path": "app/api/deps.py",
+   "language": "python",
+   "sizeLines": 129,
+   "fileCategory": "code"
+  },
+  {
+   "path": "app/api/staff.py",
+   "language": "python",
+   "sizeLines": 109,
+   "fileCategory": "code"
+  },
+  {
+   "path": "app/api/users.py",
+   "language": "python",
+   "sizeLines": 18,
+   "fileCategory": "code"
+  },
+  {
+   "path": "app/cli.py",
+   "language": "python",
+   "sizeLines": 186,
+   "fileCategory": "code"
+  },
+  {
+   "path": "app/config.py",
+   "language": "python",
+   "sizeLines": 42,
+   "fileCategory": "code"
+  },
+  {
+   "path": "app/db.py",
+   "language": "python",
+   "sizeLines": 136,
+   "fileCategory": "code"
+  },
+  {
+   "path": "app/models/user.py",
+   "language": "python",
+   "sizeLines": 84,
+   "fileCategory": "code"
+  },
+  {
+   "path": "app/schemas/auth.py",
+   "language": "python",
+   "sizeLines": 91,
+   "fileCategory": "code"
+  },
+  {
+   "path": "app/security/jwt.py",
+   "language": "python",
+   "sizeLines": 44,
+   "fileCategory": "code"
+  },
+  {
+   "path": "app/security/passwords.py",
+   "language": "python",
+   "sizeLines": 23,
+   "fileCategory": "code"
+  }
+ ],
+ "batchImportData": {
+  "app/api/auth.py": [
+   "app/api/deps.py",
+   "app/config.py",
+   "app/logging_config.py",
+   "app/models/user.py",
+   "app/schemas/auth.py",
+   "app/security/jwt.py",
+   "app/security/passwords.py"
+  ],
+  "app/api/deps.py": [
+   "app/db.py",
+   "app/models/shop.py",
+   "app/models/user.py",
+   "app/security/jwt.py"
+  ],
+  "app/api/staff.py": [
+   "app/api/_errors.py",
+   "app/api/deps.py",
+   "app/logging_config.py",
+   "app/models/user.py",
+   "app/schemas/auth.py",
+   "app/security/passwords.py"
+  ],
+  "app/api/users.py": [
+   "app/api/deps.py",
+   "app/schemas/auth.py"
+  ],
+  "app/cli.py": [
+   "app/config.py",
+   "app/db.py",
+   "app/logging_config.py",
+   "app/models/shop.py",
+   "app/models/user.py",
+   "app/security/passwords.py"
+  ],
+  "app/config.py": [],
+  "app/db.py": [
+   "app/config.py"
+  ],
+  "app/models/user.py": [
+   "app/db.py"
+  ],
+  "app/schemas/auth.py": [
+   "app/models/user.py"
+  ],
+  "app/security/jwt.py": [
+   "app/config.py"
+  ],
+  "app/security/passwords.py": [
+   "app/config.py"
+  ]
+ },
+ "neighborMap": {
+  "app/api/auth.py": [
+   {
+    "path": "app/logging_config.py",
+    "batchIndex": 3,
+    "symbols": [
+     "configure_logging",
+     "get_logger"
+    ]
+   },
+   {
+    "path": "app/main.py",
+    "batchIndex": 3,
+    "symbols": [
+     "lifespan",
+     "_low_stock_loop",
+     "create_app"
+    ]
+   }
+  ],
+  "app/api/deps.py": [
+   {
+    "path": "app/models/shop.py",
+    "batchIndex": 5,
+    "symbols": [
+     "Shop"
+    ]
+   },
+   {
+    "path": "app/api/checkout.py",
+    "batchIndex": 4,
+    "symbols": [
+     "_error_to_http",
+     "finalize",
+     "_load_invoice_or_404",
+     "get_invoice",
+     "get_invoice_pdf"
+    ]
+   },
+   {
+    "path": "app/api/dashboard.py",
+    "batchIndex": 3,
+    "symbols": [
+     "_error_to_http",
+     "sign_off",
+     "eod_totals",
+     "eod_history",
+     "void_queue",
+     "low_stock"
+    ]
+   },
+   {
+    "path": "app/api/health.py",
+    "batchIndex": 3,
+    "symbols": [
+     "liveness",
+     "readiness"
+    ]
+   },
+   {
+    "path": "app/api/lots.py",
+    "batchIndex": 1,
+    "symbols": [
+     "create_lot",
+     "list_lots",
+     "get_lot",
+     "_load_lines"
+    ]
+   },
+   {
+    "path": "app/api/products.py",
+    "batchIndex": 1,
+    "symbols": [
+     "create_product",
+     "list_products",
+     "lookup_product",
+     "update_product",
+     "import_products_csv"
+    ]
+   },
+   {
+    "path": "app/api/shops.py",
+    "batchIndex": 3,
+    "symbols": [
+     "list_shops",
+     "get_my_shop",
+     "update_my_shop"
+    ]
+   },
+   {
+    "path": "app/api/voids.py",
+    "batchIndex": 4,
+    "symbols": [
+     "_resolve_void_shop_id",
+     "_error_to_http",
+     "request_void",
+     "approve_void",
+     "reject_void",
+     "_load_invoice",
+     "_not_found",
+     "_write_void_log"
+    ]
+   }
+  ],
+  "app/api/staff.py": [
+   {
+    "path": "app/api/_errors.py",
+    "batchIndex": 1,
+    "symbols": [
+     "is_unique_violation",
+     "map_error_to_http"
+    ]
+   },
+   {
+    "path": "app/logging_config.py",
+    "batchIndex": 3,
+    "symbols": [
+     "configure_logging",
+     "get_logger"
+    ]
+   },
+   {
+    "path": "app/main.py",
+    "batchIndex": 3,
+    "symbols": [
+     "lifespan",
+     "_low_stock_loop",
+     "create_app"
+    ]
+   }
+  ],
+  "app/api/users.py": [
+   {
+    "path": "app/main.py",
+    "batchIndex": 3,
+    "symbols": [
+     "lifespan",
+     "_low_stock_loop",
+     "create_app"
+    ]
+   }
+  ],
+  "app/cli.py": [
+   {
+    "path": "app/logging_config.py",
+    "batchIndex": 3,
+    "symbols": [
+     "configure_logging",
+     "get_logger"
+    ]
+   },
+   {
+    "path": "app/models/shop.py",
+    "batchIndex": 5,
+    "symbols": [
+     "Shop"
+    ]
+   }
+  ],
+  "app/config.py": [
+   {
+    "path": "alembic/env.py",
+    "batchIndex": 1,
+    "symbols": [
+     "run_migrations_offline",
+     "do_run_migrations",
+     "run_async_migrations",
+     "run_migrations_online"
+    ]
+   },
+   {
+    "path": "app/main.py",
+    "batchIndex": 3,
+    "symbols": [
+     "lifespan",
+     "_low_stock_loop",
+     "create_app"
+    ]
+   }
+  ],
+  "app/db.py": [
+   {
+    "path": "alembic/env.py",
+    "batchIndex": 1,
+    "symbols": [
+     "run_migrations_offline",
+     "do_run_migrations",
+     "run_async_migrations",
+     "run_migrations_online"
+    ]
+   },
+   {
+    "path": "app/main.py",
+    "batchIndex": 3,
+    "symbols": [
+     "lifespan",
+     "_low_stock_loop",
+     "create_app"
+    ]
+   },
+   {
+    "path": "app/models/invoice.py",
+    "batchIndex": 4,
+    "symbols": [
+     "InvoiceStatus",
+     "PaymentMode",
+     "Invoice",
+     "InvoiceLine",
+     "Payment",
+     "EodSignOff",
+     "IdempotencyKey"
+    ]
+   },
+   {
+    "path": "app/models/log.py",
+    "batchIndex": 1,
+    "symbols": [
+     "_BaseLog",
+     "InvoicingLog",
+     "StockinLog",
+     "AdminLog"
+    ]
+   },
+   {
+    "path": "app/models/lot.py",
+    "batchIndex": 1,
+    "symbols": [
+     "Lot",
+     "LotLine"
+    ]
+   },
+   {
+    "path": "app/models/product.py",
+    "batchIndex": 1,
+    "symbols": [
+     "Product"
+    ]
+   },
+   {
+    "path": "app/models/shop.py",
+    "batchIndex": 5,
+    "symbols": [
+     "Shop"
+    ]
+   }
+  ],
+  "app/models/user.py": [
+   {
+    "path": "app/api/checkout.py",
+    "batchIndex": 4,
+    "symbols": [
+     "_error_to_http",
+     "finalize",
+     "_load_invoice_or_404",
+     "get_invoice",
+     "get_invoice_pdf"
+    ]
+   },
+   {
+    "path": "app/api/dashboard.py",
+    "batchIndex": 3,
+    "symbols": [
+     "_error_to_http",
+     "sign_off",
+     "eod_totals",
+     "eod_history",
+     "void_queue",
+     "low_stock"
+    ]
+   },
+   {
+    "path": "app/api/lots.py",
+    "batchIndex": 1,
+    "symbols": [
+     "create_lot",
+     "list_lots",
+     "get_lot",
+     "_load_lines"
+    ]
+   },
+   {
+    "path": "app/api/products.py",
+    "batchIndex": 1,
+    "symbols": [
+     "create_product",
+     "list_products",
+     "lookup_product",
+     "update_product",
+     "import_products_csv"
+    ]
+   },
+   {
+    "path": "app/api/shops.py",
+    "batchIndex": 3,
+    "symbols": [
+     "list_shops",
+     "get_my_shop",
+     "update_my_shop"
+    ]
+   },
+   {
+    "path": "app/api/voids.py",
+    "batchIndex": 4,
+    "symbols": [
+     "_resolve_void_shop_id",
+     "_error_to_http",
+     "request_void",
+     "approve_void",
+     "reject_void",
+     "_load_invoice",
+     "_not_found",
+     "_write_void_log"
+    ]
+   },
+   {
+    "path": "app/models/__init__.py",
+    "batchIndex": 1,
+    "symbols": []
+   },
+   {
+    "path": "tests/conftest.py",
+    "batchIndex": 5,
+    "symbols": [
+     "_make_test_dsn",
+     "test_db_dsn",
+     "_truncate_tables",
+     "db_session",
+     "client",
+     "_make_shop",
+     "_make_user",
+     "shop",
+     "owner",
+     "receiver",
+     "cashier",
+     "superadmin",
+     "_make_logged_in_client",
+     "owner_client",
+     "receiver_client",
+     "cashier_client",
+     "superadmin_client"
+    ]
+   }
+  ],
+  "app/security/passwords.py": [
+   {
+    "path": "tests/conftest.py",
+    "batchIndex": 5,
+    "symbols": [
+     "_make_test_dsn",
+     "test_db_dsn",
+     "_truncate_tables",
+     "db_session",
+     "client",
+     "_make_shop",
+     "_make_user",
+     "shop",
+     "owner",
+     "receiver",
+     "cashier",
+     "superadmin",
+     "_make_logged_in_client",
+     "owner_client",
+     "receiver_client",
+     "cashier_client",
+     "superadmin_client"
+    ]
+   }
+  ]
+ }
+}

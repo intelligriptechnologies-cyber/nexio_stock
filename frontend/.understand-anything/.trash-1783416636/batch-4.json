@@ -1,0 +1,185 @@
+{
+  "nodes": [
+    {
+      "id": "file:src/api/shops.ts",
+      "type": "file",
+      "name": "shops.ts",
+      "filePath": "src/api/shops.ts",
+      "summary": "API client functions for shop data: listing all shops (superadmin), fetching the current/acting shop, and updating shop configuration (name, GSTIN, excise duty rate, low-stock threshold).",
+      "tags": ["api-client", "shop", "multi-shop", "data-model"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:src/api/shops.ts:listShops",
+      "type": "function",
+      "name": "listShops",
+      "filePath": "src/api/shops.ts",
+      "lineRange": [26, 28],
+      "summary": "Fetches the full list of shops from the backend, used by superadmins to populate the shop-scope picker.",
+      "tags": ["api-call", "shop", "superadmin"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:src/api/shops.ts:getMyShop",
+      "type": "function",
+      "name": "getMyShop",
+      "filePath": "src/api/shops.ts",
+      "lineRange": [30, 33],
+      "summary": "Fetches shop configuration for the current user's shop, optionally overriding with an explicit shopId for superadmin scoping.",
+      "tags": ["api-call", "shop", "config"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:src/api/shops.ts:updateMyShop",
+      "type": "function",
+      "name": "updateMyShop",
+      "filePath": "src/api/shops.ts",
+      "lineRange": [35, 41],
+      "summary": "Sends a PATCH request to update shop configuration fields, optionally scoped to a specific shopId for superadmin edits.",
+      "tags": ["api-call", "shop", "mutation"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:src/auth/ShopScopeProvider.tsx",
+      "type": "file",
+      "name": "ShopScopeProvider.tsx",
+      "filePath": "src/auth/ShopScopeProvider.tsx",
+      "summary": "React context provider that tracks which shop a superadmin is currently 'acting as', persisting the selection in sessionStorage and exposing it via the useShopScope hook.",
+      "tags": ["context-provider", "multi-shop", "state-management", "hook"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:src/auth/ShopScopeProvider.tsx:ShopScopeProvider",
+      "type": "function",
+      "name": "ShopScopeProvider",
+      "filePath": "src/auth/ShopScopeProvider.tsx",
+      "lineRange": [25, 37],
+      "summary": "Provider component that holds the acting shop id in state, synchronizes it to sessionStorage, and exposes it plus a setter through context.",
+      "tags": ["component", "context-provider", "multi-shop"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:src/auth/ShopScopeProvider.tsx:useShopScope",
+      "type": "function",
+      "name": "useShopScope",
+      "filePath": "src/auth/ShopScopeProvider.tsx",
+      "lineRange": [39, 43],
+      "summary": "Custom hook that reads the shop-scope context, giving components access to the currently acting shop id and its setter.",
+      "tags": ["hook", "context", "multi-shop"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:src/components/ShopPicker.tsx",
+      "type": "file",
+      "name": "ShopPicker.tsx",
+      "filePath": "src/components/ShopPicker.tsx",
+      "summary": "Dropdown component shown to superadmins that lists all shops and lets them switch their 'acting shop' scope, persisted via ShopScopeProvider.",
+      "tags": ["component", "multi-shop", "superadmin", "dropdown"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:src/components/ShopPicker.tsx:ShopPicker",
+      "type": "function",
+      "name": "ShopPicker",
+      "filePath": "src/components/ShopPicker.tsx",
+      "lineRange": [11, 52],
+      "summary": "Loads the shop list on mount for superadmins and renders a select control bound to the shop-scope context, allowing the acting shop to be changed.",
+      "tags": ["component", "multi-shop", "data-fetching"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:src/components/Sidebar.tsx",
+      "type": "file",
+      "name": "Sidebar.tsx",
+      "filePath": "src/components/Sidebar.tsx",
+      "summary": "Main application sidebar navigation component that filters visible menu items by the current user's role and provides logout functionality.",
+      "tags": ["component", "navigation", "layout", "role-based"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:src/components/Sidebar.tsx:Sidebar",
+      "type": "function",
+      "name": "Sidebar",
+      "filePath": "src/components/Sidebar.tsx",
+      "lineRange": [23, 97],
+      "summary": "Renders the collapsible navigation sidebar, filtering nav items based on the authenticated user's roles and handling logout/navigation actions.",
+      "tags": ["component", "navigation", "role-based", "layout"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:src/pages/ShopConfigPage.tsx",
+      "type": "file",
+      "name": "ShopConfigPage.tsx",
+      "filePath": "src/pages/ShopConfigPage.tsx",
+      "summary": "Owner/superadmin settings page for viewing and editing shop configuration (GSTIN, excise duty rate, low-stock threshold), with load/save state handling and shop-scope awareness.",
+      "tags": ["page", "form", "shop", "config", "multi-shop"],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:src/pages/ShopConfigPage.tsx:ShopConfigPage",
+      "type": "function",
+      "name": "ShopConfigPage",
+      "filePath": "src/pages/ShopConfigPage.tsx",
+      "lineRange": [7, 150],
+      "summary": "Page component that loads the current (possibly scoped) shop's configuration, manages form state for GSTIN/duty rate/threshold, validates and saves updates via the shops API, and surfaces load/save errors and success info.",
+      "tags": ["page", "form", "data-fetching", "validation", "multi-shop"],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:src/pages/ShopConfigPage.tsx:Field",
+      "type": "function",
+      "name": "Field",
+      "filePath": "src/pages/ShopConfigPage.tsx",
+      "lineRange": [152, 189],
+      "summary": "Reusable labeled input field component used to render each editable shop-config attribute with consistent styling and change handling.",
+      "tags": ["component", "form", "reusable", "input"],
+      "complexity": "simple"
+    }
+  ],
+  "edges": [
+    { "source": "file:src/api/shops.ts", "target": "function:src/api/shops.ts:listShops", "type": "contains", "direction": "forward", "weight": 1.0 },
+    { "source": "file:src/api/shops.ts", "target": "function:src/api/shops.ts:getMyShop", "type": "contains", "direction": "forward", "weight": 1.0 },
+    { "source": "file:src/api/shops.ts", "target": "function:src/api/shops.ts:updateMyShop", "type": "contains", "direction": "forward", "weight": 1.0 },
+    { "source": "file:src/api/shops.ts", "target": "function:src/api/shops.ts:listShops", "type": "exports", "direction": "forward", "weight": 0.8 },
+    { "source": "file:src/api/shops.ts", "target": "function:src/api/shops.ts:getMyShop", "type": "exports", "direction": "forward", "weight": 0.8 },
+    { "source": "file:src/api/shops.ts", "target": "function:src/api/shops.ts:updateMyShop", "type": "exports", "direction": "forward", "weight": 0.8 },
+    { "source": "file:src/api/shops.ts", "target": "file:src/api/client.ts", "type": "imports", "direction": "forward", "weight": 0.7 },
+    { "source": "function:src/api/shops.ts:listShops", "target": "function:src/api/client.ts:api", "type": "calls", "direction": "forward", "weight": 0.8 },
+    { "source": "function:src/api/shops.ts:getMyShop", "target": "function:src/api/client.ts:api", "type": "calls", "direction": "forward", "weight": 0.8 },
+    { "source": "function:src/api/shops.ts:updateMyShop", "target": "function:src/api/client.ts:api", "type": "calls", "direction": "forward", "weight": 0.8 },
+
+    { "source": "file:src/auth/ShopScopeProvider.tsx", "target": "function:src/auth/ShopScopeProvider.tsx:ShopScopeProvider", "type": "contains", "direction": "forward", "weight": 1.0 },
+    { "source": "file:src/auth/ShopScopeProvider.tsx", "target": "function:src/auth/ShopScopeProvider.tsx:useShopScope", "type": "contains", "direction": "forward", "weight": 1.0 },
+    { "source": "file:src/auth/ShopScopeProvider.tsx", "target": "function:src/auth/ShopScopeProvider.tsx:ShopScopeProvider", "type": "exports", "direction": "forward", "weight": 0.8 },
+    { "source": "file:src/auth/ShopScopeProvider.tsx", "target": "function:src/auth/ShopScopeProvider.tsx:useShopScope", "type": "exports", "direction": "forward", "weight": 0.8 },
+
+    { "source": "file:src/components/ShopPicker.tsx", "target": "function:src/components/ShopPicker.tsx:ShopPicker", "type": "contains", "direction": "forward", "weight": 1.0 },
+    { "source": "file:src/components/ShopPicker.tsx", "target": "function:src/components/ShopPicker.tsx:ShopPicker", "type": "exports", "direction": "forward", "weight": 0.8 },
+    { "source": "file:src/components/ShopPicker.tsx", "target": "file:src/api/shops.ts", "type": "imports", "direction": "forward", "weight": 0.7 },
+    { "source": "file:src/components/ShopPicker.tsx", "target": "file:src/auth/AuthProvider.tsx", "type": "imports", "direction": "forward", "weight": 0.7 },
+    { "source": "file:src/components/ShopPicker.tsx", "target": "file:src/auth/ShopScopeProvider.tsx", "type": "imports", "direction": "forward", "weight": 0.7 },
+    { "source": "function:src/components/ShopPicker.tsx:ShopPicker", "target": "function:src/auth/AuthProvider.tsx:useAuth", "type": "calls", "direction": "forward", "weight": 0.8 },
+    { "source": "function:src/components/ShopPicker.tsx:ShopPicker", "target": "function:src/auth/ShopScopeProvider.tsx:useShopScope", "type": "calls", "direction": "forward", "weight": 0.8 },
+    { "source": "function:src/components/ShopPicker.tsx:ShopPicker", "target": "function:src/api/shops.ts:listShops", "type": "calls", "direction": "forward", "weight": 0.8 },
+
+    { "source": "file:src/components/Sidebar.tsx", "target": "function:src/components/Sidebar.tsx:Sidebar", "type": "contains", "direction": "forward", "weight": 1.0 },
+    { "source": "file:src/components/Sidebar.tsx", "target": "function:src/components/Sidebar.tsx:Sidebar", "type": "exports", "direction": "forward", "weight": 0.8 },
+    { "source": "file:src/components/Sidebar.tsx", "target": "file:src/auth/AuthProvider.tsx", "type": "imports", "direction": "forward", "weight": 0.7 },
+    { "source": "file:src/components/Sidebar.tsx", "target": "file:src/components/ShopPicker.tsx", "type": "imports", "direction": "forward", "weight": 0.7 },
+    { "source": "function:src/components/Sidebar.tsx:Sidebar", "target": "function:src/auth/AuthProvider.tsx:useAuth", "type": "calls", "direction": "forward", "weight": 0.8 },
+    { "source": "function:src/components/Sidebar.tsx:Sidebar", "target": "function:src/components/ShopPicker.tsx:ShopPicker", "type": "calls", "direction": "forward", "weight": 0.8 },
+
+    { "source": "file:src/pages/ShopConfigPage.tsx", "target": "function:src/pages/ShopConfigPage.tsx:ShopConfigPage", "type": "contains", "direction": "forward", "weight": 1.0 },
+    { "source": "file:src/pages/ShopConfigPage.tsx", "target": "function:src/pages/ShopConfigPage.tsx:Field", "type": "contains", "direction": "forward", "weight": 1.0 },
+    { "source": "file:src/pages/ShopConfigPage.tsx", "target": "function:src/pages/ShopConfigPage.tsx:ShopConfigPage", "type": "exports", "direction": "forward", "weight": 0.8 },
+    { "source": "file:src/pages/ShopConfigPage.tsx", "target": "file:src/api/client.ts", "type": "imports", "direction": "forward", "weight": 0.7 },
+    { "source": "file:src/pages/ShopConfigPage.tsx", "target": "file:src/api/shops.ts", "type": "imports", "direction": "forward", "weight": 0.7 },
+    { "source": "file:src/pages/ShopConfigPage.tsx", "target": "file:src/auth/AuthProvider.tsx", "type": "imports", "direction": "forward", "weight": 0.7 },
+    { "source": "file:src/pages/ShopConfigPage.tsx", "target": "file:src/auth/ShopScopeProvider.tsx", "type": "imports", "direction": "forward", "weight": 0.7 },
+    { "source": "function:src/pages/ShopConfigPage.tsx:ShopConfigPage", "target": "function:src/auth/AuthProvider.tsx:useAuth", "type": "calls", "direction": "forward", "weight": 0.8 },
+    { "source": "function:src/pages/ShopConfigPage.tsx:ShopConfigPage", "target": "function:src/auth/ShopScopeProvider.tsx:useShopScope", "type": "calls", "direction": "forward", "weight": 0.8 },
+    { "source": "function:src/pages/ShopConfigPage.tsx:ShopConfigPage", "target": "function:src/api/shops.ts:getMyShop", "type": "calls", "direction": "forward", "weight": 0.8 },
+    { "source": "function:src/pages/ShopConfigPage.tsx:ShopConfigPage", "target": "function:src/api/shops.ts:updateMyShop", "type": "calls", "direction": "forward", "weight": 0.8 },
+    { "source": "function:src/pages/ShopConfigPage.tsx:ShopConfigPage", "target": "function:src/pages/ShopConfigPage.tsx:Field", "type": "calls", "direction": "forward", "weight": 0.8 }
+  ]
+}

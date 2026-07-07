@@ -1,0 +1,15 @@
+{
+  "projectRoot": "C:/barstock",
+  "batchFiles": [
+    {"path": "app/services/checkout.py", "language": "python", "sizeLines": 410, "fileCategory": "code"},
+    {"path": "app/services/invoice_pdf.py", "language": "python", "sizeLines": 160, "fileCategory": "code"},
+    {"path": "app/services/voids.py", "language": "python", "sizeLines": 272, "fileCategory": "code"},
+    {"path": "tests/test_eod.py", "language": "python", "sizeLines": 374, "fileCategory": "code"}
+  ],
+  "batchImportData": {
+    "app/services/checkout.py": ["app/models/invoice.py","app/models/lot.py","app/models/product.py","app/models/shop.py"],
+    "app/services/invoice_pdf.py": ["app/models/invoice.py"],
+    "app/services/voids.py": ["app/models/invoice.py","app/models/shop.py"],
+    "tests/test_eod.py": ["app/models/invoice.py"]
+  }
+}

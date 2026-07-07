@@ -1,0 +1,37 @@
+{
+  "projectRoot": "C:/barstock",
+  "batchFiles": [
+    {"path": "alembic/env.py", "language": "python", "sizeLines": 72, "fileCategory": "code"},
+    {"path": "app/__init__.py", "language": "python", "sizeLines": 1, "fileCategory": "code"},
+    {"path": "app/api/_errors.py", "language": "python", "sizeLines": 71, "fileCategory": "code"},
+    {"path": "app/api/lots.py", "language": "python", "sizeLines": 201, "fileCategory": "code"},
+    {"path": "app/api/products.py", "language": "python", "sizeLines": 372, "fileCategory": "code"},
+    {"path": "app/models/__init__.py", "language": "python", "sizeLines": 43, "fileCategory": "code"},
+    {"path": "app/models/log.py", "language": "python", "sizeLines": 90, "fileCategory": "code"},
+    {"path": "app/models/lot.py", "language": "python", "sizeLines": 88, "fileCategory": "code"},
+    {"path": "app/models/product.py", "language": "python", "sizeLines": 72, "fileCategory": "code"},
+    {"path": "app/schemas/lot.py", "language": "python", "sizeLines": 80, "fileCategory": "code"},
+    {"path": "app/schemas/product.py", "language": "python", "sizeLines": 118, "fileCategory": "code"},
+    {"path": "app/services/low_stock.py", "language": "python", "sizeLines": 173, "fileCategory": "code"},
+    {"path": "tests/test_checkout.py", "language": "python", "sizeLines": 451, "fileCategory": "code"},
+    {"path": "tests/test_lots.py", "language": "python", "sizeLines": 260, "fileCategory": "code"},
+    {"path": "tests/test_voids.py", "language": "python", "sizeLines": 326, "fileCategory": "code"}
+  ],
+  "batchImportData": {
+    "alembic/env.py": ["app/__init__.py","app/config.py","app/db.py","app/models/__init__.py"],
+    "app/__init__.py": [],
+    "app/api/_errors.py": [],
+    "app/api/lots.py": ["app/api/deps.py","app/logging_config.py","app/models/log.py","app/models/lot.py","app/models/product.py","app/models/user.py","app/schemas/lot.py"],
+    "app/api/products.py": ["app/api/_errors.py","app/api/deps.py","app/logging_config.py","app/models/product.py","app/models/user.py","app/schemas/product.py"],
+    "app/models/__init__.py": ["app/models/invoice.py","app/models/log.py","app/models/lot.py","app/models/product.py","app/models/shop.py","app/models/user.py"],
+    "app/models/log.py": ["app/db.py"],
+    "app/models/lot.py": ["app/db.py"],
+    "app/models/product.py": ["app/db.py"],
+    "app/schemas/lot.py": ["app/models/lot.py"],
+    "app/schemas/product.py": ["app/models/product.py"],
+    "app/services/low_stock.py": ["app/models/invoice.py","app/models/lot.py","app/models/product.py"],
+    "tests/test_checkout.py": ["app/models/invoice.py","app/models/log.py","app/models/lot.py"],
+    "tests/test_lots.py": ["app/models/log.py","app/models/lot.py","app/models/product.py"],
+    "tests/test_voids.py": ["app/models/invoice.py","app/models/log.py","app/models/lot.py","app/models/product.py"]
+  }
+}

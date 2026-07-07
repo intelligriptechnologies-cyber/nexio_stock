@@ -1,0 +1,4957 @@
+{
+ "version": "1.0.0",
+ "project": {
+  "name": "barstock-frontend",
+  "languages": [
+   "typescript",
+   "html",
+   "css",
+   "json"
+  ],
+  "frameworks": [
+   "React",
+   "React Router",
+   "Vite",
+   "Tailwind CSS",
+   "Playwright"
+  ],
+  "description": "React/TypeScript/Vite/Tailwind SPA for the Barstock liquor shop billing system, consuming a FastAPI backend",
+  "analyzedAt": "2026-07-07T09:28:04Z",
+  "gitCommitHash": "36678854e8d795a1dd053e00e115b0208c315849"
+ },
+ "nodes": [
+  {
+   "id": "file:frontend/src/App.tsx",
+   "type": "file",
+   "name": "App.tsx",
+   "filePath": "frontend/src/App.tsx",
+   "summary": "Root application component that defines all client-side routes and wraps role-restricted pages in authentication/authorization guards.",
+   "tags": [
+    "entry-point",
+    "routing",
+    "authorization",
+    "react-router"
+   ],
+   "complexity": "moderate",
+   "languageNotes": "Uses a local Protected wrapper component to gate routes by role array before rendering an AuthedShell layout with Sidebar."
+  },
+  {
+   "id": "function:frontend/src/App.tsx:Protected",
+   "type": "function",
+   "name": "Protected",
+   "filePath": "frontend/src/App.tsx",
+   "lineRange": [
+    18,
+    30
+   ],
+   "summary": "Route guard component that checks the current user's role against an allowed list and redirects unauthorized users.",
+   "tags": [
+    "authorization",
+    "route-guard",
+    "component"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:frontend/src/App.tsx:App",
+   "type": "function",
+   "name": "App",
+   "filePath": "frontend/src/App.tsx",
+   "lineRange": [
+    43,
+    145
+   ],
+   "summary": "Top-level component that declares the full route table, mapping URL paths to pages and applying Protected role guards for restricted routes.",
+   "tags": [
+    "routing",
+    "entry-point",
+    "component"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:frontend/src/auth/AuthProvider.tsx",
+   "type": "file",
+   "name": "AuthProvider.tsx",
+   "filePath": "frontend/src/auth/AuthProvider.tsx",
+   "summary": "React context provider that manages the authenticated session (token, user, readiness), persists it to sessionStorage, and exposes login/logout and role-based home routing helpers.",
+   "tags": [
+    "auth",
+    "context-provider",
+    "state-management",
+    "session"
+   ],
+   "complexity": "moderate",
+   "languageNotes": "Restores session on mount from sessionStorage using decodeJwt/isExpired, clearing stale tokens automatically."
+  },
+  {
+   "id": "function:frontend/src/auth/AuthProvider.tsx:readSession",
+   "type": "function",
+   "name": "readSession",
+   "filePath": "frontend/src/auth/AuthProvider.tsx",
+   "lineRange": [
+    29,
+    45
+   ],
+   "summary": "Reads and validates a persisted JWT/user pair from sessionStorage, clearing them if the token is malformed or expired.",
+   "tags": [
+    "auth",
+    "session",
+    "validation"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:frontend/src/auth/AuthProvider.tsx:AuthProvider",
+   "type": "function",
+   "name": "AuthProvider",
+   "filePath": "frontend/src/auth/AuthProvider.tsx",
+   "lineRange": [
+    47,
+    81
+   ],
+   "summary": "Context provider component that initializes session state, and exposes memoized login/logout callbacks to descendant components.",
+   "tags": [
+    "auth",
+    "context-provider",
+    "state-management"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:frontend/src/auth/AuthProvider.tsx:useAuth",
+   "type": "function",
+   "name": "useAuth",
+   "filePath": "frontend/src/auth/AuthProvider.tsx",
+   "lineRange": [
+    83,
+    87
+   ],
+   "summary": "Hook that exposes the current auth context (token, user, login, logout) to consuming components.",
+   "tags": [
+    "auth",
+    "hook",
+    "context"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:frontend/src/auth/AuthProvider.tsx:homePathFor",
+   "type": "function",
+   "name": "homePathFor",
+   "filePath": "frontend/src/auth/AuthProvider.tsx",
+   "lineRange": [
+    90,
+    101
+   ],
+   "summary": "Maps a user role string to the default landing route for that role after login.",
+   "tags": [
+    "auth",
+    "routing",
+    "utility"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:frontend/src/auth/jwt.ts",
+   "type": "file",
+   "name": "jwt.ts",
+   "filePath": "frontend/src/auth/jwt.ts",
+   "summary": "Client-side JWT helper providing base64url payload decoding and expiry checking without any external dependency.",
+   "tags": [
+    "utility",
+    "auth",
+    "jwt",
+    "validation"
+   ],
+   "complexity": "simple",
+   "languageNotes": "Manually converts base64url to base64 and pads it before using atob, avoiding a JWT library dependency."
+  },
+  {
+   "id": "function:frontend/src/auth/jwt.ts:decodeJwt",
+   "type": "function",
+   "name": "decodeJwt",
+   "filePath": "frontend/src/auth/jwt.ts",
+   "lineRange": [
+    13,
+    25
+   ],
+   "summary": "Decodes the payload segment of a JWT string into a JS object, returning null on malformed tokens.",
+   "tags": [
+    "jwt",
+    "utility",
+    "parsing"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:frontend/src/auth/jwt.ts:isExpired",
+   "type": "function",
+   "name": "isExpired",
+   "filePath": "frontend/src/auth/jwt.ts",
+   "lineRange": [
+    27,
+    29
+   ],
+   "summary": "Checks whether a decoded JWT payload's exp claim has passed, with an optional clock-skew allowance.",
+   "tags": [
+    "jwt",
+    "validation",
+    "utility"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:frontend/src/components/PinPad.tsx",
+   "type": "file",
+   "name": "PinPad.tsx",
+   "filePath": "frontend/src/components/PinPad.tsx",
+   "summary": "Reusable numeric keypad component used for PIN/phone/password entry with digit, backspace, clear, and submit callbacks plus keyboard support.",
+   "tags": [
+    "component",
+    "ui",
+    "input-handler"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:frontend/src/components/PinPad.tsx:PinPad",
+   "type": "function",
+   "name": "PinPad",
+   "filePath": "frontend/src/components/PinPad.tsx",
+   "lineRange": [
+    20,
+    94
+   ],
+   "summary": "Renders a numeric keypad grid and wires both on-screen button clicks and physical keyboard input to the provided digit/backspace/clear/submit handlers.",
+   "tags": [
+    "component",
+    "ui",
+    "keyboard-handling"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:frontend/src/main.tsx",
+   "type": "file",
+   "name": "main.tsx",
+   "filePath": "frontend/src/main.tsx",
+   "summary": "Application bootstrap entry point that mounts the React tree, wiring AuthProvider and ShopScopeProvider around the App component and importing global styles.",
+   "tags": [
+    "entry-point",
+    "bootstrap",
+    "react"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:frontend/src/pages/AdminPlaceholder.tsx",
+   "type": "file",
+   "name": "AdminPlaceholder.tsx",
+   "filePath": "frontend/src/pages/AdminPlaceholder.tsx",
+   "summary": "Placeholder page shown for admin routes not yet implemented, displaying the current path for context.",
+   "tags": [
+    "placeholder",
+    "component",
+    "admin"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:frontend/src/pages/AdminPlaceholder.tsx:AdminPlaceholder",
+   "type": "function",
+   "name": "AdminPlaceholder",
+   "filePath": "frontend/src/pages/AdminPlaceholder.tsx",
+   "lineRange": [
+    6,
+    18
+   ],
+   "summary": "Renders a simple placeholder message referencing the current route path via useLocation.",
+   "tags": [
+    "placeholder",
+    "component"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:frontend/src/pages/ForbiddenPage.tsx",
+   "type": "file",
+   "name": "ForbiddenPage.tsx",
+   "filePath": "frontend/src/pages/ForbiddenPage.tsx",
+   "summary": "Error page shown when an authenticated user attempts to access a route their role does not permit.",
+   "tags": [
+    "component",
+    "error-page",
+    "auth"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:frontend/src/pages/ForbiddenPage.tsx:ForbiddenPage",
+   "type": "function",
+   "name": "ForbiddenPage",
+   "filePath": "frontend/src/pages/ForbiddenPage.tsx",
+   "lineRange": [
+    4,
+    29
+   ],
+   "summary": "Renders a 403-style access denied message, reading the current user from useAuth for context.",
+   "tags": [
+    "component",
+    "error-page",
+    "auth"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:frontend/src/pages/HomeRedirect.tsx",
+   "type": "file",
+   "name": "HomeRedirect.tsx",
+   "filePath": "frontend/src/pages/HomeRedirect.tsx",
+   "summary": "Redirect component that sends an authenticated user to the default landing page for their role.",
+   "tags": [
+    "component",
+    "redirect",
+    "routing"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:frontend/src/pages/HomeRedirect.tsx:HomeRedirect",
+   "type": "function",
+   "name": "HomeRedirect",
+   "filePath": "frontend/src/pages/HomeRedirect.tsx",
+   "lineRange": [
+    6,
+    11
+   ],
+   "summary": "Reads the current user's role via useAuth and issues a Navigate redirect to homePathFor(role).",
+   "tags": [
+    "component",
+    "redirect",
+    "auth"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:frontend/src/pages/LoginPage.tsx",
+   "type": "file",
+   "name": "LoginPage.tsx",
+   "filePath": "frontend/src/pages/LoginPage.tsx",
+   "summary": "Shop-staff login page using a PIN-pad style phone/password entry flow that authenticates against the API and redirects to the role-appropriate home page.",
+   "tags": [
+    "component",
+    "auth",
+    "form",
+    "api-handler"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:frontend/src/pages/LoginPage.tsx:LoginPage",
+   "type": "function",
+   "name": "LoginPage",
+   "filePath": "frontend/src/pages/LoginPage.tsx",
+   "lineRange": [
+    9,
+    118
+   ],
+   "summary": "Manages a two-stage (phone then password) PIN-pad login form, calls Api.loginShop, stores the session via useAuth's login, and navigates to the role's home path.",
+   "tags": [
+    "auth",
+    "form",
+    "component",
+    "api-handler"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:frontend/src/pages/SuperadminLoginPage.tsx",
+   "type": "file",
+   "name": "SuperadminLoginPage.tsx",
+   "filePath": "frontend/src/pages/SuperadminLoginPage.tsx",
+   "summary": "Login page for superadmin users using username/password fields, authenticating via the API and redirecting to the superadmin dashboard.",
+   "tags": [
+    "component",
+    "auth",
+    "form",
+    "api-handler"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:frontend/src/pages/SuperadminLoginPage.tsx:SuperadminLoginPage",
+   "type": "function",
+   "name": "SuperadminLoginPage",
+   "filePath": "frontend/src/pages/SuperadminLoginPage.tsx",
+   "lineRange": [
+    6,
+    90
+   ],
+   "summary": "Renders a username/password login form, calls Api.loginSuperadmin, stores the session via useAuth's login, and navigates to the superadmin dashboard on success.",
+   "tags": [
+    "auth",
+    "form",
+    "component",
+    "api-handler"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:frontend/src/api/checkout.ts",
+   "type": "file",
+   "name": "checkout.ts",
+   "filePath": "frontend/src/api/checkout.ts",
+   "summary": "API client functions for finalizing a checkout, fetching an invoice by ID, and downloading invoice PDFs.",
+   "tags": [
+    "api-handler",
+    "checkout",
+    "invoice",
+    "utility"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:frontend/src/api/checkout.ts:finalizeCheckout",
+   "type": "function",
+   "name": "finalizeCheckout",
+   "filePath": "frontend/src/api/checkout.ts",
+   "lineRange": [
+    52,
+    63
+   ],
+   "summary": "Submits a checkout payload with an idempotency key and shop scoping to finalize a sale via the API.",
+   "tags": [
+    "api-handler",
+    "checkout"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:frontend/src/api/checkout.ts:getInvoice",
+   "type": "function",
+   "name": "getInvoice",
+   "filePath": "frontend/src/api/checkout.ts",
+   "lineRange": [
+    65,
+    67
+   ],
+   "summary": "Fetches a single invoice by its ID from the API.",
+   "tags": [
+    "api-handler",
+    "invoice"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:frontend/src/api/checkout.ts:pdfUrl",
+   "type": "function",
+   "name": "pdfUrl",
+   "filePath": "frontend/src/api/checkout.ts",
+   "lineRange": [
+    75,
+    77
+   ],
+   "summary": "Builds the absolute URL for an invoice's PDF resource given an optional base path.",
+   "tags": [
+    "utility",
+    "invoice"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:frontend/src/api/checkout.ts:downloadInvoicePdf",
+   "type": "function",
+   "name": "downloadInvoicePdf",
+   "filePath": "frontend/src/api/checkout.ts",
+   "lineRange": [
+    79,
+    89
+   ],
+   "summary": "Fetches an invoice PDF as a blob using an auth token and returns it for download or preview.",
+   "tags": [
+    "api-handler",
+    "invoice",
+    "pdf"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:frontend/src/api/client.ts",
+   "type": "file",
+   "name": "client.ts",
+   "filePath": "frontend/src/api/client.ts",
+   "summary": "Core fetch wrapper used by every API module: attaches auth headers from session storage, serializes JSON bodies, and normalizes error responses via ApiError.",
+   "tags": [
+    "utility",
+    "http-client",
+    "error-handling",
+    "foundational"
+   ],
+   "complexity": "moderate",
+   "languageNotes": "Centralizing fetch logic in a single api() helper avoids duplicating auth/header handling across every API module."
+  },
+  {
+   "id": "class:frontend/src/api/client.ts:ApiError",
+   "type": "class",
+   "name": "ApiError",
+   "filePath": "frontend/src/api/client.ts",
+   "lineRange": [
+    8,
+    16
+   ],
+   "summary": "Custom Error subclass carrying an HTTP status code and parsed response body for failed API calls.",
+   "tags": [
+    "error-handling",
+    "data-model"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:frontend/src/api/client.ts:api",
+   "type": "function",
+   "name": "api",
+   "filePath": "frontend/src/api/client.ts",
+   "lineRange": [
+    18,
+    57
+   ],
+   "summary": "Generic fetch wrapper that injects the bearer token, sets JSON headers, performs the request, and throws ApiError on non-OK responses.",
+   "tags": [
+    "http-client",
+    "utility",
+    "api-handler"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:frontend/src/api/dashboard.ts",
+   "type": "file",
+   "name": "dashboard.ts",
+   "filePath": "frontend/src/api/dashboard.ts",
+   "summary": "API calls for retrieving end-of-day totals, signing off the day, fetching EOD history, and listing low-stock items, all scoped by shop.",
+   "tags": [
+    "api-handler",
+    "dashboard",
+    "eod",
+    "reporting"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:frontend/src/api/dashboard.ts:getEodTotals",
+   "type": "function",
+   "name": "getEodTotals",
+   "filePath": "frontend/src/api/dashboard.ts",
+   "lineRange": [
+    61,
+    70
+   ],
+   "summary": "Fetches end-of-day payment and sales totals for an optional business date and shop.",
+   "tags": [
+    "api-handler",
+    "eod"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:frontend/src/api/dashboard.ts:signOffEod",
+   "type": "function",
+   "name": "signOffEod",
+   "filePath": "frontend/src/api/dashboard.ts",
+   "lineRange": [
+    72,
+    82
+   ],
+   "summary": "Submits an end-of-day sign-off for a business date and shop.",
+   "tags": [
+    "api-handler",
+    "eod"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:frontend/src/api/dashboard.ts:getEodHistory",
+   "type": "function",
+   "name": "getEodHistory",
+   "filePath": "frontend/src/api/dashboard.ts",
+   "lineRange": [
+    84,
+    87
+   ],
+   "summary": "Fetches a limited history of past EOD sign-offs for a shop.",
+   "tags": [
+    "api-handler",
+    "eod",
+    "reporting"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:frontend/src/api/dashboard.ts:getLowStock",
+   "type": "function",
+   "name": "getLowStock",
+   "filePath": "frontend/src/api/dashboard.ts",
+   "lineRange": [
+    89,
+    92
+   ],
+   "summary": "Fetches the low-stock item alert list for a shop.",
+   "tags": [
+    "api-handler",
+    "dashboard",
+    "inventory"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:frontend/src/api/staff.ts",
+   "type": "file",
+   "name": "staff.ts",
+   "filePath": "frontend/src/api/staff.ts",
+   "summary": "API calls to list existing staff and create new staff members within a shop.",
+   "tags": [
+    "api-handler",
+    "staff-management"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:frontend/src/api/staff.ts:listStaff",
+   "type": "function",
+   "name": "listStaff",
+   "filePath": "frontend/src/api/staff.ts",
+   "lineRange": [
+    35,
+    37
+   ],
+   "summary": "Fetches the list of staff members for the current shop.",
+   "tags": [
+    "api-handler",
+    "staff-management"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:frontend/src/api/staff.ts:createStaff",
+   "type": "function",
+   "name": "createStaff",
+   "filePath": "frontend/src/api/staff.ts",
+   "lineRange": [
+    39,
+    45
+   ],
+   "summary": "Submits a new staff member payload scoped to a shop for creation.",
+   "tags": [
+    "api-handler",
+    "staff-management"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:frontend/src/api/voids.ts",
+   "type": "file",
+   "name": "voids.ts",
+   "filePath": "frontend/src/api/voids.ts",
+   "summary": "API calls to request, approve, and reject invoice voids, and list pending voids for approval.",
+   "tags": [
+    "api-handler",
+    "void-management"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:frontend/src/api/voids.ts:requestVoid",
+   "type": "function",
+   "name": "requestVoid",
+   "filePath": "frontend/src/api/voids.ts",
+   "lineRange": [
+    20,
+    25
+   ],
+   "summary": "Submits a request to void an invoice with a reason.",
+   "tags": [
+    "api-handler",
+    "void-management"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:frontend/src/api/voids.ts:approveVoid",
+   "type": "function",
+   "name": "approveVoid",
+   "filePath": "frontend/src/api/voids.ts",
+   "lineRange": [
+    27,
+    29
+   ],
+   "summary": "Approves a pending invoice void request by invoice ID.",
+   "tags": [
+    "api-handler",
+    "void-management"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:frontend/src/api/voids.ts:rejectVoid",
+   "type": "function",
+   "name": "rejectVoid",
+   "filePath": "frontend/src/api/voids.ts",
+   "lineRange": [
+    31,
+    36
+   ],
+   "summary": "Rejects a pending invoice void request with a reason.",
+   "tags": [
+    "api-handler",
+    "void-management"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:frontend/src/api/voids.ts:listPendingVoids",
+   "type": "function",
+   "name": "listPendingVoids",
+   "filePath": "frontend/src/api/voids.ts",
+   "lineRange": [
+    38,
+    41
+   ],
+   "summary": "Fetches the list of pending void requests for a shop awaiting approval.",
+   "tags": [
+    "api-handler",
+    "void-management"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:frontend/src/pages/DashboardPage.tsx",
+   "type": "file",
+   "name": "DashboardPage.tsx",
+   "filePath": "frontend/src/pages/DashboardPage.tsx",
+   "summary": "Owner/manager dashboard page showing today's EOD totals, low-stock alerts, and sign-off history, with an action to sign off the business day.",
+   "tags": [
+    "component",
+    "page",
+    "dashboard",
+    "eod"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:frontend/src/pages/DashboardPage.tsx:DashboardPage",
+   "type": "function",
+   "name": "DashboardPage",
+   "filePath": "frontend/src/pages/DashboardPage.tsx",
+   "lineRange": [
+    19,
+    231
+   ],
+   "summary": "Main dashboard component that loads EOD totals, low-stock data, and sign-off history for the current shop and renders KPI cards, a low-stock table, and sign-off controls.",
+   "tags": [
+    "component",
+    "page",
+    "dashboard"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:frontend/src/pages/DashboardPage.tsx:KpiCard",
+   "type": "function",
+   "name": "KpiCard",
+   "filePath": "frontend/src/pages/DashboardPage.tsx",
+   "lineRange": [
+    233,
+    257
+   ],
+   "summary": "Presentational card component displaying a titled KPI value with optional subtext and accent color.",
+   "tags": [
+    "component",
+    "presentational"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:frontend/src/pages/InvoiceLookupPage.tsx",
+   "type": "file",
+   "name": "InvoiceLookupPage.tsx",
+   "filePath": "frontend/src/pages/InvoiceLookupPage.tsx",
+   "summary": "Page allowing staff to look up an invoice by numeric ID, view its line items and payments, and request a void.",
+   "tags": [
+    "component",
+    "page",
+    "invoice"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:frontend/src/pages/InvoiceLookupPage.tsx:InvoiceLookupPage",
+   "type": "function",
+   "name": "InvoiceLookupPage",
+   "filePath": "frontend/src/pages/InvoiceLookupPage.tsx",
+   "lineRange": [
+    10,
+    163
+   ],
+   "summary": "Component that validates an invoice ID input, fetches invoice details, renders line items and payment breakdown, and lets the user submit a void request.",
+   "tags": [
+    "component",
+    "page",
+    "invoice",
+    "void-management"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:frontend/src/pages/StaffPage.tsx",
+   "type": "file",
+   "name": "StaffPage.tsx",
+   "filePath": "frontend/src/pages/StaffPage.tsx",
+   "summary": "Staff management page listing shop staff and providing a form to create new staff members with role, credentials, and PIN reset controls.",
+   "tags": [
+    "component",
+    "page",
+    "staff-management"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:frontend/src/pages/StaffPage.tsx:StaffPage",
+   "type": "function",
+   "name": "StaffPage",
+   "filePath": "frontend/src/pages/StaffPage.tsx",
+   "lineRange": [
+    13,
+    124
+   ],
+   "summary": "Main staff page component that loads the staff list for the shop and handles creating new staff members via the CreateCard form.",
+   "tags": [
+    "component",
+    "page",
+    "staff-management"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:frontend/src/pages/StaffPage.tsx:CreateCard",
+   "type": "function",
+   "name": "CreateCard",
+   "filePath": "frontend/src/pages/StaffPage.tsx",
+   "lineRange": [
+    126,
+    192
+   ],
+   "summary": "Form component collecting username, full name, phone, password, and role to submit a new staff creation request.",
+   "tags": [
+    "component",
+    "form",
+    "staff-management"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:frontend/src/pages/StaffPage.tsx:Field",
+   "type": "function",
+   "name": "Field",
+   "filePath": "frontend/src/pages/StaffPage.tsx",
+   "lineRange": [
+    194,
+    222
+   ],
+   "summary": "Reusable labeled input field component supporting type, required, and minLength props.",
+   "tags": [
+    "component",
+    "presentational",
+    "form"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:frontend/src/pages/StaffPage.tsx:ResetPinButton",
+   "type": "function",
+   "name": "ResetPinButton",
+   "filePath": "frontend/src/pages/StaffPage.tsx",
+   "lineRange": [
+    224,
+    235
+   ],
+   "summary": "Button component stub for resetting a staff member's PIN, currently surfacing a placeholder alert.",
+   "tags": [
+    "component",
+    "staff-management"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:frontend/src/pages/VoidApprovalsPage.tsx",
+   "type": "file",
+   "name": "VoidApprovalsPage.tsx",
+   "filePath": "frontend/src/pages/VoidApprovalsPage.tsx",
+   "summary": "Page for shop managers to review pending invoice void requests and approve or reject each one.",
+   "tags": [
+    "component",
+    "page",
+    "void-management"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:frontend/src/pages/VoidApprovalsPage.tsx:VoidApprovalsPage",
+   "type": "function",
+   "name": "VoidApprovalsPage",
+   "filePath": "frontend/src/pages/VoidApprovalsPage.tsx",
+   "lineRange": [
+    12,
+    122
+   ],
+   "summary": "Component that loads pending void requests for the shop and lets the manager approve or reject each with busy-state handling.",
+   "tags": [
+    "component",
+    "page",
+    "void-management"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:frontend/src/api/catalog.ts",
+   "type": "file",
+   "name": "catalog.ts",
+   "filePath": "frontend/src/api/catalog.ts",
+   "summary": "Client-side in-memory cache of active products keyed by barcode, used to resolve barcodes quickly during receiving and checkout without hitting the API on every scan.",
+   "tags": [
+    "utility",
+    "caching",
+    "api-client"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:frontend/src/api/lots.ts",
+   "type": "file",
+   "name": "lots.ts",
+   "filePath": "frontend/src/api/lots.ts",
+   "summary": "API wrapper for creating and listing inventory receiving lots, including a validated safe-create helper that surfaces friendly error messages.",
+   "tags": [
+    "api-client",
+    "validation",
+    "data-model"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:frontend/src/api/products.ts",
+   "type": "file",
+   "name": "products.ts",
+   "filePath": "frontend/src/api/products.ts",
+   "summary": "API wrapper for listing, creating, updating products, and bulk-importing products from a CSV file upload.",
+   "tags": [
+    "api-client",
+    "data-model",
+    "utility"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:frontend/src/pages/ProductsPage.tsx",
+   "type": "file",
+   "name": "ProductsPage.tsx",
+   "filePath": "frontend/src/pages/ProductsPage.tsx",
+   "summary": "Product management page offering list/create/import tabs for browsing, editing, creating, and bulk-importing shop products.",
+   "tags": [
+    "component",
+    "page",
+    "form",
+    "data-model"
+   ],
+   "complexity": "complex",
+   "languageNotes": "Composes several tab-scoped sub-components (ListTab, EditRow, CreateTab, Field, ImportTab) within a single file rather than splitting into separate modules."
+  },
+  {
+   "id": "file:frontend/src/pages/ReceivingPage.tsx",
+   "type": "file",
+   "name": "ReceivingPage.tsx",
+   "filePath": "frontend/src/pages/ReceivingPage.tsx",
+   "summary": "Receiving workflow page where staff scan or enter barcodes to build a lot of received inventory, adjust quantities, and submit the lot to the backend.",
+   "tags": [
+    "component",
+    "page",
+    "form",
+    "inventory"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:frontend/src/api/catalog.ts:prefetchCatalog",
+   "type": "function",
+   "name": "prefetchCatalog",
+   "filePath": "frontend/src/api/catalog.ts",
+   "lineRange": [
+    30,
+    49
+   ],
+   "summary": "Fetches active products for a shop and populates the in-memory barcode-keyed cache, deduping concurrent calls via an in-flight promise.",
+   "tags": [
+    "caching",
+    "api-call",
+    "async"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:frontend/src/api/catalog.ts:resolveBarcode",
+   "type": "function",
+   "name": "resolveBarcode",
+   "filePath": "frontend/src/api/catalog.ts",
+   "lineRange": [
+    51,
+    64
+   ],
+   "summary": "Resolves a scanned barcode to a catalog product, using the cache when warm and falling back to a direct API lookup.",
+   "tags": [
+    "caching",
+    "api-call",
+    "lookup"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:frontend/src/api/catalog.ts:invalidateCache",
+   "type": "function",
+   "name": "invalidateCache",
+   "filePath": "frontend/src/api/catalog.ts",
+   "lineRange": [
+    66,
+    70
+   ],
+   "summary": "Clears the in-memory catalog cache, forcing the next resolution to refetch from the API.",
+   "tags": [
+    "caching",
+    "utility"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:frontend/src/api/catalog.ts:cacheSize",
+   "type": "function",
+   "name": "cacheSize",
+   "filePath": "frontend/src/api/catalog.ts",
+   "lineRange": [
+    73,
+    75
+   ],
+   "summary": "Returns the number of entries currently held in the catalog cache, mainly for diagnostics.",
+   "tags": [
+    "caching",
+    "utility"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:frontend/src/api/lots.ts:createLot",
+   "type": "function",
+   "name": "createLot",
+   "filePath": "frontend/src/api/lots.ts",
+   "lineRange": [
+    32,
+    38
+   ],
+   "summary": "Sends a new receiving lot payload to the API for a given shop.",
+   "tags": [
+    "api-call",
+    "inventory"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:frontend/src/api/lots.ts:listRecentLots",
+   "type": "function",
+   "name": "listRecentLots",
+   "filePath": "frontend/src/api/lots.ts",
+   "lineRange": [
+    40,
+    42
+   ],
+   "summary": "Fetches the most recently created receiving lots, up to a configurable limit.",
+   "tags": [
+    "api-call",
+    "inventory"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:frontend/src/api/lots.ts:resolveForReceiving",
+   "type": "function",
+   "name": "resolveForReceiving",
+   "filePath": "frontend/src/api/lots.ts",
+   "lineRange": [
+    47,
+    52
+   ],
+   "summary": "Resolves a barcode to a product specifically for the receiving flow by delegating to the shared catalog barcode resolver.",
+   "tags": [
+    "lookup",
+    "inventory"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "class:frontend/src/api/lots.ts:LotValidationError",
+   "type": "class",
+   "name": "LotValidationError",
+   "filePath": "frontend/src/api/lots.ts",
+   "lineRange": [
+    54,
+    58
+   ],
+   "summary": "Custom error type thrown when a receiving lot payload fails validation before being sent to the API.",
+   "tags": [
+    "error-handling",
+    "validation"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:frontend/src/api/lots.ts:createLotSafe",
+   "type": "function",
+   "name": "createLotSafe",
+   "filePath": "frontend/src/api/lots.ts",
+   "lineRange": [
+    63,
+    73
+   ],
+   "summary": "Validates a lot payload and creates it via createLot, translating validation failures into a LotValidationError for the caller.",
+   "tags": [
+    "validation",
+    "api-call",
+    "error-handling"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:frontend/src/api/products.ts:listProducts",
+   "type": "function",
+   "name": "listProducts",
+   "filePath": "frontend/src/api/products.ts",
+   "lineRange": [
+    38,
+    44
+   ],
+   "summary": "Fetches products from the API with optional search query and include-inactive filters.",
+   "tags": [
+    "api-call",
+    "data-model"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:frontend/src/api/products.ts:createProduct",
+   "type": "function",
+   "name": "createProduct",
+   "filePath": "frontend/src/api/products.ts",
+   "lineRange": [
+    46,
+    52
+   ],
+   "summary": "Creates a new product for a shop via the API.",
+   "tags": [
+    "api-call",
+    "data-model"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:frontend/src/api/products.ts:updateProduct",
+   "type": "function",
+   "name": "updateProduct",
+   "filePath": "frontend/src/api/products.ts",
+   "lineRange": [
+    54,
+    56
+   ],
+   "summary": "Updates an existing product's fields by id via the API.",
+   "tags": [
+    "api-call",
+    "data-model"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:frontend/src/api/products.ts:importProductsCsv",
+   "type": "function",
+   "name": "importProductsCsv",
+   "filePath": "frontend/src/api/products.ts",
+   "lineRange": [
+    58,
+    87
+   ],
+   "summary": "Uploads a CSV file of products for bulk import via a multipart form request, attaching the shop id and auth token, and returns the import result summary.",
+   "tags": [
+    "api-call",
+    "file-upload",
+    "bulk-operation"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:frontend/src/pages/ProductsPage.tsx:ProductsPage",
+   "type": "function",
+   "name": "ProductsPage",
+   "filePath": "frontend/src/pages/ProductsPage.tsx",
+   "lineRange": [
+    18,
+    42
+   ],
+   "summary": "Top-level products page component that switches between List, Create, and Import tabs.",
+   "tags": [
+    "component",
+    "page",
+    "entry-point"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:frontend/src/pages/ProductsPage.tsx:ListTab",
+   "type": "function",
+   "name": "ListTab",
+   "filePath": "frontend/src/pages/ProductsPage.tsx",
+   "lineRange": [
+    44,
+    161
+   ],
+   "summary": "Displays a searchable, filterable list of products with inline edit and reload support.",
+   "tags": [
+    "component",
+    "list",
+    "form"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:frontend/src/pages/ProductsPage.tsx:EditRow",
+   "type": "function",
+   "name": "EditRow",
+   "filePath": "frontend/src/pages/ProductsPage.tsx",
+   "lineRange": [
+    163,
+    278
+   ],
+   "summary": "Inline edit form for a single product row, validating and saving changes via updateProduct and invalidating the catalog cache on success.",
+   "tags": [
+    "component",
+    "form",
+    "validation"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:frontend/src/pages/ProductsPage.tsx:CreateTab",
+   "type": "function",
+   "name": "CreateTab",
+   "filePath": "frontend/src/pages/ProductsPage.tsx",
+   "lineRange": [
+    280,
+    366
+   ],
+   "summary": "Form for creating a new product with shop-scoped submission, validation, and cache invalidation after creation.",
+   "tags": [
+    "component",
+    "form",
+    "validation"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:frontend/src/pages/ProductsPage.tsx:Field",
+   "type": "function",
+   "name": "Field",
+   "filePath": "frontend/src/pages/ProductsPage.tsx",
+   "lineRange": [
+    368,
+    399
+   ],
+   "summary": "Small reusable labeled input field component supporting text and numeric types with validation attributes.",
+   "tags": [
+    "component",
+    "form",
+    "utility"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:frontend/src/pages/ProductsPage.tsx:ImportTab",
+   "type": "function",
+   "name": "ImportTab",
+   "filePath": "frontend/src/pages/ProductsPage.tsx",
+   "lineRange": [
+    401,
+    487
+   ],
+   "summary": "CSV import form allowing shop staff to upload a product CSV file and view the import result, including any per-row errors.",
+   "tags": [
+    "component",
+    "file-upload",
+    "bulk-operation"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:frontend/src/pages/ReceivingPage.tsx:ReceivingPage",
+   "type": "function",
+   "name": "ReceivingPage",
+   "filePath": "frontend/src/pages/ReceivingPage.tsx",
+   "lineRange": [
+    20,
+    342
+   ],
+   "summary": "Full receiving workflow component: prefetches the catalog cache, lets staff add products to a lot by scanning barcodes, adjust quantities, and save the completed lot via createLotSafe.",
+   "tags": [
+    "component",
+    "page",
+    "form",
+    "inventory"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "file:frontend/src/api/shops.ts",
+   "type": "file",
+   "name": "shops.ts",
+   "filePath": "frontend/src/api/shops.ts",
+   "summary": "API client functions for shop data: listing all shops (superadmin), fetching the current/acting shop, and updating shop configuration (name, GSTIN, excise duty rate, low-stock threshold).",
+   "tags": [
+    "api-client",
+    "shop",
+    "multi-shop",
+    "data-model"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:frontend/src/api/shops.ts:listShops",
+   "type": "function",
+   "name": "listShops",
+   "filePath": "frontend/src/api/shops.ts",
+   "lineRange": [
+    26,
+    28
+   ],
+   "summary": "Fetches the full list of shops from the backend, used by superadmins to populate the shop-scope picker.",
+   "tags": [
+    "api-call",
+    "shop",
+    "superadmin"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:frontend/src/api/shops.ts:getMyShop",
+   "type": "function",
+   "name": "getMyShop",
+   "filePath": "frontend/src/api/shops.ts",
+   "lineRange": [
+    30,
+    33
+   ],
+   "summary": "Fetches shop configuration for the current user's shop, optionally overriding with an explicit shopId for superadmin scoping.",
+   "tags": [
+    "api-call",
+    "shop",
+    "config"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:frontend/src/api/shops.ts:updateMyShop",
+   "type": "function",
+   "name": "updateMyShop",
+   "filePath": "frontend/src/api/shops.ts",
+   "lineRange": [
+    35,
+    41
+   ],
+   "summary": "Sends a PATCH request to update shop configuration fields, optionally scoped to a specific shopId for superadmin edits.",
+   "tags": [
+    "api-call",
+    "shop",
+    "mutation"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:frontend/src/auth/ShopScopeProvider.tsx",
+   "type": "file",
+   "name": "ShopScopeProvider.tsx",
+   "filePath": "frontend/src/auth/ShopScopeProvider.tsx",
+   "summary": "React context provider that tracks which shop a superadmin is currently 'acting as', persisting the selection in sessionStorage and exposing it via the useShopScope hook.",
+   "tags": [
+    "context-provider",
+    "multi-shop",
+    "state-management",
+    "hook"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:frontend/src/auth/ShopScopeProvider.tsx:ShopScopeProvider",
+   "type": "function",
+   "name": "ShopScopeProvider",
+   "filePath": "frontend/src/auth/ShopScopeProvider.tsx",
+   "lineRange": [
+    25,
+    37
+   ],
+   "summary": "Provider component that holds the acting shop id in state, synchronizes it to sessionStorage, and exposes it plus a setter through context.",
+   "tags": [
+    "component",
+    "context-provider",
+    "multi-shop"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:frontend/src/auth/ShopScopeProvider.tsx:useShopScope",
+   "type": "function",
+   "name": "useShopScope",
+   "filePath": "frontend/src/auth/ShopScopeProvider.tsx",
+   "lineRange": [
+    39,
+    43
+   ],
+   "summary": "Custom hook that reads the shop-scope context, giving components access to the currently acting shop id and its setter.",
+   "tags": [
+    "hook",
+    "context",
+    "multi-shop"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:frontend/src/components/ShopPicker.tsx",
+   "type": "file",
+   "name": "ShopPicker.tsx",
+   "filePath": "frontend/src/components/ShopPicker.tsx",
+   "summary": "Dropdown component shown to superadmins that lists all shops and lets them switch their 'acting shop' scope, persisted via ShopScopeProvider.",
+   "tags": [
+    "component",
+    "multi-shop",
+    "superadmin",
+    "dropdown"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:frontend/src/components/ShopPicker.tsx:ShopPicker",
+   "type": "function",
+   "name": "ShopPicker",
+   "filePath": "frontend/src/components/ShopPicker.tsx",
+   "lineRange": [
+    11,
+    52
+   ],
+   "summary": "Loads the shop list on mount for superadmins and renders a select control bound to the shop-scope context, allowing the acting shop to be changed.",
+   "tags": [
+    "component",
+    "multi-shop",
+    "data-fetching"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:frontend/src/components/Sidebar.tsx",
+   "type": "file",
+   "name": "Sidebar.tsx",
+   "filePath": "frontend/src/components/Sidebar.tsx",
+   "summary": "Main application sidebar navigation component that filters visible menu items by the current user's role and provides logout functionality.",
+   "tags": [
+    "component",
+    "navigation",
+    "layout",
+    "role-based"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:frontend/src/components/Sidebar.tsx:Sidebar",
+   "type": "function",
+   "name": "Sidebar",
+   "filePath": "frontend/src/components/Sidebar.tsx",
+   "lineRange": [
+    23,
+    97
+   ],
+   "summary": "Renders the collapsible navigation sidebar, filtering nav items based on the authenticated user's roles and handling logout/navigation actions.",
+   "tags": [
+    "component",
+    "navigation",
+    "role-based",
+    "layout"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:frontend/src/pages/ShopConfigPage.tsx",
+   "type": "file",
+   "name": "ShopConfigPage.tsx",
+   "filePath": "frontend/src/pages/ShopConfigPage.tsx",
+   "summary": "Owner/superadmin settings page for viewing and editing shop configuration (GSTIN, excise duty rate, low-stock threshold), with load/save state handling and shop-scope awareness.",
+   "tags": [
+    "page",
+    "form",
+    "shop",
+    "config",
+    "multi-shop"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:frontend/src/pages/ShopConfigPage.tsx:ShopConfigPage",
+   "type": "function",
+   "name": "ShopConfigPage",
+   "filePath": "frontend/src/pages/ShopConfigPage.tsx",
+   "lineRange": [
+    7,
+    150
+   ],
+   "summary": "Page component that loads the current (possibly scoped) shop's configuration, manages form state for GSTIN/duty rate/threshold, validates and saves updates via the shops API, and surfaces load/save errors and success info.",
+   "tags": [
+    "page",
+    "form",
+    "data-fetching",
+    "validation",
+    "multi-shop"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:frontend/src/pages/ShopConfigPage.tsx:Field",
+   "type": "function",
+   "name": "Field",
+   "filePath": "frontend/src/pages/ShopConfigPage.tsx",
+   "lineRange": [
+    152,
+    189
+   ],
+   "summary": "Reusable labeled input field component used to render each editable shop-config attribute with consistent styling and change handling.",
+   "tags": [
+    "component",
+    "form",
+    "reusable",
+    "input"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:frontend/src/api/finalize-queue.ts",
+   "type": "file",
+   "name": "finalize-queue.ts",
+   "filePath": "frontend/src/api/finalize-queue.ts",
+   "summary": "Implements a localStorage-backed offline queue for checkout finalize requests, letting sales be recorded locally and later flushed to the API when connectivity returns.",
+   "tags": [
+    "offline-support",
+    "queue",
+    "local-storage",
+    "resilience"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:frontend/src/hooks/useOnlineStatus.ts",
+   "type": "file",
+   "name": "useOnlineStatus.ts",
+   "filePath": "frontend/src/hooks/useOnlineStatus.ts",
+   "summary": "React hook that tracks browser online/offline connectivity by subscribing to window online and offline events.",
+   "tags": [
+    "hook",
+    "connectivity",
+    "browser-api",
+    "utility"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:frontend/src/hooks/useRetryQueue.ts",
+   "type": "file",
+   "name": "useRetryQueue.ts",
+   "filePath": "frontend/src/hooks/useRetryQueue.ts",
+   "summary": "React hook that combines online-status detection with the finalize queue to automatically flush pending offline checkouts when the app regains connectivity or on a polling interval.",
+   "tags": [
+    "hook",
+    "offline-support",
+    "queue",
+    "retry-logic"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:frontend/src/pages/CheckoutPage.tsx",
+   "type": "file",
+   "name": "CheckoutPage.tsx",
+   "filePath": "frontend/src/pages/CheckoutPage.tsx",
+   "summary": "The main point-of-sale checkout screen: scans/looks up items by barcode, manages cart and split payments, finalizes sales against the API with offline-queue fallback, and displays/downloads the resulting invoice.",
+   "tags": [
+    "page-component",
+    "checkout",
+    "offline-support",
+    "point-of-sale",
+    "invoice"
+   ],
+   "complexity": "complex",
+   "languageNotes": "Large single-component page mixing multiple concerns (cart state, payment splitting, barcode scanning, offline retry queue, invoice rendering) via numerous useState/useMemo/useCallback hooks rather than being decomposed into sub-components."
+  },
+  {
+   "id": "function:frontend/src/api/finalize-queue.ts:readQueue",
+   "type": "function",
+   "name": "readQueue",
+   "filePath": "frontend/src/api/finalize-queue.ts",
+   "lineRange": [
+    29,
+    39
+   ],
+   "summary": "Reads and parses the queued finalize items from localStorage, defensively returning an empty array on missing or invalid data.",
+   "tags": [
+    "utility",
+    "local-storage",
+    "parsing"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:frontend/src/api/finalize-queue.ts:enqueueFinalize",
+   "type": "function",
+   "name": "enqueueFinalize",
+   "filePath": "frontend/src/api/finalize-queue.ts",
+   "lineRange": [
+    49,
+    63
+   ],
+   "summary": "Adds (or replaces) a checkout finalize payload in the persisted offline queue, keyed by idempotency key, for later submission.",
+   "tags": [
+    "queue",
+    "offline-support",
+    "idempotency"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:frontend/src/api/finalize-queue.ts:listQueued",
+   "type": "function",
+   "name": "listQueued",
+   "filePath": "frontend/src/api/finalize-queue.ts",
+   "lineRange": [
+    65,
+    67
+   ],
+   "summary": "Returns the current list of queued finalize items, used to render pending offline sales in the UI.",
+   "tags": [
+    "queue",
+    "accessor"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:frontend/src/api/finalize-queue.ts:clearQueued",
+   "type": "function",
+   "name": "clearQueued",
+   "filePath": "frontend/src/api/finalize-queue.ts",
+   "lineRange": [
+    69,
+    71
+   ],
+   "summary": "Removes a specific queued item (by key) from the persisted offline finalize queue, used when a user dismisses a failed queued sale.",
+   "tags": [
+    "queue",
+    "mutation"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:frontend/src/api/finalize-queue.ts:flushQueue",
+   "type": "function",
+   "name": "flushQueue",
+   "filePath": "frontend/src/api/finalize-queue.ts",
+   "lineRange": [
+    85,
+    123
+   ],
+   "summary": "Attempts to submit every queued finalize request to the API, removing successful ones from the queue and collecting per-item success/failure outcomes for the caller.",
+   "tags": [
+    "queue",
+    "api-call",
+    "retry-logic",
+    "offline-support"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:frontend/src/hooks/useOnlineStatus.ts:useOnlineStatus",
+   "type": "function",
+   "name": "useOnlineStatus",
+   "filePath": "frontend/src/hooks/useOnlineStatus.ts",
+   "lineRange": [
+    7,
+    22
+   ],
+   "summary": "Hook returning a boolean reflecting the browser's current network connectivity, updated live via online/offline event listeners.",
+   "tags": [
+    "hook",
+    "connectivity",
+    "state"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:frontend/src/hooks/useRetryQueue.ts:useRetryQueue",
+   "type": "function",
+   "name": "useRetryQueue",
+   "filePath": "frontend/src/hooks/useRetryQueue.ts",
+   "lineRange": [
+    21,
+    60
+   ],
+   "summary": "Hook that automatically flushes the offline finalize queue when the browser comes back online and on a periodic interval, tracking the count of pending items and invoking an onFlush callback with outcomes.",
+   "tags": [
+    "hook",
+    "retry-logic",
+    "offline-support",
+    "polling"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:frontend/src/pages/CheckoutPage.tsx:CheckoutPage",
+   "type": "function",
+   "name": "CheckoutPage",
+   "filePath": "frontend/src/pages/CheckoutPage.tsx",
+   "lineRange": [
+    52,
+    632
+   ],
+   "summary": "Top-level checkout page component managing barcode-driven cart entry, split-payment collection, sale finalization with offline-queue fallback, queued-sale review, and post-sale invoice display/download.",
+   "tags": [
+    "page-component",
+    "checkout",
+    "state-management",
+    "point-of-sale"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "file:frontend/index.html",
+   "type": "file",
+   "name": "index.html",
+   "filePath": "frontend/index.html",
+   "summary": "Vite application HTML shell that provides the root DOM mount point and loads the TypeScript entry module for the React SPA.",
+   "tags": [
+    "entry-point",
+    "markup",
+    "vite",
+    "html-shell"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "config:frontend/package.json",
+   "type": "config",
+   "name": "package.json",
+   "filePath": "frontend/package.json",
+   "summary": "Root project manifest for the barstock-frontend React/TypeScript SPA, declaring dependencies (React Router, React DOM), dev tooling (Vite, ESLint, Tailwind, Playwright, openapi-typescript) and scripts for dev, build, lint, API type generation, and e2e testing.",
+   "tags": [
+    "configuration",
+    "build-system",
+    "dependencies",
+    "npm"
+   ],
+   "complexity": "simple",
+   "languageNotes": "Includes a gen:api script that runs openapi-typescript against a sibling ../openapi.json to generate src/api/schema.ts, tying the frontend build to an external API contract."
+  },
+  {
+   "id": "config:frontend/tsconfig.app.json",
+   "type": "config",
+   "name": "tsconfig.app.json",
+   "filePath": "frontend/tsconfig.app.json",
+   "summary": "TypeScript project-reference configuration for the application source code (compiler options plus include/exclude paths), separate from node tooling and e2e test configs.",
+   "tags": [
+    "configuration",
+    "typescript",
+    "build-system"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "config:frontend/tsconfig.e2e.json",
+   "type": "config",
+   "name": "tsconfig.e2e.json",
+   "filePath": "frontend/tsconfig.e2e.json",
+   "summary": "TypeScript project-reference configuration scoped to Playwright end-to-end test files, with its own compiler options and include paths.",
+   "tags": [
+    "configuration",
+    "typescript",
+    "testing",
+    "playwright"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "config:frontend/tsconfig.json",
+   "type": "config",
+   "name": "tsconfig.json",
+   "filePath": "frontend/tsconfig.json",
+   "summary": "Root TypeScript solution file that references the app, node, and e2e project configs via TypeScript's project-references mechanism, enabling the composite build (tsc -b) used in the build script.",
+   "tags": [
+    "configuration",
+    "typescript",
+    "build-system"
+   ],
+   "complexity": "simple",
+   "languageNotes": "Uses TypeScript project references (files + references arrays) to compose multiple sub-tsconfigs into a single build graph."
+  },
+  {
+   "id": "config:frontend/tsconfig.node.json",
+   "type": "config",
+   "name": "tsconfig.node.json",
+   "filePath": "frontend/tsconfig.node.json",
+   "summary": "TypeScript project-reference configuration for Node-side tooling (e.g. Vite config file), with its own compiler options and include paths distinct from the app and e2e configs.",
+   "tags": [
+    "configuration",
+    "typescript",
+    "build-system",
+    "tooling"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:frontend/e2e/checkout-resilience.spec.ts",
+   "type": "file",
+   "name": "checkout-resilience.spec.ts",
+   "filePath": "frontend/e2e/checkout-resilience.spec.ts",
+   "summary": "Playwright e2e spec verifying checkout flow resilience under network failures and offline conditions, using a cashier login helper to reach the POS screen.",
+   "tags": [
+    "test",
+    "e2e",
+    "playwright",
+    "checkout",
+    "resilience"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:frontend/e2e/checkout-resilience.spec.ts:loginAsCashier",
+   "type": "function",
+   "name": "loginAsCashier",
+   "filePath": "frontend/e2e/checkout-resilience.spec.ts",
+   "lineRange": [
+    20,
+    31
+   ],
+   "summary": "Test helper that drives the PIN-pad login UI to authenticate as a cashier before exercising checkout resilience scenarios.",
+   "tags": [
+    "test-helper",
+    "login",
+    "playwright"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:frontend/e2e/checkout.spec.ts",
+   "type": "file",
+   "name": "checkout.spec.ts",
+   "filePath": "frontend/e2e/checkout.spec.ts",
+   "summary": "Playwright e2e spec covering the standard cashier checkout flow, from login through completing a sale.",
+   "tags": [
+    "test",
+    "e2e",
+    "playwright",
+    "checkout"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:frontend/e2e/checkout.spec.ts:loginAsCashier",
+   "type": "function",
+   "name": "loginAsCashier",
+   "filePath": "frontend/e2e/checkout.spec.ts",
+   "lineRange": [
+    11,
+    22
+   ],
+   "summary": "Test helper that logs in as a cashier via the PIN-pad UI before checkout assertions run.",
+   "tags": [
+    "test-helper",
+    "login",
+    "playwright"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:frontend/e2e/dashboard.spec.ts",
+   "type": "file",
+   "name": "dashboard.spec.ts",
+   "filePath": "frontend/e2e/dashboard.spec.ts",
+   "summary": "Playwright e2e spec validating the owner dashboard, using role-specific login helpers for owner and cashier scenarios.",
+   "tags": [
+    "test",
+    "e2e",
+    "playwright",
+    "dashboard"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:frontend/e2e/dashboard.spec.ts:loginAsOwner",
+   "type": "function",
+   "name": "loginAsOwner",
+   "filePath": "frontend/e2e/dashboard.spec.ts",
+   "lineRange": [
+    3,
+    14
+   ],
+   "summary": "Test helper that logs in as a shop owner via the PIN-pad UI for dashboard test scenarios.",
+   "tags": [
+    "test-helper",
+    "login",
+    "playwright"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:frontend/e2e/dashboard.spec.ts:loginAsCashier",
+   "type": "function",
+   "name": "loginAsCashier",
+   "filePath": "frontend/e2e/dashboard.spec.ts",
+   "lineRange": [
+    16,
+    27
+   ],
+   "summary": "Test helper that logs in as a cashier via the PIN-pad UI to test dashboard access restrictions.",
+   "tags": [
+    "test-helper",
+    "login",
+    "playwright"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:frontend/e2e/login.smoke.spec.ts",
+   "type": "file",
+   "name": "login.smoke.spec.ts",
+   "filePath": "frontend/e2e/login.smoke.spec.ts",
+   "summary": "Smoke test spec verifying the phone/PIN login flow renders and authenticates correctly against a live backend.",
+   "tags": [
+    "test",
+    "e2e",
+    "playwright",
+    "smoke-test",
+    "login"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:frontend/e2e/login.smoke.spec.ts:loginAsPhone",
+   "type": "function",
+   "name": "loginAsPhone",
+   "filePath": "frontend/e2e/login.smoke.spec.ts",
+   "lineRange": [
+    14,
+    26
+   ],
+   "summary": "Test helper that navigates to the login page and drives phone/PIN entry through the UI for a given phone number and PIN.",
+   "tags": [
+    "test-helper",
+    "login",
+    "playwright"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:frontend/e2e/products.spec.ts",
+   "type": "file",
+   "name": "products.spec.ts",
+   "filePath": "frontend/e2e/products.spec.ts",
+   "summary": "Playwright e2e spec covering product catalog management, including owner and cashier permission checks.",
+   "tags": [
+    "test",
+    "e2e",
+    "playwright",
+    "products"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:frontend/e2e/products.spec.ts:loginAsOwner",
+   "type": "function",
+   "name": "loginAsOwner",
+   "filePath": "frontend/e2e/products.spec.ts",
+   "lineRange": [
+    3,
+    14
+   ],
+   "summary": "Test helper that logs in as a shop owner via the PIN-pad UI for product management scenarios.",
+   "tags": [
+    "test-helper",
+    "login",
+    "playwright"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:frontend/e2e/products.spec.ts:loginAsCashier",
+   "type": "function",
+   "name": "loginAsCashier",
+   "filePath": "frontend/e2e/products.spec.ts",
+   "lineRange": [
+    16,
+    27
+   ],
+   "summary": "Test helper that logs in as a cashier via the PIN-pad UI to verify restricted access to product management.",
+   "tags": [
+    "test-helper",
+    "login",
+    "playwright"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:frontend/e2e/receiving.spec.ts",
+   "type": "file",
+   "name": "receiving.spec.ts",
+   "filePath": "frontend/e2e/receiving.spec.ts",
+   "summary": "Playwright e2e spec verifying the stock receiving workflow using a receiver-role login helper.",
+   "tags": [
+    "test",
+    "e2e",
+    "playwright",
+    "receiving"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:frontend/e2e/receiving.spec.ts:loginAsReceiver",
+   "type": "function",
+   "name": "loginAsReceiver",
+   "filePath": "frontend/e2e/receiving.spec.ts",
+   "lineRange": [
+    3,
+    14
+   ],
+   "summary": "Test helper that logs in as a receiving-role user via the PIN-pad UI before exercising receiving flows.",
+   "tags": [
+    "test-helper",
+    "login",
+    "playwright"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:frontend/e2e/shop-config.spec.ts",
+   "type": "file",
+   "name": "shop-config.spec.ts",
+   "filePath": "frontend/e2e/shop-config.spec.ts",
+   "summary": "Playwright e2e spec covering shop configuration settings, verifying owner-only access versus cashier restrictions.",
+   "tags": [
+    "test",
+    "e2e",
+    "playwright",
+    "shop-config"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:frontend/e2e/shop-config.spec.ts:loginAsOwner",
+   "type": "function",
+   "name": "loginAsOwner",
+   "filePath": "frontend/e2e/shop-config.spec.ts",
+   "lineRange": [
+    3,
+    14
+   ],
+   "summary": "Test helper that logs in as a shop owner via the PIN-pad UI for shop configuration test scenarios.",
+   "tags": [
+    "test-helper",
+    "login",
+    "playwright"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:frontend/e2e/shop-config.spec.ts:loginAsCashier",
+   "type": "function",
+   "name": "loginAsCashier",
+   "filePath": "frontend/e2e/shop-config.spec.ts",
+   "lineRange": [
+    16,
+    27
+   ],
+   "summary": "Test helper that logs in as a cashier via the PIN-pad UI to verify restricted access to shop configuration.",
+   "tags": [
+    "test-helper",
+    "login",
+    "playwright"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:frontend/e2e/staff.spec.ts",
+   "type": "file",
+   "name": "staff.spec.ts",
+   "filePath": "frontend/e2e/staff.spec.ts",
+   "summary": "Playwright e2e spec covering staff management features, verifying owner-only access versus cashier restrictions.",
+   "tags": [
+    "test",
+    "e2e",
+    "playwright",
+    "staff"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:frontend/e2e/staff.spec.ts:loginAsOwner",
+   "type": "function",
+   "name": "loginAsOwner",
+   "filePath": "frontend/e2e/staff.spec.ts",
+   "lineRange": [
+    3,
+    14
+   ],
+   "summary": "Test helper that logs in as a shop owner via the PIN-pad UI for staff management test scenarios.",
+   "tags": [
+    "test-helper",
+    "login",
+    "playwright"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:frontend/e2e/staff.spec.ts:loginAsCashier",
+   "type": "function",
+   "name": "loginAsCashier",
+   "filePath": "frontend/e2e/staff.spec.ts",
+   "lineRange": [
+    16,
+    27
+   ],
+   "summary": "Test helper that logs in as a cashier via the PIN-pad UI to verify restricted access to staff management.",
+   "tags": [
+    "test-helper",
+    "login",
+    "playwright"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:frontend/e2e/voids.spec.ts",
+   "type": "file",
+   "name": "voids.spec.ts",
+   "filePath": "frontend/e2e/voids.spec.ts",
+   "summary": "Playwright e2e spec covering sale void/refund workflows, verifying owner and cashier permission boundaries.",
+   "tags": [
+    "test",
+    "e2e",
+    "playwright",
+    "voids"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:frontend/e2e/voids.spec.ts:loginAsOwner",
+   "type": "function",
+   "name": "loginAsOwner",
+   "filePath": "frontend/e2e/voids.spec.ts",
+   "lineRange": [
+    3,
+    14
+   ],
+   "summary": "Test helper that logs in as a shop owner via the PIN-pad UI for void/refund test scenarios.",
+   "tags": [
+    "test-helper",
+    "login",
+    "playwright"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:frontend/e2e/voids.spec.ts:loginAsCashier",
+   "type": "function",
+   "name": "loginAsCashier",
+   "filePath": "frontend/e2e/voids.spec.ts",
+   "lineRange": [
+    16,
+    27
+   ],
+   "summary": "Test helper that logs in as a cashier via the PIN-pad UI to verify restricted access to void/refund operations.",
+   "tags": [
+    "test-helper",
+    "login",
+    "playwright"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "config:frontend/eslint.config.js",
+   "type": "config",
+   "name": "eslint.config.js",
+   "filePath": "frontend/eslint.config.js",
+   "summary": "Flat ESLint configuration for the React/TypeScript frontend, wiring up TypeScript, React hooks, and React Refresh linting rules across the project.",
+   "tags": [
+    "configuration",
+    "linting",
+    "typescript",
+    "build-system"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "config:frontend/playwright.config.ts",
+   "type": "config",
+   "name": "playwright.config.ts",
+   "filePath": "frontend/playwright.config.ts",
+   "summary": "Playwright test runner configuration pointing at the e2e/ test directory, defining the base URL, Chromium project, retry/trace policy, and a webServer block that boots the built frontend against the FastAPI backend for CI.",
+   "tags": [
+    "configuration",
+    "testing",
+    "playwright",
+    "ci-cd"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "config:frontend/postcss.config.cjs",
+   "type": "config",
+   "name": "postcss.config.cjs",
+   "filePath": "frontend/postcss.config.cjs",
+   "summary": "PostCSS configuration enabling the Tailwind CSS and Autoprefixer plugins for the build pipeline.",
+   "tags": [
+    "configuration",
+    "css",
+    "build-system"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:frontend/src/index.css",
+   "type": "file",
+   "name": "index.css",
+   "filePath": "frontend/src/index.css",
+   "summary": "Global stylesheet that loads Tailwind's base, components, and utilities layers and defines a few root-level style resets for the application.",
+   "tags": [
+    "css",
+    "global-styles",
+    "tailwind"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:frontend/src/theme/tokens.ts",
+   "type": "file",
+   "name": "tokens.ts",
+   "filePath": "frontend/src/theme/tokens.ts",
+   "summary": "Design token module exporting a shared `tokens` object (colors, spacing, and related design constants) consumed by the Tailwind configuration to keep styling consistent across the app.",
+   "tags": [
+    "design-tokens",
+    "theme",
+    "configuration"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:frontend/src/vite-env.d.ts",
+   "type": "file",
+   "name": "vite-env.d.ts",
+   "filePath": "frontend/src/vite-env.d.ts",
+   "summary": "Vite-generated ambient type declaration file that pulls in Vite's client types for the TypeScript compiler.",
+   "tags": [
+    "type-definition",
+    "vite",
+    "typescript"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "config:frontend/tailwind.config.ts",
+   "type": "config",
+   "name": "tailwind.config.ts",
+   "filePath": "frontend/tailwind.config.ts",
+   "summary": "Tailwind CSS configuration that extends the default theme using the shared design tokens module and sets the content paths for class scanning.",
+   "tags": [
+    "configuration",
+    "tailwind",
+    "css",
+    "theme"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "config:frontend/vite.config.ts",
+   "type": "config",
+   "name": "vite.config.ts",
+   "filePath": "frontend/vite.config.ts",
+   "summary": "Vite build configuration wiring up the React plugin and dev server settings for the frontend application.",
+   "tags": [
+    "configuration",
+    "vite",
+    "build-system"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "class:frontend/src/api/client.ts:Api",
+   "type": "class",
+   "name": "Api",
+   "filePath": "frontend/src/api/client.ts",
+   "lineRange": [
+    60,
+    72
+   ],
+   "summary": "Namespace-style object grouping typed authentication API calls (superadmin login, shop login, current-user fetch, logout) built on the base api() fetch wrapper.",
+   "tags": [
+    "api-handler",
+    "authentication"
+   ],
+   "complexity": "simple"
+  }
+ ],
+ "edges": [
+  {
+   "source": "file:frontend/src/App.tsx",
+   "target": "function:frontend/src/App.tsx:Protected",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:frontend/src/App.tsx",
+   "target": "function:frontend/src/App.tsx:App",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:frontend/src/App.tsx",
+   "target": "function:frontend/src/App.tsx:App",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:frontend/src/auth/AuthProvider.tsx",
+   "target": "function:frontend/src/auth/AuthProvider.tsx:readSession",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:frontend/src/auth/AuthProvider.tsx",
+   "target": "function:frontend/src/auth/AuthProvider.tsx:AuthProvider",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:frontend/src/auth/AuthProvider.tsx",
+   "target": "function:frontend/src/auth/AuthProvider.tsx:useAuth",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:frontend/src/auth/AuthProvider.tsx",
+   "target": "function:frontend/src/auth/AuthProvider.tsx:homePathFor",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:frontend/src/auth/AuthProvider.tsx",
+   "target": "function:frontend/src/auth/AuthProvider.tsx:AuthProvider",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:frontend/src/auth/AuthProvider.tsx",
+   "target": "function:frontend/src/auth/AuthProvider.tsx:useAuth",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:frontend/src/auth/AuthProvider.tsx",
+   "target": "function:frontend/src/auth/AuthProvider.tsx:homePathFor",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:frontend/src/auth/jwt.ts",
+   "target": "function:frontend/src/auth/jwt.ts:decodeJwt",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:frontend/src/auth/jwt.ts",
+   "target": "function:frontend/src/auth/jwt.ts:isExpired",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:frontend/src/auth/jwt.ts",
+   "target": "function:frontend/src/auth/jwt.ts:decodeJwt",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:frontend/src/auth/jwt.ts",
+   "target": "function:frontend/src/auth/jwt.ts:isExpired",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:frontend/src/components/PinPad.tsx",
+   "target": "function:frontend/src/components/PinPad.tsx:PinPad",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:frontend/src/components/PinPad.tsx",
+   "target": "function:frontend/src/components/PinPad.tsx:PinPad",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:frontend/src/pages/AdminPlaceholder.tsx",
+   "target": "function:frontend/src/pages/AdminPlaceholder.tsx:AdminPlaceholder",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:frontend/src/pages/AdminPlaceholder.tsx",
+   "target": "function:frontend/src/pages/AdminPlaceholder.tsx:AdminPlaceholder",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:frontend/src/pages/ForbiddenPage.tsx",
+   "target": "function:frontend/src/pages/ForbiddenPage.tsx:ForbiddenPage",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:frontend/src/pages/ForbiddenPage.tsx",
+   "target": "function:frontend/src/pages/ForbiddenPage.tsx:ForbiddenPage",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:frontend/src/pages/HomeRedirect.tsx",
+   "target": "function:frontend/src/pages/HomeRedirect.tsx:HomeRedirect",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:frontend/src/pages/HomeRedirect.tsx",
+   "target": "function:frontend/src/pages/HomeRedirect.tsx:HomeRedirect",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:frontend/src/pages/LoginPage.tsx",
+   "target": "function:frontend/src/pages/LoginPage.tsx:LoginPage",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:frontend/src/pages/LoginPage.tsx",
+   "target": "function:frontend/src/pages/LoginPage.tsx:LoginPage",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:frontend/src/pages/SuperadminLoginPage.tsx",
+   "target": "function:frontend/src/pages/SuperadminLoginPage.tsx:SuperadminLoginPage",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:frontend/src/pages/SuperadminLoginPage.tsx",
+   "target": "function:frontend/src/pages/SuperadminLoginPage.tsx:SuperadminLoginPage",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:frontend/src/App.tsx",
+   "target": "file:frontend/src/auth/AuthProvider.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:frontend/src/App.tsx",
+   "target": "file:frontend/src/components/Sidebar.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:frontend/src/App.tsx",
+   "target": "file:frontend/src/pages/AdminPlaceholder.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:frontend/src/App.tsx",
+   "target": "file:frontend/src/pages/CheckoutPage.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:frontend/src/App.tsx",
+   "target": "file:frontend/src/pages/DashboardPage.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:frontend/src/App.tsx",
+   "target": "file:frontend/src/pages/ForbiddenPage.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:frontend/src/App.tsx",
+   "target": "file:frontend/src/pages/HomeRedirect.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:frontend/src/App.tsx",
+   "target": "file:frontend/src/pages/InvoiceLookupPage.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:frontend/src/App.tsx",
+   "target": "file:frontend/src/pages/LoginPage.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:frontend/src/App.tsx",
+   "target": "file:frontend/src/pages/ProductsPage.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:frontend/src/App.tsx",
+   "target": "file:frontend/src/pages/ReceivingPage.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:frontend/src/App.tsx",
+   "target": "file:frontend/src/pages/ShopConfigPage.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:frontend/src/App.tsx",
+   "target": "file:frontend/src/pages/StaffPage.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:frontend/src/App.tsx",
+   "target": "file:frontend/src/pages/SuperadminLoginPage.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:frontend/src/App.tsx",
+   "target": "file:frontend/src/pages/VoidApprovalsPage.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:frontend/src/auth/AuthProvider.tsx",
+   "target": "file:frontend/src/auth/jwt.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:frontend/src/main.tsx",
+   "target": "file:frontend/src/App.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:frontend/src/main.tsx",
+   "target": "file:frontend/src/auth/AuthProvider.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:frontend/src/main.tsx",
+   "target": "file:frontend/src/auth/ShopScopeProvider.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:frontend/src/main.tsx",
+   "target": "file:frontend/src/index.css",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:frontend/src/pages/ForbiddenPage.tsx",
+   "target": "file:frontend/src/auth/AuthProvider.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:frontend/src/pages/HomeRedirect.tsx",
+   "target": "file:frontend/src/auth/AuthProvider.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:frontend/src/pages/LoginPage.tsx",
+   "target": "file:frontend/src/api/client.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:frontend/src/pages/LoginPage.tsx",
+   "target": "file:frontend/src/auth/AuthProvider.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:frontend/src/pages/LoginPage.tsx",
+   "target": "file:frontend/src/components/PinPad.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:frontend/src/pages/SuperadminLoginPage.tsx",
+   "target": "file:frontend/src/api/client.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:frontend/src/pages/SuperadminLoginPage.tsx",
+   "target": "file:frontend/src/auth/AuthProvider.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "function:frontend/src/App.tsx:Protected",
+   "target": "function:frontend/src/auth/AuthProvider.tsx:useAuth",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:frontend/src/auth/AuthProvider.tsx:readSession",
+   "target": "function:frontend/src/auth/jwt.ts:decodeJwt",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:frontend/src/auth/AuthProvider.tsx:readSession",
+   "target": "function:frontend/src/auth/jwt.ts:isExpired",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:frontend/src/pages/ForbiddenPage.tsx:ForbiddenPage",
+   "target": "function:frontend/src/auth/AuthProvider.tsx:useAuth",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:frontend/src/pages/HomeRedirect.tsx:HomeRedirect",
+   "target": "function:frontend/src/auth/AuthProvider.tsx:useAuth",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:frontend/src/pages/HomeRedirect.tsx:HomeRedirect",
+   "target": "function:frontend/src/auth/AuthProvider.tsx:homePathFor",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:frontend/src/pages/LoginPage.tsx:LoginPage",
+   "target": "function:frontend/src/auth/AuthProvider.tsx:useAuth",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:frontend/src/pages/LoginPage.tsx:LoginPage",
+   "target": "function:frontend/src/auth/AuthProvider.tsx:homePathFor",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:frontend/src/pages/SuperadminLoginPage.tsx:SuperadminLoginPage",
+   "target": "function:frontend/src/auth/AuthProvider.tsx:useAuth",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:frontend/src/api/checkout.ts",
+   "target": "function:frontend/src/api/checkout.ts:finalizeCheckout",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:frontend/src/api/checkout.ts",
+   "target": "function:frontend/src/api/checkout.ts:getInvoice",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:frontend/src/api/checkout.ts",
+   "target": "function:frontend/src/api/checkout.ts:pdfUrl",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:frontend/src/api/checkout.ts",
+   "target": "function:frontend/src/api/checkout.ts:downloadInvoicePdf",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:frontend/src/api/checkout.ts",
+   "target": "function:frontend/src/api/checkout.ts:finalizeCheckout",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:frontend/src/api/checkout.ts",
+   "target": "function:frontend/src/api/checkout.ts:getInvoice",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:frontend/src/api/checkout.ts",
+   "target": "function:frontend/src/api/checkout.ts:pdfUrl",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:frontend/src/api/checkout.ts",
+   "target": "function:frontend/src/api/checkout.ts:downloadInvoicePdf",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:frontend/src/api/checkout.ts",
+   "target": "file:frontend/src/api/client.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "function:frontend/src/api/checkout.ts:finalizeCheckout",
+   "target": "function:frontend/src/api/client.ts:api",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:frontend/src/api/checkout.ts:getInvoice",
+   "target": "function:frontend/src/api/client.ts:api",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:frontend/src/api/client.ts",
+   "target": "class:frontend/src/api/client.ts:ApiError",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:frontend/src/api/client.ts",
+   "target": "function:frontend/src/api/client.ts:api",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:frontend/src/api/client.ts",
+   "target": "class:frontend/src/api/client.ts:ApiError",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:frontend/src/api/client.ts",
+   "target": "function:frontend/src/api/client.ts:api",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:frontend/src/api/dashboard.ts",
+   "target": "function:frontend/src/api/dashboard.ts:getEodTotals",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:frontend/src/api/dashboard.ts",
+   "target": "function:frontend/src/api/dashboard.ts:signOffEod",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:frontend/src/api/dashboard.ts",
+   "target": "function:frontend/src/api/dashboard.ts:getEodHistory",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:frontend/src/api/dashboard.ts",
+   "target": "function:frontend/src/api/dashboard.ts:getLowStock",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:frontend/src/api/dashboard.ts",
+   "target": "function:frontend/src/api/dashboard.ts:getEodTotals",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:frontend/src/api/dashboard.ts",
+   "target": "function:frontend/src/api/dashboard.ts:signOffEod",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:frontend/src/api/dashboard.ts",
+   "target": "function:frontend/src/api/dashboard.ts:getEodHistory",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:frontend/src/api/dashboard.ts",
+   "target": "function:frontend/src/api/dashboard.ts:getLowStock",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:frontend/src/api/dashboard.ts",
+   "target": "file:frontend/src/api/client.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "function:frontend/src/api/dashboard.ts:getEodTotals",
+   "target": "function:frontend/src/api/client.ts:api",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:frontend/src/api/dashboard.ts:signOffEod",
+   "target": "function:frontend/src/api/client.ts:api",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:frontend/src/api/dashboard.ts:getEodHistory",
+   "target": "function:frontend/src/api/client.ts:api",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:frontend/src/api/dashboard.ts:getLowStock",
+   "target": "function:frontend/src/api/client.ts:api",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:frontend/src/api/staff.ts",
+   "target": "function:frontend/src/api/staff.ts:listStaff",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:frontend/src/api/staff.ts",
+   "target": "function:frontend/src/api/staff.ts:createStaff",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:frontend/src/api/staff.ts",
+   "target": "function:frontend/src/api/staff.ts:listStaff",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:frontend/src/api/staff.ts",
+   "target": "function:frontend/src/api/staff.ts:createStaff",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:frontend/src/api/staff.ts",
+   "target": "file:frontend/src/api/client.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "function:frontend/src/api/staff.ts:listStaff",
+   "target": "function:frontend/src/api/client.ts:api",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:frontend/src/api/staff.ts:createStaff",
+   "target": "function:frontend/src/api/client.ts:api",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:frontend/src/api/voids.ts",
+   "target": "function:frontend/src/api/voids.ts:requestVoid",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:frontend/src/api/voids.ts",
+   "target": "function:frontend/src/api/voids.ts:approveVoid",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:frontend/src/api/voids.ts",
+   "target": "function:frontend/src/api/voids.ts:rejectVoid",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:frontend/src/api/voids.ts",
+   "target": "function:frontend/src/api/voids.ts:listPendingVoids",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:frontend/src/api/voids.ts",
+   "target": "function:frontend/src/api/voids.ts:requestVoid",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:frontend/src/api/voids.ts",
+   "target": "function:frontend/src/api/voids.ts:approveVoid",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:frontend/src/api/voids.ts",
+   "target": "function:frontend/src/api/voids.ts:rejectVoid",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:frontend/src/api/voids.ts",
+   "target": "function:frontend/src/api/voids.ts:listPendingVoids",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:frontend/src/api/voids.ts",
+   "target": "file:frontend/src/api/checkout.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:frontend/src/api/voids.ts",
+   "target": "file:frontend/src/api/client.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "function:frontend/src/api/voids.ts:requestVoid",
+   "target": "function:frontend/src/api/client.ts:api",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:frontend/src/api/voids.ts:approveVoid",
+   "target": "function:frontend/src/api/client.ts:api",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:frontend/src/api/voids.ts:rejectVoid",
+   "target": "function:frontend/src/api/client.ts:api",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:frontend/src/api/voids.ts:listPendingVoids",
+   "target": "function:frontend/src/api/client.ts:api",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:frontend/src/pages/DashboardPage.tsx",
+   "target": "function:frontend/src/pages/DashboardPage.tsx:DashboardPage",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:frontend/src/pages/DashboardPage.tsx",
+   "target": "function:frontend/src/pages/DashboardPage.tsx:KpiCard",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:frontend/src/pages/DashboardPage.tsx",
+   "target": "function:frontend/src/pages/DashboardPage.tsx:DashboardPage",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:frontend/src/pages/DashboardPage.tsx",
+   "target": "file:frontend/src/api/client.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:frontend/src/pages/DashboardPage.tsx",
+   "target": "file:frontend/src/api/dashboard.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:frontend/src/pages/DashboardPage.tsx",
+   "target": "file:frontend/src/auth/AuthProvider.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:frontend/src/pages/DashboardPage.tsx",
+   "target": "file:frontend/src/auth/ShopScopeProvider.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "function:frontend/src/pages/DashboardPage.tsx:DashboardPage",
+   "target": "function:frontend/src/auth/AuthProvider.tsx:useAuth",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:frontend/src/pages/DashboardPage.tsx:DashboardPage",
+   "target": "function:frontend/src/auth/ShopScopeProvider.tsx:useShopScope",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:frontend/src/pages/DashboardPage.tsx:DashboardPage",
+   "target": "function:frontend/src/api/dashboard.ts:getEodTotals",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:frontend/src/pages/DashboardPage.tsx:DashboardPage",
+   "target": "function:frontend/src/api/dashboard.ts:getLowStock",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:frontend/src/pages/DashboardPage.tsx:DashboardPage",
+   "target": "function:frontend/src/api/dashboard.ts:getEodHistory",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:frontend/src/pages/DashboardPage.tsx:DashboardPage",
+   "target": "function:frontend/src/api/dashboard.ts:signOffEod",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:frontend/src/pages/InvoiceLookupPage.tsx",
+   "target": "function:frontend/src/pages/InvoiceLookupPage.tsx:InvoiceLookupPage",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:frontend/src/pages/InvoiceLookupPage.tsx",
+   "target": "function:frontend/src/pages/InvoiceLookupPage.tsx:InvoiceLookupPage",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:frontend/src/pages/InvoiceLookupPage.tsx",
+   "target": "file:frontend/src/api/checkout.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:frontend/src/pages/InvoiceLookupPage.tsx",
+   "target": "file:frontend/src/api/client.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:frontend/src/pages/InvoiceLookupPage.tsx",
+   "target": "file:frontend/src/api/voids.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "function:frontend/src/pages/InvoiceLookupPage.tsx:InvoiceLookupPage",
+   "target": "function:frontend/src/api/checkout.ts:getInvoice",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:frontend/src/pages/InvoiceLookupPage.tsx:InvoiceLookupPage",
+   "target": "function:frontend/src/api/voids.ts:requestVoid",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:frontend/src/pages/StaffPage.tsx",
+   "target": "function:frontend/src/pages/StaffPage.tsx:StaffPage",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:frontend/src/pages/StaffPage.tsx",
+   "target": "function:frontend/src/pages/StaffPage.tsx:CreateCard",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:frontend/src/pages/StaffPage.tsx",
+   "target": "function:frontend/src/pages/StaffPage.tsx:Field",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:frontend/src/pages/StaffPage.tsx",
+   "target": "function:frontend/src/pages/StaffPage.tsx:ResetPinButton",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:frontend/src/pages/StaffPage.tsx",
+   "target": "function:frontend/src/pages/StaffPage.tsx:StaffPage",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:frontend/src/pages/StaffPage.tsx",
+   "target": "file:frontend/src/api/client.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:frontend/src/pages/StaffPage.tsx",
+   "target": "file:frontend/src/api/staff.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:frontend/src/pages/StaffPage.tsx",
+   "target": "file:frontend/src/auth/AuthProvider.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:frontend/src/pages/StaffPage.tsx",
+   "target": "file:frontend/src/auth/ShopScopeProvider.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "function:frontend/src/pages/StaffPage.tsx:StaffPage",
+   "target": "function:frontend/src/api/staff.ts:listStaff",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:frontend/src/pages/StaffPage.tsx:StaffPage",
+   "target": "function:frontend/src/api/staff.ts:createStaff",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:frontend/src/pages/StaffPage.tsx:StaffPage",
+   "target": "function:frontend/src/auth/AuthProvider.tsx:useAuth",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:frontend/src/pages/StaffPage.tsx:StaffPage",
+   "target": "function:frontend/src/auth/ShopScopeProvider.tsx:useShopScope",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:frontend/src/pages/VoidApprovalsPage.tsx",
+   "target": "function:frontend/src/pages/VoidApprovalsPage.tsx:VoidApprovalsPage",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:frontend/src/pages/VoidApprovalsPage.tsx",
+   "target": "function:frontend/src/pages/VoidApprovalsPage.tsx:VoidApprovalsPage",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:frontend/src/pages/VoidApprovalsPage.tsx",
+   "target": "file:frontend/src/api/checkout.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:frontend/src/pages/VoidApprovalsPage.tsx",
+   "target": "file:frontend/src/api/client.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:frontend/src/pages/VoidApprovalsPage.tsx",
+   "target": "file:frontend/src/api/voids.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:frontend/src/pages/VoidApprovalsPage.tsx",
+   "target": "file:frontend/src/auth/AuthProvider.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:frontend/src/pages/VoidApprovalsPage.tsx",
+   "target": "file:frontend/src/auth/ShopScopeProvider.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "function:frontend/src/pages/VoidApprovalsPage.tsx:VoidApprovalsPage",
+   "target": "function:frontend/src/api/voids.ts:listPendingVoids",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:frontend/src/pages/VoidApprovalsPage.tsx:VoidApprovalsPage",
+   "target": "function:frontend/src/api/voids.ts:approveVoid",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:frontend/src/pages/VoidApprovalsPage.tsx:VoidApprovalsPage",
+   "target": "function:frontend/src/api/voids.ts:rejectVoid",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:frontend/src/pages/VoidApprovalsPage.tsx:VoidApprovalsPage",
+   "target": "function:frontend/src/auth/AuthProvider.tsx:useAuth",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:frontend/src/pages/VoidApprovalsPage.tsx:VoidApprovalsPage",
+   "target": "function:frontend/src/auth/ShopScopeProvider.tsx:useShopScope",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:frontend/src/api/catalog.ts",
+   "target": "file:frontend/src/api/client.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:frontend/src/api/lots.ts",
+   "target": "file:frontend/src/api/catalog.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:frontend/src/api/lots.ts",
+   "target": "file:frontend/src/api/client.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:frontend/src/api/products.ts",
+   "target": "file:frontend/src/api/catalog.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:frontend/src/api/products.ts",
+   "target": "file:frontend/src/api/client.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:frontend/src/pages/ProductsPage.tsx",
+   "target": "file:frontend/src/api/catalog.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:frontend/src/pages/ProductsPage.tsx",
+   "target": "file:frontend/src/api/products.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:frontend/src/pages/ProductsPage.tsx",
+   "target": "file:frontend/src/auth/AuthProvider.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:frontend/src/pages/ProductsPage.tsx",
+   "target": "file:frontend/src/auth/ShopScopeProvider.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:frontend/src/pages/ReceivingPage.tsx",
+   "target": "file:frontend/src/api/catalog.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:frontend/src/pages/ReceivingPage.tsx",
+   "target": "file:frontend/src/api/client.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:frontend/src/pages/ReceivingPage.tsx",
+   "target": "file:frontend/src/api/lots.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:frontend/src/pages/ReceivingPage.tsx",
+   "target": "file:frontend/src/auth/AuthProvider.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:frontend/src/pages/ReceivingPage.tsx",
+   "target": "file:frontend/src/auth/ShopScopeProvider.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:frontend/src/api/catalog.ts",
+   "target": "function:frontend/src/api/catalog.ts:prefetchCatalog",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:frontend/src/api/catalog.ts",
+   "target": "function:frontend/src/api/catalog.ts:resolveBarcode",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:frontend/src/api/catalog.ts",
+   "target": "function:frontend/src/api/catalog.ts:invalidateCache",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:frontend/src/api/catalog.ts",
+   "target": "function:frontend/src/api/catalog.ts:cacheSize",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:frontend/src/api/lots.ts",
+   "target": "function:frontend/src/api/lots.ts:createLot",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:frontend/src/api/lots.ts",
+   "target": "function:frontend/src/api/lots.ts:listRecentLots",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:frontend/src/api/lots.ts",
+   "target": "function:frontend/src/api/lots.ts:resolveForReceiving",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:frontend/src/api/lots.ts",
+   "target": "class:frontend/src/api/lots.ts:LotValidationError",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:frontend/src/api/lots.ts",
+   "target": "function:frontend/src/api/lots.ts:createLotSafe",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:frontend/src/api/products.ts",
+   "target": "function:frontend/src/api/products.ts:listProducts",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:frontend/src/api/products.ts",
+   "target": "function:frontend/src/api/products.ts:createProduct",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:frontend/src/api/products.ts",
+   "target": "function:frontend/src/api/products.ts:updateProduct",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:frontend/src/api/products.ts",
+   "target": "function:frontend/src/api/products.ts:importProductsCsv",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:frontend/src/pages/ProductsPage.tsx",
+   "target": "function:frontend/src/pages/ProductsPage.tsx:ProductsPage",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:frontend/src/pages/ProductsPage.tsx",
+   "target": "function:frontend/src/pages/ProductsPage.tsx:ListTab",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:frontend/src/pages/ProductsPage.tsx",
+   "target": "function:frontend/src/pages/ProductsPage.tsx:EditRow",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:frontend/src/pages/ProductsPage.tsx",
+   "target": "function:frontend/src/pages/ProductsPage.tsx:CreateTab",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:frontend/src/pages/ProductsPage.tsx",
+   "target": "function:frontend/src/pages/ProductsPage.tsx:Field",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:frontend/src/pages/ProductsPage.tsx",
+   "target": "function:frontend/src/pages/ProductsPage.tsx:ImportTab",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:frontend/src/pages/ReceivingPage.tsx",
+   "target": "function:frontend/src/pages/ReceivingPage.tsx:ReceivingPage",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:frontend/src/api/catalog.ts",
+   "target": "function:frontend/src/api/catalog.ts:prefetchCatalog",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:frontend/src/api/catalog.ts",
+   "target": "function:frontend/src/api/catalog.ts:resolveBarcode",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:frontend/src/api/catalog.ts",
+   "target": "function:frontend/src/api/catalog.ts:invalidateCache",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:frontend/src/api/catalog.ts",
+   "target": "function:frontend/src/api/catalog.ts:cacheSize",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:frontend/src/api/lots.ts",
+   "target": "function:frontend/src/api/lots.ts:createLot",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:frontend/src/api/lots.ts",
+   "target": "function:frontend/src/api/lots.ts:listRecentLots",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:frontend/src/api/lots.ts",
+   "target": "function:frontend/src/api/lots.ts:resolveForReceiving",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:frontend/src/api/lots.ts",
+   "target": "class:frontend/src/api/lots.ts:LotValidationError",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:frontend/src/api/lots.ts",
+   "target": "function:frontend/src/api/lots.ts:createLotSafe",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:frontend/src/api/products.ts",
+   "target": "function:frontend/src/api/products.ts:listProducts",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:frontend/src/api/products.ts",
+   "target": "function:frontend/src/api/products.ts:createProduct",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:frontend/src/api/products.ts",
+   "target": "function:frontend/src/api/products.ts:updateProduct",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:frontend/src/api/products.ts",
+   "target": "function:frontend/src/api/products.ts:importProductsCsv",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:frontend/src/pages/ProductsPage.tsx",
+   "target": "function:frontend/src/pages/ProductsPage.tsx:ProductsPage",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:frontend/src/pages/ReceivingPage.tsx",
+   "target": "function:frontend/src/pages/ReceivingPage.tsx:ReceivingPage",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:frontend/src/api/lots.ts:resolveForReceiving",
+   "target": "function:frontend/src/api/catalog.ts:resolveBarcode",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:frontend/src/pages/ProductsPage.tsx:ListTab",
+   "target": "function:frontend/src/api/products.ts:listProducts",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:frontend/src/pages/ProductsPage.tsx:EditRow",
+   "target": "function:frontend/src/api/products.ts:updateProduct",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:frontend/src/pages/ProductsPage.tsx:EditRow",
+   "target": "function:frontend/src/api/catalog.ts:invalidateCache",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:frontend/src/pages/ProductsPage.tsx:CreateTab",
+   "target": "function:frontend/src/api/products.ts:createProduct",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:frontend/src/pages/ProductsPage.tsx:CreateTab",
+   "target": "function:frontend/src/api/catalog.ts:invalidateCache",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:frontend/src/pages/ProductsPage.tsx:CreateTab",
+   "target": "function:frontend/src/auth/AuthProvider.tsx:useAuth",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:frontend/src/pages/ProductsPage.tsx:CreateTab",
+   "target": "function:frontend/src/auth/ShopScopeProvider.tsx:useShopScope",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:frontend/src/pages/ProductsPage.tsx:ImportTab",
+   "target": "function:frontend/src/api/products.ts:importProductsCsv",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:frontend/src/pages/ProductsPage.tsx:ImportTab",
+   "target": "function:frontend/src/api/catalog.ts:invalidateCache",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:frontend/src/pages/ProductsPage.tsx:ImportTab",
+   "target": "function:frontend/src/auth/AuthProvider.tsx:useAuth",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:frontend/src/pages/ProductsPage.tsx:ImportTab",
+   "target": "function:frontend/src/auth/ShopScopeProvider.tsx:useShopScope",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:frontend/src/pages/ReceivingPage.tsx:ReceivingPage",
+   "target": "function:frontend/src/api/catalog.ts:prefetchCatalog",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:frontend/src/pages/ReceivingPage.tsx:ReceivingPage",
+   "target": "function:frontend/src/api/catalog.ts:resolveBarcode",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:frontend/src/pages/ReceivingPage.tsx:ReceivingPage",
+   "target": "function:frontend/src/api/catalog.ts:invalidateCache",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:frontend/src/pages/ReceivingPage.tsx:ReceivingPage",
+   "target": "function:frontend/src/api/lots.ts:createLotSafe",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:frontend/src/pages/ReceivingPage.tsx:ReceivingPage",
+   "target": "function:frontend/src/auth/AuthProvider.tsx:useAuth",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:frontend/src/pages/ReceivingPage.tsx:ReceivingPage",
+   "target": "function:frontend/src/auth/ShopScopeProvider.tsx:useShopScope",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:frontend/src/api/shops.ts",
+   "target": "function:frontend/src/api/shops.ts:listShops",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:frontend/src/api/shops.ts",
+   "target": "function:frontend/src/api/shops.ts:getMyShop",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:frontend/src/api/shops.ts",
+   "target": "function:frontend/src/api/shops.ts:updateMyShop",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:frontend/src/api/shops.ts",
+   "target": "function:frontend/src/api/shops.ts:listShops",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:frontend/src/api/shops.ts",
+   "target": "function:frontend/src/api/shops.ts:getMyShop",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:frontend/src/api/shops.ts",
+   "target": "function:frontend/src/api/shops.ts:updateMyShop",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:frontend/src/api/shops.ts",
+   "target": "file:frontend/src/api/client.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "function:frontend/src/api/shops.ts:listShops",
+   "target": "function:frontend/src/api/client.ts:api",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:frontend/src/api/shops.ts:getMyShop",
+   "target": "function:frontend/src/api/client.ts:api",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:frontend/src/api/shops.ts:updateMyShop",
+   "target": "function:frontend/src/api/client.ts:api",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:frontend/src/auth/ShopScopeProvider.tsx",
+   "target": "function:frontend/src/auth/ShopScopeProvider.tsx:ShopScopeProvider",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:frontend/src/auth/ShopScopeProvider.tsx",
+   "target": "function:frontend/src/auth/ShopScopeProvider.tsx:useShopScope",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:frontend/src/auth/ShopScopeProvider.tsx",
+   "target": "function:frontend/src/auth/ShopScopeProvider.tsx:ShopScopeProvider",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:frontend/src/auth/ShopScopeProvider.tsx",
+   "target": "function:frontend/src/auth/ShopScopeProvider.tsx:useShopScope",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:frontend/src/components/ShopPicker.tsx",
+   "target": "function:frontend/src/components/ShopPicker.tsx:ShopPicker",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:frontend/src/components/ShopPicker.tsx",
+   "target": "function:frontend/src/components/ShopPicker.tsx:ShopPicker",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:frontend/src/components/ShopPicker.tsx",
+   "target": "file:frontend/src/api/shops.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:frontend/src/components/ShopPicker.tsx",
+   "target": "file:frontend/src/auth/AuthProvider.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:frontend/src/components/ShopPicker.tsx",
+   "target": "file:frontend/src/auth/ShopScopeProvider.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "function:frontend/src/components/ShopPicker.tsx:ShopPicker",
+   "target": "function:frontend/src/auth/AuthProvider.tsx:useAuth",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:frontend/src/components/ShopPicker.tsx:ShopPicker",
+   "target": "function:frontend/src/auth/ShopScopeProvider.tsx:useShopScope",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:frontend/src/components/ShopPicker.tsx:ShopPicker",
+   "target": "function:frontend/src/api/shops.ts:listShops",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:frontend/src/components/Sidebar.tsx",
+   "target": "function:frontend/src/components/Sidebar.tsx:Sidebar",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:frontend/src/components/Sidebar.tsx",
+   "target": "function:frontend/src/components/Sidebar.tsx:Sidebar",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:frontend/src/components/Sidebar.tsx",
+   "target": "file:frontend/src/auth/AuthProvider.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:frontend/src/components/Sidebar.tsx",
+   "target": "file:frontend/src/components/ShopPicker.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "function:frontend/src/components/Sidebar.tsx:Sidebar",
+   "target": "function:frontend/src/auth/AuthProvider.tsx:useAuth",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:frontend/src/components/Sidebar.tsx:Sidebar",
+   "target": "function:frontend/src/components/ShopPicker.tsx:ShopPicker",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:frontend/src/pages/ShopConfigPage.tsx",
+   "target": "function:frontend/src/pages/ShopConfigPage.tsx:ShopConfigPage",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:frontend/src/pages/ShopConfigPage.tsx",
+   "target": "function:frontend/src/pages/ShopConfigPage.tsx:Field",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:frontend/src/pages/ShopConfigPage.tsx",
+   "target": "function:frontend/src/pages/ShopConfigPage.tsx:ShopConfigPage",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:frontend/src/pages/ShopConfigPage.tsx",
+   "target": "file:frontend/src/api/client.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:frontend/src/pages/ShopConfigPage.tsx",
+   "target": "file:frontend/src/api/shops.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:frontend/src/pages/ShopConfigPage.tsx",
+   "target": "file:frontend/src/auth/AuthProvider.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:frontend/src/pages/ShopConfigPage.tsx",
+   "target": "file:frontend/src/auth/ShopScopeProvider.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "function:frontend/src/pages/ShopConfigPage.tsx:ShopConfigPage",
+   "target": "function:frontend/src/auth/AuthProvider.tsx:useAuth",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:frontend/src/pages/ShopConfigPage.tsx:ShopConfigPage",
+   "target": "function:frontend/src/auth/ShopScopeProvider.tsx:useShopScope",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:frontend/src/pages/ShopConfigPage.tsx:ShopConfigPage",
+   "target": "function:frontend/src/api/shops.ts:getMyShop",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:frontend/src/pages/ShopConfigPage.tsx:ShopConfigPage",
+   "target": "function:frontend/src/api/shops.ts:updateMyShop",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:frontend/src/pages/ShopConfigPage.tsx:ShopConfigPage",
+   "target": "function:frontend/src/pages/ShopConfigPage.tsx:Field",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:frontend/src/api/finalize-queue.ts",
+   "target": "file:frontend/src/api/client.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:frontend/src/hooks/useRetryQueue.ts",
+   "target": "file:frontend/src/api/finalize-queue.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:frontend/src/hooks/useRetryQueue.ts",
+   "target": "file:frontend/src/hooks/useOnlineStatus.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:frontend/src/pages/CheckoutPage.tsx",
+   "target": "file:frontend/src/api/catalog.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:frontend/src/pages/CheckoutPage.tsx",
+   "target": "file:frontend/src/api/checkout.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:frontend/src/pages/CheckoutPage.tsx",
+   "target": "file:frontend/src/api/client.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:frontend/src/pages/CheckoutPage.tsx",
+   "target": "file:frontend/src/api/finalize-queue.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:frontend/src/pages/CheckoutPage.tsx",
+   "target": "file:frontend/src/auth/ShopScopeProvider.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:frontend/src/pages/CheckoutPage.tsx",
+   "target": "file:frontend/src/hooks/useOnlineStatus.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:frontend/src/pages/CheckoutPage.tsx",
+   "target": "file:frontend/src/hooks/useRetryQueue.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:frontend/src/api/finalize-queue.ts",
+   "target": "function:frontend/src/api/finalize-queue.ts:readQueue",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:frontend/src/api/finalize-queue.ts",
+   "target": "function:frontend/src/api/finalize-queue.ts:enqueueFinalize",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:frontend/src/api/finalize-queue.ts",
+   "target": "function:frontend/src/api/finalize-queue.ts:listQueued",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:frontend/src/api/finalize-queue.ts",
+   "target": "function:frontend/src/api/finalize-queue.ts:clearQueued",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:frontend/src/api/finalize-queue.ts",
+   "target": "function:frontend/src/api/finalize-queue.ts:flushQueue",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:frontend/src/hooks/useOnlineStatus.ts",
+   "target": "function:frontend/src/hooks/useOnlineStatus.ts:useOnlineStatus",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:frontend/src/hooks/useRetryQueue.ts",
+   "target": "function:frontend/src/hooks/useRetryQueue.ts:useRetryQueue",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:frontend/src/pages/CheckoutPage.tsx",
+   "target": "function:frontend/src/pages/CheckoutPage.tsx:CheckoutPage",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:frontend/src/api/finalize-queue.ts",
+   "target": "function:frontend/src/api/finalize-queue.ts:enqueueFinalize",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:frontend/src/api/finalize-queue.ts",
+   "target": "function:frontend/src/api/finalize-queue.ts:listQueued",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:frontend/src/api/finalize-queue.ts",
+   "target": "function:frontend/src/api/finalize-queue.ts:clearQueued",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:frontend/src/api/finalize-queue.ts",
+   "target": "function:frontend/src/api/finalize-queue.ts:flushQueue",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:frontend/src/hooks/useOnlineStatus.ts",
+   "target": "function:frontend/src/hooks/useOnlineStatus.ts:useOnlineStatus",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:frontend/src/hooks/useRetryQueue.ts",
+   "target": "function:frontend/src/hooks/useRetryQueue.ts:useRetryQueue",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:frontend/src/pages/CheckoutPage.tsx",
+   "target": "function:frontend/src/pages/CheckoutPage.tsx:CheckoutPage",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:frontend/src/api/finalize-queue.ts:enqueueFinalize",
+   "target": "function:frontend/src/api/finalize-queue.ts:readQueue",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:frontend/src/api/finalize-queue.ts:listQueued",
+   "target": "function:frontend/src/api/finalize-queue.ts:readQueue",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:frontend/src/hooks/useRetryQueue.ts:useRetryQueue",
+   "target": "function:frontend/src/api/finalize-queue.ts:flushQueue",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:frontend/src/hooks/useRetryQueue.ts:useRetryQueue",
+   "target": "function:frontend/src/api/finalize-queue.ts:listQueued",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:frontend/src/hooks/useRetryQueue.ts:useRetryQueue",
+   "target": "function:frontend/src/hooks/useOnlineStatus.ts:useOnlineStatus",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:frontend/src/pages/CheckoutPage.tsx:CheckoutPage",
+   "target": "function:frontend/src/hooks/useOnlineStatus.ts:useOnlineStatus",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:frontend/src/pages/CheckoutPage.tsx:CheckoutPage",
+   "target": "function:frontend/src/hooks/useRetryQueue.ts:useRetryQueue",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:frontend/src/pages/CheckoutPage.tsx:CheckoutPage",
+   "target": "function:frontend/src/api/finalize-queue.ts:enqueueFinalize",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:frontend/src/pages/CheckoutPage.tsx:CheckoutPage",
+   "target": "function:frontend/src/api/finalize-queue.ts:listQueued",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:frontend/src/pages/CheckoutPage.tsx:CheckoutPage",
+   "target": "function:frontend/src/api/finalize-queue.ts:clearQueued",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:frontend/src/pages/CheckoutPage.tsx:CheckoutPage",
+   "target": "function:frontend/src/auth/ShopScopeProvider.tsx:useShopScope",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "function:frontend/src/pages/CheckoutPage.tsx:CheckoutPage",
+   "target": "function:frontend/src/api/catalog.ts:prefetchCatalog",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "function:frontend/src/pages/CheckoutPage.tsx:CheckoutPage",
+   "target": "function:frontend/src/api/catalog.ts:resolveBarcode",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "function:frontend/src/pages/CheckoutPage.tsx:CheckoutPage",
+   "target": "function:frontend/src/api/catalog.ts:invalidateCache",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "function:frontend/src/pages/CheckoutPage.tsx:CheckoutPage",
+   "target": "function:frontend/src/api/checkout.ts:finalizeCheckout",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "function:frontend/src/pages/CheckoutPage.tsx:CheckoutPage",
+   "target": "function:frontend/src/api/checkout.ts:getInvoice",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "function:frontend/src/pages/CheckoutPage.tsx:CheckoutPage",
+   "target": "function:frontend/src/api/checkout.ts:downloadInvoicePdf",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "config:frontend/tsconfig.json",
+   "target": "config:frontend/tsconfig.app.json",
+   "type": "depends_on",
+   "direction": "forward",
+   "weight": 0.6
+  },
+  {
+   "source": "config:frontend/tsconfig.json",
+   "target": "config:frontend/tsconfig.node.json",
+   "type": "depends_on",
+   "direction": "forward",
+   "weight": 0.6
+  },
+  {
+   "source": "config:frontend/tsconfig.json",
+   "target": "config:frontend/tsconfig.e2e.json",
+   "type": "depends_on",
+   "direction": "forward",
+   "weight": 0.6
+  },
+  {
+   "source": "config:frontend/tsconfig.app.json",
+   "target": "file:frontend/index.html",
+   "type": "configures",
+   "direction": "forward",
+   "weight": 0.6
+  },
+  {
+   "source": "config:frontend/package.json",
+   "target": "file:frontend/index.html",
+   "type": "configures",
+   "direction": "forward",
+   "weight": 0.6
+  },
+  {
+   "source": "file:frontend/e2e/checkout-resilience.spec.ts",
+   "target": "function:frontend/e2e/checkout-resilience.spec.ts:loginAsCashier",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:frontend/e2e/checkout.spec.ts",
+   "target": "function:frontend/e2e/checkout.spec.ts:loginAsCashier",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:frontend/e2e/dashboard.spec.ts",
+   "target": "function:frontend/e2e/dashboard.spec.ts:loginAsOwner",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:frontend/e2e/dashboard.spec.ts",
+   "target": "function:frontend/e2e/dashboard.spec.ts:loginAsCashier",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:frontend/e2e/login.smoke.spec.ts",
+   "target": "function:frontend/e2e/login.smoke.spec.ts:loginAsPhone",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:frontend/e2e/products.spec.ts",
+   "target": "function:frontend/e2e/products.spec.ts:loginAsOwner",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:frontend/e2e/products.spec.ts",
+   "target": "function:frontend/e2e/products.spec.ts:loginAsCashier",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:frontend/e2e/receiving.spec.ts",
+   "target": "function:frontend/e2e/receiving.spec.ts:loginAsReceiver",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:frontend/e2e/shop-config.spec.ts",
+   "target": "function:frontend/e2e/shop-config.spec.ts:loginAsOwner",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:frontend/e2e/shop-config.spec.ts",
+   "target": "function:frontend/e2e/shop-config.spec.ts:loginAsCashier",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:frontend/e2e/staff.spec.ts",
+   "target": "function:frontend/e2e/staff.spec.ts:loginAsOwner",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:frontend/e2e/staff.spec.ts",
+   "target": "function:frontend/e2e/staff.spec.ts:loginAsCashier",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:frontend/e2e/voids.spec.ts",
+   "target": "function:frontend/e2e/voids.spec.ts:loginAsOwner",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:frontend/e2e/voids.spec.ts",
+   "target": "function:frontend/e2e/voids.spec.ts:loginAsCashier",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "config:frontend/tailwind.config.ts",
+   "target": "file:frontend/src/theme/tokens.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "config:frontend/playwright.config.ts",
+   "target": "file:frontend/e2e/checkout.spec.ts",
+   "type": "configures",
+   "direction": "forward",
+   "weight": 0.6
+  },
+  {
+   "source": "config:frontend/playwright.config.ts",
+   "target": "file:frontend/e2e/checkout-resilience.spec.ts",
+   "type": "configures",
+   "direction": "forward",
+   "weight": 0.6
+  },
+  {
+   "source": "config:frontend/playwright.config.ts",
+   "target": "file:frontend/e2e/dashboard.spec.ts",
+   "type": "configures",
+   "direction": "forward",
+   "weight": 0.6
+  },
+  {
+   "source": "config:frontend/playwright.config.ts",
+   "target": "file:frontend/e2e/login.smoke.spec.ts",
+   "type": "configures",
+   "direction": "forward",
+   "weight": 0.6
+  },
+  {
+   "source": "config:frontend/playwright.config.ts",
+   "target": "file:frontend/e2e/products.spec.ts",
+   "type": "configures",
+   "direction": "forward",
+   "weight": 0.6
+  },
+  {
+   "source": "config:frontend/playwright.config.ts",
+   "target": "file:frontend/e2e/receiving.spec.ts",
+   "type": "configures",
+   "direction": "forward",
+   "weight": 0.6
+  },
+  {
+   "source": "config:frontend/playwright.config.ts",
+   "target": "file:frontend/e2e/shop-config.spec.ts",
+   "type": "configures",
+   "direction": "forward",
+   "weight": 0.6
+  },
+  {
+   "source": "config:frontend/playwright.config.ts",
+   "target": "file:frontend/e2e/staff.spec.ts",
+   "type": "configures",
+   "direction": "forward",
+   "weight": 0.6
+  },
+  {
+   "source": "config:frontend/playwright.config.ts",
+   "target": "file:frontend/e2e/voids.spec.ts",
+   "type": "configures",
+   "direction": "forward",
+   "weight": 0.6
+  },
+  {
+   "source": "config:frontend/postcss.config.cjs",
+   "target": "file:frontend/src/index.css",
+   "type": "configures",
+   "direction": "forward",
+   "weight": 0.6
+  },
+  {
+   "source": "config:frontend/tailwind.config.ts",
+   "target": "file:frontend/src/index.css",
+   "type": "configures",
+   "direction": "forward",
+   "weight": 0.6
+  },
+  {
+   "source": "config:frontend/vite.config.ts",
+   "target": "file:frontend/src/main.tsx",
+   "type": "configures",
+   "direction": "forward",
+   "weight": 0.6
+  },
+  {
+   "source": "file:frontend/src/index.css",
+   "target": "file:frontend/src/main.tsx",
+   "type": "related",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "function:frontend/src/pages/LoginPage.tsx:LoginPage",
+   "target": "class:frontend/src/api/client.ts:Api",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "function:frontend/src/pages/SuperadminLoginPage.tsx:SuperadminLoginPage",
+   "target": "class:frontend/src/api/client.ts:Api",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.7
+  }
+ ],
+ "layers": [
+  {
+   "id": "layer:app-shell",
+   "name": "Application Shell",
+   "description": "Bootstraps the React SPA (main.tsx, App.tsx, index.html), applies global styles and Tailwind design tokens, and provides Vite's ambient type declarations.",
+   "nodeIds": [
+    "file:frontend/src/App.tsx",
+    "file:frontend/src/main.tsx",
+    "file:frontend/index.html",
+    "file:frontend/src/index.css",
+    "file:frontend/src/theme/tokens.ts",
+    "file:frontend/src/vite-env.d.ts"
+   ]
+  },
+  {
+   "id": "layer:pages",
+   "name": "Pages & Routes",
+   "description": "One React component per route (login, checkout, dashboard, receiving, products, staff, voids, shop config), each composing API calls and auth/shop-scope context into the screens shown to shop staff, owners, and superadmins.",
+   "nodeIds": [
+    "file:frontend/src/pages/AdminPlaceholder.tsx",
+    "file:frontend/src/pages/ForbiddenPage.tsx",
+    "file:frontend/src/pages/HomeRedirect.tsx",
+    "file:frontend/src/pages/LoginPage.tsx",
+    "file:frontend/src/pages/SuperadminLoginPage.tsx",
+    "file:frontend/src/pages/DashboardPage.tsx",
+    "file:frontend/src/pages/InvoiceLookupPage.tsx",
+    "file:frontend/src/pages/StaffPage.tsx",
+    "file:frontend/src/pages/VoidApprovalsPage.tsx",
+    "file:frontend/src/pages/ProductsPage.tsx",
+    "file:frontend/src/pages/ReceivingPage.tsx",
+    "file:frontend/src/pages/ShopConfigPage.tsx",
+    "file:frontend/src/pages/CheckoutPage.tsx"
+   ]
+  },
+  {
+   "id": "layer:api-client",
+   "name": "API Client",
+   "description": "Typed HTTP client (client.ts) plus per-domain wrapper modules (checkout, products, catalog cache, lots, staff, voids, shops, dashboard, offline finalize-queue) that talk to the FastAPI backend and are imported by nearly every page.",
+   "nodeIds": [
+    "file:frontend/src/api/checkout.ts",
+    "file:frontend/src/api/client.ts",
+    "file:frontend/src/api/dashboard.ts",
+    "file:frontend/src/api/staff.ts",
+    "file:frontend/src/api/voids.ts",
+    "file:frontend/src/api/catalog.ts",
+    "file:frontend/src/api/lots.ts",
+    "file:frontend/src/api/products.ts",
+    "file:frontend/src/api/shops.ts",
+    "file:frontend/src/api/finalize-queue.ts"
+   ]
+  },
+  {
+   "id": "layer:auth-shop-scope",
+   "name": "Auth & Multi-Shop Context",
+   "description": "React context providers and JWT helpers that manage the authenticated session and the superadmin's 'acting shop' scope, consumed across almost all pages and shared components.",
+   "nodeIds": [
+    "file:frontend/src/auth/AuthProvider.tsx",
+    "file:frontend/src/auth/jwt.ts",
+    "file:frontend/src/auth/ShopScopeProvider.tsx"
+   ]
+  },
+  {
+   "id": "layer:shared-components",
+   "name": "Shared Components",
+   "description": "Reusable UI building blocks \u2014 the PIN entry keypad, the superadmin shop-switcher dropdown, and the role-filtered navigation sidebar \u2014 shared across multiple pages.",
+   "nodeIds": [
+    "file:frontend/src/components/PinPad.tsx",
+    "file:frontend/src/components/ShopPicker.tsx",
+    "file:frontend/src/components/Sidebar.tsx"
+   ]
+  },
+  {
+   "id": "layer:hooks",
+   "name": "Offline Resilience Hooks",
+   "description": "Custom hooks that detect browser connectivity and drain the offline checkout queue, enabling the POS screen to keep working through network outages.",
+   "nodeIds": [
+    "file:frontend/src/hooks/useOnlineStatus.ts",
+    "file:frontend/src/hooks/useRetryQueue.ts"
+   ]
+  },
+  {
+   "id": "layer:e2e-tests",
+   "name": "End-to-End Tests",
+   "description": "Playwright specs covering login, checkout resilience, dashboard, products, receiving, shop config, staff, and void-approval flows, driven by role-specific login helpers.",
+   "nodeIds": [
+    "file:frontend/e2e/checkout-resilience.spec.ts",
+    "file:frontend/e2e/checkout.spec.ts",
+    "file:frontend/e2e/dashboard.spec.ts",
+    "file:frontend/e2e/login.smoke.spec.ts",
+    "file:frontend/e2e/products.spec.ts",
+    "file:frontend/e2e/receiving.spec.ts",
+    "file:frontend/e2e/shop-config.spec.ts",
+    "file:frontend/e2e/staff.spec.ts",
+    "file:frontend/e2e/voids.spec.ts"
+   ]
+  },
+  {
+   "id": "layer:config",
+   "name": "Build & Tooling Configuration",
+   "description": "Project manifest, TypeScript project references, ESLint, Vite, Tailwind/PostCSS, and Playwright configuration that govern how the SPA is built, linted, styled, and tested.",
+   "nodeIds": [
+    "config:frontend/package.json",
+    "config:frontend/tsconfig.app.json",
+    "config:frontend/tsconfig.e2e.json",
+    "config:frontend/tsconfig.json",
+    "config:frontend/tsconfig.node.json",
+    "config:frontend/eslint.config.js",
+    "config:frontend/playwright.config.ts",
+    "config:frontend/postcss.config.cjs",
+    "config:frontend/tailwind.config.ts",
+    "config:frontend/vite.config.ts"
+   ]
+  }
+ ],
+ "tour": [
+  {
+   "order": 1,
+   "title": "Application Bootstrap",
+   "description": "The tour starts where the browser starts: index.html loads main.tsx, which mounts the React tree and wraps the whole app in AuthProvider and ShopScopeProvider before rendering App. It also pulls in index.css, which loads Tailwind's base/components/utilities layers. This is the single place that wires global state providers around the routing tree, so everything downstream can assume an authenticated session and a shop scope already exist.",
+   "nodeIds": [
+    "file:frontend/src/main.tsx",
+    "file:frontend/index.html",
+    "file:frontend/src/index.css"
+   ],
+   "languageLesson": "React 18's createRoot API expects providers to be composed outermost-first; nesting AuthProvider around ShopScopeProvider around App means both contexts are available to every component in the tree, including App itself."
+  },
+  {
+   "order": 2,
+   "title": "Routing and Role Guards",
+   "description": "App.tsx has by far the highest fan-out in the codebase (15 outbound file references) because it imports and wires up every page in the app. It defines a Protected wrapper component that checks the authenticated user's role via useAuth before allowing a route to render, redirecting to ForbiddenPage otherwise. Understanding this file gives you a map of every screen in the SPA and which roles can reach them, before you dive into any individual page.",
+   "nodeIds": [
+    "file:frontend/src/App.tsx",
+    "file:frontend/src/pages/ForbiddenPage.tsx",
+    "file:frontend/src/pages/HomeRedirect.tsx"
+   ],
+   "languageLesson": "TypeScript discriminated checks on a `role` string field, combined with React Router's element-as-prop routing, let Protected act as a generic higher-order guard without duplicating auth logic in every page."
+  },
+  {
+   "order": 3,
+   "title": "Authentication Core",
+   "description": "AuthProvider.tsx has the second-highest fan-in in the project (14 dependents) \u2014 nearly every page and shared component calls its useAuth hook. It manages the session (token, user, readiness), persists it to sessionStorage, and exposes login/logout plus homePathFor, a helper that picks the right landing page for a given role. It depends on jwt.ts, a dependency-free helper that decodes JWT payloads and checks expiry, which readSession calls to validate the stored token on load.",
+   "nodeIds": [
+    "file:frontend/src/auth/AuthProvider.tsx",
+    "file:frontend/src/auth/jwt.ts"
+   ],
+   "languageLesson": "jwt.ts hand-rolls base64url decoding instead of pulling in a JWT library \u2014 a deliberate choice for a small POS frontend to avoid an extra dependency for a few lines of decoding logic."
+  },
+  {
+   "order": 4,
+   "title": "PIN-Pad Login Flow",
+   "description": "Building on the AuthProvider from Step 3, LoginPage.tsx implements the shop-staff login experience: a phone number plus PIN entered through the reusable PinPad component, submitted to the API, then redirected via homePathFor. SuperadminLoginPage.tsx is a parallel, simpler flow using traditional username/password fields for the separate superadmin audience. Both pages call useAuth directly, showing how the auth context decouples login UI from session management.",
+   "nodeIds": [
+    "file:frontend/src/pages/LoginPage.tsx",
+    "file:frontend/src/components/PinPad.tsx",
+    "file:frontend/src/pages/SuperadminLoginPage.tsx"
+   ],
+   "languageLesson": "PinPad is a controlled, callback-driven component (onDigit/onBackspace/onSubmit props) rather than owning its own form state, which is what lets both LoginPage and other numeric-entry screens reuse it without coupling to a specific auth flow."
+  },
+  {
+   "order": 5,
+   "title": "Multi-Shop Scoping",
+   "description": "ShopScopeProvider.tsx (fan-in of 9) tracks which shop a superadmin is currently 'acting as', persisting the selection to sessionStorage and exposing it through useShopScope. ShopPicker.tsx is the dropdown UI that lets a superadmin switch shops, and Sidebar.tsx renders it alongside role-filtered navigation links. Together these three files implement the project's core multi-tenancy pattern: owners and staff are permanently scoped to one shop, while a superadmin can pivot between shops without re-authenticating.",
+   "nodeIds": [
+    "file:frontend/src/auth/ShopScopeProvider.tsx",
+    "file:frontend/src/components/ShopPicker.tsx",
+    "file:frontend/src/components/Sidebar.tsx"
+   ]
+  },
+  {
+   "order": 6,
+   "title": "Typed API Client Foundation",
+   "description": "client.ts has the highest fan-in of any file in the codebase (18 dependents) \u2014 it is the single fetch wrapper that every API module builds on, attaching auth headers from session storage, serializing JSON bodies, and normalizing failures into a shared ApiError. shops.ts is a small domain module built on top of it, covering shop listing (superadmin), fetching the current shop, and updating shop configuration. Every API call you see in later steps ultimately routes through this one function.",
+   "nodeIds": [
+    "file:frontend/src/api/client.ts",
+    "file:frontend/src/api/shops.ts"
+   ],
+   "languageLesson": "Centralizing error normalization in a single ApiError class means every page can catch one error type regardless of which endpoint failed, instead of handling raw fetch Response objects differently in each component."
+  },
+  {
+   "order": 7,
+   "title": "Checkout: The Core POS Screen",
+   "description": "CheckoutPage.tsx is the most complex page in the app and the reason the offline-resilience layer exists: it scans/looks up items by barcode via catalog.ts's in-memory cache, manages cart and split payments, and finalizes sales through checkout.ts's finalizeCheckout call. Because this screen runs on a single in-store counter with unreliable internet, every finalize attempt is designed to degrade gracefully rather than block the sale \u2014 which the next step explains in detail.",
+   "nodeIds": [
+    "file:frontend/src/pages/CheckoutPage.tsx",
+    "file:frontend/src/api/checkout.ts",
+    "file:frontend/src/api/catalog.ts"
+   ]
+  },
+  {
+   "order": 8,
+   "title": "Offline Resilience Hooks",
+   "description": "This is the safety net behind Step 7's checkout flow. finalize-queue.ts persists pending checkout requests to localStorage when the API call fails, useOnlineStatus.ts subscribes to the browser's online/offline events, and useRetryQueue.ts combines both to automatically flush queued checkouts once connectivity returns or on a polling interval. CheckoutPage calls useRetryQueue directly, so a cashier can keep ringing up sales through a network outage without losing a single transaction.",
+   "nodeIds": [
+    "file:frontend/src/api/finalize-queue.ts",
+    "file:frontend/src/hooks/useOnlineStatus.ts",
+    "file:frontend/src/hooks/useRetryQueue.ts"
+   ],
+   "languageLesson": "Composing useOnlineStatus inside useRetryQueue is a classic React hook-composition pattern: small, single-purpose hooks are combined into a higher-level hook rather than duplicating connectivity-detection logic in every consumer."
+  },
+  {
+   "order": 9,
+   "title": "Product Catalog and Receiving",
+   "description": "ProductsPage.tsx offers list/create/import tabs backed by products.ts (including CSV bulk-import), while ReceivingPage.tsx is the counter workflow for scanning barcodes to build a new inventory lot, backed by lots.ts's validated createLotSafe helper. Both pages share the same catalog.ts barcode cache from Step 7, and both call invalidateCache after creating or updating a product so the next barcode scan reflects the change immediately.",
+   "nodeIds": [
+    "file:frontend/src/pages/ProductsPage.tsx",
+    "file:frontend/src/api/products.ts",
+    "file:frontend/src/pages/ReceivingPage.tsx",
+    "file:frontend/src/api/lots.ts"
+   ]
+  },
+  {
+   "order": 10,
+   "title": "Owner Dashboard and EOD Sign-off",
+   "description": "DashboardPage.tsx is the owner/manager landing screen, showing today's end-of-day totals, low-stock alerts, and sign-off history, all backed by dashboard.ts's shop-scoped API calls (getEodTotals, getLowStock, getEodHistory, signOffEod). This is where the auth and shop-scope context from Steps 3 and 5 come together operationally: the dashboard only shows data for the owner's own shop, or the superadmin's currently 'acting' shop.",
+   "nodeIds": [
+    "file:frontend/src/pages/DashboardPage.tsx",
+    "file:frontend/src/api/dashboard.ts"
+   ]
+  },
+  {
+   "order": 11,
+   "title": "Staff Management and Void Approvals",
+   "description": "StaffPage.tsx lets owners create staff accounts and reset PINs via staff.ts, while InvoiceLookupPage.tsx lets any staff member look up a past invoice (via checkout.ts's getInvoice) and request a void through voids.ts's requestVoid. VoidApprovalsPage.tsx closes the loop, giving managers a queue of pending void requests to approve or reject. Together these three pages show the permission-sensitive, multi-role workflows layered on top of the checkout and auth foundations from earlier steps.",
+   "nodeIds": [
+    "file:frontend/src/pages/StaffPage.tsx",
+    "file:frontend/src/api/staff.ts",
+    "file:frontend/src/pages/InvoiceLookupPage.tsx",
+    "file:frontend/src/pages/VoidApprovalsPage.tsx",
+    "file:frontend/src/api/voids.ts"
+   ]
+  },
+  {
+   "order": 12,
+   "title": "Shop Configuration",
+   "description": "ShopConfigPage.tsx is the settings screen where an owner or superadmin edits a shop's GSTIN, excise duty rate, and low-stock threshold, using the same shops.ts module introduced in Step 6 and respecting the shop-scope context from Step 5. It is a compact example of how nearly every page in this app follows the same recipe: pull in auth and shop-scope context, call a typed API module, and render load/save state around it.",
+   "nodeIds": [
+    "file:frontend/src/pages/ShopConfigPage.tsx"
+   ]
+  },
+  {
+   "order": 13,
+   "title": "End-to-End Test Coverage",
+   "description": "The Playwright suite exercises the flows covered in this tour against a real browser. checkout-resilience.spec.ts specifically verifies the offline-queue behavior from Step 8 by simulating network failures and offline conditions, while login.smoke.spec.ts is a fast-running smoke test confirming the PIN login flow from Step 4 still authenticates against a live backend. playwright.config.ts ties it together, defining the base URL, retry policy, and a webServer block that boots the built frontend against the FastAPI backend for CI.",
+   "nodeIds": [
+    "file:frontend/e2e/checkout-resilience.spec.ts",
+    "file:frontend/e2e/login.smoke.spec.ts",
+    "config:frontend/playwright.config.ts"
+   ],
+   "languageLesson": "Playwright specs share small role-specific login helpers (e.g. loginAsCashier) defined per-file rather than in a shared module \u2014 a pattern worth noting if the suite grows and this duplication becomes worth extracting."
+  },
+  {
+   "order": 14,
+   "title": "Build and Tooling Configuration",
+   "description": "package.json declares the dependencies (React Router, React DOM) and dev tooling (Vite, ESLint, Tailwind, Playwright, openapi-typescript) and scripts that tie the whole project together, including a script that generates TypeScript types from the FastAPI backend's OpenAPI schema. vite.config.ts wires up the dev server and React plugin, tailwind.config.ts extends the theme using the shared design tokens module, and tsconfig.json references separate app/node/e2e project configs so the composite `tsc -b` build only type-checks each area with the rules it needs. This is the capstone: everything explored in this tour is built, linted, styled, and tested through the pipeline defined here.",
+   "nodeIds": [
+    "config:frontend/package.json",
+    "config:frontend/vite.config.ts",
+    "config:frontend/tailwind.config.ts",
+    "config:frontend/tsconfig.json"
+   ],
+   "languageLesson": "TypeScript project references (tsconfig.json pointing at tsconfig.app.json/tsconfig.node.json/tsconfig.e2e.json) let `tsc -b` incrementally build only the projects that changed, and let app code, Vite tooling code, and e2e test code each have distinct compiler options (e.g. different `lib` or `types` settings) without interfering with one another."
+  }
+ ]
+}

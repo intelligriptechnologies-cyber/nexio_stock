@@ -1,0 +1,114 @@
+[
+  {
+    "id": "layer:app-shell",
+    "name": "Application Shell",
+    "description": "Bootstraps the React SPA (main.tsx, App.tsx, index.html), applies global styles and Tailwind design tokens, and provides Vite's ambient type declarations.",
+    "nodeIds": [
+      "file:src/App.tsx",
+      "file:src/main.tsx",
+      "file:index.html",
+      "file:src/index.css",
+      "file:src/theme/tokens.ts",
+      "file:src/vite-env.d.ts"
+    ]
+  },
+  {
+    "id": "layer:pages",
+    "name": "Pages & Routes",
+    "description": "One React component per route (login, checkout, dashboard, receiving, products, staff, voids, shop config), each composing API calls and auth/shop-scope context into the screens shown to shop staff, owners, and superadmins.",
+    "nodeIds": [
+      "file:src/pages/AdminPlaceholder.tsx",
+      "file:src/pages/ForbiddenPage.tsx",
+      "file:src/pages/HomeRedirect.tsx",
+      "file:src/pages/LoginPage.tsx",
+      "file:src/pages/SuperadminLoginPage.tsx",
+      "file:src/pages/DashboardPage.tsx",
+      "file:src/pages/InvoiceLookupPage.tsx",
+      "file:src/pages/StaffPage.tsx",
+      "file:src/pages/VoidApprovalsPage.tsx",
+      "file:src/pages/ProductsPage.tsx",
+      "file:src/pages/ReceivingPage.tsx",
+      "file:src/pages/ShopConfigPage.tsx",
+      "file:src/pages/CheckoutPage.tsx"
+    ]
+  },
+  {
+    "id": "layer:api-client",
+    "name": "API Client",
+    "description": "Typed HTTP client (client.ts) plus per-domain wrapper modules (checkout, products, catalog cache, lots, staff, voids, shops, dashboard, offline finalize-queue) that talk to the FastAPI backend and are imported by nearly every page.",
+    "nodeIds": [
+      "file:src/api/checkout.ts",
+      "file:src/api/client.ts",
+      "file:src/api/dashboard.ts",
+      "file:src/api/staff.ts",
+      "file:src/api/voids.ts",
+      "file:src/api/catalog.ts",
+      "file:src/api/lots.ts",
+      "file:src/api/products.ts",
+      "file:src/api/shops.ts",
+      "file:src/api/finalize-queue.ts"
+    ]
+  },
+  {
+    "id": "layer:auth-shop-scope",
+    "name": "Auth & Multi-Shop Context",
+    "description": "React context providers and JWT helpers that manage the authenticated session and the superadmin's 'acting shop' scope, consumed across almost all pages and shared components.",
+    "nodeIds": [
+      "file:src/auth/AuthProvider.tsx",
+      "file:src/auth/jwt.ts",
+      "file:src/auth/ShopScopeProvider.tsx"
+    ]
+  },
+  {
+    "id": "layer:shared-components",
+    "name": "Shared Components",
+    "description": "Reusable UI building blocks — the PIN entry keypad, the superadmin shop-switcher dropdown, and the role-filtered navigation sidebar — shared across multiple pages.",
+    "nodeIds": [
+      "file:src/components/PinPad.tsx",
+      "file:src/components/ShopPicker.tsx",
+      "file:src/components/Sidebar.tsx"
+    ]
+  },
+  {
+    "id": "layer:hooks",
+    "name": "Offline Resilience Hooks",
+    "description": "Custom hooks that detect browser connectivity and drain the offline checkout queue, enabling the POS screen to keep working through network outages.",
+    "nodeIds": [
+      "file:src/hooks/useOnlineStatus.ts",
+      "file:src/hooks/useRetryQueue.ts"
+    ]
+  },
+  {
+    "id": "layer:e2e-tests",
+    "name": "End-to-End Tests",
+    "description": "Playwright specs covering login, checkout resilience, dashboard, products, receiving, shop config, staff, and void-approval flows, driven by role-specific login helpers.",
+    "nodeIds": [
+      "file:e2e/checkout-resilience.spec.ts",
+      "file:e2e/checkout.spec.ts",
+      "file:e2e/dashboard.spec.ts",
+      "file:e2e/login.smoke.spec.ts",
+      "file:e2e/products.spec.ts",
+      "file:e2e/receiving.spec.ts",
+      "file:e2e/shop-config.spec.ts",
+      "file:e2e/staff.spec.ts",
+      "file:e2e/voids.spec.ts"
+    ]
+  },
+  {
+    "id": "layer:config",
+    "name": "Build & Tooling Configuration",
+    "description": "Project manifest, TypeScript project references, ESLint, Vite, Tailwind/PostCSS, and Playwright configuration that govern how the SPA is built, linted, styled, and tested.",
+    "nodeIds": [
+      "config:package.json",
+      "config:tsconfig.app.json",
+      "config:tsconfig.e2e.json",
+      "config:tsconfig.json",
+      "config:tsconfig.node.json",
+      "config:eslint.config.js",
+      "config:playwright.config.ts",
+      "config:postcss.config.cjs",
+      "config:tailwind.config.ts",
+      "config:vite.config.ts"
+    ]
+  }
+]

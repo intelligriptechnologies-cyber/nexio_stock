@@ -1,0 +1,290 @@
+{
+  "projectRoot": "C:/barstock/frontend",
+  "files": [
+    {
+      "path": ".understand-anything/.understandignore",
+      "language": "unknown",
+      "fileCategory": "code"
+    },
+    {
+      "path": "e2e/checkout-resilience.spec.ts",
+      "language": "typescript",
+      "fileCategory": "code"
+    },
+    {
+      "path": "e2e/checkout.spec.ts",
+      "language": "typescript",
+      "fileCategory": "code"
+    },
+    {
+      "path": "e2e/dashboard.spec.ts",
+      "language": "typescript",
+      "fileCategory": "code"
+    },
+    {
+      "path": "e2e/login.smoke.spec.ts",
+      "language": "typescript",
+      "fileCategory": "code"
+    },
+    {
+      "path": "e2e/products.spec.ts",
+      "language": "typescript",
+      "fileCategory": "code"
+    },
+    {
+      "path": "e2e/receiving.spec.ts",
+      "language": "typescript",
+      "fileCategory": "code"
+    },
+    {
+      "path": "e2e/shop-config.spec.ts",
+      "language": "typescript",
+      "fileCategory": "code"
+    },
+    {
+      "path": "e2e/staff.spec.ts",
+      "language": "typescript",
+      "fileCategory": "code"
+    },
+    {
+      "path": "e2e/voids.spec.ts",
+      "language": "typescript",
+      "fileCategory": "code"
+    },
+    {
+      "path": "eslint.config.js",
+      "language": "javascript",
+      "fileCategory": "code"
+    },
+    {
+      "path": "index.html",
+      "language": "html",
+      "fileCategory": "markup"
+    },
+    {
+      "path": "package.json",
+      "language": "json",
+      "fileCategory": "config"
+    },
+    {
+      "path": "playwright.config.ts",
+      "language": "typescript",
+      "fileCategory": "code"
+    },
+    {
+      "path": "postcss.config.cjs",
+      "language": "javascript",
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/api/catalog.ts",
+      "language": "typescript",
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/api/checkout.ts",
+      "language": "typescript",
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/api/client.ts",
+      "language": "typescript",
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/api/dashboard.ts",
+      "language": "typescript",
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/api/finalize-queue.ts",
+      "language": "typescript",
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/api/lots.ts",
+      "language": "typescript",
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/api/products.ts",
+      "language": "typescript",
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/api/shops.ts",
+      "language": "typescript",
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/api/staff.ts",
+      "language": "typescript",
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/api/voids.ts",
+      "language": "typescript",
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/App.tsx",
+      "language": "typescript",
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/auth/AuthProvider.tsx",
+      "language": "typescript",
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/auth/jwt.ts",
+      "language": "typescript",
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/auth/ShopScopeProvider.tsx",
+      "language": "typescript",
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/components/PinPad.tsx",
+      "language": "typescript",
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/components/ShopPicker.tsx",
+      "language": "typescript",
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/components/Sidebar.tsx",
+      "language": "typescript",
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/hooks/useOnlineStatus.ts",
+      "language": "typescript",
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/hooks/useRetryQueue.ts",
+      "language": "typescript",
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/index.css",
+      "language": "css",
+      "fileCategory": "markup"
+    },
+    {
+      "path": "src/main.tsx",
+      "language": "typescript",
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/pages/AdminPlaceholder.tsx",
+      "language": "typescript",
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/pages/CheckoutPage.tsx",
+      "language": "typescript",
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/pages/DashboardPage.tsx",
+      "language": "typescript",
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/pages/ForbiddenPage.tsx",
+      "language": "typescript",
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/pages/HomeRedirect.tsx",
+      "language": "typescript",
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/pages/InvoiceLookupPage.tsx",
+      "language": "typescript",
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/pages/LoginPage.tsx",
+      "language": "typescript",
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/pages/ProductsPage.tsx",
+      "language": "typescript",
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/pages/ReceivingPage.tsx",
+      "language": "typescript",
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/pages/ShopConfigPage.tsx",
+      "language": "typescript",
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/pages/StaffPage.tsx",
+      "language": "typescript",
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/pages/SuperadminLoginPage.tsx",
+      "language": "typescript",
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/pages/VoidApprovalsPage.tsx",
+      "language": "typescript",
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/theme/tokens.ts",
+      "language": "typescript",
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/vite-env.d.ts",
+      "language": "typescript",
+      "fileCategory": "code"
+    },
+    {
+      "path": "tailwind.config.ts",
+      "language": "typescript",
+      "fileCategory": "code"
+    },
+    {
+      "path": "tsconfig.app.json",
+      "language": "json",
+      "fileCategory": "config"
+    },
+    {
+      "path": "tsconfig.e2e.json",
+      "language": "json",
+      "fileCategory": "config"
+    },
+    {
+      "path": "tsconfig.json",
+      "language": "json",
+      "fileCategory": "config"
+    },
+    {
+      "path": "tsconfig.node.json",
+      "language": "json",
+      "fileCategory": "config"
+    },
+    {
+      "path": "vite.config.ts",
+      "language": "typescript",
+      "fileCategory": "code"
+    }
+  ]
+}

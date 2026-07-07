@@ -1,0 +1,1458 @@
+{
+  "scriptCompleted": true,
+  "filesAnalyzed": 9,
+  "filesSkipped": [],
+  "results": [
+    {
+      "path": "src/api/checkout.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 89,
+      "nonEmptyLines": 77,
+      "functions": [
+        {
+          "name": "finalizeCheckout",
+          "startLine": 52,
+          "endLine": 63,
+          "params": [
+            "payload",
+            "idempotencyKey",
+            "shopId"
+          ]
+        },
+        {
+          "name": "getInvoice",
+          "startLine": 65,
+          "endLine": 67,
+          "params": [
+            "invoiceId"
+          ]
+        },
+        {
+          "name": "pdfUrl",
+          "startLine": 75,
+          "endLine": 77,
+          "params": [
+            "invoiceId",
+            "base"
+          ]
+        },
+        {
+          "name": "downloadInvoicePdf",
+          "startLine": 79,
+          "endLine": 89,
+          "params": [
+            "invoiceId",
+            "base",
+            "token"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "finalizeCheckout",
+          "line": 52,
+          "isDefault": false
+        },
+        {
+          "name": "getInvoice",
+          "line": 65,
+          "isDefault": false
+        },
+        {
+          "name": "pdfUrl",
+          "line": 75,
+          "isDefault": false
+        },
+        {
+          "name": "downloadInvoicePdf",
+          "line": 79,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "finalizeCheckout",
+          "callee": "api",
+          "lineNumber": 58
+        },
+        {
+          "caller": "getInvoice",
+          "callee": "api",
+          "lineNumber": 66
+        },
+        {
+          "caller": "downloadInvoicePdf",
+          "callee": "fetch",
+          "lineNumber": 84
+        },
+        {
+          "caller": "downloadInvoicePdf",
+          "callee": "res.blob",
+          "lineNumber": 88
+        }
+      ],
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 4,
+        "functionCount": 4,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "src/api/client.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 73,
+      "nonEmptyLines": 66,
+      "functions": [
+        {
+          "name": "api",
+          "startLine": 18,
+          "endLine": 57,
+          "params": [
+            "path",
+            "init"
+          ]
+        }
+      ],
+      "classes": [
+        {
+          "name": "ApiError",
+          "startLine": 8,
+          "endLine": 16,
+          "methods": [
+            "constructor"
+          ],
+          "properties": []
+        }
+      ],
+      "exports": [
+        {
+          "name": "ApiError",
+          "line": 8,
+          "isDefault": false
+        },
+        {
+          "name": "api",
+          "line": 18,
+          "isDefault": false
+        },
+        {
+          "name": "Api",
+          "line": 60,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "constructor",
+          "callee": "super",
+          "lineNumber": 14
+        },
+        {
+          "caller": "api",
+          "callee": "sessionStorage.getItem",
+          "lineNumber": 23
+        },
+        {
+          "caller": "api",
+          "callee": "headers.set",
+          "lineNumber": 24
+        },
+        {
+          "caller": "api",
+          "callee": "headers.set",
+          "lineNumber": 27
+        },
+        {
+          "caller": "api",
+          "callee": "JSON.stringify",
+          "lineNumber": 28
+        },
+        {
+          "caller": "api",
+          "callee": "headers.set",
+          "lineNumber": 30
+        },
+        {
+          "caller": "api",
+          "callee": "fetch",
+          "lineNumber": 34
+        },
+        {
+          "caller": "api",
+          "callee": "res.json",
+          "lineNumber": 43
+        },
+        {
+          "caller": "api",
+          "callee": "JSON.stringify",
+          "lineNumber": 46
+        },
+        {
+          "caller": "api",
+          "callee": "res.headers.get",
+          "lineNumber": 54
+        },
+        {
+          "caller": "api",
+          "callee": "ct.includes",
+          "lineNumber": 55
+        },
+        {
+          "caller": "api",
+          "callee": "res.json",
+          "lineNumber": 55
+        },
+        {
+          "caller": "api",
+          "callee": "res.text",
+          "lineNumber": 56
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 3,
+        "functionCount": 1,
+        "classCount": 1
+      }
+    },
+    {
+      "path": "src/api/dashboard.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 92,
+      "nonEmptyLines": 80,
+      "functions": [
+        {
+          "name": "shopQuery",
+          "startLine": 57,
+          "endLine": 59,
+          "params": [
+            "shopId"
+          ]
+        },
+        {
+          "name": "getEodTotals",
+          "startLine": 61,
+          "endLine": 70,
+          "params": [
+            "businessDate",
+            "shopId"
+          ]
+        },
+        {
+          "name": "signOffEod",
+          "startLine": 72,
+          "endLine": 82,
+          "params": [
+            "businessDate",
+            "shopId"
+          ]
+        },
+        {
+          "name": "getEodHistory",
+          "startLine": 84,
+          "endLine": 87,
+          "params": [
+            "limit",
+            "shopId"
+          ]
+        },
+        {
+          "name": "getLowStock",
+          "startLine": 89,
+          "endLine": 92,
+          "params": [
+            "limit",
+            "shopId"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "getEodTotals",
+          "line": 61,
+          "isDefault": false
+        },
+        {
+          "name": "signOffEod",
+          "line": 72,
+          "isDefault": false
+        },
+        {
+          "name": "getEodHistory",
+          "line": 84,
+          "isDefault": false
+        },
+        {
+          "name": "getLowStock",
+          "line": 89,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "getEodTotals",
+          "callee": "[\n    businessDate ? `business_date=${encodeURIComponent(businessDate)}` : \"\",\n    shopQuery(shopId),\n  ].filter",
+          "lineNumber": 65
+        },
+        {
+          "caller": "getEodTotals",
+          "callee": "encodeURIComponent",
+          "lineNumber": 66
+        },
+        {
+          "caller": "getEodTotals",
+          "callee": "shopQuery",
+          "lineNumber": 67
+        },
+        {
+          "caller": "getEodTotals",
+          "callee": "api",
+          "lineNumber": 69
+        },
+        {
+          "caller": "getEodTotals",
+          "callee": "parts.join",
+          "lineNumber": 69
+        },
+        {
+          "caller": "signOffEod",
+          "callee": "api",
+          "lineNumber": 78
+        },
+        {
+          "caller": "getEodHistory",
+          "callee": "[`limit=${limit}`, shopQuery(shopId)].filter",
+          "lineNumber": 85
+        },
+        {
+          "caller": "getEodHistory",
+          "callee": "shopQuery",
+          "lineNumber": 85
+        },
+        {
+          "caller": "getEodHistory",
+          "callee": "api",
+          "lineNumber": 86
+        },
+        {
+          "caller": "getEodHistory",
+          "callee": "parts.join",
+          "lineNumber": 86
+        },
+        {
+          "caller": "getLowStock",
+          "callee": "[`limit=${limit}`, shopQuery(shopId)].filter",
+          "lineNumber": 90
+        },
+        {
+          "caller": "getLowStock",
+          "callee": "shopQuery",
+          "lineNumber": 90
+        },
+        {
+          "caller": "getLowStock",
+          "callee": "api",
+          "lineNumber": 91
+        },
+        {
+          "caller": "getLowStock",
+          "callee": "parts.join",
+          "lineNumber": 91
+        }
+      ],
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 4,
+        "functionCount": 5,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "src/api/staff.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 45,
+      "nonEmptyLines": 39,
+      "functions": [
+        {
+          "name": "listStaff",
+          "startLine": 35,
+          "endLine": 37,
+          "params": []
+        },
+        {
+          "name": "createStaff",
+          "startLine": 39,
+          "endLine": 45,
+          "params": [
+            "payload",
+            "shopId"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "listStaff",
+          "line": 35,
+          "isDefault": false
+        },
+        {
+          "name": "createStaff",
+          "line": 39,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "listStaff",
+          "callee": "api",
+          "lineNumber": 36
+        },
+        {
+          "caller": "createStaff",
+          "callee": "api",
+          "lineNumber": 44
+        }
+      ],
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 2,
+        "functionCount": 2,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "src/api/voids.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 41,
+      "nonEmptyLines": 35,
+      "functions": [
+        {
+          "name": "requestVoid",
+          "startLine": 20,
+          "endLine": 25,
+          "params": [
+            "invoiceId",
+            "reason"
+          ]
+        },
+        {
+          "name": "approveVoid",
+          "startLine": 27,
+          "endLine": 29,
+          "params": [
+            "invoiceId"
+          ]
+        },
+        {
+          "name": "rejectVoid",
+          "startLine": 31,
+          "endLine": 36,
+          "params": [
+            "invoiceId",
+            "reason"
+          ]
+        },
+        {
+          "name": "listPendingVoids",
+          "startLine": 38,
+          "endLine": 41,
+          "params": [
+            "shopId"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "requestVoid",
+          "line": 20,
+          "isDefault": false
+        },
+        {
+          "name": "approveVoid",
+          "line": 27,
+          "isDefault": false
+        },
+        {
+          "name": "rejectVoid",
+          "line": 31,
+          "isDefault": false
+        },
+        {
+          "name": "listPendingVoids",
+          "line": 38,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "requestVoid",
+          "callee": "api",
+          "lineNumber": 21
+        },
+        {
+          "caller": "approveVoid",
+          "callee": "api",
+          "lineNumber": 28
+        },
+        {
+          "caller": "rejectVoid",
+          "callee": "api",
+          "lineNumber": 32
+        },
+        {
+          "caller": "listPendingVoids",
+          "callee": "api",
+          "lineNumber": 40
+        }
+      ],
+      "metrics": {
+        "importCount": 2,
+        "exportCount": 4,
+        "functionCount": 4,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "src/pages/DashboardPage.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 257,
+      "nonEmptyLines": 244,
+      "functions": [
+        {
+          "name": "moneyFmt",
+          "startLine": 15,
+          "endLine": 17,
+          "params": [
+            "s"
+          ]
+        },
+        {
+          "name": "DashboardPage",
+          "startLine": 19,
+          "endLine": 231,
+          "params": []
+        },
+        {
+          "name": "KpiCard",
+          "startLine": 233,
+          "endLine": 257,
+          "params": [
+            "{\n  title,\n  value,\n  sub,\n  accent,\n}"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "DashboardPage",
+          "line": 19,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "moneyFmt",
+          "callee": "Number(s).toLocaleString",
+          "lineNumber": 16
+        },
+        {
+          "caller": "moneyFmt",
+          "callee": "Number",
+          "lineNumber": 16
+        },
+        {
+          "caller": "DashboardPage",
+          "callee": "useAuth",
+          "lineNumber": 20
+        },
+        {
+          "caller": "DashboardPage",
+          "callee": "useShopScope",
+          "lineNumber": 21
+        },
+        {
+          "caller": "DashboardPage",
+          "callee": "useState",
+          "lineNumber": 22
+        },
+        {
+          "caller": "DashboardPage",
+          "callee": "useState",
+          "lineNumber": 23
+        },
+        {
+          "caller": "DashboardPage",
+          "callee": "useState",
+          "lineNumber": 24
+        },
+        {
+          "caller": "DashboardPage",
+          "callee": "useState",
+          "lineNumber": 25
+        },
+        {
+          "caller": "DashboardPage",
+          "callee": "useState",
+          "lineNumber": 26
+        },
+        {
+          "caller": "DashboardPage",
+          "callee": "useState",
+          "lineNumber": 27
+        },
+        {
+          "caller": "reload",
+          "callee": "setToday",
+          "lineNumber": 31
+        },
+        {
+          "caller": "reload",
+          "callee": "setLowStock",
+          "lineNumber": 32
+        },
+        {
+          "caller": "reload",
+          "callee": "setHistory",
+          "lineNumber": 33
+        },
+        {
+          "caller": "reload",
+          "callee": "setError",
+          "lineNumber": 36
+        },
+        {
+          "caller": "reload",
+          "callee": "setInfo",
+          "lineNumber": 37
+        },
+        {
+          "caller": "reload",
+          "callee": "Promise.all",
+          "lineNumber": 39
+        },
+        {
+          "caller": "reload",
+          "callee": "getEodTotals",
+          "lineNumber": 40
+        },
+        {
+          "caller": "reload",
+          "callee": "getLowStock",
+          "lineNumber": 41
+        },
+        {
+          "caller": "reload",
+          "callee": "getEodHistory",
+          "lineNumber": 42
+        },
+        {
+          "caller": "reload",
+          "callee": "setToday",
+          "lineNumber": 44
+        },
+        {
+          "caller": "reload",
+          "callee": "setLowStock",
+          "lineNumber": 45
+        },
+        {
+          "caller": "reload",
+          "callee": "setHistory",
+          "lineNumber": 46
+        },
+        {
+          "caller": "reload",
+          "callee": "setError",
+          "lineNumber": 48
+        },
+        {
+          "caller": "DashboardPage",
+          "callee": "useEffect",
+          "lineNumber": 52
+        },
+        {
+          "caller": "DashboardPage",
+          "callee": "reload",
+          "lineNumber": 53
+        },
+        {
+          "caller": "signOff",
+          "callee": "confirm",
+          "lineNumber": 58
+        },
+        {
+          "caller": "signOff",
+          "callee": "setBusy",
+          "lineNumber": 59
+        },
+        {
+          "caller": "signOff",
+          "callee": "setError",
+          "lineNumber": 60
+        },
+        {
+          "caller": "signOff",
+          "callee": "setInfo",
+          "lineNumber": 61
+        },
+        {
+          "caller": "signOff",
+          "callee": "signOffEod",
+          "lineNumber": 63
+        },
+        {
+          "caller": "signOff",
+          "callee": "setInfo",
+          "lineNumber": 64
+        },
+        {
+          "caller": "signOff",
+          "callee": "reload",
+          "lineNumber": 65
+        },
+        {
+          "caller": "signOff",
+          "callee": "setError",
+          "lineNumber": 67
+        },
+        {
+          "caller": "signOff",
+          "callee": "setError",
+          "lineNumber": 68
+        },
+        {
+          "caller": "signOff",
+          "callee": "setBusy",
+          "lineNumber": 70
+        },
+        {
+          "caller": "DashboardPage",
+          "callee": "reload",
+          "lineNumber": 80
+        },
+        {
+          "caller": "DashboardPage",
+          "callee": "moneyFmt",
+          "lineNumber": 108
+        },
+        {
+          "caller": "DashboardPage",
+          "callee": "today.payments_by_mode.map",
+          "lineNumber": 130
+        },
+        {
+          "caller": "DashboardPage",
+          "callee": "moneyFmt",
+          "lineNumber": 137
+        },
+        {
+          "caller": "DashboardPage",
+          "callee": "new Date(lowStock.evaluated_at).toLocaleString",
+          "lineNumber": 156
+        },
+        {
+          "caller": "DashboardPage",
+          "callee": "lowStock.items.map",
+          "lineNumber": 170
+        },
+        {
+          "caller": "DashboardPage",
+          "callee": "signOff",
+          "lineNumber": 193
+        },
+        {
+          "caller": "DashboardPage",
+          "callee": "history.map",
+          "lineNumber": 218
+        },
+        {
+          "caller": "DashboardPage",
+          "callee": "new Date(s.signed_off_at).toLocaleString",
+          "lineNumber": 221
+        }
+      ],
+      "metrics": {
+        "importCount": 4,
+        "exportCount": 1,
+        "functionCount": 3,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "src/pages/InvoiceLookupPage.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 163,
+      "nonEmptyLines": 153,
+      "functions": [
+        {
+          "name": "InvoiceLookupPage",
+          "startLine": 10,
+          "endLine": 163,
+          "params": []
+        }
+      ],
+      "exports": [
+        {
+          "name": "InvoiceLookupPage",
+          "line": 10,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "InvoiceLookupPage",
+          "callee": "useState",
+          "lineNumber": 11
+        },
+        {
+          "caller": "InvoiceLookupPage",
+          "callee": "useState",
+          "lineNumber": 12
+        },
+        {
+          "caller": "InvoiceLookupPage",
+          "callee": "useState",
+          "lineNumber": 13
+        },
+        {
+          "caller": "InvoiceLookupPage",
+          "callee": "useState",
+          "lineNumber": 14
+        },
+        {
+          "caller": "InvoiceLookupPage",
+          "callee": "useState",
+          "lineNumber": 15
+        },
+        {
+          "caller": "lookup",
+          "callee": "e.preventDefault",
+          "lineNumber": 18
+        },
+        {
+          "caller": "lookup",
+          "callee": "setError",
+          "lineNumber": 19
+        },
+        {
+          "caller": "lookup",
+          "callee": "setInfo",
+          "lineNumber": 20
+        },
+        {
+          "caller": "lookup",
+          "callee": "setInvoice",
+          "lineNumber": 21
+        },
+        {
+          "caller": "lookup",
+          "callee": "Number",
+          "lineNumber": 22
+        },
+        {
+          "caller": "lookup",
+          "callee": "Number.isInteger",
+          "lineNumber": 23
+        },
+        {
+          "caller": "lookup",
+          "callee": "setError",
+          "lineNumber": 24
+        },
+        {
+          "caller": "lookup",
+          "callee": "setBusy",
+          "lineNumber": 27
+        },
+        {
+          "caller": "lookup",
+          "callee": "setInvoice",
+          "lineNumber": 29
+        },
+        {
+          "caller": "lookup",
+          "callee": "getInvoice",
+          "lineNumber": 29
+        },
+        {
+          "caller": "lookup",
+          "callee": "setError",
+          "lineNumber": 31
+        },
+        {
+          "caller": "lookup",
+          "callee": "setError",
+          "lineNumber": 32
+        },
+        {
+          "caller": "lookup",
+          "callee": "setBusy",
+          "lineNumber": 34
+        },
+        {
+          "caller": "requestVoidForInvoice",
+          "callee": "setBusy",
+          "lineNumber": 40
+        },
+        {
+          "caller": "requestVoidForInvoice",
+          "callee": "setError",
+          "lineNumber": 41
+        },
+        {
+          "caller": "requestVoidForInvoice",
+          "callee": "setInfo",
+          "lineNumber": 42
+        },
+        {
+          "caller": "requestVoidForInvoice",
+          "callee": "requestVoid",
+          "lineNumber": 44
+        },
+        {
+          "caller": "requestVoidForInvoice",
+          "callee": "setInvoice",
+          "lineNumber": 45
+        },
+        {
+          "caller": "requestVoidForInvoice",
+          "callee": "setInfo",
+          "lineNumber": 46
+        },
+        {
+          "caller": "requestVoidForInvoice",
+          "callee": "setError",
+          "lineNumber": 54
+        },
+        {
+          "caller": "requestVoidForInvoice",
+          "callee": "setError",
+          "lineNumber": 55
+        },
+        {
+          "caller": "requestVoidForInvoice",
+          "callee": "setBusy",
+          "lineNumber": 57
+        },
+        {
+          "caller": "InvoiceLookupPage",
+          "callee": "setIdInput",
+          "lineNumber": 70
+        },
+        {
+          "caller": "InvoiceLookupPage",
+          "callee": "new Date(invoice.finalized_at).toLocaleString",
+          "lineNumber": 104
+        },
+        {
+          "caller": "InvoiceLookupPage",
+          "callee": "requestVoidForInvoice",
+          "lineNumber": 110
+        },
+        {
+          "caller": "InvoiceLookupPage",
+          "callee": "invoice.lines.map",
+          "lineNumber": 129
+        },
+        {
+          "caller": "InvoiceLookupPage",
+          "callee": "invoice.payments.map",
+          "lineNumber": 152
+        }
+      ],
+      "metrics": {
+        "importCount": 3,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "src/pages/StaffPage.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 235,
+      "nonEmptyLines": 222,
+      "functions": [
+        {
+          "name": "StaffPage",
+          "startLine": 13,
+          "endLine": 124,
+          "params": []
+        },
+        {
+          "name": "CreateCard",
+          "startLine": 126,
+          "endLine": 192,
+          "params": [
+            "{\n  onSubmit,\n  busy,\n}"
+          ]
+        },
+        {
+          "name": "Field",
+          "startLine": 194,
+          "endLine": 222,
+          "params": [
+            "{\n  label,\n  value,\n  onChange,\n  type = \"text\",\n  required = false,\n  minLength,\n}"
+          ]
+        },
+        {
+          "name": "ResetPinButton",
+          "startLine": 224,
+          "endLine": 235,
+          "params": []
+        }
+      ],
+      "exports": [
+        {
+          "name": "StaffPage",
+          "line": 13,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "StaffPage",
+          "callee": "useAuth",
+          "lineNumber": 14
+        },
+        {
+          "caller": "StaffPage",
+          "callee": "useShopScope",
+          "lineNumber": 15
+        },
+        {
+          "caller": "StaffPage",
+          "callee": "useState",
+          "lineNumber": 16
+        },
+        {
+          "caller": "StaffPage",
+          "callee": "useState",
+          "lineNumber": 17
+        },
+        {
+          "caller": "StaffPage",
+          "callee": "useState",
+          "lineNumber": 18
+        },
+        {
+          "caller": "StaffPage",
+          "callee": "useState",
+          "lineNumber": 19
+        },
+        {
+          "caller": "reload",
+          "callee": "setItems",
+          "lineNumber": 22
+        },
+        {
+          "caller": "reload",
+          "callee": "setError",
+          "lineNumber": 23
+        },
+        {
+          "caller": "reload",
+          "callee": "listStaff",
+          "lineNumber": 25
+        },
+        {
+          "caller": "reload",
+          "callee": "setItems",
+          "lineNumber": 26
+        },
+        {
+          "caller": "reload",
+          "callee": "setError",
+          "lineNumber": 28
+        },
+        {
+          "caller": "StaffPage",
+          "callee": "useEffect",
+          "lineNumber": 32
+        },
+        {
+          "caller": "StaffPage",
+          "callee": "reload",
+          "lineNumber": 33
+        },
+        {
+          "caller": "onCreate",
+          "callee": "setError",
+          "lineNumber": 38
+        },
+        {
+          "caller": "onCreate",
+          "callee": "setBusy",
+          "lineNumber": 41
+        },
+        {
+          "caller": "onCreate",
+          "callee": "setError",
+          "lineNumber": 42
+        },
+        {
+          "caller": "onCreate",
+          "callee": "setInfo",
+          "lineNumber": 43
+        },
+        {
+          "caller": "onCreate",
+          "callee": "createStaff",
+          "lineNumber": 45
+        },
+        {
+          "caller": "onCreate",
+          "callee": "setInfo",
+          "lineNumber": 46
+        },
+        {
+          "caller": "onCreate",
+          "callee": "reload",
+          "lineNumber": 47
+        },
+        {
+          "caller": "onCreate",
+          "callee": "setError",
+          "lineNumber": 50
+        },
+        {
+          "caller": "onCreate",
+          "callee": "setError",
+          "lineNumber": 52
+        },
+        {
+          "caller": "onCreate",
+          "callee": "setError",
+          "lineNumber": 54
+        },
+        {
+          "caller": "onCreate",
+          "callee": "setBusy",
+          "lineNumber": 57
+        },
+        {
+          "caller": "StaffPage",
+          "callee": "reload",
+          "lineNumber": 67
+        },
+        {
+          "caller": "StaffPage",
+          "callee": "items.map",
+          "lineNumber": 106
+        },
+        {
+          "caller": "CreateCard",
+          "callee": "useState",
+          "lineNumber": 133
+        },
+        {
+          "caller": "CreateCard",
+          "callee": "useState",
+          "lineNumber": 134
+        },
+        {
+          "caller": "CreateCard",
+          "callee": "useState",
+          "lineNumber": 135
+        },
+        {
+          "caller": "CreateCard",
+          "callee": "useState",
+          "lineNumber": 136
+        },
+        {
+          "caller": "CreateCard",
+          "callee": "useState",
+          "lineNumber": 137
+        },
+        {
+          "caller": "submit",
+          "callee": "e.preventDefault",
+          "lineNumber": 140
+        },
+        {
+          "caller": "submit",
+          "callee": "username.trim",
+          "lineNumber": 142
+        },
+        {
+          "caller": "submit",
+          "callee": "fullName.trim",
+          "lineNumber": 143
+        },
+        {
+          "caller": "submit",
+          "callee": "phone.trim",
+          "lineNumber": 144
+        },
+        {
+          "caller": "submit",
+          "callee": "onSubmit",
+          "lineNumber": 149
+        },
+        {
+          "caller": "submit",
+          "callee": "username.trim",
+          "lineNumber": 151
+        },
+        {
+          "caller": "submit",
+          "callee": "fullName.trim",
+          "lineNumber": 152
+        },
+        {
+          "caller": "submit",
+          "callee": "phone.trim",
+          "lineNumber": 153
+        },
+        {
+          "caller": "submit",
+          "callee": "setUsername",
+          "lineNumber": 156
+        },
+        {
+          "caller": "submit",
+          "callee": "setFullName",
+          "lineNumber": 157
+        },
+        {
+          "caller": "submit",
+          "callee": "setPhone",
+          "lineNumber": 158
+        },
+        {
+          "caller": "submit",
+          "callee": "setPassword",
+          "lineNumber": 159
+        },
+        {
+          "caller": "CreateCard",
+          "callee": "setRole",
+          "lineNumber": 172
+        },
+        {
+          "caller": "Field",
+          "callee": "onChange",
+          "lineNumber": 215
+        },
+        {
+          "caller": "ResetPinButton",
+          "callee": "alert",
+          "lineNumber": 229
+        }
+      ],
+      "metrics": {
+        "importCount": 4,
+        "exportCount": 1,
+        "functionCount": 4,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "src/pages/VoidApprovalsPage.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 127,
+      "nonEmptyLines": 118,
+      "functions": [
+        {
+          "name": "moneyFmt",
+          "startLine": 8,
+          "endLine": 10,
+          "params": [
+            "s"
+          ]
+        },
+        {
+          "name": "VoidApprovalsPage",
+          "startLine": 12,
+          "endLine": 122,
+          "params": []
+        }
+      ],
+      "exports": [
+        {
+          "name": "VoidApprovalsPage",
+          "line": 12,
+          "isDefault": false
+        },
+        {
+          "name": "getInvoice",
+          "line": 126,
+          "isDefault": false
+        },
+        {
+          "name": "InvoicePublic",
+          "line": 127,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "VoidApprovalsPage",
+          "callee": "useAuth",
+          "lineNumber": 13
+        },
+        {
+          "caller": "VoidApprovalsPage",
+          "callee": "useShopScope",
+          "lineNumber": 14
+        },
+        {
+          "caller": "VoidApprovalsPage",
+          "callee": "useState",
+          "lineNumber": 15
+        },
+        {
+          "caller": "VoidApprovalsPage",
+          "callee": "useState",
+          "lineNumber": 16
+        },
+        {
+          "caller": "VoidApprovalsPage",
+          "callee": "useState",
+          "lineNumber": 17
+        },
+        {
+          "caller": "VoidApprovalsPage",
+          "callee": "useState",
+          "lineNumber": 18
+        },
+        {
+          "caller": "reload",
+          "callee": "setItems",
+          "lineNumber": 22
+        },
+        {
+          "caller": "reload",
+          "callee": "setItems",
+          "lineNumber": 25
+        },
+        {
+          "caller": "reload",
+          "callee": "listPendingVoids",
+          "lineNumber": 27
+        },
+        {
+          "caller": "reload",
+          "callee": "setItems",
+          "lineNumber": 28
+        },
+        {
+          "caller": "reload",
+          "callee": "setError",
+          "lineNumber": 30
+        },
+        {
+          "caller": "VoidApprovalsPage",
+          "callee": "useEffect",
+          "lineNumber": 34
+        },
+        {
+          "caller": "VoidApprovalsPage",
+          "callee": "reload",
+          "lineNumber": 35
+        },
+        {
+          "caller": "act",
+          "callee": "setBusyId",
+          "lineNumber": 39
+        },
+        {
+          "caller": "act",
+          "callee": "setError",
+          "lineNumber": 40
+        },
+        {
+          "caller": "act",
+          "callee": "setInfo",
+          "lineNumber": 41
+        },
+        {
+          "caller": "act",
+          "callee": "fn",
+          "lineNumber": 43
+        },
+        {
+          "caller": "act",
+          "callee": "setInfo",
+          "lineNumber": 44
+        },
+        {
+          "caller": "act",
+          "callee": "reload",
+          "lineNumber": 45
+        },
+        {
+          "caller": "act",
+          "callee": "setError",
+          "lineNumber": 47
+        },
+        {
+          "caller": "act",
+          "callee": "setError",
+          "lineNumber": 48
+        },
+        {
+          "caller": "act",
+          "callee": "setBusyId",
+          "lineNumber": 50
+        },
+        {
+          "caller": "VoidApprovalsPage",
+          "callee": "reload",
+          "lineNumber": 60
+        },
+        {
+          "caller": "VoidApprovalsPage",
+          "callee": "items.map",
+          "lineNumber": 86
+        },
+        {
+          "caller": "VoidApprovalsPage",
+          "callee": "moneyFmt",
+          "lineNumber": 94
+        },
+        {
+          "caller": "VoidApprovalsPage",
+          "callee": "new Date(it.finalized_at).toLocaleString",
+          "lineNumber": 95
+        },
+        {
+          "caller": "VoidApprovalsPage",
+          "callee": "act",
+          "lineNumber": 102
+        },
+        {
+          "caller": "VoidApprovalsPage",
+          "callee": "approveVoid",
+          "lineNumber": 102
+        },
+        {
+          "caller": "VoidApprovalsPage",
+          "callee": "act",
+          "lineNumber": 110
+        },
+        {
+          "caller": "VoidApprovalsPage",
+          "callee": "rejectVoid",
+          "lineNumber": 110
+        }
+      ],
+      "metrics": {
+        "importCount": 5,
+        "exportCount": 3,
+        "functionCount": 2,
+        "classCount": 0
+      }
+    }
+  ]
+}

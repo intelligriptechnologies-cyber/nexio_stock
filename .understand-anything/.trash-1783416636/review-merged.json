@@ -1,0 +1,44 @@
+{
+  "issues": [],
+  "warnings": [
+    "Node 'function:app/api/_errors.py:map_error_to_http' has no edges (orphan)",
+    "Node 'config:pyproject.toml' has no edges (orphan)",
+    "Node 'file:alembic/README' has no edges (orphan)",
+    "Node 'file:app/schemas/__init__.py' has no edges (orphan)",
+    "Node 'file:app/security/__init__.py' has no edges (orphan)",
+    "Node 'file:app/services/__init__.py' has no edges (orphan)",
+    "Node 'file:docs/frontend_initial/barstock_pos_inventory/code.html' has no edges (orphan)",
+    "Node 'document:harness/05-issues/README.md' has no edges (orphan)",
+    "Node 'file:tests/test_auth.py' has no edges (orphan)",
+    "Node 'file:tests/test_authorization.py' has no edges (orphan)",
+    "Node 'file:tests/test_health.py' has no edges (orphan)",
+    "Node 'config:frontend/eslint.config.js' has no edges (orphan)",
+    "Node 'file:frontend/src/vite-env.d.ts' has no edges (orphan)"
+  ],
+  "stats": {
+    "totalNodes": 460,
+    "totalEdges": 984,
+    "totalLayers": 17,
+    "tourSteps": 29,
+    "nodeTypes": {
+      "file": 117,
+      "function": 257,
+      "class": 60,
+      "config": 14,
+      "document": 11,
+      "service": 1
+    },
+    "edgeTypes": {
+      "contains": 314,
+      "exports": 215,
+      "imports": 215,
+      "calls": 176,
+      "inherits": 3,
+      "tested_by": 8,
+      "configures": 16,
+      "depends_on": 16,
+      "documents": 9,
+      "related": 12
+    }
+  }
+}

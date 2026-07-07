@@ -1,0 +1,330 @@
+{
+ "batchIndex": 4,
+ "files": [
+  {
+   "path": "app/api/checkout.py",
+   "language": "python",
+   "sizeLines": 248,
+   "fileCategory": "code"
+  },
+  {
+   "path": "app/api/voids.py",
+   "language": "python",
+   "sizeLines": 307,
+   "fileCategory": "code"
+  },
+  {
+   "path": "app/models/invoice.py",
+   "language": "python",
+   "sizeLines": 284,
+   "fileCategory": "code"
+  },
+  {
+   "path": "app/schemas/checkout.py",
+   "language": "python",
+   "sizeLines": 114,
+   "fileCategory": "code"
+  },
+  {
+   "path": "app/services/checkout.py",
+   "language": "python",
+   "sizeLines": 410,
+   "fileCategory": "code"
+  },
+  {
+   "path": "app/services/invoice_pdf.py",
+   "language": "python",
+   "sizeLines": 160,
+   "fileCategory": "code"
+  },
+  {
+   "path": "app/services/voids.py",
+   "language": "python",
+   "sizeLines": 272,
+   "fileCategory": "code"
+  },
+  {
+   "path": "tests/test_eod.py",
+   "language": "python",
+   "sizeLines": 374,
+   "fileCategory": "code"
+  }
+ ],
+ "batchImportData": {
+  "app/api/checkout.py": [
+   "app/api/deps.py",
+   "app/logging_config.py",
+   "app/models/invoice.py",
+   "app/models/log.py",
+   "app/models/user.py",
+   "app/schemas/checkout.py",
+   "app/services/checkout.py"
+  ],
+  "app/api/voids.py": [
+   "app/api/deps.py",
+   "app/logging_config.py",
+   "app/models/invoice.py",
+   "app/models/log.py",
+   "app/models/user.py",
+   "app/schemas/checkout.py",
+   "app/services/voids.py"
+  ],
+  "app/models/invoice.py": [
+   "app/db.py"
+  ],
+  "app/schemas/checkout.py": [
+   "app/models/invoice.py"
+  ],
+  "app/services/checkout.py": [
+   "app/models/invoice.py",
+   "app/models/lot.py",
+   "app/models/product.py",
+   "app/models/shop.py"
+  ],
+  "app/services/invoice_pdf.py": [
+   "app/models/invoice.py"
+  ],
+  "app/services/voids.py": [
+   "app/models/invoice.py",
+   "app/models/shop.py"
+  ],
+  "tests/test_eod.py": [
+   "app/models/invoice.py"
+  ]
+ },
+ "neighborMap": {
+  "app/api/checkout.py": [
+   {
+    "path": "app/api/deps.py",
+    "batchIndex": 2,
+    "symbols": [
+     "db_session",
+     "get_current_user",
+     "require_role",
+     "resolve_write_shop_id",
+     "require_shop_scope"
+    ]
+   },
+   {
+    "path": "app/logging_config.py",
+    "batchIndex": 3,
+    "symbols": [
+     "configure_logging",
+     "get_logger"
+    ]
+   },
+   {
+    "path": "app/models/log.py",
+    "batchIndex": 1,
+    "symbols": [
+     "_BaseLog",
+     "InvoicingLog",
+     "StockinLog",
+     "AdminLog"
+    ]
+   },
+   {
+    "path": "app/models/user.py",
+    "batchIndex": 2,
+    "symbols": [
+     "UserRole",
+     "User"
+    ]
+   },
+   {
+    "path": "app/main.py",
+    "batchIndex": 3,
+    "symbols": [
+     "lifespan",
+     "_low_stock_loop",
+     "create_app"
+    ]
+   }
+  ],
+  "app/api/voids.py": [
+   {
+    "path": "app/api/deps.py",
+    "batchIndex": 2,
+    "symbols": [
+     "db_session",
+     "get_current_user",
+     "require_role",
+     "resolve_write_shop_id",
+     "require_shop_scope"
+    ]
+   },
+   {
+    "path": "app/logging_config.py",
+    "batchIndex": 3,
+    "symbols": [
+     "configure_logging",
+     "get_logger"
+    ]
+   },
+   {
+    "path": "app/models/log.py",
+    "batchIndex": 1,
+    "symbols": [
+     "_BaseLog",
+     "InvoicingLog",
+     "StockinLog",
+     "AdminLog"
+    ]
+   },
+   {
+    "path": "app/models/user.py",
+    "batchIndex": 2,
+    "symbols": [
+     "UserRole",
+     "User"
+    ]
+   },
+   {
+    "path": "app/main.py",
+    "batchIndex": 3,
+    "symbols": [
+     "lifespan",
+     "_low_stock_loop",
+     "create_app"
+    ]
+   }
+  ],
+  "app/models/invoice.py": [
+   {
+    "path": "app/db.py",
+    "batchIndex": 2,
+    "symbols": [
+     "Base",
+     "get_engine",
+     "get_sessionmaker",
+     "reset_engine",
+     "get_db",
+     "init_db"
+    ]
+   },
+   {
+    "path": "app/models/__init__.py",
+    "batchIndex": 1,
+    "symbols": []
+   },
+   {
+    "path": "app/services/eod.py",
+    "batchIndex": 3,
+    "symbols": [
+     "EodError",
+     "SignOffResult",
+     "EodTotals",
+     "_day_bounds",
+     "sign_off_day",
+     "get_day_totals",
+     "list_signoff_history",
+     "list_pending_voids"
+    ]
+   },
+   {
+    "path": "app/services/low_stock.py",
+    "batchIndex": 1,
+    "symbols": [
+     "LowStockRow",
+     "_stock_per_product",
+     "compute_low_stock"
+    ]
+   },
+   {
+    "path": "tests/test_checkout.py",
+    "batchIndex": 1,
+    "symbols": [
+     "_seed_product",
+     "_seed_lot",
+     "_idem_key",
+     "test_cashier_finalizes_a_one_line_invoice",
+     "test_cashier_finalizes_multi_line_invoice",
+     "test_payment_split_across_modes",
+     "test_payment_mismatch_is_rejected_with_400",
+     "test_quantity_exceeding_stock_is_rejected",
+     "test_unknown_barcode_is_rejected_with_404",
+     "test_idempotency_key_replay_returns_same_invoice",
+     "test_missing_idempotency_key_is_400",
+     "test_two_concurrent_finalizes_for_last_unit_only_one_wins",
+     "test_receiver_cannot_finalize_checkout",
+     "test_owner_can_finalize_checkout",
+     "test_finalized_invoice_lines_are_immutable",
+     "test_finalize_writes_an_invoicing_log",
+     "test_invoice_pdf_is_a_real_pdf",
+     "test_invoice_pdf_is_403_for_receiver",
+     "test_empty_cart_rejected"
+    ]
+   },
+   {
+    "path": "tests/test_voids.py",
+    "batchIndex": 1,
+    "symbols": [
+     "_seed_product",
+     "_seed_lot",
+     "_finalize",
+     "test_cashier_can_directly_void_a_pre_eod_invoice",
+     "test_pre_eod_void_restores_stock",
+     "test_voiding_a_voided_invoice_returns_409",
+     "test_pre_eod_void_writes_invoicing_log",
+     "_mark_signed_off",
+     "test_cashier_can_request_void_on_signed_off_invoice",
+     "test_request_void_reason_reaches_backend_as_json_body",
+     "test_cashier_cannot_approve_pending_void",
+     "test_owner_approving_pending_void_creates_reversal",
+     "test_owner_rejecting_pending_void_reverts_to_finalized",
+     "test_approve_on_non_pending_invoice_is_409",
+     "test_void_actions_write_invoicing_logs"
+    ]
+   }
+  ],
+  "app/schemas/checkout.py": [
+   {
+    "path": "app/schemas/eod.py",
+    "batchIndex": 3,
+    "symbols": [
+     "SignOffRequest",
+     "SignOffResponse",
+     "PaymentModeTotal",
+     "EodTotalsResponse",
+     "SignOffHistoryResponse",
+     "PendingVoidResponse",
+     "LowStockItem",
+     "LowStockResponse"
+    ]
+   }
+  ],
+  "app/services/checkout.py": [
+   {
+    "path": "app/models/lot.py",
+    "batchIndex": 1,
+    "symbols": [
+     "Lot",
+     "LotLine"
+    ]
+   },
+   {
+    "path": "app/models/product.py",
+    "batchIndex": 1,
+    "symbols": [
+     "Product"
+    ]
+   },
+   {
+    "path": "app/models/shop.py",
+    "batchIndex": 5,
+    "symbols": [
+     "Shop"
+    ]
+   }
+  ],
+  "app/services/voids.py": [
+   {
+    "path": "app/models/shop.py",
+    "batchIndex": 5,
+    "symbols": [
+     "Shop"
+    ]
+   }
+  ]
+ }
+}

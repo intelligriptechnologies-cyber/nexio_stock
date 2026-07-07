@@ -1,0 +1,489 @@
+{
+ "batchIndex": 1,
+ "files": [
+  {
+   "path": "alembic/env.py",
+   "language": "python",
+   "sizeLines": 72,
+   "fileCategory": "code"
+  },
+  {
+   "path": "app/__init__.py",
+   "language": "python",
+   "sizeLines": 1,
+   "fileCategory": "code"
+  },
+  {
+   "path": "app/api/_errors.py",
+   "language": "python",
+   "sizeLines": 71,
+   "fileCategory": "code"
+  },
+  {
+   "path": "app/api/lots.py",
+   "language": "python",
+   "sizeLines": 201,
+   "fileCategory": "code"
+  },
+  {
+   "path": "app/api/products.py",
+   "language": "python",
+   "sizeLines": 372,
+   "fileCategory": "code"
+  },
+  {
+   "path": "app/models/__init__.py",
+   "language": "python",
+   "sizeLines": 43,
+   "fileCategory": "code"
+  },
+  {
+   "path": "app/models/log.py",
+   "language": "python",
+   "sizeLines": 90,
+   "fileCategory": "code"
+  },
+  {
+   "path": "app/models/lot.py",
+   "language": "python",
+   "sizeLines": 88,
+   "fileCategory": "code"
+  },
+  {
+   "path": "app/models/product.py",
+   "language": "python",
+   "sizeLines": 72,
+   "fileCategory": "code"
+  },
+  {
+   "path": "app/schemas/lot.py",
+   "language": "python",
+   "sizeLines": 80,
+   "fileCategory": "code"
+  },
+  {
+   "path": "app/schemas/product.py",
+   "language": "python",
+   "sizeLines": 118,
+   "fileCategory": "code"
+  },
+  {
+   "path": "app/services/low_stock.py",
+   "language": "python",
+   "sizeLines": 173,
+   "fileCategory": "code"
+  },
+  {
+   "path": "tests/test_checkout.py",
+   "language": "python",
+   "sizeLines": 451,
+   "fileCategory": "code"
+  },
+  {
+   "path": "tests/test_lots.py",
+   "language": "python",
+   "sizeLines": 260,
+   "fileCategory": "code"
+  },
+  {
+   "path": "tests/test_voids.py",
+   "language": "python",
+   "sizeLines": 326,
+   "fileCategory": "code"
+  }
+ ],
+ "batchImportData": {
+  "alembic/env.py": [
+   "app/__init__.py",
+   "app/config.py",
+   "app/db.py",
+   "app/models/__init__.py"
+  ],
+  "app/__init__.py": [],
+  "app/api/_errors.py": [],
+  "app/api/lots.py": [
+   "app/api/deps.py",
+   "app/logging_config.py",
+   "app/models/log.py",
+   "app/models/lot.py",
+   "app/models/product.py",
+   "app/models/user.py",
+   "app/schemas/lot.py"
+  ],
+  "app/api/products.py": [
+   "app/api/_errors.py",
+   "app/api/deps.py",
+   "app/logging_config.py",
+   "app/models/product.py",
+   "app/models/user.py",
+   "app/schemas/product.py"
+  ],
+  "app/models/__init__.py": [
+   "app/models/invoice.py",
+   "app/models/log.py",
+   "app/models/lot.py",
+   "app/models/product.py",
+   "app/models/shop.py",
+   "app/models/user.py"
+  ],
+  "app/models/log.py": [
+   "app/db.py"
+  ],
+  "app/models/lot.py": [
+   "app/db.py"
+  ],
+  "app/models/product.py": [
+   "app/db.py"
+  ],
+  "app/schemas/lot.py": [
+   "app/models/lot.py"
+  ],
+  "app/schemas/product.py": [
+   "app/models/product.py"
+  ],
+  "app/services/low_stock.py": [
+   "app/models/invoice.py",
+   "app/models/lot.py",
+   "app/models/product.py"
+  ],
+  "tests/test_checkout.py": [
+   "app/models/invoice.py",
+   "app/models/log.py",
+   "app/models/lot.py"
+  ],
+  "tests/test_lots.py": [
+   "app/models/log.py",
+   "app/models/lot.py",
+   "app/models/product.py"
+  ],
+  "tests/test_voids.py": [
+   "app/models/invoice.py",
+   "app/models/log.py",
+   "app/models/lot.py",
+   "app/models/product.py"
+  ]
+ },
+ "neighborMap": {
+  "alembic/env.py": [
+   {
+    "path": "app/config.py",
+    "batchIndex": 2,
+    "symbols": [
+     "Settings",
+     "get_settings"
+    ]
+   },
+   {
+    "path": "app/db.py",
+    "batchIndex": 2,
+    "symbols": [
+     "Base",
+     "get_engine",
+     "get_sessionmaker",
+     "reset_engine",
+     "get_db",
+     "init_db"
+    ]
+   }
+  ],
+  "app/api/_errors.py": [
+   {
+    "path": "app/api/staff.py",
+    "batchIndex": 2,
+    "symbols": [
+     "create_staff",
+     "list_staff"
+    ]
+   }
+  ],
+  "app/api/lots.py": [
+   {
+    "path": "app/api/deps.py",
+    "batchIndex": 2,
+    "symbols": [
+     "db_session",
+     "get_current_user",
+     "require_role",
+     "resolve_write_shop_id",
+     "require_shop_scope"
+    ]
+   },
+   {
+    "path": "app/logging_config.py",
+    "batchIndex": 3,
+    "symbols": [
+     "configure_logging",
+     "get_logger"
+    ]
+   },
+   {
+    "path": "app/models/user.py",
+    "batchIndex": 2,
+    "symbols": [
+     "UserRole",
+     "User"
+    ]
+   },
+   {
+    "path": "app/main.py",
+    "batchIndex": 3,
+    "symbols": [
+     "lifespan",
+     "_low_stock_loop",
+     "create_app"
+    ]
+   }
+  ],
+  "app/api/products.py": [
+   {
+    "path": "app/api/deps.py",
+    "batchIndex": 2,
+    "symbols": [
+     "db_session",
+     "get_current_user",
+     "require_role",
+     "resolve_write_shop_id",
+     "require_shop_scope"
+    ]
+   },
+   {
+    "path": "app/logging_config.py",
+    "batchIndex": 3,
+    "symbols": [
+     "configure_logging",
+     "get_logger"
+    ]
+   },
+   {
+    "path": "app/models/user.py",
+    "batchIndex": 2,
+    "symbols": [
+     "UserRole",
+     "User"
+    ]
+   },
+   {
+    "path": "app/main.py",
+    "batchIndex": 3,
+    "symbols": [
+     "lifespan",
+     "_low_stock_loop",
+     "create_app"
+    ]
+   }
+  ],
+  "app/models/__init__.py": [
+   {
+    "path": "app/models/invoice.py",
+    "batchIndex": 4,
+    "symbols": [
+     "InvoiceStatus",
+     "PaymentMode",
+     "Invoice",
+     "InvoiceLine",
+     "Payment",
+     "EodSignOff",
+     "IdempotencyKey"
+    ]
+   },
+   {
+    "path": "app/models/shop.py",
+    "batchIndex": 5,
+    "symbols": [
+     "Shop"
+    ]
+   },
+   {
+    "path": "app/models/user.py",
+    "batchIndex": 2,
+    "symbols": [
+     "UserRole",
+     "User"
+    ]
+   }
+  ],
+  "app/models/log.py": [
+   {
+    "path": "app/db.py",
+    "batchIndex": 2,
+    "symbols": [
+     "Base",
+     "get_engine",
+     "get_sessionmaker",
+     "reset_engine",
+     "get_db",
+     "init_db"
+    ]
+   },
+   {
+    "path": "app/api/checkout.py",
+    "batchIndex": 4,
+    "symbols": [
+     "_error_to_http",
+     "finalize",
+     "_load_invoice_or_404",
+     "get_invoice",
+     "get_invoice_pdf"
+    ]
+   },
+   {
+    "path": "app/api/voids.py",
+    "batchIndex": 4,
+    "symbols": [
+     "_resolve_void_shop_id",
+     "_error_to_http",
+     "request_void",
+     "approve_void",
+     "reject_void",
+     "_load_invoice",
+     "_not_found",
+     "_write_void_log"
+    ]
+   }
+  ],
+  "app/models/lot.py": [
+   {
+    "path": "app/db.py",
+    "batchIndex": 2,
+    "symbols": [
+     "Base",
+     "get_engine",
+     "get_sessionmaker",
+     "reset_engine",
+     "get_db",
+     "init_db"
+    ]
+   },
+   {
+    "path": "app/services/checkout.py",
+    "batchIndex": 4,
+    "symbols": [
+     "CheckoutError",
+     "CartLine",
+     "PaymentLine",
+     "FinalizeResult",
+     "_check_idempotency_key_present",
+     "_is_today_signed_off",
+     "_resolve_products_for_cart",
+     "_current_stock_for",
+     "finalize_checkout"
+    ]
+   }
+  ],
+  "app/models/product.py": [
+   {
+    "path": "app/db.py",
+    "batchIndex": 2,
+    "symbols": [
+     "Base",
+     "get_engine",
+     "get_sessionmaker",
+     "reset_engine",
+     "get_db",
+     "init_db"
+    ]
+   },
+   {
+    "path": "app/services/checkout.py",
+    "batchIndex": 4,
+    "symbols": [
+     "CheckoutError",
+     "CartLine",
+     "PaymentLine",
+     "FinalizeResult",
+     "_check_idempotency_key_present",
+     "_is_today_signed_off",
+     "_resolve_products_for_cart",
+     "_current_stock_for",
+     "finalize_checkout"
+    ]
+   },
+   {
+    "path": "tests/test_low_stock.py",
+    "batchIndex": 5,
+    "symbols": [
+     "_seed_product",
+     "_seed_lot",
+     "_finalize",
+     "test_no_default_no_overrides_returns_empty",
+     "test_per_product_override_triggers_alert",
+     "test_product_above_threshold_not_in_list",
+     "test_product_at_threshold_appears",
+     "test_sale_brings_product_below_threshold",
+     "test_per_product_override_beats_shop_default",
+     "test_list_sorted_most_urgent_first",
+     "test_receiver_can_view_low_stock",
+     "test_low_stock_inactive_products_excluded"
+    ]
+   },
+   {
+    "path": "tests/test_products.py",
+    "batchIndex": 5,
+    "symbols": [
+     "test_owner_creates_product",
+     "test_receiver_cannot_create_product",
+     "test_cashier_cannot_create_product",
+     "test_duplicate_barcode_rejected_with_409",
+     "test_each_bottle_size_is_a_separate_product",
+     "test_lookup_by_barcode_succeeds_for_cashier",
+     "test_lookup_returns_404_for_unknown_barcode",
+     "test_manual_barcode_entry_falls_back_through_lookup",
+     "test_list_filters_to_own_shop",
+     "test_superadmin_shop_id_scopes_list_and_lookup",
+     "test_owner_updates_price_and_threshold",
+     "test_csv_import_happy_path",
+     "test_csv_import_per_row_errors_are_surfaced",
+     "test_csv_import_with_low_stock_threshold_column",
+     "test_csv_import_rejects_missing_columns",
+     "test_csv_import_rejects_cashier",
+     "test_csv_import_handles_utf8_bom"
+    ]
+   }
+  ],
+  "app/services/low_stock.py": [
+   {
+    "path": "app/models/invoice.py",
+    "batchIndex": 4,
+    "symbols": [
+     "InvoiceStatus",
+     "PaymentMode",
+     "Invoice",
+     "InvoiceLine",
+     "Payment",
+     "EodSignOff",
+     "IdempotencyKey"
+    ]
+   }
+  ],
+  "tests/test_checkout.py": [
+   {
+    "path": "app/models/invoice.py",
+    "batchIndex": 4,
+    "symbols": [
+     "InvoiceStatus",
+     "PaymentMode",
+     "Invoice",
+     "InvoiceLine",
+     "Payment",
+     "EodSignOff",
+     "IdempotencyKey"
+    ]
+   }
+  ],
+  "tests/test_voids.py": [
+   {
+    "path": "app/models/invoice.py",
+    "batchIndex": 4,
+    "symbols": [
+     "InvoiceStatus",
+     "PaymentMode",
+     "Invoice",
+     "InvoiceLine",
+     "Payment",
+     "EodSignOff",
+     "IdempotencyKey"
+    ]
+   }
+  ]
+ }
+}

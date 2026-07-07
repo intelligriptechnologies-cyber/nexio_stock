@@ -1,0 +1,17 @@
+{
+  "projectRoot": "C:/barstock",
+  "batchFiles": [
+    {"path": "app/models/shop.py", "language": "python", "sizeLines": 65, "fileCategory": "code"},
+    {"path": "tests/conftest.py", "language": "python", "sizeLines": 328, "fileCategory": "code"},
+    {"path": "tests/test_low_stock.py", "language": "python", "sizeLines": 256, "fileCategory": "code"},
+    {"path": "tests/test_products.py", "language": "python", "sizeLines": 299, "fileCategory": "code"},
+    {"path": "tests/test_shops.py", "language": "python", "sizeLines": 226, "fileCategory": "code"}
+  ],
+  "batchImportData": {
+    "app/models/shop.py": ["app/db.py"],
+    "tests/conftest.py": ["app/models/shop.py","app/models/user.py","app/security/passwords.py"],
+    "tests/test_low_stock.py": ["app/models/product.py","app/models/shop.py"],
+    "tests/test_products.py": ["app/models/product.py","app/models/shop.py"],
+    "tests/test_shops.py": ["app/models/shop.py"]
+  }
+}

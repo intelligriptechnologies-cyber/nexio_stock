@@ -1,0 +1,178 @@
+{
+  "scriptCompleted": true,
+  "stats": {
+    "filesScanned": 57,
+    "filesWithImports": 28,
+    "totalEdges": 83
+  },
+  "importMap": {
+    ".understand-anything/.understandignore": [],
+    "e2e/checkout-resilience.spec.ts": [],
+    "e2e/checkout.spec.ts": [],
+    "e2e/dashboard.spec.ts": [],
+    "e2e/login.smoke.spec.ts": [],
+    "e2e/products.spec.ts": [],
+    "e2e/receiving.spec.ts": [],
+    "e2e/shop-config.spec.ts": [],
+    "e2e/staff.spec.ts": [],
+    "e2e/voids.spec.ts": [],
+    "eslint.config.js": [],
+    "index.html": [],
+    "package.json": [],
+    "playwright.config.ts": [],
+    "postcss.config.cjs": [],
+    "src/api/catalog.ts": [
+      "src/api/client.ts"
+    ],
+    "src/api/checkout.ts": [
+      "src/api/client.ts"
+    ],
+    "src/api/client.ts": [],
+    "src/api/dashboard.ts": [
+      "src/api/client.ts"
+    ],
+    "src/api/finalize-queue.ts": [
+      "src/api/client.ts"
+    ],
+    "src/api/lots.ts": [
+      "src/api/catalog.ts",
+      "src/api/client.ts"
+    ],
+    "src/api/products.ts": [
+      "src/api/catalog.ts",
+      "src/api/client.ts"
+    ],
+    "src/api/shops.ts": [
+      "src/api/client.ts"
+    ],
+    "src/api/staff.ts": [
+      "src/api/client.ts"
+    ],
+    "src/api/voids.ts": [
+      "src/api/checkout.ts",
+      "src/api/client.ts"
+    ],
+    "src/App.tsx": [
+      "src/auth/AuthProvider.tsx",
+      "src/components/Sidebar.tsx",
+      "src/pages/AdminPlaceholder.tsx",
+      "src/pages/CheckoutPage.tsx",
+      "src/pages/DashboardPage.tsx",
+      "src/pages/ForbiddenPage.tsx",
+      "src/pages/HomeRedirect.tsx",
+      "src/pages/InvoiceLookupPage.tsx",
+      "src/pages/LoginPage.tsx",
+      "src/pages/ProductsPage.tsx",
+      "src/pages/ReceivingPage.tsx",
+      "src/pages/ShopConfigPage.tsx",
+      "src/pages/StaffPage.tsx",
+      "src/pages/SuperadminLoginPage.tsx",
+      "src/pages/VoidApprovalsPage.tsx"
+    ],
+    "src/auth/AuthProvider.tsx": [
+      "src/auth/jwt.ts"
+    ],
+    "src/auth/jwt.ts": [],
+    "src/auth/ShopScopeProvider.tsx": [],
+    "src/components/PinPad.tsx": [],
+    "src/components/ShopPicker.tsx": [
+      "src/api/shops.ts",
+      "src/auth/AuthProvider.tsx",
+      "src/auth/ShopScopeProvider.tsx"
+    ],
+    "src/components/Sidebar.tsx": [
+      "src/auth/AuthProvider.tsx",
+      "src/components/ShopPicker.tsx"
+    ],
+    "src/hooks/useOnlineStatus.ts": [],
+    "src/hooks/useRetryQueue.ts": [
+      "src/api/finalize-queue.ts",
+      "src/hooks/useOnlineStatus.ts"
+    ],
+    "src/index.css": [],
+    "src/main.tsx": [
+      "src/App.tsx",
+      "src/auth/AuthProvider.tsx",
+      "src/auth/ShopScopeProvider.tsx",
+      "src/index.css"
+    ],
+    "src/pages/AdminPlaceholder.tsx": [],
+    "src/pages/CheckoutPage.tsx": [
+      "src/api/catalog.ts",
+      "src/api/checkout.ts",
+      "src/api/client.ts",
+      "src/api/finalize-queue.ts",
+      "src/auth/ShopScopeProvider.tsx",
+      "src/hooks/useOnlineStatus.ts",
+      "src/hooks/useRetryQueue.ts"
+    ],
+    "src/pages/DashboardPage.tsx": [
+      "src/api/client.ts",
+      "src/api/dashboard.ts",
+      "src/auth/AuthProvider.tsx",
+      "src/auth/ShopScopeProvider.tsx"
+    ],
+    "src/pages/ForbiddenPage.tsx": [
+      "src/auth/AuthProvider.tsx"
+    ],
+    "src/pages/HomeRedirect.tsx": [
+      "src/auth/AuthProvider.tsx"
+    ],
+    "src/pages/InvoiceLookupPage.tsx": [
+      "src/api/checkout.ts",
+      "src/api/client.ts",
+      "src/api/voids.ts"
+    ],
+    "src/pages/LoginPage.tsx": [
+      "src/api/client.ts",
+      "src/auth/AuthProvider.tsx",
+      "src/components/PinPad.tsx"
+    ],
+    "src/pages/ProductsPage.tsx": [
+      "src/api/catalog.ts",
+      "src/api/products.ts",
+      "src/auth/AuthProvider.tsx",
+      "src/auth/ShopScopeProvider.tsx"
+    ],
+    "src/pages/ReceivingPage.tsx": [
+      "src/api/catalog.ts",
+      "src/api/client.ts",
+      "src/api/lots.ts",
+      "src/auth/AuthProvider.tsx",
+      "src/auth/ShopScopeProvider.tsx"
+    ],
+    "src/pages/ShopConfigPage.tsx": [
+      "src/api/client.ts",
+      "src/api/shops.ts",
+      "src/auth/AuthProvider.tsx",
+      "src/auth/ShopScopeProvider.tsx"
+    ],
+    "src/pages/StaffPage.tsx": [
+      "src/api/client.ts",
+      "src/api/staff.ts",
+      "src/auth/AuthProvider.tsx",
+      "src/auth/ShopScopeProvider.tsx"
+    ],
+    "src/pages/SuperadminLoginPage.tsx": [
+      "src/api/client.ts",
+      "src/auth/AuthProvider.tsx"
+    ],
+    "src/pages/VoidApprovalsPage.tsx": [
+      "src/api/checkout.ts",
+      "src/api/client.ts",
+      "src/api/voids.ts",
+      "src/auth/AuthProvider.tsx",
+      "src/auth/ShopScopeProvider.tsx"
+    ],
+    "src/theme/tokens.ts": [],
+    "src/vite-env.d.ts": [],
+    "tailwind.config.ts": [
+      "src/theme/tokens.ts"
+    ],
+    "tsconfig.app.json": [],
+    "tsconfig.e2e.json": [],
+    "tsconfig.json": [],
+    "tsconfig.node.json": [],
+    "vite.config.ts": []
+  }
+}

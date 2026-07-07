@@ -1,0 +1,1416 @@
+{
+  "scriptCompleted": true,
+  "filesAnalyzed": 5,
+  "filesSkipped": [],
+  "results": [
+    {
+      "path": "src/api/catalog.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 75,
+      "nonEmptyLines": 68,
+      "functions": [
+        {
+          "name": "prefetchCatalog",
+          "startLine": 30,
+          "endLine": 49,
+          "params": [
+            "shopId"
+          ]
+        },
+        {
+          "name": "resolveBarcode",
+          "startLine": 51,
+          "endLine": 64,
+          "params": [
+            "barcode",
+            "shopId"
+          ]
+        },
+        {
+          "name": "invalidateCache",
+          "startLine": 66,
+          "endLine": 70,
+          "params": []
+        },
+        {
+          "name": "cacheSize",
+          "startLine": 73,
+          "endLine": 75,
+          "params": []
+        }
+      ],
+      "exports": [
+        {
+          "name": "prefetchCatalog",
+          "line": 30,
+          "isDefault": false
+        },
+        {
+          "name": "resolveBarcode",
+          "line": 51,
+          "isDefault": false
+        },
+        {
+          "name": "invalidateCache",
+          "line": 66,
+          "isDefault": false
+        },
+        {
+          "name": "cacheSize",
+          "line": 73,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "prefetchCatalog",
+          "callee": "(async () => {\n    const items = await api<CatalogProduct[]>(`/products?active_only=true&limit=500${qs}`);\n    const m = new Map<string, CatalogProduct>();\n    for (const p of items) m.set(p.barcode, p);\n    cache = m;\n    cacheShopId = shopId ?? null;\n    inflight = null;\n    return m;\n  })().catch",
+          "lineNumber": 36
+        },
+        {
+          "caller": "prefetchCatalog",
+          "callee": "(async () => {\n    const items = await api<CatalogProduct[]>(`/products?active_only=true&limit=500${qs}`);\n    const m = new Map<string, CatalogProduct>();\n    for (const p of items) m.set(p.barcode, p);\n    cache = m;\n    cacheShopId = shopId ?? null;\n    inflight = null;\n    return m;\n  })",
+          "lineNumber": 36
+        },
+        {
+          "caller": "prefetchCatalog",
+          "callee": "await api",
+          "lineNumber": 37
+        },
+        {
+          "caller": "prefetchCatalog",
+          "callee": "m.set",
+          "lineNumber": 39
+        },
+        {
+          "caller": "resolveBarcode",
+          "callee": "prefetchCatalog",
+          "lineNumber": 55
+        },
+        {
+          "caller": "resolveBarcode",
+          "callee": "cache!.get",
+          "lineNumber": 56
+        },
+        {
+          "caller": "resolveBarcode",
+          "callee": "await api",
+          "lineNumber": 59
+        },
+        {
+          "caller": "resolveBarcode",
+          "callee": "encodeURIComponent",
+          "lineNumber": 60
+        },
+        {
+          "caller": "resolveBarcode",
+          "callee": "cache!.set",
+          "lineNumber": 62
+        }
+      ],
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 4,
+        "functionCount": 4,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "src/api/lots.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 73,
+      "nonEmptyLines": 64,
+      "functions": [
+        {
+          "name": "createLot",
+          "startLine": 32,
+          "endLine": 38,
+          "params": [
+            "payload",
+            "shopId"
+          ]
+        },
+        {
+          "name": "listRecentLots",
+          "startLine": 40,
+          "endLine": 42,
+          "params": [
+            "limit"
+          ]
+        },
+        {
+          "name": "resolveForReceiving",
+          "startLine": 47,
+          "endLine": 52,
+          "params": [
+            "barcode",
+            "shopId"
+          ]
+        },
+        {
+          "name": "createLotSafe",
+          "startLine": 63,
+          "endLine": 73,
+          "params": [
+            "payload",
+            "shopId"
+          ]
+        }
+      ],
+      "classes": [
+        {
+          "name": "LotValidationError",
+          "startLine": 54,
+          "endLine": 58,
+          "methods": [
+            "constructor"
+          ],
+          "properties": []
+        }
+      ],
+      "exports": [
+        {
+          "name": "createLot",
+          "line": 32,
+          "isDefault": false
+        },
+        {
+          "name": "listRecentLots",
+          "line": 40,
+          "isDefault": false
+        },
+        {
+          "name": "resolveForReceiving",
+          "line": 47,
+          "isDefault": false
+        },
+        {
+          "name": "LotValidationError",
+          "line": 54,
+          "isDefault": false
+        },
+        {
+          "name": "createLotSafe",
+          "line": 63,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "createLot",
+          "callee": "api",
+          "lineNumber": 34
+        },
+        {
+          "caller": "listRecentLots",
+          "callee": "api",
+          "lineNumber": 41
+        },
+        {
+          "caller": "resolveForReceiving",
+          "callee": "resolveBarcode",
+          "lineNumber": 51
+        },
+        {
+          "caller": "constructor",
+          "callee": "super",
+          "lineNumber": 56
+        },
+        {
+          "caller": "createLotSafe",
+          "callee": "createLot",
+          "lineNumber": 68
+        }
+      ],
+      "metrics": {
+        "importCount": 2,
+        "exportCount": 5,
+        "functionCount": 4,
+        "classCount": 1
+      }
+    },
+    {
+      "path": "src/api/products.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 87,
+      "nonEmptyLines": 78,
+      "functions": [
+        {
+          "name": "listProducts",
+          "startLine": 38,
+          "endLine": 44,
+          "params": [
+            "opts"
+          ]
+        },
+        {
+          "name": "createProduct",
+          "startLine": 46,
+          "endLine": 52,
+          "params": [
+            "payload",
+            "shopId"
+          ]
+        },
+        {
+          "name": "updateProduct",
+          "startLine": 54,
+          "endLine": 56,
+          "params": [
+            "id",
+            "payload"
+          ]
+        },
+        {
+          "name": "importProductsCsv",
+          "startLine": 58,
+          "endLine": 87,
+          "params": [
+            "file",
+            "shopId"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "listProducts",
+          "line": 38,
+          "isDefault": false
+        },
+        {
+          "name": "createProduct",
+          "line": 46,
+          "isDefault": false
+        },
+        {
+          "name": "updateProduct",
+          "line": 54,
+          "isDefault": false
+        },
+        {
+          "name": "importProductsCsv",
+          "line": 58,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "listProducts",
+          "callee": "params.set",
+          "lineNumber": 40
+        },
+        {
+          "caller": "listProducts",
+          "callee": "params.set",
+          "lineNumber": 41
+        },
+        {
+          "caller": "listProducts",
+          "callee": "params.set",
+          "lineNumber": 42
+        },
+        {
+          "caller": "listProducts",
+          "callee": "api",
+          "lineNumber": 43
+        },
+        {
+          "caller": "listProducts",
+          "callee": "params.toString",
+          "lineNumber": 43
+        },
+        {
+          "caller": "createProduct",
+          "callee": "api",
+          "lineNumber": 51
+        },
+        {
+          "caller": "updateProduct",
+          "callee": "api",
+          "lineNumber": 55
+        },
+        {
+          "caller": "importProductsCsv",
+          "callee": "fd.append",
+          "lineNumber": 63
+        },
+        {
+          "caller": "importProductsCsv",
+          "callee": "fd.append",
+          "lineNumber": 64
+        },
+        {
+          "caller": "importProductsCsv",
+          "callee": "String",
+          "lineNumber": 64
+        },
+        {
+          "caller": "importProductsCsv",
+          "callee": "fetch",
+          "lineNumber": 65
+        },
+        {
+          "caller": "importProductsCsv",
+          "callee": "sessionStorage.getItem",
+          "lineNumber": 72
+        },
+        {
+          "caller": "importProductsCsv",
+          "callee": "res.json",
+          "lineNumber": 79
+        },
+        {
+          "caller": "importProductsCsv",
+          "callee": "res.json",
+          "lineNumber": 86
+        }
+      ],
+      "metrics": {
+        "importCount": 2,
+        "exportCount": 4,
+        "functionCount": 4,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "src/pages/ProductsPage.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 487,
+      "nonEmptyLines": 469,
+      "functions": [
+        {
+          "name": "ProductsPage",
+          "startLine": 18,
+          "endLine": 42,
+          "params": []
+        },
+        {
+          "name": "ListTab",
+          "startLine": 44,
+          "endLine": 161,
+          "params": []
+        },
+        {
+          "name": "EditRow",
+          "startLine": 163,
+          "endLine": 278,
+          "params": [
+            "{\n  product,\n  onDone,\n  onCancel,\n}"
+          ]
+        },
+        {
+          "name": "CreateTab",
+          "startLine": 280,
+          "endLine": 366,
+          "params": [
+            "{ onCreated }"
+          ]
+        },
+        {
+          "name": "Field",
+          "startLine": 368,
+          "endLine": 399,
+          "params": [
+            "{\n  label,\n  value,\n  onChange,\n  type = \"text\",\n  required = false,\n  step,\n  min,\n}"
+          ]
+        },
+        {
+          "name": "ImportTab",
+          "startLine": 401,
+          "endLine": 487,
+          "params": []
+        }
+      ],
+      "exports": [
+        {
+          "name": "ProductsPage",
+          "line": 18,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "ProductsPage",
+          "callee": "useState",
+          "lineNumber": 19
+        },
+        {
+          "caller": "ProductsPage",
+          "callee": "([\"list\", \"create\", \"import\"] as const).map",
+          "lineNumber": 24
+        },
+        {
+          "caller": "ProductsPage",
+          "callee": "setTab",
+          "lineNumber": 28
+        },
+        {
+          "caller": "ProductsPage",
+          "callee": "setTab",
+          "lineNumber": 38
+        },
+        {
+          "caller": "ListTab",
+          "callee": "useState",
+          "lineNumber": 45
+        },
+        {
+          "caller": "ListTab",
+          "callee": "useState",
+          "lineNumber": 46
+        },
+        {
+          "caller": "ListTab",
+          "callee": "useState",
+          "lineNumber": 47
+        },
+        {
+          "caller": "ListTab",
+          "callee": "useState",
+          "lineNumber": 48
+        },
+        {
+          "caller": "ListTab",
+          "callee": "useState",
+          "lineNumber": 49
+        },
+        {
+          "caller": "ListTab",
+          "callee": "useState",
+          "lineNumber": 50
+        },
+        {
+          "caller": "ListTab",
+          "callee": "useEffect",
+          "lineNumber": 52
+        },
+        {
+          "caller": "ListTab",
+          "callee": "setItems",
+          "lineNumber": 54
+        },
+        {
+          "caller": "ListTab",
+          "callee": "setError",
+          "lineNumber": 55
+        },
+        {
+          "caller": "ListTab",
+          "callee": "listProducts({ q: q || undefined, includeInactive })\n      .then((rows) => {\n        if (!cancelled) setItems(rows);\n      })\n      .catch",
+          "lineNumber": 56
+        },
+        {
+          "caller": "ListTab",
+          "callee": "listProducts({ q: q || undefined, includeInactive })\n      .then",
+          "lineNumber": 56
+        },
+        {
+          "caller": "ListTab",
+          "callee": "listProducts",
+          "lineNumber": 56
+        },
+        {
+          "caller": "ListTab",
+          "callee": "setItems",
+          "lineNumber": 58
+        },
+        {
+          "caller": "ListTab",
+          "callee": "setError",
+          "lineNumber": 61
+        },
+        {
+          "caller": "ListTab",
+          "callee": "useCallback",
+          "lineNumber": 68
+        },
+        {
+          "caller": "ListTab",
+          "callee": "setRefreshKey",
+          "lineNumber": 68
+        },
+        {
+          "caller": "ListTab",
+          "callee": "setQ",
+          "lineNumber": 76
+        },
+        {
+          "caller": "ListTab",
+          "callee": "setIncludeInactive",
+          "lineNumber": 84
+        },
+        {
+          "caller": "ListTab",
+          "callee": "items.map",
+          "lineNumber": 124
+        },
+        {
+          "caller": "ListTab",
+          "callee": "setEditingId",
+          "lineNumber": 130
+        },
+        {
+          "caller": "ListTab",
+          "callee": "reload",
+          "lineNumber": 131
+        },
+        {
+          "caller": "ListTab",
+          "callee": "setEditingId",
+          "lineNumber": 133
+        },
+        {
+          "caller": "ListTab",
+          "callee": "setEditingId",
+          "lineNumber": 146
+        },
+        {
+          "caller": "EditRow",
+          "callee": "useState",
+          "lineNumber": 172
+        },
+        {
+          "caller": "EditRow",
+          "callee": "useState",
+          "lineNumber": 173
+        },
+        {
+          "caller": "EditRow",
+          "callee": "useState",
+          "lineNumber": 174
+        },
+        {
+          "caller": "EditRow",
+          "callee": "useState",
+          "lineNumber": 175
+        },
+        {
+          "caller": "EditRow",
+          "callee": "useState",
+          "lineNumber": 176
+        },
+        {
+          "caller": "EditRow",
+          "callee": "useState",
+          "lineNumber": 177
+        },
+        {
+          "caller": "EditRow",
+          "callee": "useState",
+          "lineNumber": 178
+        },
+        {
+          "caller": "save",
+          "callee": "setBusy",
+          "lineNumber": 181
+        },
+        {
+          "caller": "save",
+          "callee": "setError",
+          "lineNumber": 182
+        },
+        {
+          "caller": "save",
+          "callee": "threshold.trim",
+          "lineNumber": 190
+        },
+        {
+          "caller": "save",
+          "callee": "Number",
+          "lineNumber": 192
+        },
+        {
+          "caller": "save",
+          "callee": "Number.isInteger",
+          "lineNumber": 193
+        },
+        {
+          "caller": "save",
+          "callee": "updateProduct",
+          "lineNumber": 198
+        },
+        {
+          "caller": "save",
+          "callee": "invalidateCache",
+          "lineNumber": 199
+        },
+        {
+          "caller": "save",
+          "callee": "onDone",
+          "lineNumber": 200
+        },
+        {
+          "caller": "save",
+          "callee": "setError",
+          "lineNumber": 202
+        },
+        {
+          "caller": "save",
+          "callee": "setBusy",
+          "lineNumber": 204
+        },
+        {
+          "caller": "EditRow",
+          "callee": "setBrand",
+          "lineNumber": 213
+        },
+        {
+          "caller": "EditRow",
+          "callee": "setSizeLabel",
+          "lineNumber": 220
+        },
+        {
+          "caller": "EditRow",
+          "callee": "setPrice",
+          "lineNumber": 231
+        },
+        {
+          "caller": "EditRow",
+          "callee": "setThreshold",
+          "lineNumber": 241
+        },
+        {
+          "caller": "EditRow",
+          "callee": "setActive",
+          "lineNumber": 249
+        },
+        {
+          "caller": "CreateTab",
+          "callee": "useAuth",
+          "lineNumber": 281
+        },
+        {
+          "caller": "CreateTab",
+          "callee": "useShopScope",
+          "lineNumber": 282
+        },
+        {
+          "caller": "CreateTab",
+          "callee": "useState",
+          "lineNumber": 283
+        },
+        {
+          "caller": "CreateTab",
+          "callee": "useState",
+          "lineNumber": 284
+        },
+        {
+          "caller": "CreateTab",
+          "callee": "useState",
+          "lineNumber": 285
+        },
+        {
+          "caller": "CreateTab",
+          "callee": "useState",
+          "lineNumber": 286
+        },
+        {
+          "caller": "CreateTab",
+          "callee": "useState",
+          "lineNumber": 287
+        },
+        {
+          "caller": "CreateTab",
+          "callee": "useState",
+          "lineNumber": 288
+        },
+        {
+          "caller": "CreateTab",
+          "callee": "useState",
+          "lineNumber": 289
+        },
+        {
+          "caller": "CreateTab",
+          "callee": "useState",
+          "lineNumber": 290
+        },
+        {
+          "caller": "submit",
+          "callee": "e.preventDefault",
+          "lineNumber": 293
+        },
+        {
+          "caller": "submit",
+          "callee": "setError",
+          "lineNumber": 295
+        },
+        {
+          "caller": "submit",
+          "callee": "setBusy",
+          "lineNumber": 298
+        },
+        {
+          "caller": "submit",
+          "callee": "setError",
+          "lineNumber": 299
+        },
+        {
+          "caller": "submit",
+          "callee": "setInfo",
+          "lineNumber": 300
+        },
+        {
+          "caller": "submit",
+          "callee": "barcode.trim",
+          "lineNumber": 303
+        },
+        {
+          "caller": "submit",
+          "callee": "brand.trim",
+          "lineNumber": 304
+        },
+        {
+          "caller": "submit",
+          "callee": "sizeLabel.trim",
+          "lineNumber": 305
+        },
+        {
+          "caller": "submit",
+          "callee": "threshold.trim",
+          "lineNumber": 308
+        },
+        {
+          "caller": "submit",
+          "callee": "Number",
+          "lineNumber": 310
+        },
+        {
+          "caller": "submit",
+          "callee": "Number.isInteger",
+          "lineNumber": 311
+        },
+        {
+          "caller": "submit",
+          "callee": "createProduct",
+          "lineNumber": 314
+        },
+        {
+          "caller": "submit",
+          "callee": "invalidateCache",
+          "lineNumber": 315
+        },
+        {
+          "caller": "submit",
+          "callee": "setInfo",
+          "lineNumber": 316
+        },
+        {
+          "caller": "submit",
+          "callee": "setBarcode",
+          "lineNumber": 317
+        },
+        {
+          "caller": "submit",
+          "callee": "setBrand",
+          "lineNumber": 318
+        },
+        {
+          "caller": "submit",
+          "callee": "setSizeLabel",
+          "lineNumber": 319
+        },
+        {
+          "caller": "submit",
+          "callee": "setPrice",
+          "lineNumber": 320
+        },
+        {
+          "caller": "submit",
+          "callee": "setThreshold",
+          "lineNumber": 321
+        },
+        {
+          "caller": "submit",
+          "callee": "onCreated",
+          "lineNumber": 322
+        },
+        {
+          "caller": "submit",
+          "callee": "setError",
+          "lineNumber": 324
+        },
+        {
+          "caller": "submit",
+          "callee": "setBusy",
+          "lineNumber": 326
+        },
+        {
+          "caller": "Field",
+          "callee": "onChange",
+          "lineNumber": 391
+        },
+        {
+          "caller": "ImportTab",
+          "callee": "useAuth",
+          "lineNumber": 402
+        },
+        {
+          "caller": "ImportTab",
+          "callee": "useShopScope",
+          "lineNumber": 403
+        },
+        {
+          "caller": "ImportTab",
+          "callee": "useState",
+          "lineNumber": 404
+        },
+        {
+          "caller": "ImportTab",
+          "callee": "useState",
+          "lineNumber": 405
+        },
+        {
+          "caller": "ImportTab",
+          "callee": "useState",
+          "lineNumber": 406
+        },
+        {
+          "caller": "ImportTab",
+          "callee": "useState",
+          "lineNumber": 407
+        },
+        {
+          "caller": "submit",
+          "callee": "setError",
+          "lineNumber": 411
+        },
+        {
+          "caller": "submit",
+          "callee": "setError",
+          "lineNumber": 415
+        },
+        {
+          "caller": "submit",
+          "callee": "setBusy",
+          "lineNumber": 418
+        },
+        {
+          "caller": "submit",
+          "callee": "setError",
+          "lineNumber": 419
+        },
+        {
+          "caller": "submit",
+          "callee": "setResult",
+          "lineNumber": 420
+        },
+        {
+          "caller": "submit",
+          "callee": "importProductsCsv",
+          "lineNumber": 422
+        },
+        {
+          "caller": "submit",
+          "callee": "setResult",
+          "lineNumber": 423
+        },
+        {
+          "caller": "submit",
+          "callee": "invalidateCache",
+          "lineNumber": 424
+        },
+        {
+          "caller": "submit",
+          "callee": "setError",
+          "lineNumber": 426
+        },
+        {
+          "caller": "submit",
+          "callee": "setBusy",
+          "lineNumber": 428
+        },
+        {
+          "caller": "ImportTab",
+          "callee": "setFile",
+          "lineNumber": 442
+        },
+        {
+          "caller": "ImportTab",
+          "callee": "result.errors.map",
+          "lineNumber": 473
+        }
+      ],
+      "metrics": {
+        "importCount": 4,
+        "exportCount": 1,
+        "functionCount": 6,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "src/pages/ReceivingPage.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 342,
+      "nonEmptyLines": 322,
+      "functions": [
+        {
+          "name": "uid",
+          "startLine": 16,
+          "endLine": 18,
+          "params": []
+        },
+        {
+          "name": "ReceivingPage",
+          "startLine": 20,
+          "endLine": 342,
+          "params": []
+        }
+      ],
+      "exports": [
+        {
+          "name": "ReceivingPage",
+          "line": 20,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "uid",
+          "callee": "Math.random().toString(36).slice",
+          "lineNumber": 17
+        },
+        {
+          "caller": "uid",
+          "callee": "Math.random().toString",
+          "lineNumber": 17
+        },
+        {
+          "caller": "uid",
+          "callee": "Math.random",
+          "lineNumber": 17
+        },
+        {
+          "caller": "ReceivingPage",
+          "callee": "useAuth",
+          "lineNumber": 21
+        },
+        {
+          "caller": "ReceivingPage",
+          "callee": "useShopScope",
+          "lineNumber": 22
+        },
+        {
+          "caller": "ReceivingPage",
+          "callee": "useState",
+          "lineNumber": 23
+        },
+        {
+          "caller": "ReceivingPage",
+          "callee": "useState",
+          "lineNumber": 24
+        },
+        {
+          "caller": "ReceivingPage",
+          "callee": "useState",
+          "lineNumber": 25
+        },
+        {
+          "caller": "ReceivingPage",
+          "callee": "useState",
+          "lineNumber": 26
+        },
+        {
+          "caller": "ReceivingPage",
+          "callee": "useState",
+          "lineNumber": 27
+        },
+        {
+          "caller": "ReceivingPage",
+          "callee": "useState",
+          "lineNumber": 28
+        },
+        {
+          "caller": "ReceivingPage",
+          "callee": "useState",
+          "lineNumber": 29
+        },
+        {
+          "caller": "ReceivingPage",
+          "callee": "useState",
+          "lineNumber": 30
+        },
+        {
+          "caller": "ReceivingPage",
+          "callee": "useState",
+          "lineNumber": 31
+        },
+        {
+          "caller": "ReceivingPage",
+          "callee": "useEffect",
+          "lineNumber": 33
+        },
+        {
+          "caller": "ReceivingPage",
+          "callee": "setCatalogReady",
+          "lineNumber": 34
+        },
+        {
+          "caller": "ReceivingPage",
+          "callee": "prefetchCatalog(actingShopId)\n      .then(() => setCatalogReady(true))\n      .catch",
+          "lineNumber": 35
+        },
+        {
+          "caller": "ReceivingPage",
+          "callee": "prefetchCatalog(actingShopId)\n      .then",
+          "lineNumber": 35
+        },
+        {
+          "caller": "ReceivingPage",
+          "callee": "prefetchCatalog",
+          "lineNumber": 35
+        },
+        {
+          "caller": "ReceivingPage",
+          "callee": "setCatalogReady",
+          "lineNumber": 36
+        },
+        {
+          "caller": "ReceivingPage",
+          "callee": "setError",
+          "lineNumber": 37
+        },
+        {
+          "caller": "ReceivingPage",
+          "callee": "useCallback",
+          "lineNumber": 40
+        },
+        {
+          "caller": "ReceivingPage",
+          "callee": "raw.trim",
+          "lineNumber": 42
+        },
+        {
+          "caller": "ReceivingPage",
+          "callee": "setError",
+          "lineNumber": 44
+        },
+        {
+          "caller": "ReceivingPage",
+          "callee": "setInfo",
+          "lineNumber": 45
+        },
+        {
+          "caller": "ReceivingPage",
+          "callee": "import",
+          "lineNumber": 47
+        },
+        {
+          "caller": "ReceivingPage",
+          "callee": "resolveBarcode",
+          "lineNumber": 48
+        },
+        {
+          "caller": "ReceivingPage",
+          "callee": "setLines",
+          "lineNumber": 49
+        },
+        {
+          "caller": "ReceivingPage",
+          "callee": "prev.find",
+          "lineNumber": 50
+        },
+        {
+          "caller": "ReceivingPage",
+          "callee": "prev.map",
+          "lineNumber": 52
+        },
+        {
+          "caller": "ReceivingPage",
+          "callee": "uid",
+          "lineNumber": 59
+        },
+        {
+          "caller": "ReceivingPage",
+          "callee": "setInfo",
+          "lineNumber": 67
+        },
+        {
+          "caller": "ReceivingPage",
+          "callee": "setError",
+          "lineNumber": 70
+        },
+        {
+          "caller": "ReceivingPage",
+          "callee": "setError",
+          "lineNumber": 71
+        },
+        {
+          "caller": "ReceivingPage",
+          "callee": "setError",
+          "lineNumber": 72
+        },
+        {
+          "caller": "ReceivingPage",
+          "callee": "setError",
+          "lineNumber": 74
+        },
+        {
+          "caller": "handleSubmitBarcode",
+          "callee": "e.preventDefault",
+          "lineNumber": 82
+        },
+        {
+          "caller": "handleSubmitBarcode",
+          "callee": "addByBarcode",
+          "lineNumber": 83
+        },
+        {
+          "caller": "handleSubmitBarcode",
+          "callee": "setBarcode",
+          "lineNumber": 84
+        },
+        {
+          "caller": "changeQty",
+          "callee": "setLines",
+          "lineNumber": 88
+        },
+        {
+          "caller": "changeQty",
+          "callee": "prev.map",
+          "lineNumber": 89
+        },
+        {
+          "caller": "changeQty",
+          "callee": "Math.max",
+          "lineNumber": 90
+        },
+        {
+          "caller": "setLineQty",
+          "callee": "setLines",
+          "lineNumber": 96
+        },
+        {
+          "caller": "setLineQty",
+          "callee": "prev.map",
+          "lineNumber": 97
+        },
+        {
+          "caller": "setLineQty",
+          "callee": "Math.max",
+          "lineNumber": 98
+        },
+        {
+          "caller": "setLineQty",
+          "callee": "Math.floor",
+          "lineNumber": 98
+        },
+        {
+          "caller": "removeLine",
+          "callee": "setLines",
+          "lineNumber": 104
+        },
+        {
+          "caller": "removeLine",
+          "callee": "prev.filter",
+          "lineNumber": 104
+        },
+        {
+          "caller": "resetForm",
+          "callee": "setLines",
+          "lineNumber": 108
+        },
+        {
+          "caller": "resetForm",
+          "callee": "setReference",
+          "lineNumber": 109
+        },
+        {
+          "caller": "resetForm",
+          "callee": "setNotes",
+          "lineNumber": 110
+        },
+        {
+          "caller": "resetForm",
+          "callee": "setBarcode",
+          "lineNumber": 111
+        },
+        {
+          "caller": "save",
+          "callee": "setError",
+          "lineNumber": 115
+        },
+        {
+          "caller": "save",
+          "callee": "setInfo",
+          "lineNumber": 116
+        },
+        {
+          "caller": "save",
+          "callee": "setError",
+          "lineNumber": 118
+        },
+        {
+          "caller": "save",
+          "callee": "setError",
+          "lineNumber": 122
+        },
+        {
+          "caller": "save",
+          "callee": "setBusy",
+          "lineNumber": 125
+        },
+        {
+          "caller": "save",
+          "callee": "createLotSafe",
+          "lineNumber": 127
+        },
+        {
+          "caller": "save",
+          "callee": "reference.trim",
+          "lineNumber": 129
+        },
+        {
+          "caller": "save",
+          "callee": "notes.trim",
+          "lineNumber": 130
+        },
+        {
+          "caller": "save",
+          "callee": "lines.map",
+          "lineNumber": 131
+        },
+        {
+          "caller": "save",
+          "callee": "setLastLot",
+          "lineNumber": 135
+        },
+        {
+          "caller": "save",
+          "callee": "resetForm",
+          "lineNumber": 136
+        },
+        {
+          "caller": "save",
+          "callee": "invalidateCache",
+          "lineNumber": 140
+        },
+        {
+          "caller": "save",
+          "callee": "prefetchCatalog(actingShopId).then",
+          "lineNumber": 141
+        },
+        {
+          "caller": "save",
+          "callee": "prefetchCatalog",
+          "lineNumber": 141
+        },
+        {
+          "caller": "save",
+          "callee": "setCatalogReady",
+          "lineNumber": 141
+        },
+        {
+          "caller": "save",
+          "callee": "setInfo",
+          "lineNumber": 142
+        },
+        {
+          "caller": "save",
+          "callee": "setError",
+          "lineNumber": 145
+        },
+        {
+          "caller": "save",
+          "callee": "setError",
+          "lineNumber": 146
+        },
+        {
+          "caller": "save",
+          "callee": "setError",
+          "lineNumber": 147
+        },
+        {
+          "caller": "save",
+          "callee": "setError",
+          "lineNumber": 148
+        },
+        {
+          "caller": "save",
+          "callee": "setError",
+          "lineNumber": 150
+        },
+        {
+          "caller": "save",
+          "callee": "setBusy",
+          "lineNumber": 153
+        },
+        {
+          "caller": "ReceivingPage",
+          "callee": "setBarcode",
+          "lineNumber": 172
+        },
+        {
+          "caller": "ReceivingPage",
+          "callee": "lines.map",
+          "lineNumber": 192
+        },
+        {
+          "caller": "ReceivingPage",
+          "callee": "changeQty",
+          "lineNumber": 207
+        },
+        {
+          "caller": "ReceivingPage",
+          "callee": "setLineQty",
+          "lineNumber": 218
+        },
+        {
+          "caller": "ReceivingPage",
+          "callee": "Number",
+          "lineNumber": 218
+        },
+        {
+          "caller": "ReceivingPage",
+          "callee": "changeQty",
+          "lineNumber": 224
+        },
+        {
+          "caller": "ReceivingPage",
+          "callee": "removeLine",
+          "lineNumber": 232
+        },
+        {
+          "caller": "ReceivingPage",
+          "callee": "setReference",
+          "lineNumber": 253
+        },
+        {
+          "caller": "ReceivingPage",
+          "callee": "setNotes",
+          "lineNumber": 263
+        },
+        {
+          "caller": "ReceivingPage",
+          "callee": "lines.reduce",
+          "lineNumber": 274
+        },
+        {
+          "caller": "ReceivingPage",
+          "callee": "setLastLot",
+          "lineNumber": 311
+        },
+        {
+          "caller": "ReceivingPage",
+          "callee": "new Date(lastLot.received_at).toLocaleString",
+          "lineNumber": 319
+        },
+        {
+          "caller": "ReceivingPage",
+          "callee": "lastLot.lines.map",
+          "lineNumber": 329
+        }
+      ],
+      "metrics": {
+        "importCount": 5,
+        "exportCount": 1,
+        "functionCount": 2,
+        "classCount": 0
+      }
+    }
+  ]
+}

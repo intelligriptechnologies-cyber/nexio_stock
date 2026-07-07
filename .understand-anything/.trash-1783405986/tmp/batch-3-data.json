@@ -1,0 +1,372 @@
+{
+ "batchIndex": 3,
+ "files": [
+  {
+   "path": "app/api/__init__.py",
+   "language": "python",
+   "sizeLines": 1,
+   "fileCategory": "code"
+  },
+  {
+   "path": "app/api/_test_only.py",
+   "language": "python",
+   "sizeLines": 16,
+   "fileCategory": "code"
+  },
+  {
+   "path": "app/api/dashboard.py",
+   "language": "python",
+   "sizeLines": 239,
+   "fileCategory": "code"
+  },
+  {
+   "path": "app/api/health.py",
+   "language": "python",
+   "sizeLines": 20,
+   "fileCategory": "code"
+  },
+  {
+   "path": "app/api/shops.py",
+   "language": "python",
+   "sizeLines": 114,
+   "fileCategory": "code"
+  },
+  {
+   "path": "app/logging_config.py",
+   "language": "python",
+   "sizeLines": 69,
+   "fileCategory": "code"
+  },
+  {
+   "path": "app/main.py",
+   "language": "python",
+   "sizeLines": 149,
+   "fileCategory": "code"
+  },
+  {
+   "path": "app/schemas/eod.py",
+   "language": "python",
+   "sizeLines": 80,
+   "fileCategory": "code"
+  },
+  {
+   "path": "app/schemas/shop.py",
+   "language": "python",
+   "sizeLines": 67,
+   "fileCategory": "code"
+  },
+  {
+   "path": "app/services/eod.py",
+   "language": "python",
+   "sizeLines": 253,
+   "fileCategory": "code"
+  }
+ ],
+ "batchImportData": {
+  "app/api/__init__.py": [],
+  "app/api/_test_only.py": [],
+  "app/api/dashboard.py": [
+   "app/api/deps.py",
+   "app/logging_config.py",
+   "app/models/user.py",
+   "app/schemas/eod.py",
+   "app/services/eod.py"
+  ],
+  "app/api/health.py": [
+   "app/api/deps.py"
+  ],
+  "app/api/shops.py": [
+   "app/api/deps.py",
+   "app/logging_config.py",
+   "app/models/shop.py",
+   "app/models/user.py",
+   "app/schemas/shop.py"
+  ],
+  "app/logging_config.py": [],
+  "app/main.py": [
+   "app/api/__init__.py",
+   "app/api/_test_only.py",
+   "app/api/auth.py",
+   "app/api/checkout.py",
+   "app/api/dashboard.py",
+   "app/api/health.py",
+   "app/api/lots.py",
+   "app/api/products.py",
+   "app/api/shops.py",
+   "app/api/staff.py",
+   "app/api/users.py",
+   "app/api/voids.py",
+   "app/config.py",
+   "app/db.py",
+   "app/logging_config.py"
+  ],
+  "app/schemas/eod.py": [
+   "app/schemas/checkout.py"
+  ],
+  "app/schemas/shop.py": [],
+  "app/services/eod.py": [
+   "app/models/invoice.py"
+  ]
+ },
+ "neighborMap": {
+  "app/api/dashboard.py": [
+   {
+    "path": "app/api/deps.py",
+    "batchIndex": 2,
+    "symbols": [
+     "db_session",
+     "get_current_user",
+     "require_role",
+     "resolve_write_shop_id",
+     "require_shop_scope"
+    ]
+   },
+   {
+    "path": "app/models/user.py",
+    "batchIndex": 2,
+    "symbols": [
+     "UserRole",
+     "User"
+    ]
+   }
+  ],
+  "app/api/health.py": [
+   {
+    "path": "app/api/deps.py",
+    "batchIndex": 2,
+    "symbols": [
+     "db_session",
+     "get_current_user",
+     "require_role",
+     "resolve_write_shop_id",
+     "require_shop_scope"
+    ]
+   }
+  ],
+  "app/api/shops.py": [
+   {
+    "path": "app/api/deps.py",
+    "batchIndex": 2,
+    "symbols": [
+     "db_session",
+     "get_current_user",
+     "require_role",
+     "resolve_write_shop_id",
+     "require_shop_scope"
+    ]
+   },
+   {
+    "path": "app/models/shop.py",
+    "batchIndex": 5,
+    "symbols": [
+     "Shop"
+    ]
+   },
+   {
+    "path": "app/models/user.py",
+    "batchIndex": 2,
+    "symbols": [
+     "UserRole",
+     "User"
+    ]
+   }
+  ],
+  "app/logging_config.py": [
+   {
+    "path": "app/api/auth.py",
+    "batchIndex": 2,
+    "symbols": [
+     "_authenticate",
+     "login_superadmin",
+     "login_shop"
+    ]
+   },
+   {
+    "path": "app/api/checkout.py",
+    "batchIndex": 4,
+    "symbols": [
+     "_error_to_http",
+     "finalize",
+     "_load_invoice_or_404",
+     "get_invoice",
+     "get_invoice_pdf"
+    ]
+   },
+   {
+    "path": "app/api/lots.py",
+    "batchIndex": 1,
+    "symbols": [
+     "create_lot",
+     "list_lots",
+     "get_lot",
+     "_load_lines"
+    ]
+   },
+   {
+    "path": "app/api/products.py",
+    "batchIndex": 1,
+    "symbols": [
+     "create_product",
+     "list_products",
+     "lookup_product",
+     "update_product",
+     "import_products_csv"
+    ]
+   },
+   {
+    "path": "app/api/staff.py",
+    "batchIndex": 2,
+    "symbols": [
+     "create_staff",
+     "list_staff"
+    ]
+   },
+   {
+    "path": "app/api/voids.py",
+    "batchIndex": 4,
+    "symbols": [
+     "_resolve_void_shop_id",
+     "_error_to_http",
+     "request_void",
+     "approve_void",
+     "reject_void",
+     "_load_invoice",
+     "_not_found",
+     "_write_void_log"
+    ]
+   },
+   {
+    "path": "app/cli.py",
+    "batchIndex": 2,
+    "symbols": [
+     "_print",
+     "_createsuperadmin",
+     "_createshop",
+     "main"
+    ]
+   }
+  ],
+  "app/main.py": [
+   {
+    "path": "app/api/auth.py",
+    "batchIndex": 2,
+    "symbols": [
+     "_authenticate",
+     "login_superadmin",
+     "login_shop"
+    ]
+   },
+   {
+    "path": "app/api/checkout.py",
+    "batchIndex": 4,
+    "symbols": [
+     "_error_to_http",
+     "finalize",
+     "_load_invoice_or_404",
+     "get_invoice",
+     "get_invoice_pdf"
+    ]
+   },
+   {
+    "path": "app/api/lots.py",
+    "batchIndex": 1,
+    "symbols": [
+     "create_lot",
+     "list_lots",
+     "get_lot",
+     "_load_lines"
+    ]
+   },
+   {
+    "path": "app/api/products.py",
+    "batchIndex": 1,
+    "symbols": [
+     "create_product",
+     "list_products",
+     "lookup_product",
+     "update_product",
+     "import_products_csv"
+    ]
+   },
+   {
+    "path": "app/api/staff.py",
+    "batchIndex": 2,
+    "symbols": [
+     "create_staff",
+     "list_staff"
+    ]
+   },
+   {
+    "path": "app/api/users.py",
+    "batchIndex": 2,
+    "symbols": [
+     "me"
+    ]
+   },
+   {
+    "path": "app/api/voids.py",
+    "batchIndex": 4,
+    "symbols": [
+     "_resolve_void_shop_id",
+     "_error_to_http",
+     "request_void",
+     "approve_void",
+     "reject_void",
+     "_load_invoice",
+     "_not_found",
+     "_write_void_log"
+    ]
+   },
+   {
+    "path": "app/config.py",
+    "batchIndex": 2,
+    "symbols": [
+     "Settings",
+     "get_settings"
+    ]
+   },
+   {
+    "path": "app/db.py",
+    "batchIndex": 2,
+    "symbols": [
+     "Base",
+     "get_engine",
+     "get_sessionmaker",
+     "reset_engine",
+     "get_db",
+     "init_db"
+    ]
+   }
+  ],
+  "app/schemas/eod.py": [
+   {
+    "path": "app/schemas/checkout.py",
+    "batchIndex": 4,
+    "symbols": [
+     "CheckoutLine",
+     "PaymentInput",
+     "CheckoutFinalizeRequest",
+     "InvoiceLinePublic",
+     "PaymentPublic",
+     "InvoicePublic",
+     "CheckoutFinalizeResponse"
+    ]
+   }
+  ],
+  "app/services/eod.py": [
+   {
+    "path": "app/models/invoice.py",
+    "batchIndex": 4,
+    "symbols": [
+     "InvoiceStatus",
+     "PaymentMode",
+     "Invoice",
+     "InvoiceLine",
+     "Payment",
+     "EodSignOff",
+     "IdempotencyKey"
+    ]
+   }
+  ]
+ }
+}

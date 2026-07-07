@@ -1,0 +1,171 @@
+{
+ "batchIndex": 5,
+ "files": [
+  {
+   "path": "app/models/shop.py",
+   "language": "python",
+   "sizeLines": 65,
+   "fileCategory": "code"
+  },
+  {
+   "path": "tests/conftest.py",
+   "language": "python",
+   "sizeLines": 328,
+   "fileCategory": "code"
+  },
+  {
+   "path": "tests/test_low_stock.py",
+   "language": "python",
+   "sizeLines": 256,
+   "fileCategory": "code"
+  },
+  {
+   "path": "tests/test_products.py",
+   "language": "python",
+   "sizeLines": 299,
+   "fileCategory": "code"
+  },
+  {
+   "path": "tests/test_shops.py",
+   "language": "python",
+   "sizeLines": 226,
+   "fileCategory": "code"
+  }
+ ],
+ "batchImportData": {
+  "app/models/shop.py": [
+   "app/db.py"
+  ],
+  "tests/conftest.py": [
+   "app/models/shop.py",
+   "app/models/user.py",
+   "app/security/passwords.py"
+  ],
+  "tests/test_low_stock.py": [
+   "app/models/product.py",
+   "app/models/shop.py"
+  ],
+  "tests/test_products.py": [
+   "app/models/product.py",
+   "app/models/shop.py"
+  ],
+  "tests/test_shops.py": [
+   "app/models/shop.py"
+  ]
+ },
+ "neighborMap": {
+  "app/models/shop.py": [
+   {
+    "path": "app/db.py",
+    "batchIndex": 2,
+    "symbols": [
+     "Base",
+     "get_engine",
+     "get_sessionmaker",
+     "reset_engine",
+     "get_db",
+     "init_db"
+    ]
+   },
+   {
+    "path": "app/api/deps.py",
+    "batchIndex": 2,
+    "symbols": [
+     "db_session",
+     "get_current_user",
+     "require_role",
+     "resolve_write_shop_id",
+     "require_shop_scope"
+    ]
+   },
+   {
+    "path": "app/api/shops.py",
+    "batchIndex": 3,
+    "symbols": [
+     "list_shops",
+     "get_my_shop",
+     "update_my_shop"
+    ]
+   },
+   {
+    "path": "app/cli.py",
+    "batchIndex": 2,
+    "symbols": [
+     "_print",
+     "_createsuperadmin",
+     "_createshop",
+     "main"
+    ]
+   },
+   {
+    "path": "app/models/__init__.py",
+    "batchIndex": 1,
+    "symbols": []
+   },
+   {
+    "path": "app/services/checkout.py",
+    "batchIndex": 4,
+    "symbols": [
+     "CheckoutError",
+     "CartLine",
+     "PaymentLine",
+     "FinalizeResult",
+     "_check_idempotency_key_present",
+     "_is_today_signed_off",
+     "_resolve_products_for_cart",
+     "_current_stock_for",
+     "finalize_checkout"
+    ]
+   },
+   {
+    "path": "app/services/voids.py",
+    "batchIndex": 4,
+    "symbols": [
+     "VoidError",
+     "VoidResult",
+     "_load_invoice_for_void",
+     "direct_void",
+     "request_post_eod_void",
+     "approve_post_eod_void",
+     "reject_post_eod_void"
+    ]
+   }
+  ],
+  "tests/conftest.py": [
+   {
+    "path": "app/models/user.py",
+    "batchIndex": 2,
+    "symbols": [
+     "UserRole",
+     "User"
+    ]
+   },
+   {
+    "path": "app/security/passwords.py",
+    "batchIndex": 2,
+    "symbols": [
+     "hash_password",
+     "verify_password"
+    ]
+   }
+  ],
+  "tests/test_low_stock.py": [
+   {
+    "path": "app/models/product.py",
+    "batchIndex": 1,
+    "symbols": [
+     "Product"
+    ]
+   }
+  ],
+  "tests/test_products.py": [
+   {
+    "path": "app/models/product.py",
+    "batchIndex": 1,
+    "symbols": [
+     "Product"
+    ]
+   }
+  ]
+ }
+}

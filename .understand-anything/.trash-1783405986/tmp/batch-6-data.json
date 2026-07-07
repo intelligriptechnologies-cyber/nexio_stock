@@ -1,0 +1,43 @@
+{
+ "batchIndex": 6,
+ "files": [
+  {
+   "path": ".env.example",
+   "language": "config",
+   "sizeLines": 21,
+   "fileCategory": "config"
+  },
+  {
+   "path": "README.md",
+   "language": "markdown",
+   "sizeLines": 66,
+   "fileCategory": "docs"
+  },
+  {
+   "path": "alembic.ini",
+   "language": "config",
+   "sizeLines": 149,
+   "fileCategory": "config"
+  },
+  {
+   "path": "docker-compose.yml",
+   "language": "yaml",
+   "sizeLines": 22,
+   "fileCategory": "infra"
+  },
+  {
+   "path": "pyproject.toml",
+   "language": "toml",
+   "sizeLines": 109,
+   "fileCategory": "config"
+  }
+ ],
+ "batchImportData": {
+  ".env.example": [],
+  "README.md": [],
+  "alembic.ini": [],
+  "docker-compose.yml": [],
+  "pyproject.toml": []
+ },
+ "neighborMap": {}
+}

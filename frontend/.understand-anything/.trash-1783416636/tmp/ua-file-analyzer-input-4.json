@@ -1,0 +1,17 @@
+{
+  "projectRoot": "C:/barstock/frontend",
+  "batchFiles": [
+    {"path": "src/api/shops.ts", "language": "typescript", "sizeLines": 41, "fileCategory": "code"},
+    {"path": "src/auth/ShopScopeProvider.tsx", "language": "typescript", "sizeLines": 43, "fileCategory": "code"},
+    {"path": "src/components/ShopPicker.tsx", "language": "typescript", "sizeLines": 52, "fileCategory": "code"},
+    {"path": "src/components/Sidebar.tsx", "language": "typescript", "sizeLines": 96, "fileCategory": "code"},
+    {"path": "src/pages/ShopConfigPage.tsx", "language": "typescript", "sizeLines": 188, "fileCategory": "code"}
+  ],
+  "batchImportData": {
+    "src/api/shops.ts": ["src/api/client.ts"],
+    "src/auth/ShopScopeProvider.tsx": [],
+    "src/components/ShopPicker.tsx": ["src/api/shops.ts","src/auth/AuthProvider.tsx","src/auth/ShopScopeProvider.tsx"],
+    "src/components/Sidebar.tsx": ["src/auth/AuthProvider.tsx","src/components/ShopPicker.tsx"],
+    "src/pages/ShopConfigPage.tsx": ["src/api/client.ts","src/api/shops.ts","src/auth/AuthProvider.tsx","src/auth/ShopScopeProvider.tsx"]
+  }
+}

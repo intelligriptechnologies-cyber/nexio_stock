@@ -1,0 +1,2339 @@
+{
+  "scriptCompleted": true,
+  "filesAnalyzed": 5,
+  "filesSkipped": [],
+  "results": [
+    {
+      "path": "app/models/shop.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 65,
+      "nonEmptyLines": 56,
+      "classes": [
+        {
+          "name": "Shop",
+          "startLine": 22,
+          "endLine": 65,
+          "methods": [],
+          "properties": [
+            "id",
+            "name",
+            "code",
+            "low_stock_threshold_default",
+            "last_invoice_number",
+            "gstin",
+            "excise_duty_rate",
+            "created_at",
+            "updated_at",
+            "users"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "Shop",
+          "line": 22,
+          "isDefault": false
+        }
+      ],
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 1,
+        "functionCount": 0,
+        "classCount": 1
+      }
+    },
+    {
+      "path": "tests/conftest.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 328,
+      "nonEmptyLines": 264,
+      "functions": [
+        {
+          "name": "_make_test_dsn",
+          "startLine": 43,
+          "endLine": 45,
+          "params": []
+        },
+        {
+          "name": "test_db_dsn",
+          "startLine": 49,
+          "endLine": 112,
+          "params": []
+        },
+        {
+          "name": "_truncate_tables",
+          "startLine": 116,
+          "endLine": 130,
+          "params": [
+            "test_db_dsn"
+          ]
+        },
+        {
+          "name": "db_session",
+          "startLine": 134,
+          "endLine": 147,
+          "params": [
+            "test_db_dsn"
+          ]
+        },
+        {
+          "name": "client",
+          "startLine": 151,
+          "endLine": 168,
+          "params": [
+            "test_db_dsn"
+          ]
+        },
+        {
+          "name": "_make_shop",
+          "startLine": 178,
+          "endLine": 185,
+          "params": [
+            "session",
+            "code",
+            "name"
+          ]
+        },
+        {
+          "name": "_make_user",
+          "startLine": 188,
+          "endLine": 210,
+          "params": [
+            "session",
+            "shop_id",
+            "role",
+            "username",
+            "phone",
+            "password",
+            "full_name"
+          ]
+        },
+        {
+          "name": "shop",
+          "startLine": 214,
+          "endLine": 215,
+          "params": [
+            "db_session"
+          ]
+        },
+        {
+          "name": "owner",
+          "startLine": 219,
+          "endLine": 228,
+          "params": [
+            "db_session",
+            "shop"
+          ]
+        },
+        {
+          "name": "receiver",
+          "startLine": 232,
+          "endLine": 241,
+          "params": [
+            "db_session",
+            "shop"
+          ]
+        },
+        {
+          "name": "cashier",
+          "startLine": 245,
+          "endLine": 254,
+          "params": [
+            "db_session",
+            "shop"
+          ]
+        },
+        {
+          "name": "superadmin",
+          "startLine": 258,
+          "endLine": 267,
+          "params": [
+            "db_session"
+          ]
+        },
+        {
+          "name": "_make_logged_in_client",
+          "startLine": 270,
+          "endLine": 284,
+          "params": [
+            "app",
+            "path",
+            "payload"
+          ]
+        },
+        {
+          "name": "owner_client",
+          "startLine": 288,
+          "endLine": 295,
+          "params": [
+            "owner"
+          ]
+        },
+        {
+          "name": "receiver_client",
+          "startLine": 299,
+          "endLine": 306,
+          "params": [
+            "receiver"
+          ]
+        },
+        {
+          "name": "cashier_client",
+          "startLine": 310,
+          "endLine": 317,
+          "params": [
+            "cashier"
+          ]
+        },
+        {
+          "name": "superadmin_client",
+          "startLine": 321,
+          "endLine": 328,
+          "params": [
+            "superadmin"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "_make_test_dsn",
+          "line": 43,
+          "isDefault": false
+        },
+        {
+          "name": "test_db_dsn",
+          "line": 48,
+          "isDefault": false
+        },
+        {
+          "name": "_truncate_tables",
+          "line": 115,
+          "isDefault": false
+        },
+        {
+          "name": "db_session",
+          "line": 133,
+          "isDefault": false
+        },
+        {
+          "name": "client",
+          "line": 150,
+          "isDefault": false
+        },
+        {
+          "name": "_make_shop",
+          "line": 178,
+          "isDefault": false
+        },
+        {
+          "name": "_make_user",
+          "line": 188,
+          "isDefault": false
+        },
+        {
+          "name": "shop",
+          "line": 213,
+          "isDefault": false
+        },
+        {
+          "name": "owner",
+          "line": 218,
+          "isDefault": false
+        },
+        {
+          "name": "receiver",
+          "line": 231,
+          "isDefault": false
+        },
+        {
+          "name": "cashier",
+          "line": 244,
+          "isDefault": false
+        },
+        {
+          "name": "superadmin",
+          "line": 257,
+          "isDefault": false
+        },
+        {
+          "name": "_make_logged_in_client",
+          "line": 270,
+          "isDefault": false
+        },
+        {
+          "name": "owner_client",
+          "line": 287,
+          "isDefault": false
+        },
+        {
+          "name": "receiver_client",
+          "line": 298,
+          "isDefault": false
+        },
+        {
+          "name": "cashier_client",
+          "line": 309,
+          "isDefault": false
+        },
+        {
+          "name": "superadmin_client",
+          "line": 320,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "_make_test_dsn",
+          "callee": "uuid.uuid4",
+          "lineNumber": 44
+        },
+        {
+          "caller": "test_db_dsn",
+          "callee": "_make_test_dsn",
+          "lineNumber": 55
+        },
+        {
+          "caller": "test_db_dsn",
+          "callee": "get_settings.cache_clear",
+          "lineNumber": 59
+        },
+        {
+          "caller": "test_db_dsn",
+          "callee": "get_settings.cache_clear",
+          "lineNumber": 62
+        },
+        {
+          "caller": "test_db_dsn",
+          "callee": "reset_engine",
+          "lineNumber": 63
+        },
+        {
+          "caller": "test_db_dsn",
+          "callee": "asyncpg.connect",
+          "lineNumber": 68
+        },
+        {
+          "caller": "test_db_dsn",
+          "callee": "admin_dsn.replace",
+          "lineNumber": 68
+        },
+        {
+          "caller": "test_db_dsn",
+          "callee": "admin.execute",
+          "lineNumber": 70
+        },
+        {
+          "caller": "test_db_dsn",
+          "callee": "dsn.split",
+          "lineNumber": 70
+        },
+        {
+          "caller": "test_db_dsn",
+          "callee": "admin.close",
+          "lineNumber": 72
+        },
+        {
+          "caller": "_run_alembic",
+          "callee": "subprocess.run",
+          "lineNumber": 80
+        },
+        {
+          "caller": "_run_alembic",
+          "callee": "str",
+          "lineNumber": 82
+        },
+        {
+          "caller": "test_db_dsn",
+          "callee": "asyncio.to_thread",
+          "lineNumber": 88
+        },
+        {
+          "caller": "test_db_dsn",
+          "callee": "RuntimeError",
+          "lineNumber": 90
+        },
+        {
+          "caller": "test_db_dsn",
+          "callee": "asyncpg.connect",
+          "lineNumber": 98
+        },
+        {
+          "caller": "test_db_dsn",
+          "callee": "admin_dsn.replace",
+          "lineNumber": 98
+        },
+        {
+          "caller": "test_db_dsn",
+          "callee": "admin.execute",
+          "lineNumber": 101
+        },
+        {
+          "caller": "test_db_dsn",
+          "callee": "dsn.split",
+          "lineNumber": 105
+        },
+        {
+          "caller": "test_db_dsn",
+          "callee": "admin.execute",
+          "lineNumber": 108
+        },
+        {
+          "caller": "test_db_dsn",
+          "callee": "dsn.split",
+          "lineNumber": 108
+        },
+        {
+          "caller": "test_db_dsn",
+          "callee": "admin.close",
+          "lineNumber": 110
+        },
+        {
+          "caller": "test_db_dsn",
+          "callee": "reset_engine",
+          "lineNumber": 112
+        },
+        {
+          "caller": "_truncate_tables",
+          "callee": "get_sessionmaker",
+          "lineNumber": 120
+        },
+        {
+          "caller": "_truncate_tables",
+          "callee": "Session",
+          "lineNumber": 121
+        },
+        {
+          "caller": "_truncate_tables",
+          "callee": "session.begin",
+          "lineNumber": 121
+        },
+        {
+          "caller": "_truncate_tables",
+          "callee": "session.execute",
+          "lineNumber": 124
+        },
+        {
+          "caller": "_truncate_tables",
+          "callee": "text",
+          "lineNumber": 125
+        },
+        {
+          "caller": "db_session",
+          "callee": "get_sessionmaker",
+          "lineNumber": 145
+        },
+        {
+          "caller": "db_session",
+          "callee": "Session",
+          "lineNumber": 146
+        },
+        {
+          "caller": "client",
+          "callee": "ASGITransport",
+          "lineNumber": 154
+        },
+        {
+          "caller": "client",
+          "callee": "AsyncClient",
+          "lineNumber": 155
+        },
+        {
+          "caller": "client",
+          "callee": "reset_engine",
+          "lineNumber": 163
+        },
+        {
+          "caller": "client",
+          "callee": "get_settings.cache_clear",
+          "lineNumber": 168
+        },
+        {
+          "caller": "_make_shop",
+          "callee": "Shop",
+          "lineNumber": 181
+        },
+        {
+          "caller": "_make_shop",
+          "callee": "session.add",
+          "lineNumber": 182
+        },
+        {
+          "caller": "_make_shop",
+          "callee": "session.flush",
+          "lineNumber": 183
+        },
+        {
+          "caller": "_make_shop",
+          "callee": "session.commit",
+          "lineNumber": 184
+        },
+        {
+          "caller": "_make_user",
+          "callee": "User",
+          "lineNumber": 198
+        },
+        {
+          "caller": "_make_user",
+          "callee": "username.title",
+          "lineNumber": 202
+        },
+        {
+          "caller": "_make_user",
+          "callee": "hash_password",
+          "lineNumber": 204
+        },
+        {
+          "caller": "_make_user",
+          "callee": "session.add",
+          "lineNumber": 207
+        },
+        {
+          "caller": "_make_user",
+          "callee": "session.flush",
+          "lineNumber": 208
+        },
+        {
+          "caller": "_make_user",
+          "callee": "session.commit",
+          "lineNumber": 209
+        },
+        {
+          "caller": "shop",
+          "callee": "_make_shop",
+          "lineNumber": 215
+        },
+        {
+          "caller": "owner",
+          "callee": "_make_user",
+          "lineNumber": 220
+        },
+        {
+          "caller": "receiver",
+          "callee": "_make_user",
+          "lineNumber": 233
+        },
+        {
+          "caller": "cashier",
+          "callee": "_make_user",
+          "lineNumber": 246
+        },
+        {
+          "caller": "superadmin",
+          "callee": "_make_user",
+          "lineNumber": 259
+        },
+        {
+          "caller": "_make_logged_in_client",
+          "callee": "ASGITransport",
+          "lineNumber": 279
+        },
+        {
+          "caller": "_make_logged_in_client",
+          "callee": "AsyncClient",
+          "lineNumber": 280
+        },
+        {
+          "caller": "_make_logged_in_client",
+          "callee": "ac.post",
+          "lineNumber": 281
+        },
+        {
+          "caller": "_make_logged_in_client",
+          "callee": "resp.json",
+          "lineNumber": 283
+        },
+        {
+          "caller": "owner_client",
+          "callee": "_make_logged_in_client",
+          "lineNumber": 291
+        },
+        {
+          "caller": "receiver_client",
+          "callee": "_make_logged_in_client",
+          "lineNumber": 302
+        },
+        {
+          "caller": "cashier_client",
+          "callee": "_make_logged_in_client",
+          "lineNumber": 313
+        },
+        {
+          "caller": "superadmin_client",
+          "callee": "_make_logged_in_client",
+          "lineNumber": 324
+        }
+      ],
+      "metrics": {
+        "importCount": 3,
+        "exportCount": 17,
+        "functionCount": 17,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "tests/test_low_stock.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 256,
+      "nonEmptyLines": 212,
+      "functions": [
+        {
+          "name": "_seed_product",
+          "startLine": 14,
+          "endLine": 22,
+          "params": [
+            "client",
+            "barcode",
+            "price",
+            "brand"
+          ]
+        },
+        {
+          "name": "_seed_lot",
+          "startLine": 25,
+          "endLine": 32,
+          "params": [
+            "receiver_client",
+            "items"
+          ]
+        },
+        {
+          "name": "_finalize",
+          "startLine": 35,
+          "endLine": 52,
+          "params": [
+            "cashier_client",
+            "barcode",
+            "quantity",
+            "amount"
+          ]
+        },
+        {
+          "name": "test_no_default_no_overrides_returns_empty",
+          "startLine": 59,
+          "endLine": 69,
+          "params": [
+            "owner_client",
+            "receiver_client"
+          ]
+        },
+        {
+          "name": "test_per_product_override_triggers_alert",
+          "startLine": 73,
+          "endLine": 92,
+          "params": [
+            "owner_client",
+            "receiver_client"
+          ]
+        },
+        {
+          "name": "test_product_above_threshold_not_in_list",
+          "startLine": 96,
+          "endLine": 110,
+          "params": [
+            "owner_client",
+            "receiver_client",
+            "db_session"
+          ]
+        },
+        {
+          "name": "test_product_at_threshold_appears",
+          "startLine": 114,
+          "endLine": 131,
+          "params": [
+            "owner_client",
+            "receiver_client",
+            "db_session"
+          ]
+        },
+        {
+          "name": "test_sale_brings_product_below_threshold",
+          "startLine": 135,
+          "endLine": 158,
+          "params": [
+            "owner_client",
+            "receiver_client",
+            "cashier_client",
+            "db_session"
+          ]
+        },
+        {
+          "name": "test_per_product_override_beats_shop_default",
+          "startLine": 162,
+          "endLine": 195,
+          "params": [
+            "owner_client",
+            "receiver_client",
+            "db_session"
+          ]
+        },
+        {
+          "name": "test_list_sorted_most_urgent_first",
+          "startLine": 199,
+          "endLine": 216,
+          "params": [
+            "owner_client",
+            "receiver_client",
+            "db_session"
+          ]
+        },
+        {
+          "name": "test_receiver_can_view_low_stock",
+          "startLine": 220,
+          "endLine": 233,
+          "params": [
+            "owner_client",
+            "receiver_client",
+            "db_session"
+          ]
+        },
+        {
+          "name": "test_low_stock_inactive_products_excluded",
+          "startLine": 237,
+          "endLine": 256,
+          "params": [
+            "owner_client",
+            "receiver_client",
+            "db_session"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "_seed_product",
+          "line": 14,
+          "isDefault": false
+        },
+        {
+          "name": "_seed_lot",
+          "line": 25,
+          "isDefault": false
+        },
+        {
+          "name": "_finalize",
+          "line": 35,
+          "isDefault": false
+        },
+        {
+          "name": "test_no_default_no_overrides_returns_empty",
+          "line": 58,
+          "isDefault": false
+        },
+        {
+          "name": "test_per_product_override_triggers_alert",
+          "line": 72,
+          "isDefault": false
+        },
+        {
+          "name": "test_product_above_threshold_not_in_list",
+          "line": 95,
+          "isDefault": false
+        },
+        {
+          "name": "test_product_at_threshold_appears",
+          "line": 113,
+          "isDefault": false
+        },
+        {
+          "name": "test_sale_brings_product_below_threshold",
+          "line": 134,
+          "isDefault": false
+        },
+        {
+          "name": "test_per_product_override_beats_shop_default",
+          "line": 161,
+          "isDefault": false
+        },
+        {
+          "name": "test_list_sorted_most_urgent_first",
+          "line": 198,
+          "isDefault": false
+        },
+        {
+          "name": "test_receiver_can_view_low_stock",
+          "line": 219,
+          "isDefault": false
+        },
+        {
+          "name": "test_low_stock_inactive_products_excluded",
+          "line": 236,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "_seed_product",
+          "callee": "client.post",
+          "lineNumber": 17
+        },
+        {
+          "caller": "_seed_product",
+          "callee": "resp.json",
+          "lineNumber": 22
+        },
+        {
+          "caller": "_seed_lot",
+          "callee": "receiver_client.post",
+          "lineNumber": 28
+        },
+        {
+          "caller": "_finalize",
+          "callee": "cashier_client.post",
+          "lineNumber": 44
+        },
+        {
+          "caller": "_finalize",
+          "callee": "uuid.uuid4",
+          "lineNumber": 46
+        },
+        {
+          "caller": "test_no_default_no_overrides_returns_empty",
+          "callee": "_seed_product",
+          "lineNumber": 64
+        },
+        {
+          "caller": "test_no_default_no_overrides_returns_empty",
+          "callee": "_seed_lot",
+          "lineNumber": 65
+        },
+        {
+          "caller": "test_no_default_no_overrides_returns_empty",
+          "callee": "owner_client.get",
+          "lineNumber": 67
+        },
+        {
+          "caller": "test_no_default_no_overrides_returns_empty",
+          "callee": "resp.json",
+          "lineNumber": 69
+        },
+        {
+          "caller": "test_per_product_override_triggers_alert",
+          "callee": "_seed_product",
+          "lineNumber": 76
+        },
+        {
+          "caller": "test_per_product_override_triggers_alert",
+          "callee": "_seed_lot",
+          "lineNumber": 77
+        },
+        {
+          "caller": "test_per_product_override_triggers_alert",
+          "callee": "owner_client.patch",
+          "lineNumber": 80
+        },
+        {
+          "caller": "test_per_product_override_triggers_alert",
+          "callee": "owner_client.get",
+          "lineNumber": 87
+        },
+        {
+          "caller": "test_per_product_override_triggers_alert",
+          "callee": "resp.json",
+          "lineNumber": 88
+        },
+        {
+          "caller": "test_per_product_override_triggers_alert",
+          "callee": "len",
+          "lineNumber": 89
+        },
+        {
+          "caller": "test_product_above_threshold_not_in_list",
+          "callee": "db_session.execute",
+          "lineNumber": 101
+        },
+        {
+          "caller": "test_product_above_threshold_not_in_list",
+          "callee": "update(Shop).where(Shop.id == 1).values",
+          "lineNumber": 102
+        },
+        {
+          "caller": "test_product_above_threshold_not_in_list",
+          "callee": "update(Shop).where",
+          "lineNumber": 102
+        },
+        {
+          "caller": "test_product_above_threshold_not_in_list",
+          "callee": "update",
+          "lineNumber": 102
+        },
+        {
+          "caller": "test_product_above_threshold_not_in_list",
+          "callee": "db_session.commit",
+          "lineNumber": 104
+        },
+        {
+          "caller": "test_product_above_threshold_not_in_list",
+          "callee": "_seed_product",
+          "lineNumber": 106
+        },
+        {
+          "caller": "test_product_above_threshold_not_in_list",
+          "callee": "_seed_lot",
+          "lineNumber": 107
+        },
+        {
+          "caller": "test_product_above_threshold_not_in_list",
+          "callee": "owner_client.get",
+          "lineNumber": 109
+        },
+        {
+          "caller": "test_product_above_threshold_not_in_list",
+          "callee": "resp.json",
+          "lineNumber": 110
+        },
+        {
+          "caller": "test_product_at_threshold_appears",
+          "callee": "db_session.execute",
+          "lineNumber": 118
+        },
+        {
+          "caller": "test_product_at_threshold_appears",
+          "callee": "update(Shop).where(Shop.id == 1).values",
+          "lineNumber": 119
+        },
+        {
+          "caller": "test_product_at_threshold_appears",
+          "callee": "update(Shop).where",
+          "lineNumber": 119
+        },
+        {
+          "caller": "test_product_at_threshold_appears",
+          "callee": "update",
+          "lineNumber": 119
+        },
+        {
+          "caller": "test_product_at_threshold_appears",
+          "callee": "db_session.commit",
+          "lineNumber": 121
+        },
+        {
+          "caller": "test_product_at_threshold_appears",
+          "callee": "_seed_product",
+          "lineNumber": 123
+        },
+        {
+          "caller": "test_product_at_threshold_appears",
+          "callee": "_seed_lot",
+          "lineNumber": 124
+        },
+        {
+          "caller": "test_product_at_threshold_appears",
+          "callee": "owner_client.get",
+          "lineNumber": 126
+        },
+        {
+          "caller": "test_product_at_threshold_appears",
+          "callee": "resp.json",
+          "lineNumber": 127
+        },
+        {
+          "caller": "test_product_at_threshold_appears",
+          "callee": "len",
+          "lineNumber": 128
+        },
+        {
+          "caller": "test_sale_brings_product_below_threshold",
+          "callee": "db_session.execute",
+          "lineNumber": 144
+        },
+        {
+          "caller": "test_sale_brings_product_below_threshold",
+          "callee": "update(Shop).where(Shop.id == 1).values",
+          "lineNumber": 145
+        },
+        {
+          "caller": "test_sale_brings_product_below_threshold",
+          "callee": "update(Shop).where",
+          "lineNumber": 145
+        },
+        {
+          "caller": "test_sale_brings_product_below_threshold",
+          "callee": "update",
+          "lineNumber": 145
+        },
+        {
+          "caller": "test_sale_brings_product_below_threshold",
+          "callee": "db_session.commit",
+          "lineNumber": 147
+        },
+        {
+          "caller": "test_sale_brings_product_below_threshold",
+          "callee": "_seed_product",
+          "lineNumber": 149
+        },
+        {
+          "caller": "test_sale_brings_product_below_threshold",
+          "callee": "_seed_lot",
+          "lineNumber": 150
+        },
+        {
+          "caller": "test_sale_brings_product_below_threshold",
+          "callee": "_finalize",
+          "lineNumber": 151
+        },
+        {
+          "caller": "test_sale_brings_product_below_threshold",
+          "callee": "owner_client.get",
+          "lineNumber": 153
+        },
+        {
+          "caller": "test_sale_brings_product_below_threshold",
+          "callee": "resp.json",
+          "lineNumber": 154
+        },
+        {
+          "caller": "test_sale_brings_product_below_threshold",
+          "callee": "len",
+          "lineNumber": 155
+        },
+        {
+          "caller": "test_per_product_override_beats_shop_default",
+          "callee": "db_session.execute",
+          "lineNumber": 167
+        },
+        {
+          "caller": "test_per_product_override_beats_shop_default",
+          "callee": "update(Shop).where(Shop.id == 1).values",
+          "lineNumber": 168
+        },
+        {
+          "caller": "test_per_product_override_beats_shop_default",
+          "callee": "update(Shop).where",
+          "lineNumber": 168
+        },
+        {
+          "caller": "test_per_product_override_beats_shop_default",
+          "callee": "update",
+          "lineNumber": 168
+        },
+        {
+          "caller": "test_per_product_override_beats_shop_default",
+          "callee": "db_session.commit",
+          "lineNumber": 170
+        },
+        {
+          "caller": "test_per_product_override_beats_shop_default",
+          "callee": "_seed_product",
+          "lineNumber": 172
+        },
+        {
+          "caller": "test_per_product_override_beats_shop_default",
+          "callee": "_seed_product",
+          "lineNumber": 173
+        },
+        {
+          "caller": "test_per_product_override_beats_shop_default",
+          "callee": "_seed_lot",
+          "lineNumber": 174
+        },
+        {
+          "caller": "test_per_product_override_beats_shop_default",
+          "callee": "(\r\n        await db_session.execute(\r\n            select(Product).where(Product.barcode == \"8905000000006\")\r\n        )\r\n    ).scalar_one",
+          "lineNumber": 180
+        },
+        {
+          "caller": "test_per_product_override_beats_shop_default",
+          "callee": "db_session.execute",
+          "lineNumber": 181
+        },
+        {
+          "caller": "test_per_product_override_beats_shop_default",
+          "callee": "select(Product).where",
+          "lineNumber": 182
+        },
+        {
+          "caller": "test_per_product_override_beats_shop_default",
+          "callee": "select",
+          "lineNumber": 182
+        },
+        {
+          "caller": "test_per_product_override_beats_shop_default",
+          "callee": "owner_client.patch",
+          "lineNumber": 185
+        },
+        {
+          "caller": "test_per_product_override_beats_shop_default",
+          "callee": "owner_client.get",
+          "lineNumber": 189
+        },
+        {
+          "caller": "test_per_product_override_beats_shop_default",
+          "callee": "resp.json",
+          "lineNumber": 190
+        },
+        {
+          "caller": "test_list_sorted_most_urgent_first",
+          "callee": "db_session.execute",
+          "lineNumber": 202
+        },
+        {
+          "caller": "test_list_sorted_most_urgent_first",
+          "callee": "update(Shop).where(Shop.id == 1).values",
+          "lineNumber": 203
+        },
+        {
+          "caller": "test_list_sorted_most_urgent_first",
+          "callee": "update(Shop).where",
+          "lineNumber": 203
+        },
+        {
+          "caller": "test_list_sorted_most_urgent_first",
+          "callee": "update",
+          "lineNumber": 203
+        },
+        {
+          "caller": "test_list_sorted_most_urgent_first",
+          "callee": "db_session.commit",
+          "lineNumber": 205
+        },
+        {
+          "caller": "test_list_sorted_most_urgent_first",
+          "callee": "_seed_product",
+          "lineNumber": 207
+        },
+        {
+          "caller": "test_list_sorted_most_urgent_first",
+          "callee": "_seed_lot",
+          "lineNumber": 208
+        },
+        {
+          "caller": "test_list_sorted_most_urgent_first",
+          "callee": "owner_client.get",
+          "lineNumber": 213
+        },
+        {
+          "caller": "test_list_sorted_most_urgent_first",
+          "callee": "resp.json",
+          "lineNumber": 214
+        },
+        {
+          "caller": "test_list_sorted_most_urgent_first",
+          "callee": "sorted",
+          "lineNumber": 216
+        },
+        {
+          "caller": "test_receiver_can_view_low_stock",
+          "callee": "db_session.execute",
+          "lineNumber": 223
+        },
+        {
+          "caller": "test_receiver_can_view_low_stock",
+          "callee": "update(Shop).where(Shop.id == 1).values",
+          "lineNumber": 224
+        },
+        {
+          "caller": "test_receiver_can_view_low_stock",
+          "callee": "update(Shop).where",
+          "lineNumber": 224
+        },
+        {
+          "caller": "test_receiver_can_view_low_stock",
+          "callee": "update",
+          "lineNumber": 224
+        },
+        {
+          "caller": "test_receiver_can_view_low_stock",
+          "callee": "db_session.commit",
+          "lineNumber": 226
+        },
+        {
+          "caller": "test_receiver_can_view_low_stock",
+          "callee": "_seed_product",
+          "lineNumber": 227
+        },
+        {
+          "caller": "test_receiver_can_view_low_stock",
+          "callee": "_seed_lot",
+          "lineNumber": 228
+        },
+        {
+          "caller": "test_receiver_can_view_low_stock",
+          "callee": "receiver_client.get",
+          "lineNumber": 231
+        },
+        {
+          "caller": "test_receiver_can_view_low_stock",
+          "callee": "len",
+          "lineNumber": 233
+        },
+        {
+          "caller": "test_receiver_can_view_low_stock",
+          "callee": "resp.json",
+          "lineNumber": 233
+        },
+        {
+          "caller": "test_low_stock_inactive_products_excluded",
+          "callee": "db_session.execute",
+          "lineNumber": 240
+        },
+        {
+          "caller": "test_low_stock_inactive_products_excluded",
+          "callee": "update(Shop).where(Shop.id == 1).values",
+          "lineNumber": 241
+        },
+        {
+          "caller": "test_low_stock_inactive_products_excluded",
+          "callee": "update(Shop).where",
+          "lineNumber": 241
+        },
+        {
+          "caller": "test_low_stock_inactive_products_excluded",
+          "callee": "update",
+          "lineNumber": 241
+        },
+        {
+          "caller": "test_low_stock_inactive_products_excluded",
+          "callee": "db_session.commit",
+          "lineNumber": 243
+        },
+        {
+          "caller": "test_low_stock_inactive_products_excluded",
+          "callee": "_seed_product",
+          "lineNumber": 244
+        },
+        {
+          "caller": "test_low_stock_inactive_products_excluded",
+          "callee": "_seed_lot",
+          "lineNumber": 245
+        },
+        {
+          "caller": "test_low_stock_inactive_products_excluded",
+          "callee": "(\r\n        await db_session.execute(\r\n            select(Product).where(Product.barcode == \"8905000000012\")\r\n        )\r\n    ).scalar_one",
+          "lineNumber": 247
+        },
+        {
+          "caller": "test_low_stock_inactive_products_excluded",
+          "callee": "db_session.execute",
+          "lineNumber": 248
+        },
+        {
+          "caller": "test_low_stock_inactive_products_excluded",
+          "callee": "select(Product).where",
+          "lineNumber": 249
+        },
+        {
+          "caller": "test_low_stock_inactive_products_excluded",
+          "callee": "select",
+          "lineNumber": 249
+        },
+        {
+          "caller": "test_low_stock_inactive_products_excluded",
+          "callee": "db_session.commit",
+          "lineNumber": 253
+        },
+        {
+          "caller": "test_low_stock_inactive_products_excluded",
+          "callee": "owner_client.get",
+          "lineNumber": 255
+        },
+        {
+          "caller": "test_low_stock_inactive_products_excluded",
+          "callee": "resp.json",
+          "lineNumber": 256
+        }
+      ],
+      "metrics": {
+        "importCount": 2,
+        "exportCount": 12,
+        "functionCount": 12,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "tests/test_products.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 299,
+      "nonEmptyLines": 252,
+      "functions": [
+        {
+          "name": "test_owner_creates_product",
+          "startLine": 21,
+          "endLine": 30,
+          "params": [
+            "owner_client"
+          ]
+        },
+        {
+          "name": "test_receiver_cannot_create_product",
+          "startLine": 34,
+          "endLine": 36,
+          "params": [
+            "receiver_client"
+          ]
+        },
+        {
+          "name": "test_cashier_cannot_create_product",
+          "startLine": 40,
+          "endLine": 42,
+          "params": [
+            "cashier_client"
+          ]
+        },
+        {
+          "name": "test_duplicate_barcode_rejected_with_409",
+          "startLine": 46,
+          "endLine": 55,
+          "params": [
+            "owner_client",
+            "owner"
+          ]
+        },
+        {
+          "name": "test_each_bottle_size_is_a_separate_product",
+          "startLine": 59,
+          "endLine": 69,
+          "params": [
+            "owner_client"
+          ]
+        },
+        {
+          "name": "test_lookup_by_barcode_succeeds_for_cashier",
+          "startLine": 73,
+          "endLine": 87,
+          "params": [
+            "cashier_client",
+            "owner_client"
+          ]
+        },
+        {
+          "name": "test_lookup_returns_404_for_unknown_barcode",
+          "startLine": 91,
+          "endLine": 93,
+          "params": [
+            "cashier_client"
+          ]
+        },
+        {
+          "name": "test_manual_barcode_entry_falls_back_through_lookup",
+          "startLine": 97,
+          "endLine": 106,
+          "params": [
+            "cashier_client",
+            "owner_client"
+          ]
+        },
+        {
+          "name": "test_list_filters_to_own_shop",
+          "startLine": 110,
+          "endLine": 118,
+          "params": [
+            "owner_client",
+            "superadmin_client"
+          ]
+        },
+        {
+          "name": "test_superadmin_shop_id_scopes_list_and_lookup",
+          "startLine": 122,
+          "endLine": 180,
+          "params": [
+            "owner_client",
+            "superadmin_client",
+            "db_session",
+            "shop"
+          ]
+        },
+        {
+          "name": "test_owner_updates_price_and_threshold",
+          "startLine": 184,
+          "endLine": 194,
+          "params": [
+            "owner_client"
+          ]
+        },
+        {
+          "name": "test_csv_import_happy_path",
+          "startLine": 201,
+          "endLine": 215,
+          "params": [
+            "owner_client"
+          ]
+        },
+        {
+          "name": "test_csv_import_per_row_errors_are_surfaced",
+          "startLine": 219,
+          "endLine": 242,
+          "params": [
+            "owner_client"
+          ]
+        },
+        {
+          "name": "test_csv_import_with_low_stock_threshold_column",
+          "startLine": 246,
+          "endLine": 263,
+          "params": [
+            "owner_client"
+          ]
+        },
+        {
+          "name": "test_csv_import_rejects_missing_columns",
+          "startLine": 267,
+          "endLine": 274,
+          "params": [
+            "owner_client"
+          ]
+        },
+        {
+          "name": "test_csv_import_rejects_cashier",
+          "startLine": 278,
+          "endLine": 284,
+          "params": [
+            "cashier_client"
+          ]
+        },
+        {
+          "name": "test_csv_import_handles_utf8_bom",
+          "startLine": 288,
+          "endLine": 299,
+          "params": [
+            "owner_client"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "test_owner_creates_product",
+          "line": 20,
+          "isDefault": false
+        },
+        {
+          "name": "test_receiver_cannot_create_product",
+          "line": 33,
+          "isDefault": false
+        },
+        {
+          "name": "test_cashier_cannot_create_product",
+          "line": 39,
+          "isDefault": false
+        },
+        {
+          "name": "test_duplicate_barcode_rejected_with_409",
+          "line": 45,
+          "isDefault": false
+        },
+        {
+          "name": "test_each_bottle_size_is_a_separate_product",
+          "line": 58,
+          "isDefault": false
+        },
+        {
+          "name": "test_lookup_by_barcode_succeeds_for_cashier",
+          "line": 72,
+          "isDefault": false
+        },
+        {
+          "name": "test_lookup_returns_404_for_unknown_barcode",
+          "line": 90,
+          "isDefault": false
+        },
+        {
+          "name": "test_manual_barcode_entry_falls_back_through_lookup",
+          "line": 96,
+          "isDefault": false
+        },
+        {
+          "name": "test_list_filters_to_own_shop",
+          "line": 109,
+          "isDefault": false
+        },
+        {
+          "name": "test_superadmin_shop_id_scopes_list_and_lookup",
+          "line": 121,
+          "isDefault": false
+        },
+        {
+          "name": "test_owner_updates_price_and_threshold",
+          "line": 183,
+          "isDefault": false
+        },
+        {
+          "name": "test_csv_import_happy_path",
+          "line": 200,
+          "isDefault": false
+        },
+        {
+          "name": "test_csv_import_per_row_errors_are_surfaced",
+          "line": 218,
+          "isDefault": false
+        },
+        {
+          "name": "test_csv_import_with_low_stock_threshold_column",
+          "line": 245,
+          "isDefault": false
+        },
+        {
+          "name": "test_csv_import_rejects_missing_columns",
+          "line": 266,
+          "isDefault": false
+        },
+        {
+          "name": "test_csv_import_rejects_cashier",
+          "line": 277,
+          "isDefault": false
+        },
+        {
+          "name": "test_csv_import_handles_utf8_bom",
+          "line": 287,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "test_owner_creates_product",
+          "callee": "owner_client.post",
+          "lineNumber": 22
+        },
+        {
+          "caller": "test_owner_creates_product",
+          "callee": "resp.json",
+          "lineNumber": 24
+        },
+        {
+          "caller": "test_receiver_cannot_create_product",
+          "callee": "receiver_client.post",
+          "lineNumber": 35
+        },
+        {
+          "caller": "test_cashier_cannot_create_product",
+          "callee": "cashier_client.post",
+          "lineNumber": 41
+        },
+        {
+          "caller": "test_duplicate_barcode_rejected_with_409",
+          "callee": "owner_client.post",
+          "lineNumber": 50
+        },
+        {
+          "caller": "test_duplicate_barcode_rejected_with_409",
+          "callee": "owner_client.post",
+          "lineNumber": 53
+        },
+        {
+          "caller": "test_duplicate_barcode_rejected_with_409",
+          "callee": "second.json",
+          "lineNumber": 55
+        },
+        {
+          "caller": "test_each_bottle_size_is_a_separate_product",
+          "callee": "owner_client.post",
+          "lineNumber": 64
+        },
+        {
+          "caller": "test_each_bottle_size_is_a_separate_product",
+          "callee": "owner_client.post",
+          "lineNumber": 65
+        },
+        {
+          "caller": "test_each_bottle_size_is_a_separate_product",
+          "callee": "r1.json",
+          "lineNumber": 68
+        },
+        {
+          "caller": "test_each_bottle_size_is_a_separate_product",
+          "callee": "r2.json",
+          "lineNumber": 68
+        },
+        {
+          "caller": "test_each_bottle_size_is_a_separate_product",
+          "callee": "r1.json",
+          "lineNumber": 69
+        },
+        {
+          "caller": "test_each_bottle_size_is_a_separate_product",
+          "callee": "r2.json",
+          "lineNumber": 69
+        },
+        {
+          "caller": "test_lookup_by_barcode_succeeds_for_cashier",
+          "callee": "owner_client.post",
+          "lineNumber": 78
+        },
+        {
+          "caller": "test_lookup_by_barcode_succeeds_for_cashier",
+          "callee": "cashier_client.get",
+          "lineNumber": 83
+        },
+        {
+          "caller": "test_lookup_by_barcode_succeeds_for_cashier",
+          "callee": "resp.json",
+          "lineNumber": 87
+        },
+        {
+          "caller": "test_lookup_returns_404_for_unknown_barcode",
+          "callee": "cashier_client.get",
+          "lineNumber": 92
+        },
+        {
+          "caller": "test_manual_barcode_entry_falls_back_through_lookup",
+          "callee": "owner_client.post",
+          "lineNumber": 102
+        },
+        {
+          "caller": "test_manual_barcode_entry_falls_back_through_lookup",
+          "callee": "cashier_client.get",
+          "lineNumber": 103
+        },
+        {
+          "caller": "test_list_filters_to_own_shop",
+          "callee": "owner_client.post",
+          "lineNumber": 111
+        },
+        {
+          "caller": "test_list_filters_to_own_shop",
+          "callee": "owner_client.get",
+          "lineNumber": 112
+        },
+        {
+          "caller": "test_list_filters_to_own_shop",
+          "callee": "len",
+          "lineNumber": 114
+        },
+        {
+          "caller": "test_list_filters_to_own_shop",
+          "callee": "r1.json",
+          "lineNumber": 114
+        },
+        {
+          "caller": "test_list_filters_to_own_shop",
+          "callee": "superadmin_client.get",
+          "lineNumber": 116
+        },
+        {
+          "caller": "test_list_filters_to_own_shop",
+          "callee": "len",
+          "lineNumber": 118
+        },
+        {
+          "caller": "test_list_filters_to_own_shop",
+          "callee": "r2.json",
+          "lineNumber": 118
+        },
+        {
+          "caller": "test_superadmin_shop_id_scopes_list_and_lookup",
+          "callee": "owner_client.post",
+          "lineNumber": 132
+        },
+        {
+          "caller": "test_superadmin_shop_id_scopes_list_and_lookup",
+          "callee": "Shop",
+          "lineNumber": 135
+        },
+        {
+          "caller": "test_superadmin_shop_id_scopes_list_and_lookup",
+          "callee": "db_session.add",
+          "lineNumber": 136
+        },
+        {
+          "caller": "test_superadmin_shop_id_scopes_list_and_lookup",
+          "callee": "db_session.flush",
+          "lineNumber": 137
+        },
+        {
+          "caller": "test_superadmin_shop_id_scopes_list_and_lookup",
+          "callee": "Product",
+          "lineNumber": 138
+        },
+        {
+          "caller": "test_superadmin_shop_id_scopes_list_and_lookup",
+          "callee": "Decimal",
+          "lineNumber": 143
+        },
+        {
+          "caller": "test_superadmin_shop_id_scopes_list_and_lookup",
+          "callee": "db_session.add",
+          "lineNumber": 146
+        },
+        {
+          "caller": "test_superadmin_shop_id_scopes_list_and_lookup",
+          "callee": "db_session.commit",
+          "lineNumber": 147
+        },
+        {
+          "caller": "test_superadmin_shop_id_scopes_list_and_lookup",
+          "callee": "superadmin_client.get",
+          "lineNumber": 150
+        },
+        {
+          "caller": "test_superadmin_shop_id_scopes_list_and_lookup",
+          "callee": "len",
+          "lineNumber": 152
+        },
+        {
+          "caller": "test_superadmin_shop_id_scopes_list_and_lookup",
+          "callee": "r_all.json",
+          "lineNumber": 152
+        },
+        {
+          "caller": "test_superadmin_shop_id_scopes_list_and_lookup",
+          "callee": "superadmin_client.get",
+          "lineNumber": 155
+        },
+        {
+          "caller": "test_superadmin_shop_id_scopes_list_and_lookup",
+          "callee": "r_shop1.json",
+          "lineNumber": 157
+        },
+        {
+          "caller": "test_superadmin_shop_id_scopes_list_and_lookup",
+          "callee": "superadmin_client.get",
+          "lineNumber": 160
+        },
+        {
+          "caller": "test_superadmin_shop_id_scopes_list_and_lookup",
+          "callee": "superadmin_client.get",
+          "lineNumber": 167
+        },
+        {
+          "caller": "test_superadmin_shop_id_scopes_list_and_lookup",
+          "callee": "superadmin_client.get",
+          "lineNumber": 173
+        },
+        {
+          "caller": "test_superadmin_shop_id_scopes_list_and_lookup",
+          "callee": "owner_client.get",
+          "lineNumber": 179
+        },
+        {
+          "caller": "test_owner_updates_price_and_threshold",
+          "callee": "owner_client.post",
+          "lineNumber": 185
+        },
+        {
+          "caller": "test_owner_updates_price_and_threshold",
+          "callee": "cr.json",
+          "lineNumber": 186
+        },
+        {
+          "caller": "test_owner_updates_price_and_threshold",
+          "callee": "owner_client.patch",
+          "lineNumber": 187
+        },
+        {
+          "caller": "test_owner_updates_price_and_threshold",
+          "callee": "resp.json",
+          "lineNumber": 192
+        },
+        {
+          "caller": "test_csv_import_happy_path",
+          "callee": "owner_client.post",
+          "lineNumber": 207
+        },
+        {
+          "caller": "test_csv_import_happy_path",
+          "callee": "csv_body.encode",
+          "lineNumber": 209
+        },
+        {
+          "caller": "test_csv_import_happy_path",
+          "callee": "resp.json",
+          "lineNumber": 212
+        },
+        {
+          "caller": "test_csv_import_per_row_errors_are_surfaced",
+          "callee": "owner_client.post",
+          "lineNumber": 228
+        },
+        {
+          "caller": "test_csv_import_per_row_errors_are_surfaced",
+          "callee": "csv_body.encode",
+          "lineNumber": 230
+        },
+        {
+          "caller": "test_csv_import_per_row_errors_are_surfaced",
+          "callee": "resp.json",
+          "lineNumber": 233
+        },
+        {
+          "caller": "test_csv_import_per_row_errors_are_surfaced",
+          "callee": "len",
+          "lineNumber": 236
+        },
+        {
+          "caller": "test_csv_import_per_row_errors_are_surfaced",
+          "callee": "sorted",
+          "lineNumber": 238
+        },
+        {
+          "caller": "test_csv_import_per_row_errors_are_surfaced",
+          "callee": "next",
+          "lineNumber": 241
+        },
+        {
+          "caller": "test_csv_import_with_low_stock_threshold_column",
+          "callee": "owner_client.post",
+          "lineNumber": 251
+        },
+        {
+          "caller": "test_csv_import_with_low_stock_threshold_column",
+          "callee": "csv_body.encode",
+          "lineNumber": 253
+        },
+        {
+          "caller": "test_csv_import_with_low_stock_threshold_column",
+          "callee": "resp.json",
+          "lineNumber": 256
+        },
+        {
+          "caller": "test_csv_import_with_low_stock_threshold_column",
+          "callee": "owner_client.get",
+          "lineNumber": 259
+        },
+        {
+          "caller": "test_csv_import_with_low_stock_threshold_column",
+          "callee": "lookup.json",
+          "lineNumber": 263
+        },
+        {
+          "caller": "test_csv_import_rejects_missing_columns",
+          "callee": "owner_client.post",
+          "lineNumber": 269
+        },
+        {
+          "caller": "test_csv_import_rejects_missing_columns",
+          "callee": "csv_body.encode",
+          "lineNumber": 271
+        },
+        {
+          "caller": "test_csv_import_rejects_missing_columns",
+          "callee": "resp.json",
+          "lineNumber": 274
+        },
+        {
+          "caller": "test_csv_import_rejects_cashier",
+          "callee": "cashier_client.post",
+          "lineNumber": 280
+        },
+        {
+          "caller": "test_csv_import_rejects_cashier",
+          "callee": "csv_body.encode",
+          "lineNumber": 282
+        },
+        {
+          "caller": "test_csv_import_handles_utf8_bom",
+          "callee": "owner_client.post",
+          "lineNumber": 294
+        },
+        {
+          "caller": "test_csv_import_handles_utf8_bom",
+          "callee": "csv_body.encode",
+          "lineNumber": 296
+        },
+        {
+          "caller": "test_csv_import_handles_utf8_bom",
+          "callee": "resp.json",
+          "lineNumber": 299
+        }
+      ],
+      "metrics": {
+        "importCount": 2,
+        "exportCount": 17,
+        "functionCount": 17,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "tests/test_shops.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 226,
+      "nonEmptyLines": 184,
+      "functions": [
+        {
+          "name": "_seed_product",
+          "startLine": 24,
+          "endLine": 29,
+          "params": [
+            "client",
+            "barcode"
+          ]
+        },
+        {
+          "name": "_seed_lot",
+          "startLine": 32,
+          "endLine": 36,
+          "params": [
+            "receiver_client",
+            "bc",
+            "qty"
+          ]
+        },
+        {
+          "name": "_finalize",
+          "startLine": 39,
+          "endLine": 51,
+          "params": [
+            "cashier_client",
+            "bc",
+            "qty",
+            "amount"
+          ]
+        },
+        {
+          "name": "test_get_shop_returns_defaults",
+          "startLine": 58,
+          "endLine": 70,
+          "params": [
+            "owner_client",
+            "db_session"
+          ]
+        },
+        {
+          "name": "test_owner_updates_gstin_and_duty_rate",
+          "startLine": 74,
+          "endLine": 89,
+          "params": [
+            "owner_client",
+            "db_session"
+          ]
+        },
+        {
+          "name": "test_cashier_cannot_update_shop",
+          "startLine": 93,
+          "endLine": 98,
+          "params": [
+            "cashier_client"
+          ]
+        },
+        {
+          "name": "test_invalid_gstin_rejected",
+          "startLine": 102,
+          "endLine": 108,
+          "params": [
+            "owner_client"
+          ]
+        },
+        {
+          "name": "test_duty_rate_must_be_0_to_100",
+          "startLine": 112,
+          "endLine": 117,
+          "params": [
+            "owner_client"
+          ]
+        },
+        {
+          "name": "test_pdf_includes_configured_gstin",
+          "startLine": 124,
+          "endLine": 142,
+          "params": [
+            "owner_client",
+            "receiver_client",
+            "cashier_client"
+          ]
+        },
+        {
+          "name": "test_pdf_includes_configured_duty_rate",
+          "startLine": 146,
+          "endLine": 163,
+          "params": [
+            "owner_client",
+            "receiver_client",
+            "cashier_client"
+          ]
+        },
+        {
+          "name": "test_pdf_includes_placeholder_disclaimer",
+          "startLine": 167,
+          "endLine": 181,
+          "params": [
+            "owner_client",
+            "receiver_client",
+            "cashier_client"
+          ]
+        },
+        {
+          "name": "test_pdf_does_not_hardcode_cgst_or_sgst",
+          "startLine": 185,
+          "endLine": 205,
+          "params": [
+            "owner_client",
+            "receiver_client",
+            "cashier_client"
+          ]
+        },
+        {
+          "name": "test_shop_name_appears_on_invoice",
+          "startLine": 209,
+          "endLine": 226,
+          "params": [
+            "owner_client",
+            "receiver_client",
+            "cashier_client",
+            "db_session"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "_seed_product",
+          "line": 24,
+          "isDefault": false
+        },
+        {
+          "name": "_seed_lot",
+          "line": 32,
+          "isDefault": false
+        },
+        {
+          "name": "_finalize",
+          "line": 39,
+          "isDefault": false
+        },
+        {
+          "name": "test_get_shop_returns_defaults",
+          "line": 57,
+          "isDefault": false
+        },
+        {
+          "name": "test_owner_updates_gstin_and_duty_rate",
+          "line": 73,
+          "isDefault": false
+        },
+        {
+          "name": "test_cashier_cannot_update_shop",
+          "line": 92,
+          "isDefault": false
+        },
+        {
+          "name": "test_invalid_gstin_rejected",
+          "line": 101,
+          "isDefault": false
+        },
+        {
+          "name": "test_duty_rate_must_be_0_to_100",
+          "line": 111,
+          "isDefault": false
+        },
+        {
+          "name": "test_pdf_includes_configured_gstin",
+          "line": 123,
+          "isDefault": false
+        },
+        {
+          "name": "test_pdf_includes_configured_duty_rate",
+          "line": 145,
+          "isDefault": false
+        },
+        {
+          "name": "test_pdf_includes_placeholder_disclaimer",
+          "line": 166,
+          "isDefault": false
+        },
+        {
+          "name": "test_pdf_does_not_hardcode_cgst_or_sgst",
+          "line": 184,
+          "isDefault": false
+        },
+        {
+          "name": "test_shop_name_appears_on_invoice",
+          "line": 208,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "_seed_product",
+          "callee": "client.post",
+          "lineNumber": 25
+        },
+        {
+          "caller": "_seed_lot",
+          "callee": "receiver_client.post",
+          "lineNumber": 33
+        },
+        {
+          "caller": "_finalize",
+          "callee": "cashier_client.post",
+          "lineNumber": 42
+        },
+        {
+          "caller": "_finalize",
+          "callee": "uuid.uuid4",
+          "lineNumber": 44
+        },
+        {
+          "caller": "_finalize",
+          "callee": "resp.json",
+          "lineNumber": 51
+        },
+        {
+          "caller": "test_get_shop_returns_defaults",
+          "callee": "(await db_session.execute(select(Shop).where(Shop.id == 1))).scalar_one",
+          "lineNumber": 61
+        },
+        {
+          "caller": "test_get_shop_returns_defaults",
+          "callee": "db_session.execute",
+          "lineNumber": 61
+        },
+        {
+          "caller": "test_get_shop_returns_defaults",
+          "callee": "select(Shop).where",
+          "lineNumber": 61
+        },
+        {
+          "caller": "test_get_shop_returns_defaults",
+          "callee": "select",
+          "lineNumber": 61
+        },
+        {
+          "caller": "test_get_shop_returns_defaults",
+          "callee": "owner_client.get",
+          "lineNumber": 66
+        },
+        {
+          "caller": "test_get_shop_returns_defaults",
+          "callee": "resp.json",
+          "lineNumber": 68
+        },
+        {
+          "caller": "test_owner_updates_gstin_and_duty_rate",
+          "callee": "owner_client.patch",
+          "lineNumber": 77
+        },
+        {
+          "caller": "test_owner_updates_gstin_and_duty_rate",
+          "callee": "resp.json",
+          "lineNumber": 82
+        },
+        {
+          "caller": "test_owner_updates_gstin_and_duty_rate",
+          "callee": "(await db_session.execute(select(Shop).where(Shop.id == 1))).scalar_one",
+          "lineNumber": 87
+        },
+        {
+          "caller": "test_owner_updates_gstin_and_duty_rate",
+          "callee": "db_session.execute",
+          "lineNumber": 87
+        },
+        {
+          "caller": "test_owner_updates_gstin_and_duty_rate",
+          "callee": "select(Shop).where",
+          "lineNumber": 87
+        },
+        {
+          "caller": "test_owner_updates_gstin_and_duty_rate",
+          "callee": "select",
+          "lineNumber": 87
+        },
+        {
+          "caller": "test_cashier_cannot_update_shop",
+          "callee": "cashier_client.patch",
+          "lineNumber": 94
+        },
+        {
+          "caller": "test_invalid_gstin_rejected",
+          "callee": "owner_client.patch",
+          "lineNumber": 104
+        },
+        {
+          "caller": "test_invalid_gstin_rejected",
+          "callee": "owner_client.patch",
+          "lineNumber": 107
+        },
+        {
+          "caller": "test_duty_rate_must_be_0_to_100",
+          "callee": "owner_client.patch",
+          "lineNumber": 114
+        },
+        {
+          "caller": "test_pdf_includes_configured_gstin",
+          "callee": "owner_client.patch",
+          "lineNumber": 129
+        },
+        {
+          "caller": "test_pdf_includes_configured_gstin",
+          "callee": "_seed_product",
+          "lineNumber": 132
+        },
+        {
+          "caller": "test_pdf_includes_configured_gstin",
+          "callee": "_seed_lot",
+          "lineNumber": 133
+        },
+        {
+          "caller": "test_pdf_includes_configured_gstin",
+          "callee": "_finalize",
+          "lineNumber": 134
+        },
+        {
+          "caller": "test_pdf_includes_configured_gstin",
+          "callee": "cashier_client.get",
+          "lineNumber": 136
+        },
+        {
+          "caller": "test_pdf_includes_configured_gstin",
+          "callee": "body.decode",
+          "lineNumber": 141
+        },
+        {
+          "caller": "test_pdf_includes_configured_duty_rate",
+          "callee": "owner_client.patch",
+          "lineNumber": 151
+        },
+        {
+          "caller": "test_pdf_includes_configured_duty_rate",
+          "callee": "_seed_product",
+          "lineNumber": 154
+        },
+        {
+          "caller": "test_pdf_includes_configured_duty_rate",
+          "callee": "_seed_lot",
+          "lineNumber": 155
+        },
+        {
+          "caller": "test_pdf_includes_configured_duty_rate",
+          "callee": "_finalize",
+          "lineNumber": 156
+        },
+        {
+          "caller": "test_pdf_includes_configured_duty_rate",
+          "callee": "cashier_client.get",
+          "lineNumber": 158
+        },
+        {
+          "caller": "test_pdf_includes_configured_duty_rate",
+          "callee": "resp.content.decode",
+          "lineNumber": 159
+        },
+        {
+          "caller": "test_pdf_includes_configured_duty_rate",
+          "callee": "text.lower",
+          "lineNumber": 163
+        },
+        {
+          "caller": "test_pdf_includes_placeholder_disclaimer",
+          "callee": "_seed_product",
+          "lineNumber": 174
+        },
+        {
+          "caller": "test_pdf_includes_placeholder_disclaimer",
+          "callee": "_seed_lot",
+          "lineNumber": 175
+        },
+        {
+          "caller": "test_pdf_includes_placeholder_disclaimer",
+          "callee": "_finalize",
+          "lineNumber": 176
+        },
+        {
+          "caller": "test_pdf_includes_placeholder_disclaimer",
+          "callee": "cashier_client.get",
+          "lineNumber": 178
+        },
+        {
+          "caller": "test_pdf_includes_placeholder_disclaimer",
+          "callee": "resp.content.decode",
+          "lineNumber": 179
+        },
+        {
+          "caller": "test_pdf_includes_placeholder_disclaimer",
+          "callee": "text.lower",
+          "lineNumber": 180
+        },
+        {
+          "caller": "test_pdf_includes_placeholder_disclaimer",
+          "callee": "text.lower",
+          "lineNumber": 181
+        },
+        {
+          "caller": "test_pdf_does_not_hardcode_cgst_or_sgst",
+          "callee": "_seed_product",
+          "lineNumber": 193
+        },
+        {
+          "caller": "test_pdf_does_not_hardcode_cgst_or_sgst",
+          "callee": "_seed_lot",
+          "lineNumber": 194
+        },
+        {
+          "caller": "test_pdf_does_not_hardcode_cgst_or_sgst",
+          "callee": "_finalize",
+          "lineNumber": 195
+        },
+        {
+          "caller": "test_pdf_does_not_hardcode_cgst_or_sgst",
+          "callee": "cashier_client.get",
+          "lineNumber": 197
+        },
+        {
+          "caller": "test_pdf_does_not_hardcode_cgst_or_sgst",
+          "callee": "resp.content.decode",
+          "lineNumber": 198
+        },
+        {
+          "caller": "test_pdf_does_not_hardcode_cgst_or_sgst",
+          "callee": "re.search",
+          "lineNumber": 203
+        },
+        {
+          "caller": "test_pdf_does_not_hardcode_cgst_or_sgst",
+          "callee": "re.search",
+          "lineNumber": 204
+        },
+        {
+          "caller": "test_pdf_does_not_hardcode_cgst_or_sgst",
+          "callee": "re.search",
+          "lineNumber": 205
+        },
+        {
+          "caller": "test_shop_name_appears_on_invoice",
+          "callee": "(await db_session.execute(select(Shop).where(Shop.id == 1))).scalar_one",
+          "lineNumber": 216
+        },
+        {
+          "caller": "test_shop_name_appears_on_invoice",
+          "callee": "db_session.execute",
+          "lineNumber": 216
+        },
+        {
+          "caller": "test_shop_name_appears_on_invoice",
+          "callee": "select(Shop).where",
+          "lineNumber": 216
+        },
+        {
+          "caller": "test_shop_name_appears_on_invoice",
+          "callee": "select",
+          "lineNumber": 216
+        },
+        {
+          "caller": "test_shop_name_appears_on_invoice",
+          "callee": "db_session.commit",
+          "lineNumber": 218
+        },
+        {
+          "caller": "test_shop_name_appears_on_invoice",
+          "callee": "_seed_product",
+          "lineNumber": 220
+        },
+        {
+          "caller": "test_shop_name_appears_on_invoice",
+          "callee": "_seed_lot",
+          "lineNumber": 221
+        },
+        {
+          "caller": "test_shop_name_appears_on_invoice",
+          "callee": "_finalize",
+          "lineNumber": 222
+        },
+        {
+          "caller": "test_shop_name_appears_on_invoice",
+          "callee": "cashier_client.get",
+          "lineNumber": 224
+        },
+        {
+          "caller": "test_shop_name_appears_on_invoice",
+          "callee": "resp.content.decode",
+          "lineNumber": 225
+        }
+      ],
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 13,
+        "functionCount": 13,
+        "classCount": 0
+      }
+    }
+  ]
+}

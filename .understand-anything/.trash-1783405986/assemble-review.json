@@ -1,0 +1,17 @@
+{
+  "fixedSectionOk": true,
+  "nodesRecovered": 0,
+  "edgesRestored": 2,
+  "crossBatchEdgesAdded": 0,
+  "typesRemapped": 0,
+  "complexityRemapped": 0,
+  "notes": [
+    "Fixed section (2 tested_by edges dropped as orphan/same-side pairs) is small and reasonable given 314 nodes / 647 input edges; no systemic ID-correction issue to flag.",
+    "All 314 nodes have valid non-empty 'id' fields; no recovery needed for missing-id nodes.",
+    "All node types (function, file, class, document, config, service) are known/valid types; no unknown-type remapping needed.",
+    "All complexity values are valid ('simple'/'moderate'/'complex'); no remapping needed.",
+    "Restored 2 dangling 'imports' edges: file:alembic/env.py -> config:app/config.py and file:app/main.py -> config:app/config.py. Root cause: app/config.py was classified by the batch-2 file-analyzer as node type 'config' (id config:app/config.py) rather than type 'file', so edges from batches that assumed a 'file:app/config.py' target were dropped as dangling. Confirmed via importMap in scan-result.json that both alembic/env.py and app/main.py do import app/config.py, and confirmed 5 other importers of app/config.py (auth.py, cli.py, db.py, jwt.py, passwords.py) already correctly target config:app/config.py in the assembled graph -- so redirecting these 2 edges to the same existing node is consistent with the rest of the graph.",
+    "Left the dropped edge class:app/models/user.py:User -> class:app/db.py:Base as-is (not recreated). app/db.py's Base is produced via SQLAlchemy's declarative_base() call, not a class statement, so no class node for it was ever emitted by any batch -- fabricating one would be speculative. This is a reasonable, intentional drop.",
+    "Cross-checked all 87 importMap entries against assembled 'imports' edges: zero missing edges among import pairs where both source and target file: nodes exist in the graph. The only importMap targets without a matching file: node were the 7 references to app/config.py, all of which resolve to the existing config:app/config.py node (5 already wired correctly, 2 restored above); no other cross-batch edge gaps found."
+  ]
+}

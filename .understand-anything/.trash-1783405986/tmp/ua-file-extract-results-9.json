@@ -1,0 +1,283 @@
+{
+  "scriptCompleted": true,
+  "filesAnalyzed": 2,
+  "filesSkipped": [],
+  "results": [
+    {
+      "path": "tests/test_log_tables.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 35,
+      "nonEmptyLines": 30,
+      "functions": [
+        {
+          "name": "test_three_log_tables_exist",
+          "startLine": 8,
+          "endLine": 18,
+          "params": [
+            "db_session"
+          ]
+        },
+        {
+          "name": "test_log_tables_have_required_columns",
+          "startLine": 21,
+          "endLine": 35,
+          "params": [
+            "db_session"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "test_three_log_tables_exist",
+          "line": 8,
+          "isDefault": false
+        },
+        {
+          "name": "test_log_tables_have_required_columns",
+          "line": 21,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "test_three_log_tables_exist",
+          "callee": "(\n        await db_session.execute(\n            text(\n                \"SELECT table_name FROM information_schema.tables \"\n                \"WHERE table_name IN ('invoicing_logs', 'stockin_logs', 'admin_logs') \"\n                \"ORDER BY table_name\"\n            )\n        )\n    ).all",
+          "lineNumber": 9
+        },
+        {
+          "caller": "test_three_log_tables_exist",
+          "callee": "db_session.execute",
+          "lineNumber": 10
+        },
+        {
+          "caller": "test_three_log_tables_exist",
+          "callee": "text",
+          "lineNumber": 11
+        },
+        {
+          "caller": "test_log_tables_have_required_columns",
+          "callee": "(\n            await db_session.execute(\n                text(\n                    \"SELECT column_name FROM information_schema.columns \"\n                    \"WHERE table_name = :t ORDER BY ordinal_position\"\n                ),\n                {\"t\": table},\n            )\n        ).scalars().all",
+          "lineNumber": 24
+        },
+        {
+          "caller": "test_log_tables_have_required_columns",
+          "callee": "(\n            await db_session.execute(\n                text(\n                    \"SELECT column_name FROM information_schema.columns \"\n                    \"WHERE table_name = :t ORDER BY ordinal_position\"\n                ),\n                {\"t\": table},\n            )\n        ).scalars",
+          "lineNumber": 24
+        },
+        {
+          "caller": "test_log_tables_have_required_columns",
+          "callee": "db_session.execute",
+          "lineNumber": 25
+        },
+        {
+          "caller": "test_log_tables_have_required_columns",
+          "callee": "text",
+          "lineNumber": 26
+        },
+        {
+          "caller": "test_log_tables_have_required_columns",
+          "callee": "set",
+          "lineNumber": 33
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 2,
+        "functionCount": 2,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "tests/test_staff.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 136,
+      "nonEmptyLines": 119,
+      "functions": [
+        {
+          "name": "test_owner_creates_receiver_user",
+          "startLine": 11,
+          "endLine": 26,
+          "params": [
+            "owner_client"
+          ]
+        },
+        {
+          "name": "test_owner_creates_cashier_user",
+          "startLine": 30,
+          "endLine": 43,
+          "params": [
+            "owner_client"
+          ]
+        },
+        {
+          "name": "test_owner_cannot_create_another_owner",
+          "startLine": 47,
+          "endLine": 58,
+          "params": [
+            "owner_client"
+          ]
+        },
+        {
+          "name": "test_owner_cannot_create_superadmin",
+          "startLine": 62,
+          "endLine": 73,
+          "params": [
+            "owner_client"
+          ]
+        },
+        {
+          "name": "test_duplicate_username_rejected_with_409",
+          "startLine": 77,
+          "endLine": 91,
+          "params": [
+            "owner_client",
+            "receiver"
+          ]
+        },
+        {
+          "name": "test_duplicate_phone_rejected_with_409",
+          "startLine": 95,
+          "endLine": 109,
+          "params": [
+            "owner_client",
+            "receiver"
+          ]
+        },
+        {
+          "name": "test_owner_lists_only_their_shop_staff",
+          "startLine": 113,
+          "endLine": 121,
+          "params": [
+            "owner_client",
+            "shop"
+          ]
+        },
+        {
+          "name": "test_receiver_cannot_create_staff",
+          "startLine": 125,
+          "endLine": 136,
+          "params": [
+            "receiver_client"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "test_owner_creates_receiver_user",
+          "line": 10,
+          "isDefault": false
+        },
+        {
+          "name": "test_owner_creates_cashier_user",
+          "line": 29,
+          "isDefault": false
+        },
+        {
+          "name": "test_owner_cannot_create_another_owner",
+          "line": 46,
+          "isDefault": false
+        },
+        {
+          "name": "test_owner_cannot_create_superadmin",
+          "line": 61,
+          "isDefault": false
+        },
+        {
+          "name": "test_duplicate_username_rejected_with_409",
+          "line": 76,
+          "isDefault": false
+        },
+        {
+          "name": "test_duplicate_phone_rejected_with_409",
+          "line": 94,
+          "isDefault": false
+        },
+        {
+          "name": "test_owner_lists_only_their_shop_staff",
+          "line": 112,
+          "isDefault": false
+        },
+        {
+          "name": "test_receiver_cannot_create_staff",
+          "line": 124,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "test_owner_creates_receiver_user",
+          "callee": "owner_client.post",
+          "lineNumber": 12
+        },
+        {
+          "caller": "test_owner_creates_receiver_user",
+          "callee": "resp.json",
+          "lineNumber": 23
+        },
+        {
+          "caller": "test_owner_creates_cashier_user",
+          "callee": "owner_client.post",
+          "lineNumber": 31
+        },
+        {
+          "caller": "test_owner_creates_cashier_user",
+          "callee": "resp.json",
+          "lineNumber": 42
+        },
+        {
+          "caller": "test_owner_cannot_create_another_owner",
+          "callee": "owner_client.post",
+          "lineNumber": 48
+        },
+        {
+          "caller": "test_owner_cannot_create_superadmin",
+          "callee": "owner_client.post",
+          "lineNumber": 63
+        },
+        {
+          "caller": "test_duplicate_username_rejected_with_409",
+          "callee": "owner_client.post",
+          "lineNumber": 81
+        },
+        {
+          "caller": "test_duplicate_phone_rejected_with_409",
+          "callee": "owner_client.post",
+          "lineNumber": 99
+        },
+        {
+          "caller": "test_owner_lists_only_their_shop_staff",
+          "callee": "owner_client.get",
+          "lineNumber": 116
+        },
+        {
+          "caller": "test_owner_lists_only_their_shop_staff",
+          "callee": "resp.json",
+          "lineNumber": 118
+        },
+        {
+          "caller": "test_owner_lists_only_their_shop_staff",
+          "callee": "len",
+          "lineNumber": 120
+        },
+        {
+          "caller": "test_owner_lists_only_their_shop_staff",
+          "callee": "all",
+          "lineNumber": 121
+        },
+        {
+          "caller": "test_receiver_cannot_create_staff",
+          "callee": "receiver_client.post",
+          "lineNumber": 126
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 8,
+        "functionCount": 8,
+        "classCount": 0
+      }
+    }
+  ]
+}

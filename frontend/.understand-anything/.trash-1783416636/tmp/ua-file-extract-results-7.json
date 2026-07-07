@@ -1,0 +1,1155 @@
+{
+  "scriptCompleted": true,
+  "filesAnalyzed": 17,
+  "filesSkipped": [],
+  "results": [
+    {
+      "path": "e2e/checkout-resilience.spec.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 81,
+      "nonEmptyLines": 75,
+      "functions": [
+        {
+          "name": "loginAsCashier",
+          "startLine": 20,
+          "endLine": 31,
+          "params": [
+            "page"
+          ]
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "loginAsCashier",
+          "callee": "page.goto",
+          "lineNumber": 21
+        },
+        {
+          "caller": "loginAsCashier",
+          "callee": "page.getByRole(\"button\", { name: `Digit ${d}` }).click",
+          "lineNumber": 23
+        },
+        {
+          "caller": "loginAsCashier",
+          "callee": "page.getByRole",
+          "lineNumber": 23
+        },
+        {
+          "caller": "loginAsCashier",
+          "callee": "page.getByRole(\"button\", { name: \"NEXT\" }).click",
+          "lineNumber": 25
+        },
+        {
+          "caller": "loginAsCashier",
+          "callee": "page.getByRole",
+          "lineNumber": 25
+        },
+        {
+          "caller": "loginAsCashier",
+          "callee": "page.getByRole(\"button\", { name: `Digit ${d}` }).click",
+          "lineNumber": 27
+        },
+        {
+          "caller": "loginAsCashier",
+          "callee": "page.getByRole",
+          "lineNumber": 27
+        },
+        {
+          "caller": "loginAsCashier",
+          "callee": "page.getByRole(\"button\", { name: \"LOGIN\" }).click",
+          "lineNumber": 29
+        },
+        {
+          "caller": "loginAsCashier",
+          "callee": "page.getByRole",
+          "lineNumber": 29
+        },
+        {
+          "caller": "loginAsCashier",
+          "callee": "expect(page).toHaveURL",
+          "lineNumber": 30
+        },
+        {
+          "caller": "loginAsCashier",
+          "callee": "expect",
+          "lineNumber": 30
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "e2e/checkout.spec.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 62,
+      "nonEmptyLines": 56,
+      "functions": [
+        {
+          "name": "loginAsCashier",
+          "startLine": 11,
+          "endLine": 22,
+          "params": [
+            "page"
+          ]
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "loginAsCashier",
+          "callee": "page.goto",
+          "lineNumber": 12
+        },
+        {
+          "caller": "loginAsCashier",
+          "callee": "page.getByRole(\"button\", { name: `Digit ${d}` }).click",
+          "lineNumber": 14
+        },
+        {
+          "caller": "loginAsCashier",
+          "callee": "page.getByRole",
+          "lineNumber": 14
+        },
+        {
+          "caller": "loginAsCashier",
+          "callee": "page.getByRole(\"button\", { name: \"NEXT\" }).click",
+          "lineNumber": 16
+        },
+        {
+          "caller": "loginAsCashier",
+          "callee": "page.getByRole",
+          "lineNumber": 16
+        },
+        {
+          "caller": "loginAsCashier",
+          "callee": "page.getByRole(\"button\", { name: `Digit ${d}` }).click",
+          "lineNumber": 18
+        },
+        {
+          "caller": "loginAsCashier",
+          "callee": "page.getByRole",
+          "lineNumber": 18
+        },
+        {
+          "caller": "loginAsCashier",
+          "callee": "page.getByRole(\"button\", { name: \"LOGIN\" }).click",
+          "lineNumber": 20
+        },
+        {
+          "caller": "loginAsCashier",
+          "callee": "page.getByRole",
+          "lineNumber": 20
+        },
+        {
+          "caller": "loginAsCashier",
+          "callee": "expect(page).toHaveURL",
+          "lineNumber": 21
+        },
+        {
+          "caller": "loginAsCashier",
+          "callee": "expect",
+          "lineNumber": 21
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "e2e/dashboard.spec.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 48,
+      "nonEmptyLines": 44,
+      "functions": [
+        {
+          "name": "loginAsOwner",
+          "startLine": 3,
+          "endLine": 14,
+          "params": [
+            "page"
+          ]
+        },
+        {
+          "name": "loginAsCashier",
+          "startLine": 16,
+          "endLine": 27,
+          "params": [
+            "page"
+          ]
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "loginAsOwner",
+          "callee": "page.goto",
+          "lineNumber": 4
+        },
+        {
+          "caller": "loginAsOwner",
+          "callee": "page.getByRole(\"button\", { name: `Digit ${d}` }).click",
+          "lineNumber": 6
+        },
+        {
+          "caller": "loginAsOwner",
+          "callee": "page.getByRole",
+          "lineNumber": 6
+        },
+        {
+          "caller": "loginAsOwner",
+          "callee": "page.getByRole(\"button\", { name: \"NEXT\" }).click",
+          "lineNumber": 8
+        },
+        {
+          "caller": "loginAsOwner",
+          "callee": "page.getByRole",
+          "lineNumber": 8
+        },
+        {
+          "caller": "loginAsOwner",
+          "callee": "page.getByRole(\"button\", { name: `Digit ${d}` }).click",
+          "lineNumber": 10
+        },
+        {
+          "caller": "loginAsOwner",
+          "callee": "page.getByRole",
+          "lineNumber": 10
+        },
+        {
+          "caller": "loginAsOwner",
+          "callee": "page.getByRole(\"button\", { name: \"LOGIN\" }).click",
+          "lineNumber": 12
+        },
+        {
+          "caller": "loginAsOwner",
+          "callee": "page.getByRole",
+          "lineNumber": 12
+        },
+        {
+          "caller": "loginAsOwner",
+          "callee": "expect(page).toHaveURL",
+          "lineNumber": 13
+        },
+        {
+          "caller": "loginAsOwner",
+          "callee": "expect",
+          "lineNumber": 13
+        },
+        {
+          "caller": "loginAsCashier",
+          "callee": "page.goto",
+          "lineNumber": 17
+        },
+        {
+          "caller": "loginAsCashier",
+          "callee": "page.getByRole(\"button\", { name: `Digit ${d}` }).click",
+          "lineNumber": 19
+        },
+        {
+          "caller": "loginAsCashier",
+          "callee": "page.getByRole",
+          "lineNumber": 19
+        },
+        {
+          "caller": "loginAsCashier",
+          "callee": "page.getByRole(\"button\", { name: \"NEXT\" }).click",
+          "lineNumber": 21
+        },
+        {
+          "caller": "loginAsCashier",
+          "callee": "page.getByRole",
+          "lineNumber": 21
+        },
+        {
+          "caller": "loginAsCashier",
+          "callee": "page.getByRole(\"button\", { name: `Digit ${d}` }).click",
+          "lineNumber": 23
+        },
+        {
+          "caller": "loginAsCashier",
+          "callee": "page.getByRole",
+          "lineNumber": 23
+        },
+        {
+          "caller": "loginAsCashier",
+          "callee": "page.getByRole(\"button\", { name: \"LOGIN\" }).click",
+          "lineNumber": 25
+        },
+        {
+          "caller": "loginAsCashier",
+          "callee": "page.getByRole",
+          "lineNumber": 25
+        },
+        {
+          "caller": "loginAsCashier",
+          "callee": "expect(page).toHaveURL",
+          "lineNumber": 26
+        },
+        {
+          "caller": "loginAsCashier",
+          "callee": "expect",
+          "lineNumber": 26
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 2,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "e2e/login.smoke.spec.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 53,
+      "nonEmptyLines": 47,
+      "functions": [
+        {
+          "name": "loginAsPhone",
+          "startLine": 14,
+          "endLine": 26,
+          "params": [
+            "page",
+            "phone",
+            "pin"
+          ]
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "loginAsPhone",
+          "callee": "page.goto",
+          "lineNumber": 15
+        },
+        {
+          "caller": "loginAsPhone",
+          "callee": "expect(page.getByRole(\"heading\", { name: \"Barstock\" })).toBeVisible",
+          "lineNumber": 16
+        },
+        {
+          "caller": "loginAsPhone",
+          "callee": "expect",
+          "lineNumber": 16
+        },
+        {
+          "caller": "loginAsPhone",
+          "callee": "page.getByRole",
+          "lineNumber": 16
+        },
+        {
+          "caller": "loginAsPhone",
+          "callee": "page.getByRole(\"button\", { name: `Digit ${d}` }).click",
+          "lineNumber": 19
+        },
+        {
+          "caller": "loginAsPhone",
+          "callee": "page.getByRole",
+          "lineNumber": 19
+        },
+        {
+          "caller": "loginAsPhone",
+          "callee": "page.getByRole(\"button\", { name: \"NEXT\" }).click",
+          "lineNumber": 21
+        },
+        {
+          "caller": "loginAsPhone",
+          "callee": "page.getByRole",
+          "lineNumber": 21
+        },
+        {
+          "caller": "loginAsPhone",
+          "callee": "page.getByRole(\"button\", { name: `Digit ${d}` }).click",
+          "lineNumber": 23
+        },
+        {
+          "caller": "loginAsPhone",
+          "callee": "page.getByRole",
+          "lineNumber": 23
+        },
+        {
+          "caller": "loginAsPhone",
+          "callee": "page.getByRole(\"button\", { name: \"LOGIN\" }).click",
+          "lineNumber": 25
+        },
+        {
+          "caller": "loginAsPhone",
+          "callee": "page.getByRole",
+          "lineNumber": 25
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "e2e/products.spec.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 66,
+      "nonEmptyLines": 60,
+      "functions": [
+        {
+          "name": "loginAsOwner",
+          "startLine": 3,
+          "endLine": 14,
+          "params": [
+            "page"
+          ]
+        },
+        {
+          "name": "loginAsCashier",
+          "startLine": 16,
+          "endLine": 27,
+          "params": [
+            "page"
+          ]
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "loginAsOwner",
+          "callee": "page.goto",
+          "lineNumber": 4
+        },
+        {
+          "caller": "loginAsOwner",
+          "callee": "page.getByRole(\"button\", { name: `Digit ${d}` }).click",
+          "lineNumber": 6
+        },
+        {
+          "caller": "loginAsOwner",
+          "callee": "page.getByRole",
+          "lineNumber": 6
+        },
+        {
+          "caller": "loginAsOwner",
+          "callee": "page.getByRole(\"button\", { name: \"NEXT\" }).click",
+          "lineNumber": 8
+        },
+        {
+          "caller": "loginAsOwner",
+          "callee": "page.getByRole",
+          "lineNumber": 8
+        },
+        {
+          "caller": "loginAsOwner",
+          "callee": "page.getByRole(\"button\", { name: `Digit ${d}` }).click",
+          "lineNumber": 10
+        },
+        {
+          "caller": "loginAsOwner",
+          "callee": "page.getByRole",
+          "lineNumber": 10
+        },
+        {
+          "caller": "loginAsOwner",
+          "callee": "page.getByRole(\"button\", { name: \"LOGIN\" }).click",
+          "lineNumber": 12
+        },
+        {
+          "caller": "loginAsOwner",
+          "callee": "page.getByRole",
+          "lineNumber": 12
+        },
+        {
+          "caller": "loginAsOwner",
+          "callee": "expect(page).toHaveURL",
+          "lineNumber": 13
+        },
+        {
+          "caller": "loginAsOwner",
+          "callee": "expect",
+          "lineNumber": 13
+        },
+        {
+          "caller": "loginAsCashier",
+          "callee": "page.goto",
+          "lineNumber": 17
+        },
+        {
+          "caller": "loginAsCashier",
+          "callee": "page.getByRole(\"button\", { name: `Digit ${d}` }).click",
+          "lineNumber": 19
+        },
+        {
+          "caller": "loginAsCashier",
+          "callee": "page.getByRole",
+          "lineNumber": 19
+        },
+        {
+          "caller": "loginAsCashier",
+          "callee": "page.getByRole(\"button\", { name: \"NEXT\" }).click",
+          "lineNumber": 21
+        },
+        {
+          "caller": "loginAsCashier",
+          "callee": "page.getByRole",
+          "lineNumber": 21
+        },
+        {
+          "caller": "loginAsCashier",
+          "callee": "page.getByRole(\"button\", { name: `Digit ${d}` }).click",
+          "lineNumber": 23
+        },
+        {
+          "caller": "loginAsCashier",
+          "callee": "page.getByRole",
+          "lineNumber": 23
+        },
+        {
+          "caller": "loginAsCashier",
+          "callee": "page.getByRole(\"button\", { name: \"LOGIN\" }).click",
+          "lineNumber": 25
+        },
+        {
+          "caller": "loginAsCashier",
+          "callee": "page.getByRole",
+          "lineNumber": 25
+        },
+        {
+          "caller": "loginAsCashier",
+          "callee": "expect(page).toHaveURL",
+          "lineNumber": 26
+        },
+        {
+          "caller": "loginAsCashier",
+          "callee": "expect",
+          "lineNumber": 26
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 2,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "e2e/receiving.spec.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 51,
+      "nonEmptyLines": 46,
+      "functions": [
+        {
+          "name": "loginAsReceiver",
+          "startLine": 3,
+          "endLine": 14,
+          "params": [
+            "page"
+          ]
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "loginAsReceiver",
+          "callee": "page.goto",
+          "lineNumber": 4
+        },
+        {
+          "caller": "loginAsReceiver",
+          "callee": "page.getByRole(\"button\", { name: `Digit ${d}` }).click",
+          "lineNumber": 6
+        },
+        {
+          "caller": "loginAsReceiver",
+          "callee": "page.getByRole",
+          "lineNumber": 6
+        },
+        {
+          "caller": "loginAsReceiver",
+          "callee": "page.getByRole(\"button\", { name: \"NEXT\" }).click",
+          "lineNumber": 8
+        },
+        {
+          "caller": "loginAsReceiver",
+          "callee": "page.getByRole",
+          "lineNumber": 8
+        },
+        {
+          "caller": "loginAsReceiver",
+          "callee": "page.getByRole(\"button\", { name: `Digit ${d}` }).click",
+          "lineNumber": 10
+        },
+        {
+          "caller": "loginAsReceiver",
+          "callee": "page.getByRole",
+          "lineNumber": 10
+        },
+        {
+          "caller": "loginAsReceiver",
+          "callee": "page.getByRole(\"button\", { name: \"LOGIN\" }).click",
+          "lineNumber": 12
+        },
+        {
+          "caller": "loginAsReceiver",
+          "callee": "page.getByRole",
+          "lineNumber": 12
+        },
+        {
+          "caller": "loginAsReceiver",
+          "callee": "expect(page).toHaveURL",
+          "lineNumber": 13
+        },
+        {
+          "caller": "loginAsReceiver",
+          "callee": "expect",
+          "lineNumber": 13
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "e2e/shop-config.spec.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 46,
+      "nonEmptyLines": 42,
+      "functions": [
+        {
+          "name": "loginAsOwner",
+          "startLine": 3,
+          "endLine": 14,
+          "params": [
+            "page"
+          ]
+        },
+        {
+          "name": "loginAsCashier",
+          "startLine": 16,
+          "endLine": 27,
+          "params": [
+            "page"
+          ]
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "loginAsOwner",
+          "callee": "page.goto",
+          "lineNumber": 4
+        },
+        {
+          "caller": "loginAsOwner",
+          "callee": "page.getByRole(\"button\", { name: `Digit ${d}` }).click",
+          "lineNumber": 6
+        },
+        {
+          "caller": "loginAsOwner",
+          "callee": "page.getByRole",
+          "lineNumber": 6
+        },
+        {
+          "caller": "loginAsOwner",
+          "callee": "page.getByRole(\"button\", { name: \"NEXT\" }).click",
+          "lineNumber": 8
+        },
+        {
+          "caller": "loginAsOwner",
+          "callee": "page.getByRole",
+          "lineNumber": 8
+        },
+        {
+          "caller": "loginAsOwner",
+          "callee": "page.getByRole(\"button\", { name: `Digit ${d}` }).click",
+          "lineNumber": 10
+        },
+        {
+          "caller": "loginAsOwner",
+          "callee": "page.getByRole",
+          "lineNumber": 10
+        },
+        {
+          "caller": "loginAsOwner",
+          "callee": "page.getByRole(\"button\", { name: \"LOGIN\" }).click",
+          "lineNumber": 12
+        },
+        {
+          "caller": "loginAsOwner",
+          "callee": "page.getByRole",
+          "lineNumber": 12
+        },
+        {
+          "caller": "loginAsOwner",
+          "callee": "expect(page).toHaveURL",
+          "lineNumber": 13
+        },
+        {
+          "caller": "loginAsOwner",
+          "callee": "expect",
+          "lineNumber": 13
+        },
+        {
+          "caller": "loginAsCashier",
+          "callee": "page.goto",
+          "lineNumber": 17
+        },
+        {
+          "caller": "loginAsCashier",
+          "callee": "page.getByRole(\"button\", { name: `Digit ${d}` }).click",
+          "lineNumber": 19
+        },
+        {
+          "caller": "loginAsCashier",
+          "callee": "page.getByRole",
+          "lineNumber": 19
+        },
+        {
+          "caller": "loginAsCashier",
+          "callee": "page.getByRole(\"button\", { name: \"NEXT\" }).click",
+          "lineNumber": 21
+        },
+        {
+          "caller": "loginAsCashier",
+          "callee": "page.getByRole",
+          "lineNumber": 21
+        },
+        {
+          "caller": "loginAsCashier",
+          "callee": "page.getByRole(\"button\", { name: `Digit ${d}` }).click",
+          "lineNumber": 23
+        },
+        {
+          "caller": "loginAsCashier",
+          "callee": "page.getByRole",
+          "lineNumber": 23
+        },
+        {
+          "caller": "loginAsCashier",
+          "callee": "page.getByRole(\"button\", { name: \"LOGIN\" }).click",
+          "lineNumber": 25
+        },
+        {
+          "caller": "loginAsCashier",
+          "callee": "page.getByRole",
+          "lineNumber": 25
+        },
+        {
+          "caller": "loginAsCashier",
+          "callee": "expect(page).toHaveURL",
+          "lineNumber": 26
+        },
+        {
+          "caller": "loginAsCashier",
+          "callee": "expect",
+          "lineNumber": 26
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 2,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "e2e/staff.spec.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 45,
+      "nonEmptyLines": 41,
+      "functions": [
+        {
+          "name": "loginAsOwner",
+          "startLine": 3,
+          "endLine": 14,
+          "params": [
+            "page"
+          ]
+        },
+        {
+          "name": "loginAsCashier",
+          "startLine": 16,
+          "endLine": 27,
+          "params": [
+            "page"
+          ]
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "loginAsOwner",
+          "callee": "page.goto",
+          "lineNumber": 4
+        },
+        {
+          "caller": "loginAsOwner",
+          "callee": "page.getByRole(\"button\", { name: `Digit ${d}` }).click",
+          "lineNumber": 6
+        },
+        {
+          "caller": "loginAsOwner",
+          "callee": "page.getByRole",
+          "lineNumber": 6
+        },
+        {
+          "caller": "loginAsOwner",
+          "callee": "page.getByRole(\"button\", { name: \"NEXT\" }).click",
+          "lineNumber": 8
+        },
+        {
+          "caller": "loginAsOwner",
+          "callee": "page.getByRole",
+          "lineNumber": 8
+        },
+        {
+          "caller": "loginAsOwner",
+          "callee": "page.getByRole(\"button\", { name: `Digit ${d}` }).click",
+          "lineNumber": 10
+        },
+        {
+          "caller": "loginAsOwner",
+          "callee": "page.getByRole",
+          "lineNumber": 10
+        },
+        {
+          "caller": "loginAsOwner",
+          "callee": "page.getByRole(\"button\", { name: \"LOGIN\" }).click",
+          "lineNumber": 12
+        },
+        {
+          "caller": "loginAsOwner",
+          "callee": "page.getByRole",
+          "lineNumber": 12
+        },
+        {
+          "caller": "loginAsOwner",
+          "callee": "expect(page).toHaveURL",
+          "lineNumber": 13
+        },
+        {
+          "caller": "loginAsOwner",
+          "callee": "expect",
+          "lineNumber": 13
+        },
+        {
+          "caller": "loginAsCashier",
+          "callee": "page.goto",
+          "lineNumber": 17
+        },
+        {
+          "caller": "loginAsCashier",
+          "callee": "page.getByRole(\"button\", { name: `Digit ${d}` }).click",
+          "lineNumber": 19
+        },
+        {
+          "caller": "loginAsCashier",
+          "callee": "page.getByRole",
+          "lineNumber": 19
+        },
+        {
+          "caller": "loginAsCashier",
+          "callee": "page.getByRole(\"button\", { name: \"NEXT\" }).click",
+          "lineNumber": 21
+        },
+        {
+          "caller": "loginAsCashier",
+          "callee": "page.getByRole",
+          "lineNumber": 21
+        },
+        {
+          "caller": "loginAsCashier",
+          "callee": "page.getByRole(\"button\", { name: `Digit ${d}` }).click",
+          "lineNumber": 23
+        },
+        {
+          "caller": "loginAsCashier",
+          "callee": "page.getByRole",
+          "lineNumber": 23
+        },
+        {
+          "caller": "loginAsCashier",
+          "callee": "page.getByRole(\"button\", { name: \"LOGIN\" }).click",
+          "lineNumber": 25
+        },
+        {
+          "caller": "loginAsCashier",
+          "callee": "page.getByRole",
+          "lineNumber": 25
+        },
+        {
+          "caller": "loginAsCashier",
+          "callee": "expect(page).toHaveURL",
+          "lineNumber": 26
+        },
+        {
+          "caller": "loginAsCashier",
+          "callee": "expect",
+          "lineNumber": 26
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 2,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "e2e/voids.spec.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 50,
+      "nonEmptyLines": 45,
+      "functions": [
+        {
+          "name": "loginAsOwner",
+          "startLine": 3,
+          "endLine": 14,
+          "params": [
+            "page"
+          ]
+        },
+        {
+          "name": "loginAsCashier",
+          "startLine": 16,
+          "endLine": 27,
+          "params": [
+            "page"
+          ]
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "loginAsOwner",
+          "callee": "page.goto",
+          "lineNumber": 4
+        },
+        {
+          "caller": "loginAsOwner",
+          "callee": "page.getByRole(\"button\", { name: `Digit ${d}` }).click",
+          "lineNumber": 6
+        },
+        {
+          "caller": "loginAsOwner",
+          "callee": "page.getByRole",
+          "lineNumber": 6
+        },
+        {
+          "caller": "loginAsOwner",
+          "callee": "page.getByRole(\"button\", { name: \"NEXT\" }).click",
+          "lineNumber": 8
+        },
+        {
+          "caller": "loginAsOwner",
+          "callee": "page.getByRole",
+          "lineNumber": 8
+        },
+        {
+          "caller": "loginAsOwner",
+          "callee": "page.getByRole(\"button\", { name: `Digit ${d}` }).click",
+          "lineNumber": 10
+        },
+        {
+          "caller": "loginAsOwner",
+          "callee": "page.getByRole",
+          "lineNumber": 10
+        },
+        {
+          "caller": "loginAsOwner",
+          "callee": "page.getByRole(\"button\", { name: \"LOGIN\" }).click",
+          "lineNumber": 12
+        },
+        {
+          "caller": "loginAsOwner",
+          "callee": "page.getByRole",
+          "lineNumber": 12
+        },
+        {
+          "caller": "loginAsOwner",
+          "callee": "expect(page).toHaveURL",
+          "lineNumber": 13
+        },
+        {
+          "caller": "loginAsOwner",
+          "callee": "expect",
+          "lineNumber": 13
+        },
+        {
+          "caller": "loginAsCashier",
+          "callee": "page.goto",
+          "lineNumber": 17
+        },
+        {
+          "caller": "loginAsCashier",
+          "callee": "page.getByRole(\"button\", { name: `Digit ${d}` }).click",
+          "lineNumber": 19
+        },
+        {
+          "caller": "loginAsCashier",
+          "callee": "page.getByRole",
+          "lineNumber": 19
+        },
+        {
+          "caller": "loginAsCashier",
+          "callee": "page.getByRole(\"button\", { name: \"NEXT\" }).click",
+          "lineNumber": 21
+        },
+        {
+          "caller": "loginAsCashier",
+          "callee": "page.getByRole",
+          "lineNumber": 21
+        },
+        {
+          "caller": "loginAsCashier",
+          "callee": "page.getByRole(\"button\", { name: `Digit ${d}` }).click",
+          "lineNumber": 23
+        },
+        {
+          "caller": "loginAsCashier",
+          "callee": "page.getByRole",
+          "lineNumber": 23
+        },
+        {
+          "caller": "loginAsCashier",
+          "callee": "page.getByRole(\"button\", { name: \"LOGIN\" }).click",
+          "lineNumber": 25
+        },
+        {
+          "caller": "loginAsCashier",
+          "callee": "page.getByRole",
+          "lineNumber": 25
+        },
+        {
+          "caller": "loginAsCashier",
+          "callee": "expect(page).toHaveURL",
+          "lineNumber": 26
+        },
+        {
+          "caller": "loginAsCashier",
+          "callee": "expect",
+          "lineNumber": 26
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 2,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "eslint.config.js",
+      "language": "javascript",
+      "fileCategory": "code",
+      "totalLines": 122,
+      "nonEmptyLines": 119,
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "playwright.config.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 39,
+      "nonEmptyLines": 37,
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "postcss.config.cjs",
+      "language": "javascript",
+      "fileCategory": "code",
+      "totalLines": 6,
+      "nonEmptyLines": 6,
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "src/index.css",
+      "language": "css",
+      "fileCategory": "markup",
+      "totalLines": 18,
+      "nonEmptyLines": 17,
+      "metrics": {}
+    },
+    {
+      "path": "src/theme/tokens.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 63,
+      "nonEmptyLines": 61,
+      "exports": [
+        {
+          "name": "tokens",
+          "line": 9,
+          "isDefault": false
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 1,
+        "functionCount": 0,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "src/vite-env.d.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 10,
+      "nonEmptyLines": 8,
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "tailwind.config.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 29,
+      "nonEmptyLines": 28,
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "vite.config.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 21,
+      "nonEmptyLines": 20,
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0
+      }
+    }
+  ]
+}

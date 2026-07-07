@@ -1,0 +1,73 @@
+{
+  "nodes": [
+    {
+      "id": "config:.env.example",
+      "type": "config",
+      "name": ".env.example",
+      "filePath": ".env.example",
+      "summary": "Template environment file listing all runtime configuration variables (app metadata, JWT/auth secrets, bcrypt cost, async Postgres DSN, and CORS origins) that must be copied to `.env` for local development.",
+      "tags": ["configuration", "environment-variables", "secrets", "database"],
+      "complexity": "simple"
+    },
+    {
+      "id": "document:README.md",
+      "type": "document",
+      "name": "README.md",
+      "filePath": "README.md",
+      "summary": "Project overview for the Barstock single-counter liquor shop inventory and billing system, covering the tech stack, quickstart setup steps, test commands, and the app directory layout.",
+      "tags": ["documentation", "entry-point", "overview", "quickstart"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "config:alembic.ini",
+      "type": "config",
+      "name": "alembic.ini",
+      "filePath": "alembic.ini",
+      "summary": "Alembic migration tool configuration defining the migrations directory, file naming template, and logging setup used to manage the SQLAlchemy-backed Postgres schema.",
+      "tags": ["configuration", "database", "migration", "alembic"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "service:docker-compose.yml",
+      "type": "service",
+      "name": "docker-compose.yml",
+      "filePath": "docker-compose.yml",
+      "summary": "Docker Compose definition that runs a local Postgres 16 container (with health check and named volume) for development and test use, matching credentials expected by the app's DATABASE_URL.",
+      "tags": ["containerization", "infrastructure", "database", "orchestration"],
+      "complexity": "simple"
+    },
+    {
+      "id": "config:pyproject.toml",
+      "type": "config",
+      "name": "pyproject.toml",
+      "filePath": "pyproject.toml",
+      "summary": "Python project manifest declaring the FastAPI/SQLAlchemy/Alembic dependency stack, the `barstock` CLI entry point, and tool configuration for ruff linting, pytest, and coverage.",
+      "tags": ["configuration", "build-system", "dependencies", "python"],
+      "complexity": "moderate",
+      "languageNotes": "Uses hatchling as the build backend and per-file ruff ignores to accommodate FastAPI/SQLAlchemy idioms (e.g. Depends() defaults, str-based enums, test fixtures)."
+    }
+  ],
+  "edges": [
+    {
+      "source": "document:README.md",
+      "target": "service:docker-compose.yml",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "config:.env.example",
+      "target": "service:docker-compose.yml",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "config:alembic.ini",
+      "target": "config:.env.example",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    }
+  ]
+}

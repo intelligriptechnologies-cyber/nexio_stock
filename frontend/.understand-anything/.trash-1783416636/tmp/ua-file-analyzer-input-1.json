@@ -1,0 +1,27 @@
+{
+  "projectRoot": "C:/barstock/frontend",
+  "batchFiles": [
+    {"path": "src/App.tsx", "language": "typescript", "sizeLines": 144, "fileCategory": "code"},
+    {"path": "src/auth/AuthProvider.tsx", "language": "typescript", "sizeLines": 100, "fileCategory": "code"},
+    {"path": "src/auth/jwt.ts", "language": "typescript", "sizeLines": 28, "fileCategory": "code"},
+    {"path": "src/components/PinPad.tsx", "language": "typescript", "sizeLines": 93, "fileCategory": "code"},
+    {"path": "src/main.tsx", "language": "typescript", "sizeLines": 18, "fileCategory": "code"},
+    {"path": "src/pages/AdminPlaceholder.tsx", "language": "typescript", "sizeLines": 17, "fileCategory": "code"},
+    {"path": "src/pages/ForbiddenPage.tsx", "language": "typescript", "sizeLines": 28, "fileCategory": "code"},
+    {"path": "src/pages/HomeRedirect.tsx", "language": "typescript", "sizeLines": 10, "fileCategory": "code"},
+    {"path": "src/pages/LoginPage.tsx", "language": "typescript", "sizeLines": 117, "fileCategory": "code"},
+    {"path": "src/pages/SuperadminLoginPage.tsx", "language": "typescript", "sizeLines": 89, "fileCategory": "code"}
+  ],
+  "batchImportData": {
+    "src/App.tsx": ["src/auth/AuthProvider.tsx","src/components/Sidebar.tsx","src/pages/AdminPlaceholder.tsx","src/pages/CheckoutPage.tsx","src/pages/DashboardPage.tsx","src/pages/ForbiddenPage.tsx","src/pages/HomeRedirect.tsx","src/pages/InvoiceLookupPage.tsx","src/pages/LoginPage.tsx","src/pages/ProductsPage.tsx","src/pages/ReceivingPage.tsx","src/pages/ShopConfigPage.tsx","src/pages/StaffPage.tsx","src/pages/SuperadminLoginPage.tsx","src/pages/VoidApprovalsPage.tsx"],
+    "src/auth/AuthProvider.tsx": ["src/auth/jwt.ts"],
+    "src/auth/jwt.ts": [],
+    "src/components/PinPad.tsx": [],
+    "src/main.tsx": ["src/App.tsx","src/auth/AuthProvider.tsx","src/auth/ShopScopeProvider.tsx","src/index.css"],
+    "src/pages/AdminPlaceholder.tsx": [],
+    "src/pages/ForbiddenPage.tsx": ["src/auth/AuthProvider.tsx"],
+    "src/pages/HomeRedirect.tsx": ["src/auth/AuthProvider.tsx"],
+    "src/pages/LoginPage.tsx": ["src/api/client.ts","src/auth/AuthProvider.tsx","src/components/PinPad.tsx"],
+    "src/pages/SuperadminLoginPage.tsx": ["src/api/client.ts","src/auth/AuthProvider.tsx"]
+  }
+}

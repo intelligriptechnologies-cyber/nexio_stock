@@ -10,6 +10,9 @@
 # --- Understand Anything's own scratch/output dir (not project code) ---
 .understand-anything/
 
+# --- Scoped out for this run: frontend app (analyze separately later) ---
+frontend/
+
 # --- From .gitignore (uncomment to exclude) ---
 
 # *.py[codz]

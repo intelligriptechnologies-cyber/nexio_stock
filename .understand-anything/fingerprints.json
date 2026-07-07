@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
-  "gitCommitHash": "66485efdc5ba82b110c35c325d2cbb460f72694f",
-  "generatedAt": "2026-07-07T01:20:31.119Z",
+  "gitCommitHash": "36678854e8d795a1dd053e00e115b0208c315849",
+  "generatedAt": "2026-07-07T09:30:29.681Z",
   "files": {
     ".env.example": {
       "filePath": ".env.example",
@@ -775,7 +775,7 @@
     },
     "app/api/checkout.py": {
       "filePath": "app/api/checkout.py",
-      "contentHash": "ac6187bda03f5aa923febda2a7d8296ec21c6b790180a8dab667451683e4991a",
+      "contentHash": "46e3e8a8bd0ecaea3f01fe6a1de80a532402daf1744bc8390bac7b563d543179",
       "functions": [
         {
           "name": "_error_to_http",
@@ -872,7 +872,8 @@
           "source": "app.api.deps",
           "specifiers": [
             "DbSession",
-            "require_role"
+            "require_role",
+            "resolve_write_shop_id"
           ]
         },
         {
@@ -925,12 +926,12 @@
         "get_invoice",
         "get_invoice_pdf"
       ],
-      "totalLines": 248,
+      "totalLines": 249,
       "hasStructuralAnalysis": true
     },
     "app/api/dashboard.py": {
       "filePath": "app/api/dashboard.py",
-      "contentHash": "88eee74f80b927319e16d2ccb39806256388def6907544bb1149978796e03d95",
+      "contentHash": "2bf91b5ab7d7f3018c570561f7e648e53fd7fdeab497e1eed871afdc27f09ec9",
       "functions": [
         {
           "name": "_error_to_http",
@@ -957,11 +958,12 @@
           "params": [
             "db",
             "_user",
-            "business_date"
+            "business_date",
+            "shop_id"
           ],
           "returnType": "EodTotalsResponse",
           "exported": true,
-          "lineCount": 23
+          "lineCount": 27
         },
         {
           "name": "eod_history",
@@ -970,32 +972,35 @@
             "_user",
             "from_date",
             "to_date",
-            "limit"
+            "limit",
+            "shop_id"
           ],
           "returnType": "SignOffHistoryResponse",
           "exported": true,
-          "lineCount": 25
+          "lineCount": 29
         },
         {
           "name": "void_queue",
           "params": [
             "db",
             "_user",
-            "limit"
+            "limit",
+            "shop_id"
           ],
           "returnType": "PendingVoidResponse",
           "exported": true,
-          "lineCount": 23
+          "lineCount": 27
         },
         {
           "name": "low_stock",
           "params": [
             "db",
-            "_user"
+            "_user",
+            "shop_id"
           ],
           "returnType": "LowStockResponse",
           "exported": true,
-          "lineCount": 29
+          "lineCount": 33
         }
       ],
       "classes": [],
@@ -1026,7 +1031,8 @@
           "source": "app.api.deps",
           "specifiers": [
             "DbSession",
-            "require_role"
+            "require_role",
+            "resolve_write_shop_id"
           ]
         },
         {
@@ -1073,12 +1079,12 @@
         "void_queue",
         "low_stock"
       ],
-      "totalLines": 224,
+      "totalLines": 240,
       "hasStructuralAnalysis": true
     },
     "app/api/deps.py": {
       "filePath": "app/api/deps.py",
-      "contentHash": "a404b0e29eea303f804445d37f25fcd26b3e2ad2403f206b6abe683368fe9003",
+      "contentHash": "7b49e48f79deaf98aaac0d3eac5e7d1887884db71b05932f03eea011abc73372",
       "functions": [
         {
           "name": "db_session",
@@ -1102,6 +1108,17 @@
           "params": [],
           "exported": true,
           "lineCount": 16
+        },
+        {
+          "name": "resolve_write_shop_id",
+          "params": [
+            "db",
+            "user",
+            "requested_shop_id"
+          ],
+          "returnType": "int",
+          "exported": true,
+          "lineCount": 32
         },
         {
           "name": "require_shop_scope",
@@ -1155,6 +1172,12 @@
           ]
         },
         {
+          "source": "app.models.shop",
+          "specifiers": [
+            "Shop"
+          ]
+        },
+        {
           "source": "app.models.user",
           "specifiers": [
             "SHOP_SCOPED_ROLES",
@@ -1174,9 +1197,10 @@
         "db_session",
         "get_current_user",
         "require_role",
+        "resolve_write_shop_id",
         "require_shop_scope"
       ],
-      "totalLines": 95,
+      "totalLines": 130,
       "hasStructuralAnalysis": true
     },
     "app/api/health.py": {
@@ -1230,7 +1254,7 @@
     },
     "app/api/lots.py": {
       "filePath": "app/api/lots.py",
-      "contentHash": "6fc236c7cd615bf424244a160c4a155f7cb79a7dc412473030edfc6d7290a35c",
+      "contentHash": "0b26a6b638ae1872b7aa5abc588e6b23ce35c731a54a4dc909ff593ef1b79ceb",
       "functions": [
         {
           "name": "create_lot",
@@ -1264,7 +1288,7 @@
           ],
           "returnType": "LotPublic",
           "exported": true,
-          "lineCount": 15
+          "lineCount": 13
         },
         {
           "name": "_load_lines",
@@ -1311,7 +1335,8 @@
           "source": "app.api.deps",
           "specifiers": [
             "DbSession",
-            "require_role"
+            "require_role",
+            "resolve_write_shop_id"
           ]
         },
         {
@@ -1361,12 +1386,12 @@
         "get_lot",
         "_load_lines"
       ],
-      "totalLines": 203,
+      "totalLines": 202,
       "hasStructuralAnalysis": true
     },
     "app/api/products.py": {
       "filePath": "app/api/products.py",
-      "contentHash": "6cd6be25fd435babe95a76be5c48caa18133a4df9e6ae56cbf3270e6fabe669b",
+      "contentHash": "6f3f41ebc700fe1aa9b97aca6ede1f6c4e0126079fa88bf0a9063cd33b0a65c8",
       "functions": [
         {
           "name": "create_product",
@@ -1377,7 +1402,7 @@
           ],
           "returnType": "ProductPublic",
           "exported": true,
-          "lineCount": 49
+          "lineCount": 42
         },
         {
           "name": "list_products",
@@ -1387,22 +1412,24 @@
             "active_only",
             "q",
             "limit",
-            "offset"
+            "offset",
+            "shop_id"
           ],
           "returnType": "list[ProductPublic]",
           "exported": true,
-          "lineCount": 20
+          "lineCount": 35
         },
         {
           "name": "lookup_product",
           "params": [
             "db",
             "_user",
-            "barcode"
+            "barcode",
+            "shop_id"
           ],
           "returnType": "ProductPublic",
           "exported": true,
-          "lineCount": 21
+          "lineCount": 38
         },
         {
           "name": "update_product",
@@ -1421,11 +1448,12 @@
           "params": [
             "db",
             "_user",
-            "file"
+            "file",
+            "shop_id"
           ],
           "returnType": "ProductImportResponse",
           "exported": true,
-          "lineCount": 145
+          "lineCount": 142
         }
       ],
       "classes": [],
@@ -1461,6 +1489,7 @@
             "APIRouter",
             "Depends",
             "File",
+            "Form",
             "HTTPException",
             "Query",
             "UploadFile",
@@ -1495,7 +1524,8 @@
           "source": "app.api.deps",
           "specifiers": [
             "DbSession",
-            "require_role"
+            "require_role",
+            "resolve_write_shop_id"
           ]
         },
         {
@@ -1535,22 +1565,33 @@
         "update_product",
         "import_products_csv"
       ],
-      "totalLines": 350,
+      "totalLines": 373,
       "hasStructuralAnalysis": true
     },
     "app/api/shops.py": {
       "filePath": "app/api/shops.py",
-      "contentHash": "8e017a7c03414bb055bbdb5cb2eb7a2a09ee5ef6e68585da61c7e5a0ae06c6b2",
+      "contentHash": "3a29f43b552327c9ce9ddf5fe4924c148346262050875d0820e83ea615d0b6d7",
       "functions": [
         {
-          "name": "get_my_shop",
+          "name": "list_shops",
           "params": [
             "db",
             "_user"
           ],
+          "returnType": "list[ShopSummary]",
+          "exported": true,
+          "lineCount": 6
+        },
+        {
+          "name": "get_my_shop",
+          "params": [
+            "db",
+            "_user",
+            "shop_id"
+          ],
           "returnType": "ShopPublic",
           "exported": true,
-          "lineCount": 19
+          "lineCount": 23
         },
         {
           "name": "update_my_shop",
@@ -1567,10 +1608,17 @@
       "classes": [],
       "imports": [
         {
+          "source": "typing",
+          "specifiers": [
+            "Annotated"
+          ]
+        },
+        {
           "source": "fastapi",
           "specifiers": [
             "APIRouter",
-            "Depends"
+            "Depends",
+            "Query"
           ]
         },
         {
@@ -1583,7 +1631,8 @@
           "source": "app.api.deps",
           "specifiers": [
             "DbSession",
-            "require_role"
+            "require_role",
+            "resolve_write_shop_id"
           ]
         },
         {
@@ -1609,20 +1658,22 @@
           "source": "app.schemas.shop",
           "specifiers": [
             "ShopPublic",
+            "ShopSummary",
             "ShopUpdate"
           ]
         }
       ],
       "exports": [
+        "list_shops",
         "get_my_shop",
         "update_my_shop"
       ],
-      "totalLines": 96,
+      "totalLines": 115,
       "hasStructuralAnalysis": true
     },
     "app/api/staff.py": {
       "filePath": "app/api/staff.py",
-      "contentHash": "28572516b73366f0c771c70b17a3a163db9f2ee1d43f9bbda55faf6ace17e882",
+      "contentHash": "4aff0e7a8af6e97d00861038e8df3a90e7403d3e2d44d9100ee0c6b8ba474321",
       "functions": [
         {
           "name": "create_staff",
@@ -1633,7 +1684,7 @@
           ],
           "returnType": "UserPublic",
           "exported": true,
-          "lineCount": 65
+          "lineCount": 53
         },
         {
           "name": "list_staff",
@@ -1685,7 +1736,8 @@
           "source": "app.api.deps",
           "specifiers": [
             "DbSession",
-            "require_role"
+            "require_role",
+            "resolve_write_shop_id"
           ]
         },
         {
@@ -1719,7 +1771,7 @@
         "create_staff",
         "list_staff"
       ],
-      "totalLines": 122,
+      "totalLines": 110,
       "hasStructuralAnalysis": true
     },
     "app/api/users.py": {
@@ -1765,8 +1817,19 @@
     },
     "app/api/voids.py": {
       "filePath": "app/api/voids.py",
-      "contentHash": "bdb9f84201212f58a550a986f62ec1706b0279019332b603f88c5e425db4d99f",
+      "contentHash": "387a3afd2636ed3e2d249ec386cb5f0c8d9088cd99c2da5c9129a121c81f89fa",
       "functions": [
+        {
+          "name": "_resolve_void_shop_id",
+          "params": [
+            "db",
+            "user",
+            "invoice_id"
+          ],
+          "returnType": "int",
+          "exported": true,
+          "lineCount": 20
+        },
         {
           "name": "_error_to_http",
           "params": [
@@ -1854,6 +1917,7 @@
           "source": "fastapi",
           "specifiers": [
             "APIRouter",
+            "Body",
             "Depends",
             "HTTPException",
             "status"
@@ -1916,6 +1980,7 @@
         }
       ],
       "exports": [
+        "_resolve_void_shop_id",
         "_error_to_http",
         "request_void",
         "approve_void",
@@ -1924,7 +1989,7 @@
         "_not_found",
         "_write_void_log"
       ],
-      "totalLines": 286,
+      "totalLines": 308,
       "hasStructuralAnalysis": true
     },
     "app/cli.py": {
@@ -3047,7 +3112,7 @@
     },
     "app/schemas/auth.py": {
       "filePath": "app/schemas/auth.py",
-      "contentHash": "90508e0d985bf70a65db45bf967d71a6aa5b5776e3bfb0ef3af22aa2b698e3c5",
+      "contentHash": "9f5e4fa55965b277aaeec0eab1b3259bc408d251850011ed9c162cc57c074841",
       "functions": [],
       "classes": [
         {
@@ -3102,10 +3167,11 @@
             "username",
             "full_name",
             "phone",
-            "password"
+            "password",
+            "shop_id"
           ],
           "exported": true,
-          "lineCount": 26
+          "lineCount": 30
         },
         {
           "name": "SuperAdminCreate",
@@ -3154,12 +3220,12 @@
         "StaffCreate",
         "SuperAdminCreate"
       ],
-      "totalLines": 88,
+      "totalLines": 92,
       "hasStructuralAnalysis": true
     },
     "app/schemas/checkout.py": {
       "filePath": "app/schemas/checkout.py",
-      "contentHash": "5d48f557e98a50ff046ca3cd5c13f041a26c5b17256160bbe8ed7f238f493430",
+      "contentHash": "1b0a9f1740cb90677ca7c323543e1887aaf83d0c498805b07275f83b1fa7aaf2",
       "functions": [],
       "classes": [
         {
@@ -3190,10 +3256,11 @@
           "properties": [
             "lines",
             "payments",
-            "note"
+            "note",
+            "shop_id"
           ],
           "exported": true,
-          "lineCount": 19
+          "lineCount": 22
         },
         {
           "name": "InvoiceLinePublic",
@@ -3291,12 +3358,12 @@
         "InvoicePublic",
         "CheckoutFinalizeResponse"
       ],
-      "totalLines": 112,
+      "totalLines": 115,
       "hasStructuralAnalysis": true
     },
     "app/schemas/eod.py": {
       "filePath": "app/schemas/eod.py",
-      "contentHash": "36bc7d07fa3b2bc7c0a3e1b8a628e17334e40cd302d0b0cea08fb3d393cff44c",
+      "contentHash": "b30e16829657e242407188998d16ae179127a5f7e806c34e01315339e242e99e",
       "functions": [],
       "classes": [
         {
@@ -3306,10 +3373,11 @@
           ],
           "properties": [
             "business_date",
-            "notes"
+            "notes",
+            "shop_id"
           ],
           "exported": true,
-          "lineCount": 10
+          "lineCount": 12
         },
         {
           "name": "SignOffResponse",
@@ -3431,12 +3499,12 @@
         "LowStockItem",
         "LowStockResponse"
       ],
-      "totalLines": 79,
+      "totalLines": 81,
       "hasStructuralAnalysis": true
     },
     "app/schemas/lot.py": {
       "filePath": "app/schemas/lot.py",
-      "contentHash": "d0f6f46a9230f568a7019856a72d79968d8572cb69f97890222a5b4a34763860",
+      "contentHash": "ee391ec1289eea424a72935505d615afc074d818e39196b506cf62d50b988ee8",
       "functions": [],
       "classes": [
         {
@@ -3468,10 +3536,11 @@
           "properties": [
             "reference",
             "notes",
-            "lines"
+            "lines",
+            "shop_id"
           ],
           "exported": true,
-          "lineCount": 21
+          "lineCount": 24
         },
         {
           "name": "LotPublic",
@@ -3530,12 +3599,12 @@
         "LotPublic",
         "LotListResponse"
       ],
-      "totalLines": 78,
+      "totalLines": 81,
       "hasStructuralAnalysis": true
     },
     "app/schemas/product.py": {
       "filePath": "app/schemas/product.py",
-      "contentHash": "2e5e74d895e2d8cc4d88ee9e058596756c34f0e15038021d6d690f80d06b7044",
+      "contentHash": "1e2fa484fda503ac7998fafa13845bdeab4761c38bcb83ceae45d5f895a52cfb",
       "functions": [],
       "classes": [
         {
@@ -3549,10 +3618,11 @@
             "brand",
             "size_label",
             "price",
-            "low_stock_threshold"
+            "low_stock_threshold",
+            "shop_id"
           ],
           "exported": true,
-          "lineCount": 24
+          "lineCount": 28
         },
         {
           "name": "ProductUpdate",
@@ -3667,12 +3737,12 @@
         "ProductImportError",
         "ProductImportResponse"
       ],
-      "totalLines": 115,
+      "totalLines": 119,
       "hasStructuralAnalysis": true
     },
     "app/schemas/shop.py": {
       "filePath": "app/schemas/shop.py",
-      "contentHash": "56b380f2644c3bcf819a0b01b8d750f547d9242faffb72c6d4da87cb3481ee9e",
+      "contentHash": "b47b2542ead8c3d07dce8740b4912e14c11d40a8f664a978bac06cbf7d76496f",
       "functions": [],
       "classes": [
         {
@@ -3690,6 +3760,17 @@
           "lineCount": 11
         },
         {
+          "name": "ShopSummary",
+          "methods": [],
+          "properties": [
+            "id",
+            "name",
+            "code"
+          ],
+          "exported": true,
+          "lineCount": 8
+        },
+        {
           "name": "ShopUpdate",
           "methods": [
             "_gstin_shape"
@@ -3698,10 +3779,11 @@
             "name",
             "gstin",
             "excise_duty_rate",
-            "low_stock_threshold_default"
+            "low_stock_threshold_default",
+            "shop_id"
           ],
           "exported": true,
-          "lineCount": 31
+          "lineCount": 33
         }
       ],
       "imports": [
@@ -3729,9 +3811,10 @@
       ],
       "exports": [
         "ShopPublic",
+        "ShopSummary",
         "ShopUpdate"
       ],
-      "totalLines": 56,
+      "totalLines": 68,
       "hasStructuralAnalysis": true
     },
     "app/security/__init__.py": {
@@ -4553,6 +4636,86 @@
       "totalLines": 23,
       "hasStructuralAnalysis": true
     },
+    "docs/frontend_initial/barstock_design.md": {
+      "filePath": "docs/frontend_initial/barstock_design.md",
+      "contentHash": "4d84b899b1976192ab3e53acafa3a3adc8186284af506e09cee2fefc7f1fddce",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 61,
+      "hasStructuralAnalysis": true
+    },
+    "docs/frontend_initial/barstock_pos_inventory/code.html": {
+      "filePath": "docs/frontend_initial/barstock_pos_inventory/code.html",
+      "contentHash": "5a1aa5ba193ce440079b7ba6bb9669532076f2f3114a33f78b430785e009b49c",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 159,
+      "hasStructuralAnalysis": false
+    },
+    "docs/frontend_initial/checkout_sales_counter/code.html": {
+      "filePath": "docs/frontend_initial/checkout_sales_counter/code.html",
+      "contentHash": "a6fb732be14b604f1dc8a1f6e1cb5d020c06c239b7a43bc23184eece492f3734",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 322,
+      "hasStructuralAnalysis": false
+    },
+    "docs/frontend_initial/DESIGN.md": {
+      "filePath": "docs/frontend_initial/DESIGN.md",
+      "contentHash": "cb0e565aef2b069ef5b2f0d0f119775bb9c0a9ba2a115a1ebc8bd739b184ee83",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 174,
+      "hasStructuralAnalysis": true
+    },
+    "docs/frontend_initial/high_efficiency_retail_pos/DESIGN.md": {
+      "filePath": "docs/frontend_initial/high_efficiency_retail_pos/DESIGN.md",
+      "contentHash": "cb0e565aef2b069ef5b2f0d0f119775bb9c0a9ba2a115a1ebc8bd739b184ee83",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 174,
+      "hasStructuralAnalysis": true
+    },
+    "docs/frontend_initial/login_pin_pad/code.html": {
+      "filePath": "docs/frontend_initial/login_pin_pad/code.html",
+      "contentHash": "5a1aa5ba193ce440079b7ba6bb9669532076f2f3114a33f78b430785e009b49c",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 159,
+      "hasStructuralAnalysis": false
+    },
+    "docs/frontend_initial/owner_dashboard_eod/code.html": {
+      "filePath": "docs/frontend_initial/owner_dashboard_eod/code.html",
+      "contentHash": "26872b2befdff1558a1c0aba8e652e18afc84eee111cf73ca6a45c7ad1e4fb07",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 347,
+      "hasStructuralAnalysis": false
+    },
+    "docs/frontend_initial/stock_receiving_new_lot/code.html": {
+      "filePath": "docs/frontend_initial/stock_receiving_new_lot/code.html",
+      "contentHash": "b8e5e35b02b279443760632efacedd01bb9a0c0936727539d3ed7452c4daeec9",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 303,
+      "hasStructuralAnalysis": false
+    },
     "harness/00-intake.md": {
       "filePath": "harness/00-intake.md",
       "contentHash": "82611aeda5fd6b93aa1655c433de9e2ce0668251e725edf1f39b0d001b36a155",
@@ -4575,12 +4738,12 @@
     },
     "harness/02-ledger.md": {
       "filePath": "harness/02-ledger.md",
-      "contentHash": "7283f815c5a0f836113bdfa338519e2381036bd825ac086b3abdb0aa479cc8b4",
+      "contentHash": "35408a59bd2877b4245a31739036c8e53ff3e11465f80e5fcc3ab468b99d8be6",
       "functions": [],
       "classes": [],
       "imports": [],
       "exports": [],
-      "totalLines": 150,
+      "totalLines": 156,
       "hasStructuralAnalysis": true
     },
     "harness/03-prd.md": {
@@ -4605,12 +4768,22 @@
     },
     "harness/05-issues/README.md": {
       "filePath": "harness/05-issues/README.md",
-      "contentHash": "3e1a5bc4ef92b9dd4e8e59e2d0bfcec5ea55e5c12cd62df9fcdfc17682dfa582",
+      "contentHash": "17f5b5a147bf05738e6bb823bcc96edb65ada0ca302d6497dc520ae048bf05f2",
       "functions": [],
       "classes": [],
       "imports": [],
       "exports": [],
-      "totalLines": 26,
+      "totalLines": 49,
+      "hasStructuralAnalysis": true
+    },
+    "harness/prd_frontend.md": {
+      "filePath": "harness/prd_frontend.md",
+      "contentHash": "a14f5830a13c5f6c17a02b66bf115a093b483d1a6090d51bd256cadb8f382357",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 97,
       "hasStructuralAnalysis": true
     },
     "pyproject.toml": {
@@ -4625,7 +4798,7 @@
     },
     "README.md": {
       "filePath": "README.md",
-      "contentHash": "a8c1e7f6190459cee4de6c3d096f4ee2f947e00cfc9d6452ea69847b8b3e5943",
+      "contentHash": "c5c956b0d2fa276a774a0cc933f22401a19f28fb6f36e7498eaeadb324774cf3",
       "functions": [],
       "classes": [],
       "imports": [],
@@ -6095,7 +6268,7 @@
     },
     "tests/test_products.py": {
       "filePath": "tests/test_products.py",
-      "contentHash": "07a0891fa8cb64e1eac7836b3b5128dbf6fb998c8205abcb253bdf0dd04b6b28",
+      "contentHash": "0891b24efefacdc67c0c2068f2726c365a59d838200219d1ef1187ad7fedcb5b",
       "functions": [
         {
           "name": "test_owner_creates_product",
@@ -6183,6 +6356,18 @@
           "lineCount": 9
         },
         {
+          "name": "test_superadmin_shop_id_scopes_list_and_lookup",
+          "params": [
+            "owner_client",
+            "superadmin_client",
+            "db_session",
+            "shop"
+          ],
+          "returnType": "None",
+          "exported": true,
+          "lineCount": 59
+        },
+        {
           "name": "test_owner_updates_price_and_threshold",
           "params": [
             "owner_client"
@@ -6249,6 +6434,12 @@
       "classes": [],
       "imports": [
         {
+          "source": "decimal",
+          "specifiers": [
+            "Decimal"
+          ]
+        },
+        {
           "source": "pytest",
           "specifiers": [
             "pytest"
@@ -6258,6 +6449,18 @@
           "source": "httpx",
           "specifiers": [
             "AsyncClient"
+          ]
+        },
+        {
+          "source": "app.models.product",
+          "specifiers": [
+            "Product"
+          ]
+        },
+        {
+          "source": "app.models.shop",
+          "specifiers": [
+            "Shop"
           ]
         }
       ],
@@ -6271,6 +6474,7 @@
         "test_lookup_returns_404_for_unknown_barcode",
         "test_manual_barcode_entry_falls_back_through_lookup",
         "test_list_filters_to_own_shop",
+        "test_superadmin_shop_id_scopes_list_and_lookup",
         "test_owner_updates_price_and_threshold",
         "test_csv_import_happy_path",
         "test_csv_import_per_row_errors_are_surfaced",
@@ -6279,7 +6483,7 @@
         "test_csv_import_rejects_cashier",
         "test_csv_import_handles_utf8_bom"
       ],
-      "totalLines": 233,
+      "totalLines": 300,
       "hasStructuralAnalysis": true
     },
     "tests/test_shops.py": {
@@ -6590,7 +6794,7 @@
     },
     "tests/test_voids.py": {
       "filePath": "tests/test_voids.py",
-      "contentHash": "385a3d24710adf9324a33659a1cbe207cf85f8de24d8c2cf866d435d043f1472",
+      "contentHash": "df2b0be0b9f8bdcf0aae08798ea93b3b37f851a1efe0426e3a86adeeb4135986",
       "functions": [
         {
           "name": "_seed_product",
@@ -6694,6 +6898,18 @@
           "lineCount": 13
         },
         {
+          "name": "test_request_void_reason_reaches_backend_as_json_body",
+          "params": [
+            "cashier_client",
+            "owner_client",
+            "receiver_client",
+            "db_session"
+          ],
+          "returnType": "None",
+          "exported": true,
+          "lineCount": 24
+        },
+        {
           "name": "test_cashier_cannot_approve_pending_void",
           "params": [
             "cashier_client",
@@ -6715,7 +6931,7 @@
           ],
           "returnType": "None",
           "exported": true,
-          "lineCount": 34
+          "lineCount": 43
         },
         {
           "name": "test_owner_rejecting_pending_void_reverts_to_finalized",
@@ -6815,13 +7031,2451 @@
         "test_pre_eod_void_writes_invoicing_log",
         "_mark_signed_off",
         "test_cashier_can_request_void_on_signed_off_invoice",
+        "test_request_void_reason_reaches_backend_as_json_body",
         "test_cashier_cannot_approve_pending_void",
         "test_owner_approving_pending_void_creates_reversal",
         "test_owner_rejecting_pending_void_reverts_to_finalized",
         "test_approve_on_non_pending_invoice_is_409",
         "test_void_actions_write_invoicing_logs"
       ],
-      "totalLines": 291,
+      "totalLines": 327,
+      "hasStructuralAnalysis": true
+    },
+    "frontend/e2e/checkout-resilience.spec.ts": {
+      "filePath": "frontend/e2e/checkout-resilience.spec.ts",
+      "contentHash": "e3bc3b46ffe6a79427b656e87542b46a4722c755c58641cd503a336ef4b94813",
+      "functions": [
+        {
+          "name": "loginAsCashier",
+          "params": [
+            "page"
+          ],
+          "exported": false,
+          "lineCount": 12
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "@playwright/test",
+          "specifiers": [
+            "test",
+            "expect",
+            "Page"
+          ]
+        }
+      ],
+      "exports": [],
+      "totalLines": 81,
+      "hasStructuralAnalysis": true
+    },
+    "frontend/e2e/checkout.spec.ts": {
+      "filePath": "frontend/e2e/checkout.spec.ts",
+      "contentHash": "92ca2a0d1aad454ae674534df914716b914311c80a20dba672aa2917ea93ee0b",
+      "functions": [
+        {
+          "name": "loginAsCashier",
+          "params": [
+            "page"
+          ],
+          "exported": false,
+          "lineCount": 12
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "@playwright/test",
+          "specifiers": [
+            "test",
+            "expect",
+            "Page"
+          ]
+        }
+      ],
+      "exports": [],
+      "totalLines": 62,
+      "hasStructuralAnalysis": true
+    },
+    "frontend/e2e/dashboard.spec.ts": {
+      "filePath": "frontend/e2e/dashboard.spec.ts",
+      "contentHash": "f1260be05eb3cea09dabafc6c65ce3e84ae6bfd36c1fe06eb51ba7eccfd46b88",
+      "functions": [
+        {
+          "name": "loginAsOwner",
+          "params": [
+            "page"
+          ],
+          "exported": false,
+          "lineCount": 12
+        },
+        {
+          "name": "loginAsCashier",
+          "params": [
+            "page"
+          ],
+          "exported": false,
+          "lineCount": 12
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "@playwright/test",
+          "specifiers": [
+            "test",
+            "expect",
+            "Page"
+          ]
+        }
+      ],
+      "exports": [],
+      "totalLines": 48,
+      "hasStructuralAnalysis": true
+    },
+    "frontend/e2e/login.smoke.spec.ts": {
+      "filePath": "frontend/e2e/login.smoke.spec.ts",
+      "contentHash": "d4aa1d368e48ae8a6ce78789f887eb6acbf63846cc760fd977cbd65489443101",
+      "functions": [
+        {
+          "name": "loginAsPhone",
+          "params": [
+            "page",
+            "phone",
+            "pin"
+          ],
+          "exported": false,
+          "lineCount": 13
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "@playwright/test",
+          "specifiers": [
+            "test",
+            "expect",
+            "Page"
+          ]
+        }
+      ],
+      "exports": [],
+      "totalLines": 53,
+      "hasStructuralAnalysis": true
+    },
+    "frontend/e2e/products.spec.ts": {
+      "filePath": "frontend/e2e/products.spec.ts",
+      "contentHash": "bc79ef6caa88ee86bf095664eab917a9b1277bd283769116104e26579dbfa3ff",
+      "functions": [
+        {
+          "name": "loginAsOwner",
+          "params": [
+            "page"
+          ],
+          "exported": false,
+          "lineCount": 12
+        },
+        {
+          "name": "loginAsCashier",
+          "params": [
+            "page"
+          ],
+          "exported": false,
+          "lineCount": 12
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "@playwright/test",
+          "specifiers": [
+            "test",
+            "expect",
+            "Page"
+          ]
+        }
+      ],
+      "exports": [],
+      "totalLines": 66,
+      "hasStructuralAnalysis": true
+    },
+    "frontend/e2e/receiving.spec.ts": {
+      "filePath": "frontend/e2e/receiving.spec.ts",
+      "contentHash": "0ec1f89d702d575b33e5e3b69edc2057c212b22de9153a3a784a3dea51f73c00",
+      "functions": [
+        {
+          "name": "loginAsReceiver",
+          "params": [
+            "page"
+          ],
+          "exported": false,
+          "lineCount": 12
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "@playwright/test",
+          "specifiers": [
+            "test",
+            "expect",
+            "Page"
+          ]
+        }
+      ],
+      "exports": [],
+      "totalLines": 51,
+      "hasStructuralAnalysis": true
+    },
+    "frontend/e2e/shop-config.spec.ts": {
+      "filePath": "frontend/e2e/shop-config.spec.ts",
+      "contentHash": "9d5e8ff623c37717deb52430124455dc46455e83e54f4a84b6e66523e2afad4f",
+      "functions": [
+        {
+          "name": "loginAsOwner",
+          "params": [
+            "page"
+          ],
+          "exported": false,
+          "lineCount": 12
+        },
+        {
+          "name": "loginAsCashier",
+          "params": [
+            "page"
+          ],
+          "exported": false,
+          "lineCount": 12
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "@playwright/test",
+          "specifiers": [
+            "test",
+            "expect",
+            "Page"
+          ]
+        }
+      ],
+      "exports": [],
+      "totalLines": 46,
+      "hasStructuralAnalysis": true
+    },
+    "frontend/e2e/staff.spec.ts": {
+      "filePath": "frontend/e2e/staff.spec.ts",
+      "contentHash": "94a92bd51549b505377eb76da001af2ec8516fc462ec2223568c3581469cd5d1",
+      "functions": [
+        {
+          "name": "loginAsOwner",
+          "params": [
+            "page"
+          ],
+          "exported": false,
+          "lineCount": 12
+        },
+        {
+          "name": "loginAsCashier",
+          "params": [
+            "page"
+          ],
+          "exported": false,
+          "lineCount": 12
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "@playwright/test",
+          "specifiers": [
+            "test",
+            "expect",
+            "Page"
+          ]
+        }
+      ],
+      "exports": [],
+      "totalLines": 45,
+      "hasStructuralAnalysis": true
+    },
+    "frontend/e2e/voids.spec.ts": {
+      "filePath": "frontend/e2e/voids.spec.ts",
+      "contentHash": "08563cbaf7fb9ed6d7969c0121cfeed7a713967bbc89b0405ea4afdde3ba9b64",
+      "functions": [
+        {
+          "name": "loginAsOwner",
+          "params": [
+            "page"
+          ],
+          "exported": false,
+          "lineCount": 12
+        },
+        {
+          "name": "loginAsCashier",
+          "params": [
+            "page"
+          ],
+          "exported": false,
+          "lineCount": 12
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "@playwright/test",
+          "specifiers": [
+            "test",
+            "expect",
+            "Page"
+          ]
+        }
+      ],
+      "exports": [],
+      "totalLines": 50,
+      "hasStructuralAnalysis": true
+    },
+    "frontend/eslint.config.js": {
+      "filePath": "frontend/eslint.config.js",
+      "contentHash": "27482827b9f1a887950c397ed551f1086cbdaf0112d9c2c9cc1fdceda635687d",
+      "functions": [],
+      "classes": [],
+      "imports": [
+        {
+          "source": "@typescript-eslint/eslint-plugin",
+          "specifiers": [
+            "tseslint"
+          ]
+        },
+        {
+          "source": "@typescript-eslint/parser",
+          "specifiers": [
+            "tsparser"
+          ]
+        },
+        {
+          "source": "eslint-plugin-react-hooks",
+          "specifiers": [
+            "reactHooks"
+          ]
+        },
+        {
+          "source": "eslint-plugin-react-refresh",
+          "specifiers": [
+            "reactRefresh"
+          ]
+        }
+      ],
+      "exports": [],
+      "totalLines": 122,
+      "hasStructuralAnalysis": true
+    },
+    "frontend/index.html": {
+      "filePath": "frontend/index.html",
+      "contentHash": "f0220f40e6507a0ab22601fde968f25ad24ce5eb5ca8509b6d94198c41cb6776",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 24,
+      "hasStructuralAnalysis": false
+    },
+    "frontend/package.json": {
+      "filePath": "frontend/package.json",
+      "contentHash": "8e3208b711a8562a91f342b15ee85df976a6d3464f918c447ac9d9775e6d0488",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 38,
+      "hasStructuralAnalysis": true
+    },
+    "frontend/playwright.config.ts": {
+      "filePath": "frontend/playwright.config.ts",
+      "contentHash": "f8b133d6eedb4c3e724b3cc26d69b1064f87b00fff9fddeeaf223d45eee8526e",
+      "functions": [],
+      "classes": [],
+      "imports": [
+        {
+          "source": "@playwright/test",
+          "specifiers": [
+            "defineConfig",
+            "devices"
+          ]
+        }
+      ],
+      "exports": [],
+      "totalLines": 39,
+      "hasStructuralAnalysis": true
+    },
+    "frontend/postcss.config.cjs": {
+      "filePath": "frontend/postcss.config.cjs",
+      "contentHash": "b7cdd644c868bd3b40f3e81bbf7875357f490ae0b4e20390495f95bd095760ef",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 6,
+      "hasStructuralAnalysis": true
+    },
+    "frontend/src/api/catalog.ts": {
+      "filePath": "frontend/src/api/catalog.ts",
+      "contentHash": "1852e5bb1f0cabb3722af8516fbf98afcc6e792c8dc4f418d57fdb113027388c",
+      "functions": [
+        {
+          "name": "prefetchCatalog",
+          "params": [
+            "shopId"
+          ],
+          "returnType": "Promise<Map<string, CatalogProduct>>",
+          "exported": true,
+          "lineCount": 20
+        },
+        {
+          "name": "resolveBarcode",
+          "params": [
+            "barcode",
+            "shopId"
+          ],
+          "returnType": "Promise<CatalogProduct>",
+          "exported": true,
+          "lineCount": 14
+        },
+        {
+          "name": "invalidateCache",
+          "params": [],
+          "returnType": "void",
+          "exported": true,
+          "lineCount": 5
+        },
+        {
+          "name": "cacheSize",
+          "params": [],
+          "returnType": "number",
+          "exported": true,
+          "lineCount": 3
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "./client",
+          "specifiers": [
+            "api"
+          ]
+        }
+      ],
+      "exports": [
+        "prefetchCatalog",
+        "resolveBarcode",
+        "invalidateCache",
+        "cacheSize"
+      ],
+      "totalLines": 75,
+      "hasStructuralAnalysis": true
+    },
+    "frontend/src/api/checkout.ts": {
+      "filePath": "frontend/src/api/checkout.ts",
+      "contentHash": "3f6f17fa91b3ada81b6ac146f411ddc4c43bf610c5703258947781684d2edf1e",
+      "functions": [
+        {
+          "name": "finalizeCheckout",
+          "params": [
+            "payload",
+            "idempotencyKey",
+            "shopId"
+          ],
+          "returnType": "Promise<CheckoutFinalizeResponse>",
+          "exported": true,
+          "lineCount": 12
+        },
+        {
+          "name": "getInvoice",
+          "params": [
+            "invoiceId"
+          ],
+          "returnType": "Promise<InvoicePublic>",
+          "exported": true,
+          "lineCount": 3
+        },
+        {
+          "name": "pdfUrl",
+          "params": [
+            "invoiceId",
+            "base"
+          ],
+          "returnType": "string",
+          "exported": true,
+          "lineCount": 3
+        },
+        {
+          "name": "downloadInvoicePdf",
+          "params": [
+            "invoiceId",
+            "base",
+            "token"
+          ],
+          "returnType": "Promise<Blob>",
+          "exported": true,
+          "lineCount": 11
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "./client",
+          "specifiers": [
+            "api"
+          ]
+        }
+      ],
+      "exports": [
+        "finalizeCheckout",
+        "getInvoice",
+        "pdfUrl",
+        "downloadInvoicePdf"
+      ],
+      "totalLines": 89,
+      "hasStructuralAnalysis": true
+    },
+    "frontend/src/api/client.ts": {
+      "filePath": "frontend/src/api/client.ts",
+      "contentHash": "064897555fe8e5e47c9e609e558bdc97bc149ef33d511841cadfbdb0fb01d707",
+      "functions": [
+        {
+          "name": "api",
+          "params": [
+            "path",
+            "init"
+          ],
+          "returnType": "Promise<T>",
+          "exported": true,
+          "lineCount": 40
+        }
+      ],
+      "classes": [
+        {
+          "name": "ApiError",
+          "methods": [
+            "constructor"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 9
+        }
+      ],
+      "imports": [],
+      "exports": [
+        "ApiError",
+        "api",
+        "Api"
+      ],
+      "totalLines": 73,
+      "hasStructuralAnalysis": true
+    },
+    "frontend/src/api/dashboard.ts": {
+      "filePath": "frontend/src/api/dashboard.ts",
+      "contentHash": "1ce54975b47ff23303ffaa4fcd76d5e85f7cdb42c28e70e6195a9ef590da3dc9",
+      "functions": [
+        {
+          "name": "shopQuery",
+          "params": [
+            "shopId"
+          ],
+          "returnType": "string",
+          "exported": false,
+          "lineCount": 3
+        },
+        {
+          "name": "getEodTotals",
+          "params": [
+            "businessDate",
+            "shopId"
+          ],
+          "returnType": "Promise<EodTotalsResponse>",
+          "exported": true,
+          "lineCount": 10
+        },
+        {
+          "name": "signOffEod",
+          "params": [
+            "businessDate",
+            "shopId"
+          ],
+          "returnType": "Promise<SignOffResponse>",
+          "exported": true,
+          "lineCount": 11
+        },
+        {
+          "name": "getEodHistory",
+          "params": [
+            "limit",
+            "shopId"
+          ],
+          "returnType": "Promise<SignOffHistoryResponse>",
+          "exported": true,
+          "lineCount": 4
+        },
+        {
+          "name": "getLowStock",
+          "params": [
+            "limit",
+            "shopId"
+          ],
+          "returnType": "Promise<LowStockResponse>",
+          "exported": true,
+          "lineCount": 4
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "./client",
+          "specifiers": [
+            "api"
+          ]
+        }
+      ],
+      "exports": [
+        "getEodTotals",
+        "signOffEod",
+        "getEodHistory",
+        "getLowStock"
+      ],
+      "totalLines": 92,
+      "hasStructuralAnalysis": true
+    },
+    "frontend/src/api/finalize-queue.ts": {
+      "filePath": "frontend/src/api/finalize-queue.ts",
+      "contentHash": "a950e15de3681a9b6a3568f1a70199325c4832e48560129859a3e0092416457c",
+      "functions": [
+        {
+          "name": "readQueue",
+          "params": [],
+          "returnType": "QueuedFinalize[]",
+          "exported": false,
+          "lineCount": 11
+        },
+        {
+          "name": "writeQueue",
+          "params": [
+            "items"
+          ],
+          "returnType": "void",
+          "exported": false,
+          "lineCount": 7
+        },
+        {
+          "name": "enqueueFinalize",
+          "params": [
+            "item"
+          ],
+          "returnType": "void",
+          "exported": true,
+          "lineCount": 15
+        },
+        {
+          "name": "listQueued",
+          "params": [],
+          "returnType": "QueuedFinalize[]",
+          "exported": true,
+          "lineCount": 3
+        },
+        {
+          "name": "clearQueued",
+          "params": [
+            "key"
+          ],
+          "returnType": "void",
+          "exported": true,
+          "lineCount": 3
+        },
+        {
+          "name": "flushQueue",
+          "params": [],
+          "returnType": "Promise<FlushOutcome[]>",
+          "exported": true,
+          "lineCount": 39
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "./client",
+          "specifiers": [
+            "ApiError",
+            "api"
+          ]
+        }
+      ],
+      "exports": [
+        "enqueueFinalize",
+        "listQueued",
+        "clearQueued",
+        "flushQueue"
+      ],
+      "totalLines": 123,
+      "hasStructuralAnalysis": true
+    },
+    "frontend/src/api/lots.ts": {
+      "filePath": "frontend/src/api/lots.ts",
+      "contentHash": "4ba8f67e7cb681b52cd311624d04ecca0dbdb9a88648bca723616c51919757fc",
+      "functions": [
+        {
+          "name": "createLot",
+          "params": [
+            "payload",
+            "shopId"
+          ],
+          "returnType": "Promise<LotPublic>",
+          "exported": true,
+          "lineCount": 7
+        },
+        {
+          "name": "listRecentLots",
+          "params": [
+            "limit"
+          ],
+          "returnType": "Promise<{ lots: LotPublic[] }>",
+          "exported": true,
+          "lineCount": 3
+        },
+        {
+          "name": "resolveForReceiving",
+          "params": [
+            "barcode",
+            "shopId"
+          ],
+          "returnType": "Promise<CatalogProduct>",
+          "exported": true,
+          "lineCount": 6
+        },
+        {
+          "name": "createLotSafe",
+          "params": [
+            "payload",
+            "shopId"
+          ],
+          "returnType": "Promise<LotPublic>",
+          "exported": true,
+          "lineCount": 11
+        }
+      ],
+      "classes": [
+        {
+          "name": "LotValidationError",
+          "methods": [
+            "constructor"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 5
+        }
+      ],
+      "imports": [
+        {
+          "source": "./client",
+          "specifiers": [
+            "ApiError",
+            "api"
+          ]
+        },
+        {
+          "source": "./catalog",
+          "specifiers": [
+            "resolveBarcode",
+            "CatalogProduct"
+          ]
+        }
+      ],
+      "exports": [
+        "createLot",
+        "listRecentLots",
+        "resolveForReceiving",
+        "LotValidationError",
+        "createLotSafe"
+      ],
+      "totalLines": 73,
+      "hasStructuralAnalysis": true
+    },
+    "frontend/src/api/products.ts": {
+      "filePath": "frontend/src/api/products.ts",
+      "contentHash": "10c01bdd0bbdc005002be7254f8e766e8d0a71bfc4b169bc206a079d228185ae",
+      "functions": [
+        {
+          "name": "listProducts",
+          "params": [
+            "opts"
+          ],
+          "returnType": "Promise<Product[]>",
+          "exported": true,
+          "lineCount": 7
+        },
+        {
+          "name": "createProduct",
+          "params": [
+            "payload",
+            "shopId"
+          ],
+          "returnType": "Promise<Product>",
+          "exported": true,
+          "lineCount": 7
+        },
+        {
+          "name": "updateProduct",
+          "params": [
+            "id",
+            "payload"
+          ],
+          "returnType": "Promise<Product>",
+          "exported": true,
+          "lineCount": 3
+        },
+        {
+          "name": "importProductsCsv",
+          "params": [
+            "file",
+            "shopId"
+          ],
+          "returnType": "Promise<ProductImportResponse>",
+          "exported": true,
+          "lineCount": 30
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "./client",
+          "specifiers": [
+            "api"
+          ]
+        },
+        {
+          "source": "./catalog",
+          "specifiers": [
+            "CatalogProduct"
+          ]
+        }
+      ],
+      "exports": [
+        "listProducts",
+        "createProduct",
+        "updateProduct",
+        "importProductsCsv"
+      ],
+      "totalLines": 87,
+      "hasStructuralAnalysis": true
+    },
+    "frontend/src/api/shops.ts": {
+      "filePath": "frontend/src/api/shops.ts",
+      "contentHash": "2cb2be6c6fde4bd40dd1750a959a688648063641d748071a18c64809dfabbd10",
+      "functions": [
+        {
+          "name": "listShops",
+          "params": [],
+          "returnType": "Promise<ShopSummary[]>",
+          "exported": true,
+          "lineCount": 3
+        },
+        {
+          "name": "getMyShop",
+          "params": [
+            "shopId"
+          ],
+          "returnType": "Promise<ShopPublic>",
+          "exported": true,
+          "lineCount": 4
+        },
+        {
+          "name": "updateMyShop",
+          "params": [
+            "payload",
+            "shopId"
+          ],
+          "returnType": "Promise<ShopPublic>",
+          "exported": true,
+          "lineCount": 7
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "./client",
+          "specifiers": [
+            "api"
+          ]
+        }
+      ],
+      "exports": [
+        "listShops",
+        "getMyShop",
+        "updateMyShop"
+      ],
+      "totalLines": 42,
+      "hasStructuralAnalysis": true
+    },
+    "frontend/src/api/staff.ts": {
+      "filePath": "frontend/src/api/staff.ts",
+      "contentHash": "5dec29eecf9aa7f28050196114954401b7f90f27631ee500a00dc0897155e36a",
+      "functions": [
+        {
+          "name": "listStaff",
+          "params": [],
+          "returnType": "Promise<StaffMember[]>",
+          "exported": true,
+          "lineCount": 3
+        },
+        {
+          "name": "createStaff",
+          "params": [
+            "payload",
+            "shopId"
+          ],
+          "returnType": "Promise<StaffMember>",
+          "exported": true,
+          "lineCount": 7
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "./client",
+          "specifiers": [
+            "api"
+          ]
+        }
+      ],
+      "exports": [
+        "listStaff",
+        "createStaff"
+      ],
+      "totalLines": 45,
+      "hasStructuralAnalysis": true
+    },
+    "frontend/src/api/voids.ts": {
+      "filePath": "frontend/src/api/voids.ts",
+      "contentHash": "942c0e223646b74d1cab8bdef7c7858be733bbb57f63253ef34a349da5743c0b",
+      "functions": [
+        {
+          "name": "requestVoid",
+          "params": [
+            "invoiceId",
+            "reason"
+          ],
+          "returnType": "Promise<InvoicePublic>",
+          "exported": true,
+          "lineCount": 6
+        },
+        {
+          "name": "approveVoid",
+          "params": [
+            "invoiceId"
+          ],
+          "returnType": "Promise<InvoicePublic>",
+          "exported": true,
+          "lineCount": 3
+        },
+        {
+          "name": "rejectVoid",
+          "params": [
+            "invoiceId",
+            "reason"
+          ],
+          "returnType": "Promise<InvoicePublic>",
+          "exported": true,
+          "lineCount": 6
+        },
+        {
+          "name": "listPendingVoids",
+          "params": [
+            "shopId"
+          ],
+          "returnType": "Promise<PendingVoidResponse>",
+          "exported": true,
+          "lineCount": 4
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "./client",
+          "specifiers": [
+            "api"
+          ]
+        },
+        {
+          "source": "./checkout",
+          "specifiers": [
+            "InvoicePublic"
+          ]
+        }
+      ],
+      "exports": [
+        "requestVoid",
+        "approveVoid",
+        "rejectVoid",
+        "listPendingVoids"
+      ],
+      "totalLines": 41,
+      "hasStructuralAnalysis": true
+    },
+    "frontend/src/App.tsx": {
+      "filePath": "frontend/src/App.tsx",
+      "contentHash": "473dfb13267321a13751f39906260db8b3f3284ff3ee7aa51cea913d7c47f214",
+      "functions": [
+        {
+          "name": "Protected",
+          "params": [
+            "{ allow, children }"
+          ],
+          "exported": false,
+          "lineCount": 13
+        },
+        {
+          "name": "AuthedShell",
+          "params": [
+            "{ children }"
+          ],
+          "exported": false,
+          "lineCount": 10
+        },
+        {
+          "name": "App",
+          "params": [],
+          "exported": true,
+          "lineCount": 103
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "react-router-dom",
+          "specifiers": [
+            "Navigate",
+            "Route",
+            "Routes"
+          ]
+        },
+        {
+          "source": "./auth/AuthProvider",
+          "specifiers": [
+            "useAuth",
+            "Role"
+          ]
+        },
+        {
+          "source": "./components/Sidebar",
+          "specifiers": [
+            "Sidebar"
+          ]
+        },
+        {
+          "source": "./pages/LoginPage",
+          "specifiers": [
+            "LoginPage"
+          ]
+        },
+        {
+          "source": "./pages/SuperadminLoginPage",
+          "specifiers": [
+            "SuperadminLoginPage"
+          ]
+        },
+        {
+          "source": "./pages/ForbiddenPage",
+          "specifiers": [
+            "ForbiddenPage"
+          ]
+        },
+        {
+          "source": "./pages/HomeRedirect",
+          "specifiers": [
+            "HomeRedirect"
+          ]
+        },
+        {
+          "source": "./pages/CheckoutPage",
+          "specifiers": [
+            "CheckoutPage"
+          ]
+        },
+        {
+          "source": "./pages/ReceivingPage",
+          "specifiers": [
+            "ReceivingPage"
+          ]
+        },
+        {
+          "source": "./pages/DashboardPage",
+          "specifiers": [
+            "DashboardPage"
+          ]
+        },
+        {
+          "source": "./pages/AdminPlaceholder",
+          "specifiers": [
+            "AdminPlaceholder"
+          ]
+        },
+        {
+          "source": "./pages/ProductsPage",
+          "specifiers": [
+            "ProductsPage"
+          ]
+        },
+        {
+          "source": "./pages/VoidApprovalsPage",
+          "specifiers": [
+            "VoidApprovalsPage"
+          ]
+        },
+        {
+          "source": "./pages/InvoiceLookupPage",
+          "specifiers": [
+            "InvoiceLookupPage"
+          ]
+        },
+        {
+          "source": "./pages/StaffPage",
+          "specifiers": [
+            "StaffPage"
+          ]
+        },
+        {
+          "source": "./pages/ShopConfigPage",
+          "specifiers": [
+            "ShopConfigPage"
+          ]
+        }
+      ],
+      "exports": [
+        "App"
+      ],
+      "totalLines": 145,
+      "hasStructuralAnalysis": true
+    },
+    "frontend/src/auth/AuthProvider.tsx": {
+      "filePath": "frontend/src/auth/AuthProvider.tsx",
+      "contentHash": "21ef882324f6128086ef8fce43a23869e62ef6a7760c3d4f3c2151acf58b2e0a",
+      "functions": [
+        {
+          "name": "readSession",
+          "params": [],
+          "returnType": "{ token: string; user: AuthUser; payload: JwtPayload } | null",
+          "exported": false,
+          "lineCount": 17
+        },
+        {
+          "name": "AuthProvider",
+          "params": [
+            "{ children }"
+          ],
+          "exported": true,
+          "lineCount": 35
+        },
+        {
+          "name": "useAuth",
+          "params": [],
+          "returnType": "AuthContextValue",
+          "exported": true,
+          "lineCount": 5
+        },
+        {
+          "name": "homePathFor",
+          "params": [
+            "role"
+          ],
+          "returnType": "string",
+          "exported": true,
+          "lineCount": 12
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "react",
+          "specifiers": [
+            "createContext",
+            "useCallback",
+            "useContext",
+            "useEffect",
+            "useMemo",
+            "useState"
+          ]
+        },
+        {
+          "source": "react",
+          "specifiers": [
+            "ReactNode"
+          ]
+        },
+        {
+          "source": "./jwt",
+          "specifiers": [
+            "decodeJwt",
+            "isExpired",
+            "JwtPayload"
+          ]
+        }
+      ],
+      "exports": [
+        "AuthProvider",
+        "useAuth",
+        "homePathFor"
+      ],
+      "totalLines": 101,
+      "hasStructuralAnalysis": true
+    },
+    "frontend/src/auth/jwt.ts": {
+      "filePath": "frontend/src/auth/jwt.ts",
+      "contentHash": "033bdc907f7363014ddc7f68e55848e893b88982841ee0fcf285724c6a2281d1",
+      "functions": [
+        {
+          "name": "decodeJwt",
+          "params": [
+            "token"
+          ],
+          "returnType": "JwtPayload | null",
+          "exported": true,
+          "lineCount": 13
+        },
+        {
+          "name": "isExpired",
+          "params": [
+            "payload",
+            "skewSeconds"
+          ],
+          "returnType": "boolean",
+          "exported": true,
+          "lineCount": 3
+        }
+      ],
+      "classes": [],
+      "imports": [],
+      "exports": [
+        "decodeJwt",
+        "isExpired"
+      ],
+      "totalLines": 29,
+      "hasStructuralAnalysis": true
+    },
+    "frontend/src/auth/ShopScopeProvider.tsx": {
+      "filePath": "frontend/src/auth/ShopScopeProvider.tsx",
+      "contentHash": "65b1c37b48abb197322b4cebf1c934a70528d9ba4cb9ea7c023a92dd100134cb",
+      "functions": [
+        {
+          "name": "readStored",
+          "params": [],
+          "returnType": "number | null",
+          "exported": false,
+          "lineCount": 6
+        },
+        {
+          "name": "ShopScopeProvider",
+          "params": [
+            "{ children }"
+          ],
+          "exported": true,
+          "lineCount": 13
+        },
+        {
+          "name": "useShopScope",
+          "params": [],
+          "returnType": "ShopScopeValue",
+          "exported": true,
+          "lineCount": 5
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "react",
+          "specifiers": [
+            "createContext",
+            "useCallback",
+            "useContext",
+            "useMemo",
+            "useState"
+          ]
+        },
+        {
+          "source": "react",
+          "specifiers": [
+            "ReactNode"
+          ]
+        }
+      ],
+      "exports": [
+        "ShopScopeProvider",
+        "useShopScope"
+      ],
+      "totalLines": 44,
+      "hasStructuralAnalysis": true
+    },
+    "frontend/src/components/PinPad.tsx": {
+      "filePath": "frontend/src/components/PinPad.tsx",
+      "contentHash": "d10d204dfbaa88bdb2569c93c074fc02e9215db9897466ec603832dbfd101cff",
+      "functions": [
+        {
+          "name": "PinPad",
+          "params": [
+            "{\n  onDigit,\n  onBackspace,\n  onClear,\n  onSubmit,\n  disabled = false,\n  accentLabel = \"SUBMIT\",\n}"
+          ],
+          "exported": true,
+          "lineCount": 75
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "react",
+          "specifiers": [
+            "KeyboardEvent"
+          ]
+        }
+      ],
+      "exports": [
+        "PinPad"
+      ],
+      "totalLines": 94,
+      "hasStructuralAnalysis": true
+    },
+    "frontend/src/components/ShopPicker.tsx": {
+      "filePath": "frontend/src/components/ShopPicker.tsx",
+      "contentHash": "6afcc4a62cb7670f3323b1ab4c515af956b82683d8b3e4954be8f74041b4c05f",
+      "functions": [
+        {
+          "name": "ShopPicker",
+          "params": [],
+          "exported": true,
+          "lineCount": 42
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "react",
+          "specifiers": [
+            "useEffect",
+            "useState"
+          ]
+        },
+        {
+          "source": "../auth/AuthProvider",
+          "specifiers": [
+            "useAuth"
+          ]
+        },
+        {
+          "source": "../auth/ShopScopeProvider",
+          "specifiers": [
+            "useShopScope"
+          ]
+        },
+        {
+          "source": "../api/shops",
+          "specifiers": [
+            "listShops",
+            "ShopSummary"
+          ]
+        }
+      ],
+      "exports": [
+        "ShopPicker"
+      ],
+      "totalLines": 53,
+      "hasStructuralAnalysis": true
+    },
+    "frontend/src/components/Sidebar.tsx": {
+      "filePath": "frontend/src/components/Sidebar.tsx",
+      "contentHash": "fb447ed80131cc05f34d2e067fc2f12b0e27d127bb8fb88cfcb0c1e458862f58",
+      "functions": [
+        {
+          "name": "Sidebar",
+          "params": [],
+          "exported": true,
+          "lineCount": 75
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "react",
+          "specifiers": [
+            "useState"
+          ]
+        },
+        {
+          "source": "react-router-dom",
+          "specifiers": [
+            "NavLink",
+            "useNavigate"
+          ]
+        },
+        {
+          "source": "../auth/AuthProvider",
+          "specifiers": [
+            "useAuth",
+            "Role"
+          ]
+        },
+        {
+          "source": "./ShopPicker",
+          "specifiers": [
+            "ShopPicker"
+          ]
+        }
+      ],
+      "exports": [
+        "Sidebar"
+      ],
+      "totalLines": 97,
+      "hasStructuralAnalysis": true
+    },
+    "frontend/src/hooks/useOnlineStatus.ts": {
+      "filePath": "frontend/src/hooks/useOnlineStatus.ts",
+      "contentHash": "21ff8c2c0777e51043d5ec41081053c85e958d4b4838cc1df6d78dde4270a866",
+      "functions": [
+        {
+          "name": "useOnlineStatus",
+          "params": [],
+          "returnType": "boolean",
+          "exported": true,
+          "lineCount": 16
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "react",
+          "specifiers": [
+            "useEffect",
+            "useState"
+          ]
+        }
+      ],
+      "exports": [
+        "useOnlineStatus"
+      ],
+      "totalLines": 22,
+      "hasStructuralAnalysis": true
+    },
+    "frontend/src/hooks/useRetryQueue.ts": {
+      "filePath": "frontend/src/hooks/useRetryQueue.ts",
+      "contentHash": "3b03741b4efda9ab12fe28a0266973173b6f778d2a0d43e2c7c5076ee9002319",
+      "functions": [
+        {
+          "name": "useRetryQueue",
+          "params": [
+            "options"
+          ],
+          "returnType": "UseRetryQueueResult",
+          "exported": true,
+          "lineCount": 40
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "react",
+          "specifiers": [
+            "useCallback",
+            "useEffect",
+            "useRef",
+            "useState"
+          ]
+        },
+        {
+          "source": "../api/finalize-queue",
+          "specifiers": [
+            "flushQueue",
+            "listQueued",
+            "FlushOutcome"
+          ]
+        },
+        {
+          "source": "./useOnlineStatus",
+          "specifiers": [
+            "useOnlineStatus"
+          ]
+        }
+      ],
+      "exports": [
+        "useRetryQueue"
+      ],
+      "totalLines": 60,
+      "hasStructuralAnalysis": true
+    },
+    "frontend/src/index.css": {
+      "filePath": "frontend/src/index.css",
+      "contentHash": "9eb4bb447d11fed0f03ae18ced79f31c6b647f12fbfdcd4f0e0f8c6ffcdb843d",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 18,
+      "hasStructuralAnalysis": false
+    },
+    "frontend/src/main.tsx": {
+      "filePath": "frontend/src/main.tsx",
+      "contentHash": "059ea597cc003ee6c94463b8c6818a76ef07a4ddcba49ad55d571ccedb4bdf98",
+      "functions": [],
+      "classes": [],
+      "imports": [
+        {
+          "source": "react",
+          "specifiers": [
+            "React"
+          ]
+        },
+        {
+          "source": "react-dom/client",
+          "specifiers": [
+            "ReactDOM"
+          ]
+        },
+        {
+          "source": "react-router-dom",
+          "specifiers": [
+            "BrowserRouter"
+          ]
+        },
+        {
+          "source": "./auth/AuthProvider",
+          "specifiers": [
+            "AuthProvider"
+          ]
+        },
+        {
+          "source": "./auth/ShopScopeProvider",
+          "specifiers": [
+            "ShopScopeProvider"
+          ]
+        },
+        {
+          "source": "./App",
+          "specifiers": [
+            "App"
+          ]
+        },
+        {
+          "source": "./index.css",
+          "specifiers": []
+        }
+      ],
+      "exports": [],
+      "totalLines": 19,
+      "hasStructuralAnalysis": true
+    },
+    "frontend/src/pages/AdminPlaceholder.tsx": {
+      "filePath": "frontend/src/pages/AdminPlaceholder.tsx",
+      "contentHash": "4bbab10adab5e23e7b6a731461f01c758061c453bd89eea0fe106954a6d05681",
+      "functions": [
+        {
+          "name": "AdminPlaceholder",
+          "params": [],
+          "exported": true,
+          "lineCount": 13
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "react-router-dom",
+          "specifiers": [
+            "useLocation"
+          ]
+        }
+      ],
+      "exports": [
+        "AdminPlaceholder"
+      ],
+      "totalLines": 18,
+      "hasStructuralAnalysis": true
+    },
+    "frontend/src/pages/CheckoutPage.tsx": {
+      "filePath": "frontend/src/pages/CheckoutPage.tsx",
+      "contentHash": "7fb805e484f63c5c8244a249da30540cb986b26ffcf607862358655a3ad2962c",
+      "functions": [
+        {
+          "name": "moneyString",
+          "params": [
+            "cents"
+          ],
+          "returnType": "string",
+          "exported": false,
+          "lineCount": 3
+        },
+        {
+          "name": "parseMoney",
+          "params": [
+            "s"
+          ],
+          "returnType": "number",
+          "exported": false,
+          "lineCount": 5
+        },
+        {
+          "name": "uid",
+          "params": [],
+          "returnType": "string",
+          "exported": false,
+          "lineCount": 3
+        },
+        {
+          "name": "formatPaymentLabel",
+          "params": [
+            "m"
+          ],
+          "returnType": "string",
+          "exported": false,
+          "lineCount": 3
+        },
+        {
+          "name": "CheckoutPage",
+          "params": [],
+          "exported": true,
+          "lineCount": 581
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "react",
+          "specifiers": [
+            "useEffect",
+            "useMemo",
+            "useState",
+            "useCallback",
+            "useRef"
+          ]
+        },
+        {
+          "source": "../api/client",
+          "specifiers": [
+            "ApiError"
+          ]
+        },
+        {
+          "source": "../api/catalog",
+          "specifiers": [
+            "prefetchCatalog",
+            "resolveBarcode",
+            "CatalogProduct",
+            "invalidateCache"
+          ]
+        },
+        {
+          "source": "../api/checkout",
+          "specifiers": [
+            "finalizeCheckout",
+            "downloadInvoicePdf",
+            "getInvoice",
+            "PaymentMode",
+            "InvoicePublic"
+          ]
+        },
+        {
+          "source": "../api/finalize-queue",
+          "specifiers": [
+            "enqueueFinalize",
+            "listQueued",
+            "clearQueued"
+          ]
+        },
+        {
+          "source": "../hooks/useOnlineStatus",
+          "specifiers": [
+            "useOnlineStatus"
+          ]
+        },
+        {
+          "source": "../hooks/useRetryQueue",
+          "specifiers": [
+            "useRetryQueue"
+          ]
+        },
+        {
+          "source": "../auth/ShopScopeProvider",
+          "specifiers": [
+            "useShopScope"
+          ]
+        }
+      ],
+      "exports": [
+        "CheckoutPage"
+      ],
+      "totalLines": 632,
+      "hasStructuralAnalysis": true
+    },
+    "frontend/src/pages/DashboardPage.tsx": {
+      "filePath": "frontend/src/pages/DashboardPage.tsx",
+      "contentHash": "c7a4754cfb9f8d722c3cad95433403a1a50ea52246ae58ae755a2e7fc76fbaed",
+      "functions": [
+        {
+          "name": "moneyFmt",
+          "params": [
+            "s"
+          ],
+          "returnType": "string",
+          "exported": false,
+          "lineCount": 3
+        },
+        {
+          "name": "DashboardPage",
+          "params": [],
+          "exported": true,
+          "lineCount": 213
+        },
+        {
+          "name": "KpiCard",
+          "params": [
+            "{\n  title,\n  value,\n  sub,\n  accent,\n}"
+          ],
+          "exported": false,
+          "lineCount": 25
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "react",
+          "specifiers": [
+            "useEffect",
+            "useState"
+          ]
+        },
+        {
+          "source": "../api/dashboard",
+          "specifiers": [
+            "getEodHistory",
+            "getEodTotals",
+            "getLowStock",
+            "signOffEod",
+            "EodTotalsResponse",
+            "LowStockResponse",
+            "SignOffResponse"
+          ]
+        },
+        {
+          "source": "../api/client",
+          "specifiers": [
+            "ApiError"
+          ]
+        },
+        {
+          "source": "../auth/AuthProvider",
+          "specifiers": [
+            "useAuth"
+          ]
+        },
+        {
+          "source": "../auth/ShopScopeProvider",
+          "specifiers": [
+            "useShopScope"
+          ]
+        }
+      ],
+      "exports": [
+        "DashboardPage"
+      ],
+      "totalLines": 257,
+      "hasStructuralAnalysis": true
+    },
+    "frontend/src/pages/ForbiddenPage.tsx": {
+      "filePath": "frontend/src/pages/ForbiddenPage.tsx",
+      "contentHash": "5cfa671307d26164d1fe35bde261e6bc55d0bb693fad74cda870e6e7a1a3c1cd",
+      "functions": [
+        {
+          "name": "ForbiddenPage",
+          "params": [],
+          "exported": true,
+          "lineCount": 26
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "react-router-dom",
+          "specifiers": [
+            "Link"
+          ]
+        },
+        {
+          "source": "../auth/AuthProvider",
+          "specifiers": [
+            "useAuth"
+          ]
+        }
+      ],
+      "exports": [
+        "ForbiddenPage"
+      ],
+      "totalLines": 29,
+      "hasStructuralAnalysis": true
+    },
+    "frontend/src/pages/HomeRedirect.tsx": {
+      "filePath": "frontend/src/pages/HomeRedirect.tsx",
+      "contentHash": "1f1f7d301f9f196df69b230f1f3f91e25f3e8bf0261894d47c4994fbd375ac3d",
+      "functions": [
+        {
+          "name": "HomeRedirect",
+          "params": [],
+          "exported": true,
+          "lineCount": 6
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "react-router-dom",
+          "specifiers": [
+            "Navigate"
+          ]
+        },
+        {
+          "source": "../auth/AuthProvider",
+          "specifiers": [
+            "useAuth",
+            "homePathFor"
+          ]
+        }
+      ],
+      "exports": [
+        "HomeRedirect"
+      ],
+      "totalLines": 11,
+      "hasStructuralAnalysis": true
+    },
+    "frontend/src/pages/InvoiceLookupPage.tsx": {
+      "filePath": "frontend/src/pages/InvoiceLookupPage.tsx",
+      "contentHash": "c2b903d5dfc8422ac7807118d8c58a9738099c08394ea2aabf7b9fd1dc5fe30f",
+      "functions": [
+        {
+          "name": "InvoiceLookupPage",
+          "params": [],
+          "exported": true,
+          "lineCount": 154
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "react",
+          "specifiers": [
+            "useState"
+          ]
+        },
+        {
+          "source": "../api/client",
+          "specifiers": [
+            "ApiError"
+          ]
+        },
+        {
+          "source": "../api/checkout",
+          "specifiers": [
+            "getInvoice",
+            "InvoicePublic"
+          ]
+        },
+        {
+          "source": "../api/voids",
+          "specifiers": [
+            "requestVoid"
+          ]
+        }
+      ],
+      "exports": [
+        "InvoiceLookupPage"
+      ],
+      "totalLines": 163,
+      "hasStructuralAnalysis": true
+    },
+    "frontend/src/pages/LoginPage.tsx": {
+      "filePath": "frontend/src/pages/LoginPage.tsx",
+      "contentHash": "03252fcf7cd91dc30a9b0006bc5cef45afe4e23d6124886b083750c149901e2c",
+      "functions": [
+        {
+          "name": "LoginPage",
+          "params": [],
+          "exported": true,
+          "lineCount": 110
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "react",
+          "specifiers": [
+            "useState"
+          ]
+        },
+        {
+          "source": "react-router-dom",
+          "specifiers": [
+            "useNavigate"
+          ]
+        },
+        {
+          "source": "../api/client",
+          "specifiers": [
+            "Api",
+            "ApiError"
+          ]
+        },
+        {
+          "source": "../auth/AuthProvider",
+          "specifiers": [
+            "useAuth",
+            "homePathFor",
+            "AuthUser",
+            "Role"
+          ]
+        },
+        {
+          "source": "../components/PinPad",
+          "specifiers": [
+            "PinPad"
+          ]
+        }
+      ],
+      "exports": [
+        "LoginPage"
+      ],
+      "totalLines": 118,
+      "hasStructuralAnalysis": true
+    },
+    "frontend/src/pages/ProductsPage.tsx": {
+      "filePath": "frontend/src/pages/ProductsPage.tsx",
+      "contentHash": "25c39e17f213006796934d2518c81ed9c88c344d0842e3280bbb4ac533a916d2",
+      "functions": [
+        {
+          "name": "ProductsPage",
+          "params": [],
+          "exported": true,
+          "lineCount": 25
+        },
+        {
+          "name": "ListTab",
+          "params": [],
+          "exported": false,
+          "lineCount": 118
+        },
+        {
+          "name": "EditRow",
+          "params": [
+            "{\n  product,\n  onDone,\n  onCancel,\n}"
+          ],
+          "exported": false,
+          "lineCount": 116
+        },
+        {
+          "name": "CreateTab",
+          "params": [
+            "{ onCreated }"
+          ],
+          "exported": false,
+          "lineCount": 87
+        },
+        {
+          "name": "Field",
+          "params": [
+            "{\n  label,\n  value,\n  onChange,\n  type = \"text\",\n  required = false,\n  step,\n  min,\n}"
+          ],
+          "exported": false,
+          "lineCount": 32
+        },
+        {
+          "name": "ImportTab",
+          "params": [],
+          "exported": false,
+          "lineCount": 87
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "react",
+          "specifiers": [
+            "useCallback",
+            "useEffect",
+            "useState"
+          ]
+        },
+        {
+          "source": "../api/products",
+          "specifiers": [
+            "createProduct",
+            "importProductsCsv",
+            "listProducts",
+            "updateProduct",
+            "Product",
+            "ProductImportResponse",
+            "ProductCreatePayload",
+            "ProductUpdatePayload"
+          ]
+        },
+        {
+          "source": "../api/catalog",
+          "specifiers": [
+            "invalidateCache"
+          ]
+        },
+        {
+          "source": "../auth/AuthProvider",
+          "specifiers": [
+            "useAuth"
+          ]
+        },
+        {
+          "source": "../auth/ShopScopeProvider",
+          "specifiers": [
+            "useShopScope"
+          ]
+        }
+      ],
+      "exports": [
+        "ProductsPage"
+      ],
+      "totalLines": 487,
+      "hasStructuralAnalysis": true
+    },
+    "frontend/src/pages/ReceivingPage.tsx": {
+      "filePath": "frontend/src/pages/ReceivingPage.tsx",
+      "contentHash": "6a297dda9933f36f1d19547d05949d2bbdd943abbd37238be1c17293b7a0b12e",
+      "functions": [
+        {
+          "name": "uid",
+          "params": [],
+          "returnType": "string",
+          "exported": false,
+          "lineCount": 3
+        },
+        {
+          "name": "ReceivingPage",
+          "params": [],
+          "exported": true,
+          "lineCount": 323
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "react",
+          "specifiers": [
+            "useEffect",
+            "useState",
+            "useCallback"
+          ]
+        },
+        {
+          "source": "../api/client",
+          "specifiers": [
+            "ApiError"
+          ]
+        },
+        {
+          "source": "../api/catalog",
+          "specifiers": [
+            "invalidateCache",
+            "prefetchCatalog"
+          ]
+        },
+        {
+          "source": "../api/lots",
+          "specifiers": [
+            "createLotSafe",
+            "LotPublic"
+          ]
+        },
+        {
+          "source": "../auth/AuthProvider",
+          "specifiers": [
+            "useAuth"
+          ]
+        },
+        {
+          "source": "../auth/ShopScopeProvider",
+          "specifiers": [
+            "useShopScope"
+          ]
+        }
+      ],
+      "exports": [
+        "ReceivingPage"
+      ],
+      "totalLines": 342,
+      "hasStructuralAnalysis": true
+    },
+    "frontend/src/pages/ShopConfigPage.tsx": {
+      "filePath": "frontend/src/pages/ShopConfigPage.tsx",
+      "contentHash": "08392b0931dd7031917ec0d8eb33bc57ff46913dc8b4648fe1cedf83119a7d9b",
+      "functions": [
+        {
+          "name": "ShopConfigPage",
+          "params": [],
+          "exported": true,
+          "lineCount": 144
+        },
+        {
+          "name": "Field",
+          "params": [
+            "{\n  label,\n  value,\n  onChange,\n  type = \"text\",\n  step,\n  min,\n  max,\n  maxLength,\n  placeholder,\n}"
+          ],
+          "exported": false,
+          "lineCount": 38
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "react",
+          "specifiers": [
+            "useEffect",
+            "useState"
+          ]
+        },
+        {
+          "source": "../api/client",
+          "specifiers": [
+            "ApiError"
+          ]
+        },
+        {
+          "source": "../api/shops",
+          "specifiers": [
+            "getMyShop",
+            "updateMyShop",
+            "ShopPublic"
+          ]
+        },
+        {
+          "source": "../auth/AuthProvider",
+          "specifiers": [
+            "useAuth"
+          ]
+        },
+        {
+          "source": "../auth/ShopScopeProvider",
+          "specifiers": [
+            "useShopScope"
+          ]
+        }
+      ],
+      "exports": [
+        "ShopConfigPage"
+      ],
+      "totalLines": 189,
+      "hasStructuralAnalysis": true
+    },
+    "frontend/src/pages/StaffPage.tsx": {
+      "filePath": "frontend/src/pages/StaffPage.tsx",
+      "contentHash": "f195b885dd4a80b4e144e4c1c368ed3f8ccbb62fb9f7d26c364eefd3e232d9c4",
+      "functions": [
+        {
+          "name": "StaffPage",
+          "params": [],
+          "exported": true,
+          "lineCount": 112
+        },
+        {
+          "name": "CreateCard",
+          "params": [
+            "{\n  onSubmit,\n  busy,\n}"
+          ],
+          "exported": false,
+          "lineCount": 67
+        },
+        {
+          "name": "Field",
+          "params": [
+            "{\n  label,\n  value,\n  onChange,\n  type = \"text\",\n  required = false,\n  minLength,\n}"
+          ],
+          "exported": false,
+          "lineCount": 29
+        },
+        {
+          "name": "ResetPinButton",
+          "params": [],
+          "exported": false,
+          "lineCount": 12
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "react",
+          "specifiers": [
+            "useEffect",
+            "useState"
+          ]
+        },
+        {
+          "source": "../api/client",
+          "specifiers": [
+            "ApiError"
+          ]
+        },
+        {
+          "source": "../api/staff",
+          "specifiers": [
+            "createStaff",
+            "listStaff",
+            "StaffCreatePayload",
+            "StaffMember",
+            "StaffRole"
+          ]
+        },
+        {
+          "source": "../auth/AuthProvider",
+          "specifiers": [
+            "useAuth"
+          ]
+        },
+        {
+          "source": "../auth/ShopScopeProvider",
+          "specifiers": [
+            "useShopScope"
+          ]
+        }
+      ],
+      "exports": [
+        "StaffPage"
+      ],
+      "totalLines": 235,
+      "hasStructuralAnalysis": true
+    },
+    "frontend/src/pages/SuperadminLoginPage.tsx": {
+      "filePath": "frontend/src/pages/SuperadminLoginPage.tsx",
+      "contentHash": "f9689ee6362235a0876623e187d4c7dd1b87b46c67e7e3bcd63321a7c475b3da",
+      "functions": [
+        {
+          "name": "SuperadminLoginPage",
+          "params": [],
+          "exported": true,
+          "lineCount": 85
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "react",
+          "specifiers": [
+            "useState"
+          ]
+        },
+        {
+          "source": "react-router-dom",
+          "specifiers": [
+            "useNavigate"
+          ]
+        },
+        {
+          "source": "../api/client",
+          "specifiers": [
+            "Api",
+            "ApiError"
+          ]
+        },
+        {
+          "source": "../auth/AuthProvider",
+          "specifiers": [
+            "useAuth",
+            "AuthUser",
+            "Role"
+          ]
+        }
+      ],
+      "exports": [
+        "SuperadminLoginPage"
+      ],
+      "totalLines": 90,
+      "hasStructuralAnalysis": true
+    },
+    "frontend/src/pages/VoidApprovalsPage.tsx": {
+      "filePath": "frontend/src/pages/VoidApprovalsPage.tsx",
+      "contentHash": "e5a82710dc683e73279064ee64272d07c91db503fedcbcdba5113897b9a97015",
+      "functions": [
+        {
+          "name": "moneyFmt",
+          "params": [
+            "s"
+          ],
+          "returnType": "string",
+          "exported": false,
+          "lineCount": 3
+        },
+        {
+          "name": "VoidApprovalsPage",
+          "params": [],
+          "exported": true,
+          "lineCount": 111
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "react",
+          "specifiers": [
+            "useEffect",
+            "useState"
+          ]
+        },
+        {
+          "source": "../api/client",
+          "specifiers": [
+            "ApiError"
+          ]
+        },
+        {
+          "source": "../api/checkout",
+          "specifiers": [
+            "getInvoice",
+            "InvoicePublic"
+          ]
+        },
+        {
+          "source": "../api/voids",
+          "specifiers": [
+            "approveVoid",
+            "listPendingVoids",
+            "rejectVoid"
+          ]
+        },
+        {
+          "source": "../auth/AuthProvider",
+          "specifiers": [
+            "useAuth"
+          ]
+        },
+        {
+          "source": "../auth/ShopScopeProvider",
+          "specifiers": [
+            "useShopScope"
+          ]
+        }
+      ],
+      "exports": [
+        "VoidApprovalsPage",
+        "getInvoice",
+        "InvoicePublic"
+      ],
+      "totalLines": 127,
+      "hasStructuralAnalysis": true
+    },
+    "frontend/src/theme/tokens.ts": {
+      "filePath": "frontend/src/theme/tokens.ts",
+      "contentHash": "3d12e21be142ff2d582f2c5f5e5ba66a8c67c93ddd698119e80051d9bf540f61",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [
+        "tokens"
+      ],
+      "totalLines": 63,
+      "hasStructuralAnalysis": true
+    },
+    "frontend/src/vite-env.d.ts": {
+      "filePath": "frontend/src/vite-env.d.ts",
+      "contentHash": "fc88641c66f1b3e5cf4c348a3fbe222de3d6ebf3811301eef2ae5c3d7997398e",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 11,
+      "hasStructuralAnalysis": true
+    },
+    "frontend/tailwind.config.ts": {
+      "filePath": "frontend/tailwind.config.ts",
+      "contentHash": "aaf7f3aa7d4e9cc10e9ba4a47bb46763ac0f2e8cdbbad9757b16eef0b79408ce",
+      "functions": [],
+      "classes": [],
+      "imports": [
+        {
+          "source": "tailwindcss",
+          "specifiers": [
+            "Config"
+          ]
+        },
+        {
+          "source": "./src/theme/tokens",
+          "specifiers": [
+            "tokens"
+          ]
+        }
+      ],
+      "exports": [],
+      "totalLines": 29,
+      "hasStructuralAnalysis": true
+    },
+    "frontend/tsconfig.app.json": {
+      "filePath": "frontend/tsconfig.app.json",
+      "contentHash": "53eb8b9b8d1f3fdbd30a581ff1ba251266058798c1ee5a8927b5310031fb9e42",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 25,
+      "hasStructuralAnalysis": true
+    },
+    "frontend/tsconfig.e2e.json": {
+      "filePath": "frontend/tsconfig.e2e.json",
+      "contentHash": "fd706181aadcccde8e7f071b050c2239bbb2d75be0795e6ee045908aecad6711",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 21,
+      "hasStructuralAnalysis": true
+    },
+    "frontend/tsconfig.json": {
+      "filePath": "frontend/tsconfig.json",
+      "contentHash": "d3d0643046d0e671f4533d768c136f8c71d9671b29961908647848bfea9f5cdd",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 8,
+      "hasStructuralAnalysis": true
+    },
+    "frontend/tsconfig.node.json": {
+      "filePath": "frontend/tsconfig.node.json",
+      "contentHash": "8538bce17997288d42a52eb1ebe3afd9d6410a976bc60d22a1d6cab306b17d9a",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 21,
+      "hasStructuralAnalysis": true
+    },
+    "frontend/vite.config.ts": {
+      "filePath": "frontend/vite.config.ts",
+      "contentHash": "f9f26c20da083d13c31cb203b5de4ee27ec4252c2439494d6083b7e0a4ec43ed",
+      "functions": [],
+      "classes": [],
+      "imports": [
+        {
+          "source": "vite",
+          "specifiers": [
+            "defineConfig"
+          ]
+        },
+        {
+          "source": "@vitejs/plugin-react",
+          "specifiers": [
+            "react"
+          ]
+        },
+        {
+          "source": "node:path",
+          "specifiers": [
+            "path"
+          ]
+        }
+      ],
+      "exports": [],
+      "totalLines": 21,
       "hasStructuralAnalysis": true
     }
   }

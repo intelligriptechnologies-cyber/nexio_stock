@@ -1,0 +1,94 @@
+[
+  {
+    "order": 1,
+    "title": "Application Bootstrap",
+    "description": "The tour starts where the browser starts: index.html loads main.tsx, which mounts the React tree and wraps the whole app in AuthProvider and ShopScopeProvider before rendering App. It also pulls in index.css, which loads Tailwind's base/components/utilities layers. This is the single place that wires global state providers around the routing tree, so everything downstream can assume an authenticated session and a shop scope already exist.",
+    "nodeIds": ["file:src/main.tsx", "file:index.html", "file:src/index.css"],
+    "languageLesson": "React 18's createRoot API expects providers to be composed outermost-first; nesting AuthProvider around ShopScopeProvider around App means both contexts are available to every component in the tree, including App itself."
+  },
+  {
+    "order": 2,
+    "title": "Routing and Role Guards",
+    "description": "App.tsx has by far the highest fan-out in the codebase (15 outbound file references) because it imports and wires up every page in the app. It defines a Protected wrapper component that checks the authenticated user's role via useAuth before allowing a route to render, redirecting to ForbiddenPage otherwise. Understanding this file gives you a map of every screen in the SPA and which roles can reach them, before you dive into any individual page.",
+    "nodeIds": ["file:src/App.tsx", "file:src/pages/ForbiddenPage.tsx", "file:src/pages/HomeRedirect.tsx"],
+    "languageLesson": "TypeScript discriminated checks on a `role` string field, combined with React Router's element-as-prop routing, let Protected act as a generic higher-order guard without duplicating auth logic in every page."
+  },
+  {
+    "order": 3,
+    "title": "Authentication Core",
+    "description": "AuthProvider.tsx has the second-highest fan-in in the project (14 dependents) — nearly every page and shared component calls its useAuth hook. It manages the session (token, user, readiness), persists it to sessionStorage, and exposes login/logout plus homePathFor, a helper that picks the right landing page for a given role. It depends on jwt.ts, a dependency-free helper that decodes JWT payloads and checks expiry, which readSession calls to validate the stored token on load.",
+    "nodeIds": ["file:src/auth/AuthProvider.tsx", "file:src/auth/jwt.ts"],
+    "languageLesson": "jwt.ts hand-rolls base64url decoding instead of pulling in a JWT library — a deliberate choice for a small POS frontend to avoid an extra dependency for a few lines of decoding logic."
+  },
+  {
+    "order": 4,
+    "title": "PIN-Pad Login Flow",
+    "description": "Building on the AuthProvider from Step 3, LoginPage.tsx implements the shop-staff login experience: a phone number plus PIN entered through the reusable PinPad component, submitted to the API, then redirected via homePathFor. SuperadminLoginPage.tsx is a parallel, simpler flow using traditional username/password fields for the separate superadmin audience. Both pages call useAuth directly, showing how the auth context decouples login UI from session management.",
+    "nodeIds": ["file:src/pages/LoginPage.tsx", "file:src/components/PinPad.tsx", "file:src/pages/SuperadminLoginPage.tsx"],
+    "languageLesson": "PinPad is a controlled, callback-driven component (onDigit/onBackspace/onSubmit props) rather than owning its own form state, which is what lets both LoginPage and other numeric-entry screens reuse it without coupling to a specific auth flow."
+  },
+  {
+    "order": 5,
+    "title": "Multi-Shop Scoping",
+    "description": "ShopScopeProvider.tsx (fan-in of 9) tracks which shop a superadmin is currently 'acting as', persisting the selection to sessionStorage and exposing it through useShopScope. ShopPicker.tsx is the dropdown UI that lets a superadmin switch shops, and Sidebar.tsx renders it alongside role-filtered navigation links. Together these three files implement the project's core multi-tenancy pattern: owners and staff are permanently scoped to one shop, while a superadmin can pivot between shops without re-authenticating.",
+    "nodeIds": ["file:src/auth/ShopScopeProvider.tsx", "file:src/components/ShopPicker.tsx", "file:src/components/Sidebar.tsx"]
+  },
+  {
+    "order": 6,
+    "title": "Typed API Client Foundation",
+    "description": "client.ts has the highest fan-in of any file in the codebase (18 dependents) — it is the single fetch wrapper that every API module builds on, attaching auth headers from session storage, serializing JSON bodies, and normalizing failures into a shared ApiError. shops.ts is a small domain module built on top of it, covering shop listing (superadmin), fetching the current shop, and updating shop configuration. Every API call you see in later steps ultimately routes through this one function.",
+    "nodeIds": ["file:src/api/client.ts", "file:src/api/shops.ts"],
+    "languageLesson": "Centralizing error normalization in a single ApiError class means every page can catch one error type regardless of which endpoint failed, instead of handling raw fetch Response objects differently in each component."
+  },
+  {
+    "order": 7,
+    "title": "Checkout: The Core POS Screen",
+    "description": "CheckoutPage.tsx is the most complex page in the app and the reason the offline-resilience layer exists: it scans/looks up items by barcode via catalog.ts's in-memory cache, manages cart and split payments, and finalizes sales through checkout.ts's finalizeCheckout call. Because this screen runs on a single in-store counter with unreliable internet, every finalize attempt is designed to degrade gracefully rather than block the sale — which the next step explains in detail.",
+    "nodeIds": ["file:src/pages/CheckoutPage.tsx", "file:src/api/checkout.ts", "file:src/api/catalog.ts"]
+  },
+  {
+    "order": 8,
+    "title": "Offline Resilience Hooks",
+    "description": "This is the safety net behind Step 7's checkout flow. finalize-queue.ts persists pending checkout requests to localStorage when the API call fails, useOnlineStatus.ts subscribes to the browser's online/offline events, and useRetryQueue.ts combines both to automatically flush queued checkouts once connectivity returns or on a polling interval. CheckoutPage calls useRetryQueue directly, so a cashier can keep ringing up sales through a network outage without losing a single transaction.",
+    "nodeIds": ["file:src/api/finalize-queue.ts", "file:src/hooks/useOnlineStatus.ts", "file:src/hooks/useRetryQueue.ts"],
+    "languageLesson": "Composing useOnlineStatus inside useRetryQueue is a classic React hook-composition pattern: small, single-purpose hooks are combined into a higher-level hook rather than duplicating connectivity-detection logic in every consumer."
+  },
+  {
+    "order": 9,
+    "title": "Product Catalog and Receiving",
+    "description": "ProductsPage.tsx offers list/create/import tabs backed by products.ts (including CSV bulk-import), while ReceivingPage.tsx is the counter workflow for scanning barcodes to build a new inventory lot, backed by lots.ts's validated createLotSafe helper. Both pages share the same catalog.ts barcode cache from Step 7, and both call invalidateCache after creating or updating a product so the next barcode scan reflects the change immediately.",
+    "nodeIds": ["file:src/pages/ProductsPage.tsx", "file:src/api/products.ts", "file:src/pages/ReceivingPage.tsx", "file:src/api/lots.ts"]
+  },
+  {
+    "order": 10,
+    "title": "Owner Dashboard and EOD Sign-off",
+    "description": "DashboardPage.tsx is the owner/manager landing screen, showing today's end-of-day totals, low-stock alerts, and sign-off history, all backed by dashboard.ts's shop-scoped API calls (getEodTotals, getLowStock, getEodHistory, signOffEod). This is where the auth and shop-scope context from Steps 3 and 5 come together operationally: the dashboard only shows data for the owner's own shop, or the superadmin's currently 'acting' shop.",
+    "nodeIds": ["file:src/pages/DashboardPage.tsx", "file:src/api/dashboard.ts"]
+  },
+  {
+    "order": 11,
+    "title": "Staff Management and Void Approvals",
+    "description": "StaffPage.tsx lets owners create staff accounts and reset PINs via staff.ts, while InvoiceLookupPage.tsx lets any staff member look up a past invoice (via checkout.ts's getInvoice) and request a void through voids.ts's requestVoid. VoidApprovalsPage.tsx closes the loop, giving managers a queue of pending void requests to approve or reject. Together these three pages show the permission-sensitive, multi-role workflows layered on top of the checkout and auth foundations from earlier steps.",
+    "nodeIds": ["file:src/pages/StaffPage.tsx", "file:src/api/staff.ts", "file:src/pages/InvoiceLookupPage.tsx", "file:src/pages/VoidApprovalsPage.tsx", "file:src/api/voids.ts"]
+  },
+  {
+    "order": 12,
+    "title": "Shop Configuration",
+    "description": "ShopConfigPage.tsx is the settings screen where an owner or superadmin edits a shop's GSTIN, excise duty rate, and low-stock threshold, using the same shops.ts module introduced in Step 6 and respecting the shop-scope context from Step 5. It is a compact example of how nearly every page in this app follows the same recipe: pull in auth and shop-scope context, call a typed API module, and render load/save state around it.",
+    "nodeIds": ["file:src/pages/ShopConfigPage.tsx"]
+  },
+  {
+    "order": 13,
+    "title": "End-to-End Test Coverage",
+    "description": "The Playwright suite exercises the flows covered in this tour against a real browser. checkout-resilience.spec.ts specifically verifies the offline-queue behavior from Step 8 by simulating network failures and offline conditions, while login.smoke.spec.ts is a fast-running smoke test confirming the PIN login flow from Step 4 still authenticates against a live backend. playwright.config.ts ties it together, defining the base URL, retry policy, and a webServer block that boots the built frontend against the FastAPI backend for CI.",
+    "nodeIds": ["file:e2e/checkout-resilience.spec.ts", "file:e2e/login.smoke.spec.ts", "config:playwright.config.ts"],
+    "languageLesson": "Playwright specs share small role-specific login helpers (e.g. loginAsCashier) defined per-file rather than in a shared module — a pattern worth noting if the suite grows and this duplication becomes worth extracting."
+  },
+  {
+    "order": 14,
+    "title": "Build and Tooling Configuration",
+    "description": "package.json declares the dependencies (React Router, React DOM) and dev tooling (Vite, ESLint, Tailwind, Playwright, openapi-typescript) and scripts that tie the whole project together, including a script that generates TypeScript types from the FastAPI backend's OpenAPI schema. vite.config.ts wires up the dev server and React plugin, tailwind.config.ts extends the theme using the shared design tokens module, and tsconfig.json references separate app/node/e2e project configs so the composite `tsc -b` build only type-checks each area with the rules it needs. This is the capstone: everything explored in this tour is built, linted, styled, and tested through the pipeline defined here.",
+    "nodeIds": ["config:package.json", "config:vite.config.ts", "config:tailwind.config.ts", "config:tsconfig.json"],
+    "languageLesson": "TypeScript project references (tsconfig.json pointing at tsconfig.app.json/tsconfig.node.json/tsconfig.e2e.json) let `tsc -b` incrementally build only the projects that changed, and let app code, Vite tooling code, and e2e test code each have distinct compiler options (e.g. different `lib` or `types` settings) without interfering with one another."
+  }
+]

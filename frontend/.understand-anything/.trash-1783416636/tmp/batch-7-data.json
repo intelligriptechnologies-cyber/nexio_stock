@@ -1,0 +1,137 @@
+{
+ "batchIndex": 7,
+ "files": [
+  {
+   "path": "e2e/checkout-resilience.spec.ts",
+   "language": "typescript",
+   "sizeLines": 80,
+   "fileCategory": "code"
+  },
+  {
+   "path": "e2e/checkout.spec.ts",
+   "language": "typescript",
+   "sizeLines": 61,
+   "fileCategory": "code"
+  },
+  {
+   "path": "e2e/dashboard.spec.ts",
+   "language": "typescript",
+   "sizeLines": 47,
+   "fileCategory": "code"
+  },
+  {
+   "path": "e2e/login.smoke.spec.ts",
+   "language": "typescript",
+   "sizeLines": 52,
+   "fileCategory": "code"
+  },
+  {
+   "path": "e2e/products.spec.ts",
+   "language": "typescript",
+   "sizeLines": 65,
+   "fileCategory": "code"
+  },
+  {
+   "path": "e2e/receiving.spec.ts",
+   "language": "typescript",
+   "sizeLines": 50,
+   "fileCategory": "code"
+  },
+  {
+   "path": "e2e/shop-config.spec.ts",
+   "language": "typescript",
+   "sizeLines": 45,
+   "fileCategory": "code"
+  },
+  {
+   "path": "e2e/staff.spec.ts",
+   "language": "typescript",
+   "sizeLines": 44,
+   "fileCategory": "code"
+  },
+  {
+   "path": "e2e/voids.spec.ts",
+   "language": "typescript",
+   "sizeLines": 49,
+   "fileCategory": "code"
+  },
+  {
+   "path": "eslint.config.js",
+   "language": "javascript",
+   "sizeLines": 121,
+   "fileCategory": "code"
+  },
+  {
+   "path": "playwright.config.ts",
+   "language": "typescript",
+   "sizeLines": 38,
+   "fileCategory": "code"
+  },
+  {
+   "path": "postcss.config.cjs",
+   "language": "javascript",
+   "sizeLines": 5,
+   "fileCategory": "code"
+  },
+  {
+   "path": "src/index.css",
+   "language": "css",
+   "sizeLines": 17,
+   "fileCategory": "markup"
+  },
+  {
+   "path": "src/theme/tokens.ts",
+   "language": "typescript",
+   "sizeLines": 62,
+   "fileCategory": "code"
+  },
+  {
+   "path": "src/vite-env.d.ts",
+   "language": "typescript",
+   "sizeLines": 10,
+   "fileCategory": "code"
+  },
+  {
+   "path": "tailwind.config.ts",
+   "language": "typescript",
+   "sizeLines": 28,
+   "fileCategory": "code"
+  },
+  {
+   "path": "vite.config.ts",
+   "language": "typescript",
+   "sizeLines": 20,
+   "fileCategory": "code"
+  }
+ ],
+ "batchImportData": {
+  "e2e/checkout-resilience.spec.ts": [],
+  "e2e/checkout.spec.ts": [],
+  "e2e/dashboard.spec.ts": [],
+  "e2e/login.smoke.spec.ts": [],
+  "e2e/products.spec.ts": [],
+  "e2e/receiving.spec.ts": [],
+  "e2e/shop-config.spec.ts": [],
+  "e2e/staff.spec.ts": [],
+  "e2e/voids.spec.ts": [],
+  "eslint.config.js": [],
+  "playwright.config.ts": [],
+  "postcss.config.cjs": [],
+  "src/index.css": [],
+  "src/theme/tokens.ts": [],
+  "src/vite-env.d.ts": [],
+  "tailwind.config.ts": [
+   "src/theme/tokens.ts"
+  ],
+  "vite.config.ts": []
+ },
+ "neighborMap": {
+  "src/index.css": [
+   {
+    "path": "src/main.tsx",
+    "batchIndex": 1,
+    "symbols": []
+   }
+  ]
+ }
+}

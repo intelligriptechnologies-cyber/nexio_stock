@@ -1,0 +1,28 @@
+{
+  "issues": [],
+  "warnings": [
+    "Node 'config:frontend/eslint.config.js' has no edges (orphan)",
+    "Node 'file:frontend/src/vite-env.d.ts' has no edges (orphan)"
+  ],
+  "stats": {
+    "totalNodes": 146,
+    "totalEdges": 340,
+    "totalLayers": 8,
+    "tourSteps": 14,
+    "nodeTypes": {
+      "file": 46,
+      "function": 87,
+      "class": 3,
+      "config": 10
+    },
+    "edgeTypes": {
+      "contains": 89,
+      "exports": 62,
+      "imports": 83,
+      "calls": 88,
+      "depends_on": 3,
+      "configures": 14,
+      "related": 1
+    }
+  }
+}

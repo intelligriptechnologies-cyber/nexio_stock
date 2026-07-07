@@ -1,0 +1,50 @@
+{
+ "batchIndex": 6,
+ "files": [
+  {
+   "path": "index.html",
+   "language": "html",
+   "sizeLines": 23,
+   "fileCategory": "markup"
+  },
+  {
+   "path": "package.json",
+   "language": "json",
+   "sizeLines": 37,
+   "fileCategory": "config"
+  },
+  {
+   "path": "tsconfig.app.json",
+   "language": "json",
+   "sizeLines": 24,
+   "fileCategory": "config"
+  },
+  {
+   "path": "tsconfig.e2e.json",
+   "language": "json",
+   "sizeLines": 20,
+   "fileCategory": "config"
+  },
+  {
+   "path": "tsconfig.json",
+   "language": "json",
+   "sizeLines": 7,
+   "fileCategory": "config"
+  },
+  {
+   "path": "tsconfig.node.json",
+   "language": "json",
+   "sizeLines": 20,
+   "fileCategory": "config"
+  }
+ ],
+ "batchImportData": {
+  "index.html": [],
+  "package.json": [],
+  "tsconfig.app.json": [],
+  "tsconfig.e2e.json": [],
+  "tsconfig.json": [],
+  "tsconfig.node.json": []
+ },
+ "neighborMap": {}
+}

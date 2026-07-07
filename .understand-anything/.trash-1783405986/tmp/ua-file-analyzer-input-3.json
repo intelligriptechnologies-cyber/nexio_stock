@@ -1,0 +1,27 @@
+{
+  "projectRoot": "C:/barstock",
+  "batchFiles": [
+    {"path": "app/api/__init__.py", "language": "python", "sizeLines": 1, "fileCategory": "code"},
+    {"path": "app/api/_test_only.py", "language": "python", "sizeLines": 16, "fileCategory": "code"},
+    {"path": "app/api/dashboard.py", "language": "python", "sizeLines": 239, "fileCategory": "code"},
+    {"path": "app/api/health.py", "language": "python", "sizeLines": 20, "fileCategory": "code"},
+    {"path": "app/api/shops.py", "language": "python", "sizeLines": 114, "fileCategory": "code"},
+    {"path": "app/logging_config.py", "language": "python", "sizeLines": 69, "fileCategory": "code"},
+    {"path": "app/main.py", "language": "python", "sizeLines": 149, "fileCategory": "code"},
+    {"path": "app/schemas/eod.py", "language": "python", "sizeLines": 80, "fileCategory": "code"},
+    {"path": "app/schemas/shop.py", "language": "python", "sizeLines": 67, "fileCategory": "code"},
+    {"path": "app/services/eod.py", "language": "python", "sizeLines": 253, "fileCategory": "code"}
+  ],
+  "batchImportData": {
+    "app/api/__init__.py": [],
+    "app/api/_test_only.py": [],
+    "app/api/dashboard.py": ["app/api/deps.py","app/logging_config.py","app/models/user.py","app/schemas/eod.py","app/services/eod.py"],
+    "app/api/health.py": ["app/api/deps.py"],
+    "app/api/shops.py": ["app/api/deps.py","app/logging_config.py","app/models/shop.py","app/models/user.py","app/schemas/shop.py"],
+    "app/logging_config.py": [],
+    "app/main.py": ["app/api/__init__.py","app/api/_test_only.py","app/api/auth.py","app/api/checkout.py","app/api/dashboard.py","app/api/health.py","app/api/lots.py","app/api/products.py","app/api/shops.py","app/api/staff.py","app/api/users.py","app/api/voids.py","app/config.py","app/db.py","app/logging_config.py"],
+    "app/schemas/eod.py": ["app/schemas/checkout.py"],
+    "app/schemas/shop.py": [],
+    "app/services/eod.py": ["app/models/invoice.py"]
+  }
+}

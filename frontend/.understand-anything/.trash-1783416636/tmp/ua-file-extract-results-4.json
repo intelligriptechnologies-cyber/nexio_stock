@@ -1,0 +1,606 @@
+{
+  "scriptCompleted": true,
+  "filesAnalyzed": 5,
+  "filesSkipped": [],
+  "results": [
+    {
+      "path": "src/api/shops.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 41,
+      "nonEmptyLines": 35,
+      "functions": [
+        {
+          "name": "listShops",
+          "startLine": 26,
+          "endLine": 28,
+          "params": []
+        },
+        {
+          "name": "getMyShop",
+          "startLine": 30,
+          "endLine": 33,
+          "params": [
+            "shopId"
+          ]
+        },
+        {
+          "name": "updateMyShop",
+          "startLine": 35,
+          "endLine": 41,
+          "params": [
+            "payload",
+            "shopId"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "listShops",
+          "line": 26,
+          "isDefault": false
+        },
+        {
+          "name": "getMyShop",
+          "line": 30,
+          "isDefault": false
+        },
+        {
+          "name": "updateMyShop",
+          "line": 35,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "listShops",
+          "callee": "api",
+          "lineNumber": 27
+        },
+        {
+          "caller": "getMyShop",
+          "callee": "api",
+          "lineNumber": 32
+        },
+        {
+          "caller": "updateMyShop",
+          "callee": "api",
+          "lineNumber": 40
+        }
+      ],
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 3,
+        "functionCount": 3,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "src/auth/ShopScopeProvider.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 43,
+      "nonEmptyLines": 34,
+      "functions": [
+        {
+          "name": "readStored",
+          "startLine": 18,
+          "endLine": 23,
+          "params": []
+        },
+        {
+          "name": "ShopScopeProvider",
+          "startLine": 25,
+          "endLine": 37,
+          "params": [
+            "{ children }"
+          ]
+        },
+        {
+          "name": "useShopScope",
+          "startLine": 39,
+          "endLine": 43,
+          "params": []
+        }
+      ],
+      "exports": [
+        {
+          "name": "ShopScopeProvider",
+          "line": 25,
+          "isDefault": false
+        },
+        {
+          "name": "useShopScope",
+          "line": 39,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "readStored",
+          "callee": "sessionStorage.getItem",
+          "lineNumber": 19
+        },
+        {
+          "caller": "readStored",
+          "callee": "Number",
+          "lineNumber": 21
+        },
+        {
+          "caller": "readStored",
+          "callee": "Number.isFinite",
+          "lineNumber": 22
+        },
+        {
+          "caller": "ShopScopeProvider",
+          "callee": "useState",
+          "lineNumber": 26
+        },
+        {
+          "caller": "ShopScopeProvider",
+          "callee": "useCallback",
+          "lineNumber": 28
+        },
+        {
+          "caller": "ShopScopeProvider",
+          "callee": "sessionStorage.removeItem",
+          "lineNumber": 29
+        },
+        {
+          "caller": "ShopScopeProvider",
+          "callee": "sessionStorage.setItem",
+          "lineNumber": 30
+        },
+        {
+          "caller": "ShopScopeProvider",
+          "callee": "String",
+          "lineNumber": 30
+        },
+        {
+          "caller": "ShopScopeProvider",
+          "callee": "setActingShopIdState",
+          "lineNumber": 31
+        },
+        {
+          "caller": "ShopScopeProvider",
+          "callee": "useMemo",
+          "lineNumber": 34
+        },
+        {
+          "caller": "useShopScope",
+          "callee": "useContext",
+          "lineNumber": 40
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 2,
+        "functionCount": 3,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "src/components/ShopPicker.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 52,
+      "nonEmptyLines": 48,
+      "functions": [
+        {
+          "name": "ShopPicker",
+          "startLine": 11,
+          "endLine": 52,
+          "params": []
+        }
+      ],
+      "exports": [
+        {
+          "name": "ShopPicker",
+          "line": 11,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "ShopPicker",
+          "callee": "useAuth",
+          "lineNumber": 12
+        },
+        {
+          "caller": "ShopPicker",
+          "callee": "useShopScope",
+          "lineNumber": 13
+        },
+        {
+          "caller": "ShopPicker",
+          "callee": "useState",
+          "lineNumber": 14
+        },
+        {
+          "caller": "ShopPicker",
+          "callee": "useState",
+          "lineNumber": 15
+        },
+        {
+          "caller": "ShopPicker",
+          "callee": "useEffect",
+          "lineNumber": 17
+        },
+        {
+          "caller": "ShopPicker",
+          "callee": "listShops()\n      .then(setShops)\n      .catch",
+          "lineNumber": 19
+        },
+        {
+          "caller": "ShopPicker",
+          "callee": "listShops()\n      .then",
+          "lineNumber": 19
+        },
+        {
+          "caller": "ShopPicker",
+          "callee": "listShops",
+          "lineNumber": 19
+        },
+        {
+          "caller": "ShopPicker",
+          "callee": "setError",
+          "lineNumber": 21
+        },
+        {
+          "caller": "ShopPicker",
+          "callee": "setActingShopId",
+          "lineNumber": 35
+        },
+        {
+          "caller": "ShopPicker",
+          "callee": "Number",
+          "lineNumber": 35
+        },
+        {
+          "caller": "ShopPicker",
+          "callee": "shops.map",
+          "lineNumber": 38
+        }
+      ],
+      "metrics": {
+        "importCount": 3,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "src/components/Sidebar.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 97,
+      "nonEmptyLines": 90,
+      "functions": [
+        {
+          "name": "Sidebar",
+          "startLine": 23,
+          "endLine": 97,
+          "params": []
+        }
+      ],
+      "exports": [
+        {
+          "name": "Sidebar",
+          "line": 23,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "Sidebar",
+          "callee": "useAuth",
+          "lineNumber": 24
+        },
+        {
+          "caller": "Sidebar",
+          "callee": "useNavigate",
+          "lineNumber": 25
+        },
+        {
+          "caller": "Sidebar",
+          "callee": "useState",
+          "lineNumber": 26
+        },
+        {
+          "caller": "Sidebar",
+          "callee": "ITEMS.filter",
+          "lineNumber": 29
+        },
+        {
+          "caller": "Sidebar",
+          "callee": "i.roles.includes",
+          "lineNumber": 29
+        },
+        {
+          "caller": "Sidebar",
+          "callee": "setOpen",
+          "lineNumber": 36
+        },
+        {
+          "caller": "Sidebar",
+          "callee": "items.map",
+          "lineNumber": 55
+        },
+        {
+          "caller": "Sidebar",
+          "callee": "setOpen",
+          "lineNumber": 59
+        },
+        {
+          "caller": "Sidebar",
+          "callee": "logout",
+          "lineNumber": 78
+        },
+        {
+          "caller": "Sidebar",
+          "callee": "navigate",
+          "lineNumber": 79
+        },
+        {
+          "caller": "Sidebar",
+          "callee": "setOpen",
+          "lineNumber": 90
+        }
+      ],
+      "metrics": {
+        "importCount": 2,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "src/pages/ShopConfigPage.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 189,
+      "nonEmptyLines": 179,
+      "functions": [
+        {
+          "name": "ShopConfigPage",
+          "startLine": 7,
+          "endLine": 150,
+          "params": []
+        },
+        {
+          "name": "Field",
+          "startLine": 152,
+          "endLine": 189,
+          "params": [
+            "{\n  label,\n  value,\n  onChange,\n  type = \"text\",\n  step,\n  min,\n  max,\n  maxLength,\n  placeholder,\n}"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "ShopConfigPage",
+          "line": 7,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "ShopConfigPage",
+          "callee": "useAuth",
+          "lineNumber": 8
+        },
+        {
+          "caller": "ShopConfigPage",
+          "callee": "useShopScope",
+          "lineNumber": 9
+        },
+        {
+          "caller": "ShopConfigPage",
+          "callee": "useState",
+          "lineNumber": 10
+        },
+        {
+          "caller": "ShopConfigPage",
+          "callee": "useState",
+          "lineNumber": 11
+        },
+        {
+          "caller": "ShopConfigPage",
+          "callee": "useState",
+          "lineNumber": 12
+        },
+        {
+          "caller": "ShopConfigPage",
+          "callee": "useState",
+          "lineNumber": 13
+        },
+        {
+          "caller": "ShopConfigPage",
+          "callee": "useState",
+          "lineNumber": 14
+        },
+        {
+          "caller": "ShopConfigPage",
+          "callee": "useState",
+          "lineNumber": 15
+        },
+        {
+          "caller": "ShopConfigPage",
+          "callee": "useState",
+          "lineNumber": 16
+        },
+        {
+          "caller": "reload",
+          "callee": "setShop",
+          "lineNumber": 20
+        },
+        {
+          "caller": "reload",
+          "callee": "setError",
+          "lineNumber": 23
+        },
+        {
+          "caller": "reload",
+          "callee": "setInfo",
+          "lineNumber": 24
+        },
+        {
+          "caller": "reload",
+          "callee": "getMyShop",
+          "lineNumber": 26
+        },
+        {
+          "caller": "reload",
+          "callee": "setShop",
+          "lineNumber": 27
+        },
+        {
+          "caller": "reload",
+          "callee": "setGstin",
+          "lineNumber": 28
+        },
+        {
+          "caller": "reload",
+          "callee": "setDutyRate",
+          "lineNumber": 29
+        },
+        {
+          "caller": "reload",
+          "callee": "setThreshold",
+          "lineNumber": 30
+        },
+        {
+          "caller": "reload",
+          "callee": "String",
+          "lineNumber": 31
+        },
+        {
+          "caller": "reload",
+          "callee": "setError",
+          "lineNumber": 34
+        },
+        {
+          "caller": "ShopConfigPage",
+          "callee": "useEffect",
+          "lineNumber": 38
+        },
+        {
+          "caller": "ShopConfigPage",
+          "callee": "reload",
+          "lineNumber": 39
+        },
+        {
+          "caller": "save",
+          "callee": "e.preventDefault",
+          "lineNumber": 43
+        },
+        {
+          "caller": "save",
+          "callee": "setError",
+          "lineNumber": 45
+        },
+        {
+          "caller": "save",
+          "callee": "setBusy",
+          "lineNumber": 48
+        },
+        {
+          "caller": "save",
+          "callee": "setError",
+          "lineNumber": 49
+        },
+        {
+          "caller": "save",
+          "callee": "setInfo",
+          "lineNumber": 50
+        },
+        {
+          "caller": "save",
+          "callee": "gstin.trim",
+          "lineNumber": 57
+        },
+        {
+          "caller": "save",
+          "callee": "gstin.trim",
+          "lineNumber": 57
+        },
+        {
+          "caller": "save",
+          "callee": "dutyRate.trim",
+          "lineNumber": 58
+        },
+        {
+          "caller": "save",
+          "callee": "dutyRate.trim",
+          "lineNumber": 58
+        },
+        {
+          "caller": "save",
+          "callee": "threshold.trim",
+          "lineNumber": 59
+        },
+        {
+          "caller": "save",
+          "callee": "Number",
+          "lineNumber": 59
+        },
+        {
+          "caller": "save",
+          "callee": "threshold.trim",
+          "lineNumber": 59
+        },
+        {
+          "caller": "save",
+          "callee": "updateMyShop",
+          "lineNumber": 61
+        },
+        {
+          "caller": "save",
+          "callee": "setShop",
+          "lineNumber": 62
+        },
+        {
+          "caller": "save",
+          "callee": "setInfo",
+          "lineNumber": 63
+        },
+        {
+          "caller": "save",
+          "callee": "setError",
+          "lineNumber": 66
+        },
+        {
+          "caller": "save",
+          "callee": "setError",
+          "lineNumber": 67
+        },
+        {
+          "caller": "save",
+          "callee": "setError",
+          "lineNumber": 68
+        },
+        {
+          "caller": "save",
+          "callee": "setError",
+          "lineNumber": 70
+        },
+        {
+          "caller": "save",
+          "callee": "setBusy",
+          "lineNumber": 73
+        },
+        {
+          "caller": "Field",
+          "callee": "onChange",
+          "lineNumber": 179
+        }
+      ],
+      "metrics": {
+        "importCount": 4,
+        "exportCount": 1,
+        "functionCount": 2,
+        "classCount": 0
+      }
+    }
+  ]
+}

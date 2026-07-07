@@ -1,0 +1,97 @@
+{
+  "nodes": [
+    {
+      "id": "file:index.html",
+      "type": "file",
+      "name": "index.html",
+      "filePath": "index.html",
+      "summary": "Vite application HTML shell that provides the root DOM mount point and loads the TypeScript entry module for the React SPA.",
+      "tags": ["entry-point", "markup", "vite", "html-shell"],
+      "complexity": "simple"
+    },
+    {
+      "id": "config:package.json",
+      "type": "config",
+      "name": "package.json",
+      "filePath": "package.json",
+      "summary": "Root project manifest for the barstock-frontend React/TypeScript SPA, declaring dependencies (React Router, React DOM), dev tooling (Vite, ESLint, Tailwind, Playwright, openapi-typescript) and scripts for dev, build, lint, API type generation, and e2e testing.",
+      "tags": ["configuration", "build-system", "dependencies", "npm"],
+      "complexity": "simple",
+      "languageNotes": "Includes a gen:api script that runs openapi-typescript against a sibling ../openapi.json to generate src/api/schema.ts, tying the frontend build to an external API contract."
+    },
+    {
+      "id": "config:tsconfig.app.json",
+      "type": "config",
+      "name": "tsconfig.app.json",
+      "filePath": "tsconfig.app.json",
+      "summary": "TypeScript project-reference configuration for the application source code (compiler options plus include/exclude paths), separate from node tooling and e2e test configs.",
+      "tags": ["configuration", "typescript", "build-system"],
+      "complexity": "simple"
+    },
+    {
+      "id": "config:tsconfig.e2e.json",
+      "type": "config",
+      "name": "tsconfig.e2e.json",
+      "filePath": "tsconfig.e2e.json",
+      "summary": "TypeScript project-reference configuration scoped to Playwright end-to-end test files, with its own compiler options and include paths.",
+      "tags": ["configuration", "typescript", "testing", "playwright"],
+      "complexity": "simple"
+    },
+    {
+      "id": "config:tsconfig.json",
+      "type": "config",
+      "name": "tsconfig.json",
+      "filePath": "tsconfig.json",
+      "summary": "Root TypeScript solution file that references the app, node, and e2e project configs via TypeScript's project-references mechanism, enabling the composite build (tsc -b) used in the build script.",
+      "tags": ["configuration", "typescript", "build-system"],
+      "complexity": "simple",
+      "languageNotes": "Uses TypeScript project references (files + references arrays) to compose multiple sub-tsconfigs into a single build graph."
+    },
+    {
+      "id": "config:tsconfig.node.json",
+      "type": "config",
+      "name": "tsconfig.node.json",
+      "filePath": "tsconfig.node.json",
+      "summary": "TypeScript project-reference configuration for Node-side tooling (e.g. Vite config file), with its own compiler options and include paths distinct from the app and e2e configs.",
+      "tags": ["configuration", "typescript", "build-system", "tooling"],
+      "complexity": "simple"
+    }
+  ],
+  "edges": [
+    {
+      "source": "config:tsconfig.json",
+      "target": "config:tsconfig.app.json",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "config:tsconfig.json",
+      "target": "config:tsconfig.node.json",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "config:tsconfig.json",
+      "target": "config:tsconfig.e2e.json",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "config:tsconfig.app.json",
+      "target": "file:index.html",
+      "type": "configures",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "config:package.json",
+      "target": "file:index.html",
+      "type": "configures",
+      "direction": "forward",
+      "weight": 0.6
+    }
+  ]
+}

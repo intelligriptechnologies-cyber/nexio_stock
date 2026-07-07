@@ -1,0 +1,239 @@
+{
+  "scriptCompleted": true,
+  "filesAnalyzed": 5,
+  "filesSkipped": [],
+  "results": [
+    {
+      "path": ".env.example",
+      "language": "config",
+      "fileCategory": "config",
+      "totalLines": 21,
+      "nonEmptyLines": 18,
+      "definitions": [
+        {
+          "name": "APP_ENV",
+          "kind": "variable",
+          "fields": [],
+          "startLine": 4,
+          "endLine": 4
+        },
+        {
+          "name": "APP_NAME",
+          "kind": "variable",
+          "fields": [],
+          "startLine": 5,
+          "endLine": 5
+        },
+        {
+          "name": "APP_VERSION",
+          "kind": "variable",
+          "fields": [],
+          "startLine": 6,
+          "endLine": 6
+        },
+        {
+          "name": "LOG_LEVEL",
+          "kind": "variable",
+          "fields": [],
+          "startLine": 7,
+          "endLine": 7
+        },
+        {
+          "name": "SECRET_KEY",
+          "kind": "variable",
+          "fields": [],
+          "startLine": 9,
+          "endLine": 9
+        },
+        {
+          "name": "JWT_ALGORITHM",
+          "kind": "variable",
+          "fields": [],
+          "startLine": 11,
+          "endLine": 11
+        },
+        {
+          "name": "JWT_ACCESS_TTL_MIN",
+          "kind": "variable",
+          "fields": [],
+          "startLine": 12,
+          "endLine": 12
+        },
+        {
+          "name": "BCRYPT_ROUNDS",
+          "kind": "variable",
+          "fields": [],
+          "startLine": 14,
+          "endLine": 14
+        },
+        {
+          "name": "DATABASE_URL",
+          "kind": "variable",
+          "fields": [],
+          "startLine": 18,
+          "endLine": 18
+        },
+        {
+          "name": "CORS_ALLOW_ORIGINS",
+          "kind": "variable",
+          "fields": [],
+          "startLine": 21,
+          "endLine": 21
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "definitionCount": 10
+      }
+    },
+    {
+      "path": "README.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 66,
+      "nonEmptyLines": 52,
+      "sections": [
+        {
+          "heading": "Barstock",
+          "level": 1,
+          "line": 1
+        },
+        {
+          "heading": "Stack",
+          "level": 2,
+          "line": 7
+        },
+        {
+          "heading": "Quickstart",
+          "level": 2,
+          "line": 17
+        },
+        {
+          "heading": "Tests",
+          "level": 2,
+          "line": 38
+        },
+        {
+          "heading": "Layout",
+          "level": 2,
+          "line": 50
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 5
+      }
+    },
+    {
+      "path": "alembic.ini",
+      "language": "config",
+      "fileCategory": "config",
+      "totalLines": 149,
+      "nonEmptyLines": 123,
+      "metrics": {}
+    },
+    {
+      "path": "docker-compose.yml",
+      "language": "yaml",
+      "fileCategory": "infra",
+      "totalLines": 22,
+      "nonEmptyLines": 20,
+      "sections": [
+        {
+          "heading": "name",
+          "level": 1,
+          "line": 1
+        },
+        {
+          "heading": "services",
+          "level": 1,
+          "line": 3
+        },
+        {
+          "heading": "volumes",
+          "level": 1,
+          "line": 21
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 3
+      }
+    },
+    {
+      "path": "pyproject.toml",
+      "language": "toml",
+      "fileCategory": "config",
+      "totalLines": 109,
+      "nonEmptyLines": 99,
+      "sections": [
+        {
+          "heading": "project",
+          "level": 1,
+          "line": 1
+        },
+        {
+          "heading": "project.optional-dependencies",
+          "level": 2,
+          "line": 28
+        },
+        {
+          "heading": "project.scripts",
+          "level": 2,
+          "line": 36
+        },
+        {
+          "heading": "build-system",
+          "level": 1,
+          "line": 39
+        },
+        {
+          "heading": "tool.hatch.build.targets.wheel",
+          "level": 5,
+          "line": 43
+        },
+        {
+          "heading": "tool.ruff",
+          "level": 2,
+          "line": 46
+        },
+        {
+          "heading": "tool.ruff.lint",
+          "level": 3,
+          "line": 56
+        },
+        {
+          "heading": "tool.ruff.lint.per-file-ignores",
+          "level": 4,
+          "line": 67
+        },
+        {
+          "heading": "tool.pytest.ini_options",
+          "level": 3,
+          "line": 98
+        },
+        {
+          "heading": "tool.coverage.run",
+          "level": 3,
+          "line": 107
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 10
+      }
+    }
+  ]
+}
