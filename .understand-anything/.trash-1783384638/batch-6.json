@@ -1,0 +1,68 @@
+{
+  "batchIndex": 6,
+  "projectRoot": "C:\\barstock",
+  "filesAnalyzed": 5,
+  "filesSkipped": [],
+  "scriptCompleted": true,
+  "nodes": [
+    {
+      "id": "file:harness/00-intake.md",
+      "type": "file",
+      "path": "harness/00-intake.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 69,
+      "label": "00-intake.md"
+    },
+    {
+      "id": "file:harness/01-branch-map.md",
+      "type": "file",
+      "path": "harness/01-branch-map.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 158,
+      "label": "01-branch-map.md"
+    },
+    {
+      "id": "file:harness/02-ledger.md",
+      "type": "file",
+      "path": "harness/02-ledger.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 149,
+      "label": "02-ledger.md"
+    },
+    {
+      "id": "file:harness/03-prd.md",
+      "type": "file",
+      "path": "harness/03-prd.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 284,
+      "label": "03-prd.md"
+    },
+    {
+      "id": "file:harness/04-absences.md",
+      "type": "file",
+      "path": "harness/04-absences.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 26,
+      "label": "04-absences.md"
+    }
+  ],
+  "edges": [],
+  "summary": {
+    "nodeCount": 5,
+    "edgeCount": 0,
+    "fileNodes": 5,
+    "functionNodes": 0,
+    "classNodes": 0,
+    "importsEdges": 0,
+    "containsEdges": 0,
+    "crossBatchDrops": 0,
+    "crossBatchDropList": [],
+    "skippedFiles": 0,
+    "splits": []
+  }
+}

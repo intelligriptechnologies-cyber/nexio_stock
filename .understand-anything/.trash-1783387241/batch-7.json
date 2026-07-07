@@ -1,0 +1,465 @@
+{
+  "nodes": [
+    {
+      "id": "file:alembic/README",
+      "type": "file",
+      "name": "README",
+      "filePath": "alembic/README",
+      "summary": "Boilerplate one-line Alembic README (generic 'Generic single-database configuration' text auto-created by `alembic init`).",
+      "tags": ["configuration", "boilerplate", "migrations"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:alembic/script.py.mako",
+      "type": "file",
+      "name": "script.py.mako",
+      "filePath": "alembic/script.py.mako",
+      "summary": "Alembic migration script template used to scaffold new revision files with upgrade/downgrade stubs and revision metadata.",
+      "tags": ["template", "migrations", "code-generation", "build-system"],
+      "complexity": "simple",
+      "languageNotes": "Mako templating syntax generates boilerplate Python migration files consumed by `alembic revision`."
+    },
+    {
+      "id": "file:alembic/versions/0243c7acf544_foundation_shops_users_log_tables.py",
+      "type": "file",
+      "name": "0243c7acf544_foundation_shops_users_log_tables.py",
+      "filePath": "alembic/versions/0243c7acf544_foundation_shops_users_log_tables.py",
+      "summary": "Foundation migration (slice #1) creating the core schema: superadmins, shops, shop_users (with role enum), plus the invoicing_logs, stockin_logs, and admin_logs audit tables with indexes and unique constraints.",
+      "tags": ["database", "migration", "foundation", "schema"],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:alembic/versions/058759837183_eod_eod_signed_off_at_eod_signoffs_table.py",
+      "type": "file",
+      "name": "058759837183_eod_eod_signed_off_at_eod_signoffs_table.py",
+      "filePath": "alembic/versions/058759837183_eod_eod_signed_off_at_eod_signoffs_table.py",
+      "summary": "EOD reconciliation migration (slice #6) that creates the eod_signoffs table and adds a signed_off_at / signed_off_by foreign key to track owner sign-off on daily reconciliation.",
+      "tags": ["database", "migration", "eod-reconciliation", "schema"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:alembic/versions/2e68e776867b_voids_void_reversal_pending_void_status_.py",
+      "type": "file",
+      "name": "2e68e776867b_voids_void_reversal_pending_void_status_.py",
+      "filePath": "alembic/versions/2e68e776867b_voids_void_reversal_pending_void_status_.py",
+      "summary": "Void & reversal migration (slice #5) adding reversal_of_invoice_id, voided_by, and voided_at columns plus an index/foreign keys to support owner-approved invoice voids and pending-void status tracking.",
+      "tags": ["database", "migration", "voids", "schema"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:alembic/versions/3efd6817d954_lots_lot_lot_lines_tables.py",
+      "type": "file",
+      "name": "3efd6817d954_lots_lot_lot_lines_tables.py",
+      "filePath": "alembic/versions/3efd6817d954_lots_lot_lot_lines_tables.py",
+      "summary": "Lot receiving migration (slice #3) creating the lots and lot_lines tables that record stock check-in batches and per-product quantities received.",
+      "tags": ["database", "migration", "lot-receiving", "schema"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:alembic/versions/423948112aae_products_catalog_shop_low_stock_.py",
+      "type": "file",
+      "name": "423948112aae_products_catalog_shop_low_stock_.py",
+      "filePath": "alembic/versions/423948112aae_products_catalog_shop_low_stock_.py",
+      "summary": "Product catalog migration (slice #2/#7) creating the products table (barcode, name, price, stock fields) and adding a low_stock_threshold column to support low-stock alerts.",
+      "tags": ["database", "migration", "product-catalog", "schema"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:alembic/versions/af4b5e908f57_shops_gstin_excise_duty_rate_for_8_gst_.py",
+      "type": "file",
+      "name": "af4b5e908f57_shops_gstin_excise_duty_rate_for_8_gst_.py",
+      "filePath": "alembic/versions/af4b5e908f57_shops_gstin_excise_duty_rate_for_8_gst_.py",
+      "summary": "GST/excise migration (slice #8) adding a gstin string column and an excise_duty_rate numeric column to shops, laying groundwork for GST/excise invoice-line stub support.",
+      "tags": ["database", "migration", "gst", "schema"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:alembic/versions/c514c436a0b1_eod_eod_signoffs_business_date_to_date.py",
+      "type": "file",
+      "name": "c514c436a0b1_eod_eod_signoffs_business_date_to_date.py",
+      "filePath": "alembic/versions/c514c436a0b1_eod_eod_signoffs_business_date_to_date.py",
+      "summary": "Follow-up EOD migration altering eod_signoffs.business_date from TIMESTAMP to DATE for correct date-only semantics.",
+      "tags": ["database", "migration", "eod-reconciliation", "schema"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:alembic/versions/ea0fba754aaa_invoices_invoice_lines_payments_.py",
+      "type": "file",
+      "name": "ea0fba754aaa_invoices_invoice_lines_payments_.py",
+      "filePath": "alembic/versions/ea0fba754aaa_invoices_invoice_lines_payments_.py",
+      "summary": "Checkout & invoicing migration (slice #4) creating the invoices, invoice_lines, and payments tables with status enums, foreign keys to products/lots, and a low_stock_threshold-related index, plus an added column to support billing.",
+      "tags": ["database", "migration", "invoicing", "schema"],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:app/schemas/__init__.py",
+      "type": "file",
+      "name": "__init__.py",
+      "filePath": "app/schemas/__init__.py",
+      "summary": "Empty package marker for the app.schemas package (Pydantic schema modules); contains no code.",
+      "tags": ["package-init", "boilerplate"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:app/security/__init__.py",
+      "type": "file",
+      "name": "__init__.py",
+      "filePath": "app/security/__init__.py",
+      "summary": "Empty package marker for the app.security package (auth/authorization helpers); contains no code.",
+      "tags": ["package-init", "boilerplate"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:app/services/__init__.py",
+      "type": "file",
+      "name": "__init__.py",
+      "filePath": "app/services/__init__.py",
+      "summary": "Empty, zero-content package marker for the app.services package (business-logic service modules).",
+      "tags": ["package-init", "boilerplate"],
+      "complexity": "simple"
+    },
+    {
+      "id": "document:docs/ONBOARDING.md",
+      "type": "document",
+      "name": "ONBOARDING.md",
+      "filePath": "docs/ONBOARDING.md",
+      "summary": "Auto-generated onboarding guide for the Barstock (nexio_stock) project describing project overview, architecture layers, key concepts, a guided tour, a file map by layer, and complexity hotspots.",
+      "tags": ["documentation", "entry-point", "onboarding", "architecture"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "document:harness/05-issues/README.md",
+      "type": "document",
+      "name": "README.md",
+      "filePath": "harness/05-issues/README.md",
+      "summary": "Tracking document listing the 8 vertical-slice GitHub issues for nexio_stock in dependency order, mapping each to its R-tag requirements and a completion status checklist.",
+      "tags": ["documentation", "project-planning", "issue-tracking"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:tests/test_auth.py",
+      "type": "file",
+      "name": "test_auth.py",
+      "filePath": "tests/test_auth.py",
+      "summary": "Integration tests covering login for superadmin, owner, receiver, and cashier roles (via username or phone), wrong-password rejection, missing/invalid token 401s, and rejection of cross-scope superadmin tokens on shop endpoints.",
+      "tags": ["test", "authentication", "api-handler"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:tests/test_authorization.py",
+      "type": "file",
+      "name": "test_authorization.py",
+      "filePath": "tests/test_authorization.py",
+      "summary": "Integration tests verifying role-based access control: receiver and cashier get 403 on owner-only staff endpoints, while superadmin can list all staff across shops.",
+      "tags": ["test", "authorization", "rbac"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:tests/test_health.py",
+      "type": "file",
+      "name": "test_health.py",
+      "filePath": "tests/test_health.py",
+      "summary": "Smoke tests for the liveness and readiness health-check endpoints, confirming readiness also verifies database connectivity.",
+      "tags": ["test", "health-check", "api-handler"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:tests/test_log_tables.py",
+      "type": "file",
+      "name": "test_log_tables.py",
+      "filePath": "tests/test_log_tables.py",
+      "summary": "Database-level tests asserting the three audit-log tables (invoicing_logs, stockin_logs, admin_logs) exist and each has the required columns via information_schema queries.",
+      "tags": ["test", "database", "audit-logging"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:tests/test_products.py",
+      "type": "file",
+      "name": "test_products.py",
+      "filePath": "tests/test_products.py",
+      "summary": "Integration tests for the product catalog: owner/role-restricted creation, duplicate barcode 409s, per-bottle-size distinct products, barcode lookup for cashiers, shop-scoped listing, price/threshold updates, and extensive CSV bulk-import scenarios (happy path, per-row errors, low-stock threshold column, missing columns, cashier rejection, UTF-8 BOM handling).",
+      "tags": ["test", "product-catalog", "csv-import", "authorization"],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:tests/test_staff.py",
+      "type": "file",
+      "name": "test_staff.py",
+      "filePath": "tests/test_staff.py",
+      "summary": "Integration tests for staff management: owner creates receiver/cashier users, owner cannot create another owner or a superadmin, duplicate username/phone rejected with 409, shop-scoped staff listing, and receiver forbidden from creating staff.",
+      "tags": ["test", "staff-management", "authorization"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:alembic/versions/0243c7acf544_foundation_shops_users_log_tables.py:upgrade",
+      "type": "function",
+      "name": "upgrade",
+      "filePath": "alembic/versions/0243c7acf544_foundation_shops_users_log_tables.py",
+      "lineRange": [22, 99],
+      "summary": "Creates the foundation tables (superadmins, shops, shop_users, invoicing_logs, stockin_logs, admin_logs) with columns, foreign keys, unique constraints, and indexes.",
+      "tags": ["migration", "database", "schema-creation"],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:alembic/versions/0243c7acf544_foundation_shops_users_log_tables.py:downgrade",
+      "type": "function",
+      "name": "downgrade",
+      "filePath": "alembic/versions/0243c7acf544_foundation_shops_users_log_tables.py",
+      "lineRange": [102, 126],
+      "summary": "Drops all indexes and tables created by the foundation migration's upgrade path, in reverse order.",
+      "tags": ["migration", "database", "rollback"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:alembic/versions/ea0fba754aaa_invoices_invoice_lines_payments_.py:upgrade",
+      "type": "function",
+      "name": "upgrade",
+      "filePath": "alembic/versions/ea0fba754aaa_invoices_invoice_lines_payments_.py",
+      "lineRange": [22, 75],
+      "summary": "Creates the invoices, invoice_lines, and payments tables with status enums, numeric amount columns, foreign keys to products/lots, and supporting indexes for the checkout & invoicing feature.",
+      "tags": ["migration", "database", "invoicing"],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:alembic/versions/ea0fba754aaa_invoices_invoice_lines_payments_.py:downgrade",
+      "type": "function",
+      "name": "downgrade",
+      "filePath": "alembic/versions/ea0fba754aaa_invoices_invoice_lines_payments_.py",
+      "lineRange": [78, 89],
+      "summary": "Drops the payments, invoice_lines, and invoices tables and their indexes, reversing the checkout & invoicing migration.",
+      "tags": ["migration", "database", "rollback"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_products.py:test_csv_import_per_row_errors_are_surfaced",
+      "type": "function",
+      "name": "test_csv_import_per_row_errors_are_surfaced",
+      "filePath": "tests/test_products.py",
+      "lineRange": [152, 175],
+      "summary": "Verifies that a CSV bulk-import request with invalid rows returns per-row error details rather than failing the whole import silently.",
+      "tags": ["test", "csv-import", "error-handling"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:tests/test_products.py:test_csv_import_with_low_stock_threshold_column",
+      "type": "function",
+      "name": "test_csv_import_with_low_stock_threshold_column",
+      "filePath": "tests/test_products.py",
+      "lineRange": [179, 196],
+      "summary": "Verifies CSV bulk-import accepts an optional low_stock_threshold column and applies it to the created products, confirmed via a subsequent lookup.",
+      "tags": ["test", "csv-import", "low-stock"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:tests/test_staff.py:test_owner_creates_receiver_user",
+      "type": "function",
+      "name": "test_owner_creates_receiver_user",
+      "filePath": "tests/test_staff.py",
+      "lineRange": [11, 26],
+      "summary": "Verifies an owner can create a receiver-role staff user for their shop via the staff creation endpoint.",
+      "tags": ["test", "staff-management"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_staff.py:test_owner_creates_cashier_user",
+      "type": "function",
+      "name": "test_owner_creates_cashier_user",
+      "filePath": "tests/test_staff.py",
+      "lineRange": [30, 43],
+      "summary": "Verifies an owner can create a cashier-role staff user for their shop via the staff creation endpoint.",
+      "tags": ["test", "staff-management"],
+      "complexity": "simple"
+    }
+  ],
+  "edges": [
+    {
+      "source": "document:docs/ONBOARDING.md",
+      "target": "document:harness/05-issues/README.md",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:harness/05-issues/README.md",
+      "target": "file:alembic/versions/0243c7acf544_foundation_shops_users_log_tables.py",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:harness/05-issues/README.md",
+      "target": "file:alembic/versions/423948112aae_products_catalog_shop_low_stock_.py",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:harness/05-issues/README.md",
+      "target": "file:alembic/versions/3efd6817d954_lots_lot_lot_lines_tables.py",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:harness/05-issues/README.md",
+      "target": "file:alembic/versions/ea0fba754aaa_invoices_invoice_lines_payments_.py",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:harness/05-issues/README.md",
+      "target": "file:alembic/versions/2e68e776867b_voids_void_reversal_pending_void_status_.py",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:harness/05-issues/README.md",
+      "target": "file:alembic/versions/058759837183_eod_eod_signed_off_at_eod_signoffs_table.py",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:harness/05-issues/README.md",
+      "target": "file:alembic/versions/af4b5e908f57_shops_gstin_excise_duty_rate_for_8_gst_.py",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:alembic/versions/0243c7acf544_foundation_shops_users_log_tables.py",
+      "target": "function:alembic/versions/0243c7acf544_foundation_shops_users_log_tables.py:upgrade",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:alembic/versions/0243c7acf544_foundation_shops_users_log_tables.py",
+      "target": "function:alembic/versions/0243c7acf544_foundation_shops_users_log_tables.py:downgrade",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:alembic/versions/0243c7acf544_foundation_shops_users_log_tables.py",
+      "target": "function:alembic/versions/0243c7acf544_foundation_shops_users_log_tables.py:upgrade",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:alembic/versions/0243c7acf544_foundation_shops_users_log_tables.py",
+      "target": "function:alembic/versions/0243c7acf544_foundation_shops_users_log_tables.py:downgrade",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:alembic/versions/ea0fba754aaa_invoices_invoice_lines_payments_.py",
+      "target": "function:alembic/versions/ea0fba754aaa_invoices_invoice_lines_payments_.py:upgrade",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:alembic/versions/ea0fba754aaa_invoices_invoice_lines_payments_.py",
+      "target": "function:alembic/versions/ea0fba754aaa_invoices_invoice_lines_payments_.py:downgrade",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:alembic/versions/ea0fba754aaa_invoices_invoice_lines_payments_.py",
+      "target": "function:alembic/versions/ea0fba754aaa_invoices_invoice_lines_payments_.py:upgrade",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:alembic/versions/ea0fba754aaa_invoices_invoice_lines_payments_.py",
+      "target": "function:alembic/versions/ea0fba754aaa_invoices_invoice_lines_payments_.py:downgrade",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_products.py",
+      "target": "function:tests/test_products.py:test_csv_import_per_row_errors_are_surfaced",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:tests/test_products.py",
+      "target": "function:tests/test_products.py:test_csv_import_per_row_errors_are_surfaced",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_products.py",
+      "target": "function:tests/test_products.py:test_csv_import_with_low_stock_threshold_column",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:tests/test_products.py",
+      "target": "function:tests/test_products.py:test_csv_import_with_low_stock_threshold_column",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_staff.py",
+      "target": "function:tests/test_staff.py:test_owner_creates_receiver_user",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:tests/test_staff.py",
+      "target": "function:tests/test_staff.py:test_owner_creates_receiver_user",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_staff.py",
+      "target": "function:tests/test_staff.py:test_owner_creates_cashier_user",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:tests/test_staff.py",
+      "target": "function:tests/test_staff.py:test_owner_creates_cashier_user",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_products.py",
+      "target": "file:alembic/versions/423948112aae_products_catalog_shop_low_stock_.py",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:tests/test_staff.py",
+      "target": "file:alembic/versions/0243c7acf544_foundation_shops_users_log_tables.py",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:tests/test_log_tables.py",
+      "target": "file:alembic/versions/0243c7acf544_foundation_shops_users_log_tables.py",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    }
+  ]
+}

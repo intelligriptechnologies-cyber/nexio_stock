@@ -1,0 +1,4538 @@
+{
+  "scriptCompleted": true,
+  "filesAnalyzed": 12,
+  "filesSkipped": [],
+  "results": [
+    {
+      "path": "app/api/lots.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 202,
+      "nonEmptyLines": 176,
+      "functions": [
+        {
+          "name": "create_lot",
+          "startLine": 49,
+          "endLine": 142,
+          "params": [
+            "payload",
+            "db",
+            "_user"
+          ]
+        },
+        {
+          "name": "list_lots",
+          "startLine": 150,
+          "endLine": 168,
+          "params": [
+            "db",
+            "_user",
+            "limit",
+            "offset"
+          ]
+        },
+        {
+          "name": "get_lot",
+          "startLine": 176,
+          "endLine": 190,
+          "params": [
+            "lot_id",
+            "db",
+            "_user"
+          ]
+        },
+        {
+          "name": "_load_lines",
+          "startLine": 193,
+          "endLine": 202,
+          "params": [
+            "db",
+            "lot"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "create_lot",
+          "line": 43,
+          "isDefault": false
+        },
+        {
+          "name": "list_lots",
+          "line": 145,
+          "isDefault": false
+        },
+        {
+          "name": "get_lot",
+          "line": 171,
+          "isDefault": false
+        },
+        {
+          "name": "_load_lines",
+          "line": 193,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "create_lot",
+          "callee": "Depends",
+          "lineNumber": 52
+        },
+        {
+          "caller": "create_lot",
+          "callee": "require_role",
+          "lineNumber": 52
+        },
+        {
+          "caller": "create_lot",
+          "callee": "(\r\n        await db.execute(\r\n            select(Product).where(\r\n                Product.shop_id == actor_shop_id,\r\n                Product.barcode.in_(barcodes),\r\n                Product.is_active.is_(True),\r\n            )\r\n        )\r\n    ).scalars().all",
+          "lineNumber": 63
+        },
+        {
+          "caller": "create_lot",
+          "callee": "(\r\n        await db.execute(\r\n            select(Product).where(\r\n                Product.shop_id == actor_shop_id,\r\n                Product.barcode.in_(barcodes),\r\n                Product.is_active.is_(True),\r\n            )\r\n        )\r\n    ).scalars",
+          "lineNumber": 63
+        },
+        {
+          "caller": "create_lot",
+          "callee": "db.execute",
+          "lineNumber": 64
+        },
+        {
+          "caller": "create_lot",
+          "callee": "select(Product).where",
+          "lineNumber": 65
+        },
+        {
+          "caller": "create_lot",
+          "callee": "select",
+          "lineNumber": 65
+        },
+        {
+          "caller": "create_lot",
+          "callee": "Product.barcode.in_",
+          "lineNumber": 67
+        },
+        {
+          "caller": "create_lot",
+          "callee": "Product.is_active.is_",
+          "lineNumber": 68
+        },
+        {
+          "caller": "create_lot",
+          "callee": "HTTPException",
+          "lineNumber": 78
+        },
+        {
+          "caller": "create_lot",
+          "callee": "Lot",
+          "lineNumber": 83
+        },
+        {
+          "caller": "create_lot",
+          "callee": "db.add",
+          "lineNumber": 89
+        },
+        {
+          "caller": "create_lot",
+          "callee": "db.flush",
+          "lineNumber": 90
+        },
+        {
+          "caller": "create_lot",
+          "callee": "db.add",
+          "lineNumber": 94
+        },
+        {
+          "caller": "create_lot",
+          "callee": "LotLine",
+          "lineNumber": 95
+        },
+        {
+          "caller": "create_lot",
+          "callee": "db.add",
+          "lineNumber": 118
+        },
+        {
+          "caller": "create_lot",
+          "callee": "StockinLog",
+          "lineNumber": 119
+        },
+        {
+          "caller": "create_lot",
+          "callee": "db.commit",
+          "lineNumber": 127
+        },
+        {
+          "caller": "create_lot",
+          "callee": "db.refresh",
+          "lineNumber": 128
+        },
+        {
+          "caller": "create_lot",
+          "callee": "log.info",
+          "lineNumber": 130
+        },
+        {
+          "caller": "create_lot",
+          "callee": "len",
+          "lineNumber": 135
+        },
+        {
+          "caller": "create_lot",
+          "callee": "sum",
+          "lineNumber": 136
+        },
+        {
+          "caller": "create_lot",
+          "callee": "_load_lines",
+          "lineNumber": 141
+        },
+        {
+          "caller": "create_lot",
+          "callee": "LotPublic.model_validate",
+          "lineNumber": 142
+        },
+        {
+          "caller": "list_lots",
+          "callee": "Depends",
+          "lineNumber": 152
+        },
+        {
+          "caller": "list_lots",
+          "callee": "require_role",
+          "lineNumber": 152
+        },
+        {
+          "caller": "list_lots",
+          "callee": "Query",
+          "lineNumber": 153
+        },
+        {
+          "caller": "list_lots",
+          "callee": "Query",
+          "lineNumber": 154
+        },
+        {
+          "caller": "list_lots",
+          "callee": "(\r\n        await db.execute(\r\n            select(Lot)\r\n            .where(Lot.shop_id == actor_shop_id)\r\n            .order_by(Lot.received_at.desc(), Lot.id.desc())\r\n            .limit(limit)\r\n            .offset(offset)\r\n        )\r\n    ).scalars().all",
+          "lineNumber": 157
+        },
+        {
+          "caller": "list_lots",
+          "callee": "(\r\n        await db.execute(\r\n            select(Lot)\r\n            .where(Lot.shop_id == actor_shop_id)\r\n            .order_by(Lot.received_at.desc(), Lot.id.desc())\r\n            .limit(limit)\r\n            .offset(offset)\r\n        )\r\n    ).scalars",
+          "lineNumber": 157
+        },
+        {
+          "caller": "list_lots",
+          "callee": "db.execute",
+          "lineNumber": 158
+        },
+        {
+          "caller": "list_lots",
+          "callee": "select(Lot)\r\n            .where(Lot.shop_id == actor_shop_id)\r\n            .order_by(Lot.received_at.desc(), Lot.id.desc())\r\n            .limit(limit)\r\n            .offset",
+          "lineNumber": 159
+        },
+        {
+          "caller": "list_lots",
+          "callee": "select(Lot)\r\n            .where(Lot.shop_id == actor_shop_id)\r\n            .order_by(Lot.received_at.desc(), Lot.id.desc())\r\n            .limit",
+          "lineNumber": 159
+        },
+        {
+          "caller": "list_lots",
+          "callee": "select(Lot)\r\n            .where(Lot.shop_id == actor_shop_id)\r\n            .order_by",
+          "lineNumber": 159
+        },
+        {
+          "caller": "list_lots",
+          "callee": "select(Lot)\r\n            .where",
+          "lineNumber": 159
+        },
+        {
+          "caller": "list_lots",
+          "callee": "select",
+          "lineNumber": 159
+        },
+        {
+          "caller": "list_lots",
+          "callee": "Lot.received_at.desc",
+          "lineNumber": 161
+        },
+        {
+          "caller": "list_lots",
+          "callee": "Lot.id.desc",
+          "lineNumber": 161
+        },
+        {
+          "caller": "list_lots",
+          "callee": "_load_lines",
+          "lineNumber": 167
+        },
+        {
+          "caller": "list_lots",
+          "callee": "LotListResponse",
+          "lineNumber": 168
+        },
+        {
+          "caller": "list_lots",
+          "callee": "LotPublic.model_validate",
+          "lineNumber": 168
+        },
+        {
+          "caller": "get_lot",
+          "callee": "Depends",
+          "lineNumber": 179
+        },
+        {
+          "caller": "get_lot",
+          "callee": "require_role",
+          "lineNumber": 179
+        },
+        {
+          "caller": "get_lot",
+          "callee": "(\r\n        await db.execute(\r\n            select(Lot).where(Lot.id == lot_id, Lot.shop_id == actor_shop_id)\r\n        )\r\n    ).scalar_one_or_none",
+          "lineNumber": 182
+        },
+        {
+          "caller": "get_lot",
+          "callee": "db.execute",
+          "lineNumber": 183
+        },
+        {
+          "caller": "get_lot",
+          "callee": "select(Lot).where",
+          "lineNumber": 184
+        },
+        {
+          "caller": "get_lot",
+          "callee": "select",
+          "lineNumber": 184
+        },
+        {
+          "caller": "get_lot",
+          "callee": "HTTPException",
+          "lineNumber": 188
+        },
+        {
+          "caller": "get_lot",
+          "callee": "_load_lines",
+          "lineNumber": 189
+        },
+        {
+          "caller": "get_lot",
+          "callee": "LotPublic.model_validate",
+          "lineNumber": 190
+        },
+        {
+          "caller": "_load_lines",
+          "callee": "db.refresh",
+          "lineNumber": 202
+        }
+      ],
+      "metrics": {
+        "importCount": 7,
+        "exportCount": 4,
+        "functionCount": 4,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "app/api/products.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 349,
+      "nonEmptyLines": 317,
+      "functions": [
+        {
+          "name": "create_product",
+          "startLine": 51,
+          "endLine": 99,
+          "params": [
+            "payload",
+            "db",
+            "_user"
+          ]
+        },
+        {
+          "name": "list_products",
+          "startLine": 107,
+          "endLine": 126,
+          "params": [
+            "db",
+            "_user",
+            "active_only",
+            "q",
+            "limit",
+            "offset"
+          ]
+        },
+        {
+          "name": "lookup_product",
+          "startLine": 134,
+          "endLine": 154,
+          "params": [
+            "db",
+            "_user",
+            "barcode"
+          ]
+        },
+        {
+          "name": "update_product",
+          "startLine": 162,
+          "endLine": 190,
+          "params": [
+            "product_id",
+            "payload",
+            "db",
+            "_user"
+          ]
+        },
+        {
+          "name": "import_products_csv",
+          "startLine": 205,
+          "endLine": 349,
+          "params": [
+            "db",
+            "_user",
+            "file"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "create_product",
+          "line": 45,
+          "isDefault": false
+        },
+        {
+          "name": "list_products",
+          "line": 102,
+          "isDefault": false
+        },
+        {
+          "name": "lookup_product",
+          "line": 129,
+          "isDefault": false
+        },
+        {
+          "name": "update_product",
+          "line": 157,
+          "isDefault": false
+        },
+        {
+          "name": "import_products_csv",
+          "line": 200,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "create_product",
+          "callee": "Depends",
+          "lineNumber": 54
+        },
+        {
+          "caller": "create_product",
+          "callee": "require_role",
+          "lineNumber": 54
+        },
+        {
+          "caller": "create_product",
+          "callee": "HTTPException",
+          "lineNumber": 60
+        },
+        {
+          "caller": "create_product",
+          "callee": "Product",
+          "lineNumber": 71
+        },
+        {
+          "caller": "create_product",
+          "callee": "db.add",
+          "lineNumber": 80
+        },
+        {
+          "caller": "create_product",
+          "callee": "db.commit",
+          "lineNumber": 82
+        },
+        {
+          "caller": "create_product",
+          "callee": "is_unique_violation",
+          "lineNumber": 84
+        },
+        {
+          "caller": "create_product",
+          "callee": "db.rollback",
+          "lineNumber": 85
+        },
+        {
+          "caller": "create_product",
+          "callee": "HTTPException",
+          "lineNumber": 86
+        },
+        {
+          "caller": "create_product",
+          "callee": "db.refresh",
+          "lineNumber": 91
+        },
+        {
+          "caller": "create_product",
+          "callee": "log.info",
+          "lineNumber": 92
+        },
+        {
+          "caller": "create_product",
+          "callee": "ProductPublic.model_validate",
+          "lineNumber": 99
+        },
+        {
+          "caller": "list_products",
+          "callee": "Depends",
+          "lineNumber": 109
+        },
+        {
+          "caller": "list_products",
+          "callee": "require_role",
+          "lineNumber": 109
+        },
+        {
+          "caller": "list_products",
+          "callee": "Query",
+          "lineNumber": 110
+        },
+        {
+          "caller": "list_products",
+          "callee": "Query",
+          "lineNumber": 111
+        },
+        {
+          "caller": "list_products",
+          "callee": "Query",
+          "lineNumber": 112
+        },
+        {
+          "caller": "list_products",
+          "callee": "Query",
+          "lineNumber": 113
+        },
+        {
+          "caller": "list_products",
+          "callee": "select",
+          "lineNumber": 117
+        },
+        {
+          "caller": "list_products",
+          "callee": "stmt.where",
+          "lineNumber": 119
+        },
+        {
+          "caller": "list_products",
+          "callee": "stmt.where",
+          "lineNumber": 121
+        },
+        {
+          "caller": "list_products",
+          "callee": "Product.is_active.is_",
+          "lineNumber": 121
+        },
+        {
+          "caller": "list_products",
+          "callee": "stmt.where",
+          "lineNumber": 123
+        },
+        {
+          "caller": "list_products",
+          "callee": "Product.brand.ilike",
+          "lineNumber": 123
+        },
+        {
+          "caller": "list_products",
+          "callee": "stmt.order_by(Product.brand, Product.size_label).limit(limit).offset",
+          "lineNumber": 124
+        },
+        {
+          "caller": "list_products",
+          "callee": "stmt.order_by(Product.brand, Product.size_label).limit",
+          "lineNumber": 124
+        },
+        {
+          "caller": "list_products",
+          "callee": "stmt.order_by",
+          "lineNumber": 124
+        },
+        {
+          "caller": "list_products",
+          "callee": "(await db.execute(stmt)).scalars().all",
+          "lineNumber": 125
+        },
+        {
+          "caller": "list_products",
+          "callee": "(await db.execute(stmt)).scalars",
+          "lineNumber": 125
+        },
+        {
+          "caller": "list_products",
+          "callee": "db.execute",
+          "lineNumber": 125
+        },
+        {
+          "caller": "list_products",
+          "callee": "ProductPublic.model_validate",
+          "lineNumber": 126
+        },
+        {
+          "caller": "lookup_product",
+          "callee": "Depends",
+          "lineNumber": 136
+        },
+        {
+          "caller": "lookup_product",
+          "callee": "require_role",
+          "lineNumber": 136
+        },
+        {
+          "caller": "lookup_product",
+          "callee": "Query",
+          "lineNumber": 137
+        },
+        {
+          "caller": "lookup_product",
+          "callee": "select(Product).where",
+          "lineNumber": 145
+        },
+        {
+          "caller": "lookup_product",
+          "callee": "select",
+          "lineNumber": 145
+        },
+        {
+          "caller": "lookup_product",
+          "callee": "stmt.where",
+          "lineNumber": 147
+        },
+        {
+          "caller": "lookup_product",
+          "callee": "(await db.execute(stmt)).scalar_one_or_none",
+          "lineNumber": 148
+        },
+        {
+          "caller": "lookup_product",
+          "callee": "db.execute",
+          "lineNumber": 148
+        },
+        {
+          "caller": "lookup_product",
+          "callee": "HTTPException",
+          "lineNumber": 150
+        },
+        {
+          "caller": "lookup_product",
+          "callee": "ProductPublic.model_validate",
+          "lineNumber": 154
+        },
+        {
+          "caller": "update_product",
+          "callee": "Depends",
+          "lineNumber": 166
+        },
+        {
+          "caller": "update_product",
+          "callee": "require_role",
+          "lineNumber": 166
+        },
+        {
+          "caller": "update_product",
+          "callee": "select(Product).where",
+          "lineNumber": 171
+        },
+        {
+          "caller": "update_product",
+          "callee": "select",
+          "lineNumber": 171
+        },
+        {
+          "caller": "update_product",
+          "callee": "stmt.where",
+          "lineNumber": 173
+        },
+        {
+          "caller": "update_product",
+          "callee": "(await db.execute(stmt)).scalar_one_or_none",
+          "lineNumber": 174
+        },
+        {
+          "caller": "update_product",
+          "callee": "db.execute",
+          "lineNumber": 174
+        },
+        {
+          "caller": "update_product",
+          "callee": "HTTPException",
+          "lineNumber": 176
+        },
+        {
+          "caller": "update_product",
+          "callee": "payload.model_dump",
+          "lineNumber": 178
+        },
+        {
+          "caller": "update_product",
+          "callee": "data.items",
+          "lineNumber": 179
+        },
+        {
+          "caller": "update_product",
+          "callee": "setattr",
+          "lineNumber": 180
+        },
+        {
+          "caller": "update_product",
+          "callee": "db.commit",
+          "lineNumber": 181
+        },
+        {
+          "caller": "update_product",
+          "callee": "db.refresh",
+          "lineNumber": 182
+        },
+        {
+          "caller": "update_product",
+          "callee": "log.info",
+          "lineNumber": 183
+        },
+        {
+          "caller": "update_product",
+          "callee": "sorted",
+          "lineNumber": 188
+        },
+        {
+          "caller": "update_product",
+          "callee": "data.keys",
+          "lineNumber": 188
+        },
+        {
+          "caller": "update_product",
+          "callee": "ProductPublic.model_validate",
+          "lineNumber": 190
+        },
+        {
+          "caller": "import_products_csv",
+          "callee": "Depends",
+          "lineNumber": 207
+        },
+        {
+          "caller": "import_products_csv",
+          "callee": "require_role",
+          "lineNumber": 207
+        },
+        {
+          "caller": "import_products_csv",
+          "callee": "File",
+          "lineNumber": 208
+        },
+        {
+          "caller": "import_products_csv",
+          "callee": "HTTPException",
+          "lineNumber": 216
+        },
+        {
+          "caller": "import_products_csv",
+          "callee": "file.read",
+          "lineNumber": 228
+        },
+        {
+          "caller": "import_products_csv",
+          "callee": "raw.decode",
+          "lineNumber": 230
+        },
+        {
+          "caller": "import_products_csv",
+          "callee": "raw.decode",
+          "lineNumber": 232
+        },
+        {
+          "caller": "import_products_csv",
+          "callee": "csv.DictReader",
+          "lineNumber": 234
+        },
+        {
+          "caller": "import_products_csv",
+          "callee": "io.StringIO",
+          "lineNumber": 234
+        },
+        {
+          "caller": "import_products_csv",
+          "callee": "HTTPException",
+          "lineNumber": 236
+        },
+        {
+          "caller": "import_products_csv",
+          "callee": "HTTPException",
+          "lineNumber": 239
+        },
+        {
+          "caller": "import_products_csv",
+          "callee": "enumerate",
+          "lineNumber": 247
+        },
+        {
+          "caller": "import_products_csv",
+          "callee": "(raw_row.get(\"barcode\") or \"\").strip",
+          "lineNumber": 249
+        },
+        {
+          "caller": "import_products_csv",
+          "callee": "raw_row.get",
+          "lineNumber": 249
+        },
+        {
+          "caller": "import_products_csv",
+          "callee": "(raw_row.get(\"brand\") or \"\").strip",
+          "lineNumber": 250
+        },
+        {
+          "caller": "import_products_csv",
+          "callee": "raw_row.get",
+          "lineNumber": 250
+        },
+        {
+          "caller": "import_products_csv",
+          "callee": "(raw_row.get(\"size_label\") or \"\").strip",
+          "lineNumber": 251
+        },
+        {
+          "caller": "import_products_csv",
+          "callee": "raw_row.get",
+          "lineNumber": 251
+        },
+        {
+          "caller": "import_products_csv",
+          "callee": "(raw_row.get(\"price\") or \"\").strip",
+          "lineNumber": 252
+        },
+        {
+          "caller": "import_products_csv",
+          "callee": "raw_row.get",
+          "lineNumber": 252
+        },
+        {
+          "caller": "import_products_csv",
+          "callee": "(raw_row.get(\"low_stock_threshold\") or \"\").strip",
+          "lineNumber": 253
+        },
+        {
+          "caller": "import_products_csv",
+          "callee": "raw_row.get",
+          "lineNumber": 253
+        },
+        {
+          "caller": "import_products_csv",
+          "callee": "errors.append",
+          "lineNumber": 257
+        },
+        {
+          "caller": "import_products_csv",
+          "callee": "ProductImportError",
+          "lineNumber": 258
+        },
+        {
+          "caller": "import_products_csv",
+          "callee": "Decimal",
+          "lineNumber": 266
+        },
+        {
+          "caller": "import_products_csv",
+          "callee": "errors.append",
+          "lineNumber": 268
+        },
+        {
+          "caller": "import_products_csv",
+          "callee": "ProductImportError",
+          "lineNumber": 269
+        },
+        {
+          "caller": "import_products_csv",
+          "callee": "errors.append",
+          "lineNumber": 277
+        },
+        {
+          "caller": "import_products_csv",
+          "callee": "ProductImportError",
+          "lineNumber": 278
+        },
+        {
+          "caller": "import_products_csv",
+          "callee": "int",
+          "lineNumber": 284
+        },
+        {
+          "caller": "import_products_csv",
+          "callee": "errors.append",
+          "lineNumber": 286
+        },
+        {
+          "caller": "import_products_csv",
+          "callee": "ProductImportError",
+          "lineNumber": 287
+        },
+        {
+          "caller": "import_products_csv",
+          "callee": "errors.append",
+          "lineNumber": 295
+        },
+        {
+          "caller": "import_products_csv",
+          "callee": "ProductImportError",
+          "lineNumber": 296
+        },
+        {
+          "caller": "import_products_csv",
+          "callee": "Product",
+          "lineNumber": 304
+        },
+        {
+          "caller": "import_products_csv",
+          "callee": "db.add",
+          "lineNumber": 313
+        },
+        {
+          "caller": "import_products_csv",
+          "callee": "db.flush",
+          "lineNumber": 315
+        },
+        {
+          "caller": "import_products_csv",
+          "callee": "is_unique_violation",
+          "lineNumber": 317
+        },
+        {
+          "caller": "import_products_csv",
+          "callee": "db.rollback",
+          "lineNumber": 322
+        },
+        {
+          "caller": "import_products_csv",
+          "callee": "errors.append",
+          "lineNumber": 323
+        },
+        {
+          "caller": "import_products_csv",
+          "callee": "ProductImportError",
+          "lineNumber": 324
+        },
+        {
+          "caller": "import_products_csv",
+          "callee": "db.expunge",
+          "lineNumber": 337
+        },
+        {
+          "caller": "import_products_csv",
+          "callee": "db.commit",
+          "lineNumber": 340
+        },
+        {
+          "caller": "import_products_csv",
+          "callee": "log.info",
+          "lineNumber": 342
+        },
+        {
+          "caller": "import_products_csv",
+          "callee": "len",
+          "lineNumber": 347
+        },
+        {
+          "caller": "import_products_csv",
+          "callee": "ProductImportResponse",
+          "lineNumber": 349
+        },
+        {
+          "caller": "import_products_csv",
+          "callee": "len",
+          "lineNumber": 349
+        }
+      ],
+      "metrics": {
+        "importCount": 4,
+        "exportCount": 5,
+        "functionCount": 5,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "app/models/log.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 90,
+      "nonEmptyLines": 70,
+      "classes": [
+        {
+          "name": "_BaseLog",
+          "startLine": 40,
+          "endLine": 60,
+          "methods": [],
+          "properties": [
+            "id",
+            "shop_id",
+            "actor_user_id",
+            "event_type",
+            "payload",
+            "created_at"
+          ]
+        },
+        {
+          "name": "InvoicingLog",
+          "startLine": 63,
+          "endLine": 70,
+          "methods": [],
+          "properties": [
+            "shop",
+            "actor_user"
+          ]
+        },
+        {
+          "name": "StockinLog",
+          "startLine": 73,
+          "endLine": 80,
+          "methods": [],
+          "properties": [
+            "shop",
+            "actor_user"
+          ]
+        },
+        {
+          "name": "AdminLog",
+          "startLine": 83,
+          "endLine": 90,
+          "methods": [],
+          "properties": [
+            "shop",
+            "actor_user"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "_BaseLog",
+          "line": 40,
+          "isDefault": false
+        },
+        {
+          "name": "InvoicingLog",
+          "line": 63,
+          "isDefault": false
+        },
+        {
+          "name": "StockinLog",
+          "line": 73,
+          "isDefault": false
+        },
+        {
+          "name": "AdminLog",
+          "line": 83,
+          "isDefault": false
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 4,
+        "functionCount": 0,
+        "classCount": 4
+      }
+    },
+    {
+      "path": "app/models/lot.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 88,
+      "nonEmptyLines": 74,
+      "classes": [
+        {
+          "name": "Lot",
+          "startLine": 27,
+          "endLine": 62,
+          "methods": [],
+          "properties": [
+            "id",
+            "shop_id",
+            "received_by_user_id",
+            "reference",
+            "notes",
+            "received_at",
+            "created_at",
+            "lines",
+            "received_by",
+            "shop"
+          ]
+        },
+        {
+          "name": "LotLine",
+          "startLine": 65,
+          "endLine": 88,
+          "methods": [],
+          "properties": [
+            "id",
+            "lot_id",
+            "product_id",
+            "quantity",
+            "lot",
+            "product"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "Lot",
+          "line": 27,
+          "isDefault": false
+        },
+        {
+          "name": "LotLine",
+          "line": 65,
+          "isDefault": false
+        }
+      ],
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 2,
+        "functionCount": 0,
+        "classCount": 2
+      }
+    },
+    {
+      "path": "app/models/product.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 72,
+      "nonEmptyLines": 59,
+      "classes": [
+        {
+          "name": "Product",
+          "startLine": 37,
+          "endLine": 72,
+          "methods": [],
+          "properties": [
+            "id",
+            "shop_id",
+            "barcode",
+            "brand",
+            "size_label",
+            "price",
+            "low_stock_threshold",
+            "is_active",
+            "created_at",
+            "updated_at",
+            "shop"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "Product",
+          "line": 37,
+          "isDefault": false
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 1,
+        "functionCount": 0,
+        "classCount": 1
+      }
+    },
+    {
+      "path": "app/schemas/lot.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 77,
+      "nonEmptyLines": 55,
+      "classes": [
+        {
+          "name": "LotLineCreate",
+          "startLine": 11,
+          "endLine": 17,
+          "methods": [],
+          "properties": [
+            "barcode",
+            "quantity"
+          ]
+        },
+        {
+          "name": "LotLinePublic",
+          "startLine": 20,
+          "endLine": 25,
+          "methods": [],
+          "properties": [
+            "id",
+            "product_id",
+            "quantity"
+          ]
+        },
+        {
+          "name": "LotCreate",
+          "startLine": 28,
+          "endLine": 48,
+          "methods": [
+            "_unique_barcodes"
+          ],
+          "properties": [
+            "reference",
+            "notes",
+            "lines"
+          ]
+        },
+        {
+          "name": "LotPublic",
+          "startLine": 51,
+          "endLine": 61,
+          "methods": [],
+          "properties": [
+            "id",
+            "shop_id",
+            "received_by_user_id",
+            "reference",
+            "notes",
+            "received_at",
+            "created_at",
+            "lines"
+          ]
+        },
+        {
+          "name": "LotListResponse",
+          "startLine": 64,
+          "endLine": 65,
+          "methods": [],
+          "properties": [
+            "lots"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "LotLineCreate",
+          "line": 11,
+          "isDefault": false
+        },
+        {
+          "name": "LotLinePublic",
+          "line": 20,
+          "isDefault": false
+        },
+        {
+          "name": "LotCreate",
+          "line": 28,
+          "isDefault": false
+        },
+        {
+          "name": "LotPublic",
+          "line": 51,
+          "isDefault": false
+        },
+        {
+          "name": "LotListResponse",
+          "line": 64,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "_unique_barcodes",
+          "callee": "set",
+          "lineNumber": 43
+        },
+        {
+          "caller": "_unique_barcodes",
+          "callee": "ValueError",
+          "lineNumber": 46
+        },
+        {
+          "caller": "_unique_barcodes",
+          "callee": "seen.add",
+          "lineNumber": 47
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 5,
+        "functionCount": 0,
+        "classCount": 5
+      }
+    },
+    {
+      "path": "app/schemas/product.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 114,
+      "nonEmptyLines": 85,
+      "classes": [
+        {
+          "name": "ProductCreate",
+          "startLine": 19,
+          "endLine": 42,
+          "methods": [
+            "_barcode_no_ws",
+            "_size_label_shape"
+          ],
+          "properties": [
+            "barcode",
+            "brand",
+            "size_label",
+            "price",
+            "low_stock_threshold"
+          ]
+        },
+        {
+          "name": "ProductUpdate",
+          "startLine": 45,
+          "endLine": 54,
+          "methods": [],
+          "properties": [
+            "brand",
+            "size_label",
+            "price",
+            "low_stock_threshold",
+            "is_active"
+          ]
+        },
+        {
+          "name": "ProductPublic",
+          "startLine": 57,
+          "endLine": 69,
+          "methods": [],
+          "properties": [
+            "id",
+            "shop_id",
+            "barcode",
+            "brand",
+            "size_label",
+            "price",
+            "low_stock_threshold",
+            "is_active",
+            "created_at",
+            "updated_at"
+          ]
+        },
+        {
+          "name": "ProductImportRow",
+          "startLine": 75,
+          "endLine": 90,
+          "methods": [
+            "_barcode_no_ws"
+          ],
+          "properties": [
+            "row",
+            "barcode",
+            "brand",
+            "size_label",
+            "price",
+            "low_stock_threshold"
+          ]
+        },
+        {
+          "name": "ProductImportError",
+          "startLine": 93,
+          "endLine": 96,
+          "methods": [],
+          "properties": [
+            "row",
+            "barcode",
+            "error"
+          ]
+        },
+        {
+          "name": "ProductImportResponse",
+          "startLine": 99,
+          "endLine": 102,
+          "methods": [],
+          "properties": [
+            "created",
+            "failed",
+            "errors"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "ProductCreate",
+          "line": 19,
+          "isDefault": false
+        },
+        {
+          "name": "ProductUpdate",
+          "line": 45,
+          "isDefault": false
+        },
+        {
+          "name": "ProductPublic",
+          "line": 57,
+          "isDefault": false
+        },
+        {
+          "name": "ProductImportRow",
+          "line": 75,
+          "isDefault": false
+        },
+        {
+          "name": "ProductImportError",
+          "line": 93,
+          "isDefault": false
+        },
+        {
+          "name": "ProductImportResponse",
+          "line": 99,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "_barcode_no_ws",
+          "callee": "_BARCODE_RE.match",
+          "lineNumber": 33
+        },
+        {
+          "caller": "_barcode_no_ws",
+          "callee": "ValueError",
+          "lineNumber": 34
+        },
+        {
+          "caller": "_size_label_shape",
+          "callee": "_SIZE_LABEL_RE.match",
+          "lineNumber": 40
+        },
+        {
+          "caller": "_size_label_shape",
+          "callee": "ValueError",
+          "lineNumber": 41
+        },
+        {
+          "caller": "_barcode_no_ws",
+          "callee": "_BARCODE_RE.match",
+          "lineNumber": 88
+        },
+        {
+          "caller": "_barcode_no_ws",
+          "callee": "ValueError",
+          "lineNumber": 89
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 6,
+        "functionCount": 0,
+        "classCount": 6
+      }
+    },
+    {
+      "path": "app/services/low_stock.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 173,
+      "nonEmptyLines": 149,
+      "functions": [
+        {
+          "name": "_stock_per_product",
+          "startLine": 47,
+          "endLine": 118,
+          "params": [
+            "db",
+            "shop_id"
+          ]
+        },
+        {
+          "name": "compute_low_stock",
+          "startLine": 121,
+          "endLine": 170,
+          "params": [
+            "db",
+            "shop_id"
+          ]
+        }
+      ],
+      "classes": [
+        {
+          "name": "LowStockRow",
+          "startLine": 41,
+          "endLine": 44,
+          "methods": [],
+          "properties": [
+            "product",
+            "current_stock",
+            "effective_threshold"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "LowStockRow",
+          "line": 40,
+          "isDefault": false
+        },
+        {
+          "name": "_stock_per_product",
+          "line": 47,
+          "isDefault": false
+        },
+        {
+          "name": "compute_low_stock",
+          "line": 121,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "_stock_per_product",
+          "callee": "select(\n            LotLine.product_id.label(\"product_id\"),\n            func.coalesce(func.sum(LotLine.quantity), 0).label(\"received\"),\n        )\n        .where(LotLine.product_id.in_(\n            select(Product.id).where(\n                Product.shop_id == shop_id, Product.is_active.is_(True)\n            )\n        ))\n        .group_by(LotLine.product_id)\n        .subquery",
+          "lineNumber": 55
+        },
+        {
+          "caller": "_stock_per_product",
+          "callee": "select(\n            LotLine.product_id.label(\"product_id\"),\n            func.coalesce(func.sum(LotLine.quantity), 0).label(\"received\"),\n        )\n        .where(LotLine.product_id.in_(\n            select(Product.id).where(\n                Product.shop_id == shop_id, Product.is_active.is_(True)\n            )\n        ))\n        .group_by",
+          "lineNumber": 55
+        },
+        {
+          "caller": "_stock_per_product",
+          "callee": "select(\n            LotLine.product_id.label(\"product_id\"),\n            func.coalesce(func.sum(LotLine.quantity), 0).label(\"received\"),\n        )\n        .where",
+          "lineNumber": 55
+        },
+        {
+          "caller": "_stock_per_product",
+          "callee": "select",
+          "lineNumber": 55
+        },
+        {
+          "caller": "_stock_per_product",
+          "callee": "LotLine.product_id.label",
+          "lineNumber": 56
+        },
+        {
+          "caller": "_stock_per_product",
+          "callee": "func.coalesce(func.sum(LotLine.quantity), 0).label",
+          "lineNumber": 57
+        },
+        {
+          "caller": "_stock_per_product",
+          "callee": "func.coalesce",
+          "lineNumber": 57
+        },
+        {
+          "caller": "_stock_per_product",
+          "callee": "func.sum",
+          "lineNumber": 57
+        },
+        {
+          "caller": "_stock_per_product",
+          "callee": "LotLine.product_id.in_",
+          "lineNumber": 59
+        },
+        {
+          "caller": "_stock_per_product",
+          "callee": "select(Product.id).where",
+          "lineNumber": 60
+        },
+        {
+          "caller": "_stock_per_product",
+          "callee": "select",
+          "lineNumber": 60
+        },
+        {
+          "caller": "_stock_per_product",
+          "callee": "Product.is_active.is_",
+          "lineNumber": 61
+        },
+        {
+          "caller": "_stock_per_product",
+          "callee": "select(\n            InvoiceLine.product_id.label(\"product_id\"),\n            func.coalesce(func.sum(InvoiceLine.quantity), 0).label(\"sold\"),\n        )\n        .join(Invoice, InvoiceLine.invoice_id == Invoice.id)\n        .where(\n            InvoiceLine.product_id.in_(\n                select(Product.id).where(\n                    Product.shop_id == shop_id, Product.is_active.is_(True)\n                )\n            ),\n            Invoice.status.in_(STATUSES_COUNTING_AS_SOLD),\n        )\n        .group_by(InvoiceLine.product_id)\n        .subquery",
+          "lineNumber": 68
+        },
+        {
+          "caller": "_stock_per_product",
+          "callee": "select(\n            InvoiceLine.product_id.label(\"product_id\"),\n            func.coalesce(func.sum(InvoiceLine.quantity), 0).label(\"sold\"),\n        )\n        .join(Invoice, InvoiceLine.invoice_id == Invoice.id)\n        .where(\n            InvoiceLine.product_id.in_(\n                select(Product.id).where(\n                    Product.shop_id == shop_id, Product.is_active.is_(True)\n                )\n            ),\n            Invoice.status.in_(STATUSES_COUNTING_AS_SOLD),\n        )\n        .group_by",
+          "lineNumber": 68
+        },
+        {
+          "caller": "_stock_per_product",
+          "callee": "select(\n            InvoiceLine.product_id.label(\"product_id\"),\n            func.coalesce(func.sum(InvoiceLine.quantity), 0).label(\"sold\"),\n        )\n        .join(Invoice, InvoiceLine.invoice_id == Invoice.id)\n        .where",
+          "lineNumber": 68
+        },
+        {
+          "caller": "_stock_per_product",
+          "callee": "select(\n            InvoiceLine.product_id.label(\"product_id\"),\n            func.coalesce(func.sum(InvoiceLine.quantity), 0).label(\"sold\"),\n        )\n        .join",
+          "lineNumber": 68
+        },
+        {
+          "caller": "_stock_per_product",
+          "callee": "select",
+          "lineNumber": 68
+        },
+        {
+          "caller": "_stock_per_product",
+          "callee": "InvoiceLine.product_id.label",
+          "lineNumber": 69
+        },
+        {
+          "caller": "_stock_per_product",
+          "callee": "func.coalesce(func.sum(InvoiceLine.quantity), 0).label",
+          "lineNumber": 70
+        },
+        {
+          "caller": "_stock_per_product",
+          "callee": "func.coalesce",
+          "lineNumber": 70
+        },
+        {
+          "caller": "_stock_per_product",
+          "callee": "func.sum",
+          "lineNumber": 70
+        },
+        {
+          "caller": "_stock_per_product",
+          "callee": "InvoiceLine.product_id.in_",
+          "lineNumber": 74
+        },
+        {
+          "caller": "_stock_per_product",
+          "callee": "select(Product.id).where",
+          "lineNumber": 75
+        },
+        {
+          "caller": "_stock_per_product",
+          "callee": "select",
+          "lineNumber": 75
+        },
+        {
+          "caller": "_stock_per_product",
+          "callee": "Product.is_active.is_",
+          "lineNumber": 76
+        },
+        {
+          "caller": "_stock_per_product",
+          "callee": "Invoice.status.in_",
+          "lineNumber": 79
+        },
+        {
+          "caller": "_stock_per_product",
+          "callee": "(\n        await db.execute(\n            select(\n                func.coalesce(received_subq.c.product_id, sold_subq.c.product_id).label(\n                    \"product_id\"\n                ),\n                (\n                    func.coalesce(received_subq.c.received, 0)\n                    - func.coalesce(sold_subq.c.sold, 0)\n                ).label(\"stock\"),\n            )\n            .select_from(received_subq)\n            .outerjoin(\n                sold_subq, received_subq.c.product_id == sold_subq.c.product_id\n            )\n            .union_all(\n                select(\n                    sold_subq.c.product_id.label(\"product_id\"),\n                    (\n                        literal(0)\n                        - func.coalesce(sold_subq.c.sold, 0)\n                    ).label(\"stock\"),\n                )\n                .select_from(sold_subq)\n                .outerjoin(\n                    received_subq, sold_subq.c.product_id == received_subq.c.product_id\n                )\n                .where(received_subq.c.product_id.is_(None))\n            )\n        )\n    ).all",
+          "lineNumber": 84
+        },
+        {
+          "caller": "_stock_per_product",
+          "callee": "db.execute",
+          "lineNumber": 85
+        },
+        {
+          "caller": "_stock_per_product",
+          "callee": "select(\n                func.coalesce(received_subq.c.product_id, sold_subq.c.product_id).label(\n                    \"product_id\"\n                ),\n                (\n                    func.coalesce(received_subq.c.received, 0)\n                    - func.coalesce(sold_subq.c.sold, 0)\n                ).label(\"stock\"),\n            )\n            .select_from(received_subq)\n            .outerjoin(\n                sold_subq, received_subq.c.product_id == sold_subq.c.product_id\n            )\n            .union_all",
+          "lineNumber": 86
+        },
+        {
+          "caller": "_stock_per_product",
+          "callee": "select(\n                func.coalesce(received_subq.c.product_id, sold_subq.c.product_id).label(\n                    \"product_id\"\n                ),\n                (\n                    func.coalesce(received_subq.c.received, 0)\n                    - func.coalesce(sold_subq.c.sold, 0)\n                ).label(\"stock\"),\n            )\n            .select_from(received_subq)\n            .outerjoin",
+          "lineNumber": 86
+        },
+        {
+          "caller": "_stock_per_product",
+          "callee": "select(\n                func.coalesce(received_subq.c.product_id, sold_subq.c.product_id).label(\n                    \"product_id\"\n                ),\n                (\n                    func.coalesce(received_subq.c.received, 0)\n                    - func.coalesce(sold_subq.c.sold, 0)\n                ).label(\"stock\"),\n            )\n            .select_from",
+          "lineNumber": 86
+        },
+        {
+          "caller": "_stock_per_product",
+          "callee": "select",
+          "lineNumber": 86
+        },
+        {
+          "caller": "_stock_per_product",
+          "callee": "func.coalesce(received_subq.c.product_id, sold_subq.c.product_id).label",
+          "lineNumber": 87
+        },
+        {
+          "caller": "_stock_per_product",
+          "callee": "func.coalesce",
+          "lineNumber": 87
+        },
+        {
+          "caller": "_stock_per_product",
+          "callee": "(\n                    func.coalesce(received_subq.c.received, 0)\n                    - func.coalesce(sold_subq.c.sold, 0)\n                ).label",
+          "lineNumber": 90
+        },
+        {
+          "caller": "_stock_per_product",
+          "callee": "func.coalesce",
+          "lineNumber": 91
+        },
+        {
+          "caller": "_stock_per_product",
+          "callee": "func.coalesce",
+          "lineNumber": 92
+        },
+        {
+          "caller": "_stock_per_product",
+          "callee": "select(\n                    sold_subq.c.product_id.label(\"product_id\"),\n                    (\n                        literal(0)\n                        - func.coalesce(sold_subq.c.sold, 0)\n                    ).label(\"stock\"),\n                )\n                .select_from(sold_subq)\n                .outerjoin(\n                    received_subq, sold_subq.c.product_id == received_subq.c.product_id\n                )\n                .where",
+          "lineNumber": 100
+        },
+        {
+          "caller": "_stock_per_product",
+          "callee": "select(\n                    sold_subq.c.product_id.label(\"product_id\"),\n                    (\n                        literal(0)\n                        - func.coalesce(sold_subq.c.sold, 0)\n                    ).label(\"stock\"),\n                )\n                .select_from(sold_subq)\n                .outerjoin",
+          "lineNumber": 100
+        },
+        {
+          "caller": "_stock_per_product",
+          "callee": "select(\n                    sold_subq.c.product_id.label(\"product_id\"),\n                    (\n                        literal(0)\n                        - func.coalesce(sold_subq.c.sold, 0)\n                    ).label(\"stock\"),\n                )\n                .select_from",
+          "lineNumber": 100
+        },
+        {
+          "caller": "_stock_per_product",
+          "callee": "select",
+          "lineNumber": 100
+        },
+        {
+          "caller": "_stock_per_product",
+          "callee": "sold_subq.c.product_id.label",
+          "lineNumber": 101
+        },
+        {
+          "caller": "_stock_per_product",
+          "callee": "(\n                        literal(0)\n                        - func.coalesce(sold_subq.c.sold, 0)\n                    ).label",
+          "lineNumber": 102
+        },
+        {
+          "caller": "_stock_per_product",
+          "callee": "literal",
+          "lineNumber": 103
+        },
+        {
+          "caller": "_stock_per_product",
+          "callee": "func.coalesce",
+          "lineNumber": 104
+        },
+        {
+          "caller": "_stock_per_product",
+          "callee": "received_subq.c.product_id.is_",
+          "lineNumber": 111
+        },
+        {
+          "caller": "_stock_per_product",
+          "callee": "net.get",
+          "lineNumber": 117
+        },
+        {
+          "caller": "_stock_per_product",
+          "callee": "int",
+          "lineNumber": 117
+        },
+        {
+          "caller": "compute_low_stock",
+          "callee": "db.get",
+          "lineNumber": 137
+        },
+        {
+          "caller": "compute_low_stock",
+          "callee": "(\n        await db.execute(\n            select(Product)\n            .where(Product.shop_id == shop_id, Product.is_active.is_(True))\n        )\n    ).scalars().all",
+          "lineNumber": 142
+        },
+        {
+          "caller": "compute_low_stock",
+          "callee": "(\n        await db.execute(\n            select(Product)\n            .where(Product.shop_id == shop_id, Product.is_active.is_(True))\n        )\n    ).scalars",
+          "lineNumber": 142
+        },
+        {
+          "caller": "compute_low_stock",
+          "callee": "db.execute",
+          "lineNumber": 143
+        },
+        {
+          "caller": "compute_low_stock",
+          "callee": "select(Product)\n            .where",
+          "lineNumber": 144
+        },
+        {
+          "caller": "compute_low_stock",
+          "callee": "select",
+          "lineNumber": 144
+        },
+        {
+          "caller": "compute_low_stock",
+          "callee": "Product.is_active.is_",
+          "lineNumber": 145
+        },
+        {
+          "caller": "compute_low_stock",
+          "callee": "_stock_per_product",
+          "lineNumber": 152
+        },
+        {
+          "caller": "compute_low_stock",
+          "callee": "stock_by_id.get",
+          "lineNumber": 159
+        },
+        {
+          "caller": "compute_low_stock",
+          "callee": "rows.append",
+          "lineNumber": 161
+        },
+        {
+          "caller": "compute_low_stock",
+          "callee": "LowStockRow",
+          "lineNumber": 162
+        },
+        {
+          "caller": "compute_low_stock",
+          "callee": "rows.sort",
+          "lineNumber": 169
+        }
+      ],
+      "metrics": {
+        "importCount": 2,
+        "exportCount": 3,
+        "functionCount": 2,
+        "classCount": 1
+      }
+    },
+    {
+      "path": "tests/test_checkout.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 451,
+      "nonEmptyLines": 368,
+      "functions": [
+        {
+          "name": "_seed_product",
+          "startLine": 20,
+          "endLine": 28,
+          "params": [
+            "client",
+            "barcode",
+            "price",
+            "brand"
+          ]
+        },
+        {
+          "name": "_seed_lot",
+          "startLine": 31,
+          "endLine": 38,
+          "params": [
+            "receiver_client",
+            "items"
+          ]
+        },
+        {
+          "name": "_idem_key",
+          "startLine": 41,
+          "endLine": 42,
+          "params": []
+        },
+        {
+          "name": "test_cashier_finalizes_a_one_line_invoice",
+          "startLine": 49,
+          "endLine": 75,
+          "params": [
+            "cashier_client",
+            "owner_client",
+            "receiver_client"
+          ]
+        },
+        {
+          "name": "test_cashier_finalizes_multi_line_invoice",
+          "startLine": 79,
+          "endLine": 103,
+          "params": [
+            "cashier_client",
+            "owner_client",
+            "receiver_client"
+          ]
+        },
+        {
+          "name": "test_payment_split_across_modes",
+          "startLine": 110,
+          "endLine": 131,
+          "params": [
+            "cashier_client",
+            "owner_client",
+            "receiver_client"
+          ]
+        },
+        {
+          "name": "test_payment_mismatch_is_rejected_with_400",
+          "startLine": 135,
+          "endLine": 150,
+          "params": [
+            "cashier_client",
+            "owner_client",
+            "receiver_client"
+          ]
+        },
+        {
+          "name": "test_quantity_exceeding_stock_is_rejected",
+          "startLine": 157,
+          "endLine": 172,
+          "params": [
+            "cashier_client",
+            "owner_client",
+            "receiver_client"
+          ]
+        },
+        {
+          "name": "test_unknown_barcode_is_rejected_with_404",
+          "startLine": 176,
+          "endLine": 191,
+          "params": [
+            "cashier_client",
+            "owner_client",
+            "receiver_client"
+          ]
+        },
+        {
+          "name": "test_idempotency_key_replay_returns_same_invoice",
+          "startLine": 198,
+          "endLine": 220,
+          "params": [
+            "cashier_client",
+            "owner_client",
+            "receiver_client"
+          ]
+        },
+        {
+          "name": "test_missing_idempotency_key_is_400",
+          "startLine": 224,
+          "endLine": 238,
+          "params": [
+            "cashier_client",
+            "owner_client",
+            "receiver_client"
+          ]
+        },
+        {
+          "name": "test_two_concurrent_finalizes_for_last_unit_only_one_wins",
+          "startLine": 245,
+          "endLine": 302,
+          "params": [
+            "owner_client",
+            "receiver_client"
+          ]
+        },
+        {
+          "name": "test_receiver_cannot_finalize_checkout",
+          "startLine": 309,
+          "endLine": 318,
+          "params": [
+            "receiver_client"
+          ]
+        },
+        {
+          "name": "test_owner_can_finalize_checkout",
+          "startLine": 322,
+          "endLine": 336,
+          "params": [
+            "owner_client",
+            "receiver_client"
+          ]
+        },
+        {
+          "name": "test_finalized_invoice_lines_are_immutable",
+          "startLine": 343,
+          "endLine": 369,
+          "params": [
+            "cashier_client",
+            "owner_client",
+            "receiver_client"
+          ]
+        },
+        {
+          "name": "test_finalize_writes_an_invoicing_log",
+          "startLine": 376,
+          "endLine": 397,
+          "params": [
+            "cashier_client",
+            "owner_client",
+            "receiver_client",
+            "db_session"
+          ]
+        },
+        {
+          "name": "test_invoice_pdf_is_a_real_pdf",
+          "startLine": 404,
+          "endLine": 424,
+          "params": [
+            "cashier_client",
+            "owner_client",
+            "receiver_client"
+          ]
+        },
+        {
+          "name": "test_invoice_pdf_is_403_for_receiver",
+          "startLine": 428,
+          "endLine": 435,
+          "params": [
+            "receiver_client",
+            "owner_client"
+          ]
+        },
+        {
+          "name": "test_empty_cart_rejected",
+          "startLine": 442,
+          "endLine": 451,
+          "params": [
+            "cashier_client"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "_seed_product",
+          "line": 20,
+          "isDefault": false
+        },
+        {
+          "name": "_seed_lot",
+          "line": 31,
+          "isDefault": false
+        },
+        {
+          "name": "_idem_key",
+          "line": 41,
+          "isDefault": false
+        },
+        {
+          "name": "test_cashier_finalizes_a_one_line_invoice",
+          "line": 48,
+          "isDefault": false
+        },
+        {
+          "name": "test_cashier_finalizes_multi_line_invoice",
+          "line": 78,
+          "isDefault": false
+        },
+        {
+          "name": "test_payment_split_across_modes",
+          "line": 109,
+          "isDefault": false
+        },
+        {
+          "name": "test_payment_mismatch_is_rejected_with_400",
+          "line": 134,
+          "isDefault": false
+        },
+        {
+          "name": "test_quantity_exceeding_stock_is_rejected",
+          "line": 156,
+          "isDefault": false
+        },
+        {
+          "name": "test_unknown_barcode_is_rejected_with_404",
+          "line": 175,
+          "isDefault": false
+        },
+        {
+          "name": "test_idempotency_key_replay_returns_same_invoice",
+          "line": 197,
+          "isDefault": false
+        },
+        {
+          "name": "test_missing_idempotency_key_is_400",
+          "line": 223,
+          "isDefault": false
+        },
+        {
+          "name": "test_two_concurrent_finalizes_for_last_unit_only_one_wins",
+          "line": 244,
+          "isDefault": false
+        },
+        {
+          "name": "test_receiver_cannot_finalize_checkout",
+          "line": 308,
+          "isDefault": false
+        },
+        {
+          "name": "test_owner_can_finalize_checkout",
+          "line": 321,
+          "isDefault": false
+        },
+        {
+          "name": "test_finalized_invoice_lines_are_immutable",
+          "line": 342,
+          "isDefault": false
+        },
+        {
+          "name": "test_finalize_writes_an_invoicing_log",
+          "line": 375,
+          "isDefault": false
+        },
+        {
+          "name": "test_invoice_pdf_is_a_real_pdf",
+          "line": 403,
+          "isDefault": false
+        },
+        {
+          "name": "test_invoice_pdf_is_403_for_receiver",
+          "line": 427,
+          "isDefault": false
+        },
+        {
+          "name": "test_empty_cart_rejected",
+          "line": 441,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "_seed_product",
+          "callee": "client.post",
+          "lineNumber": 23
+        },
+        {
+          "caller": "_seed_product",
+          "callee": "resp.json",
+          "lineNumber": 28
+        },
+        {
+          "caller": "_seed_lot",
+          "callee": "receiver_client.post",
+          "lineNumber": 34
+        },
+        {
+          "caller": "_idem_key",
+          "callee": "uuid.uuid4",
+          "lineNumber": 42
+        },
+        {
+          "caller": "test_cashier_finalizes_a_one_line_invoice",
+          "callee": "_seed_product",
+          "lineNumber": 52
+        },
+        {
+          "caller": "test_cashier_finalizes_a_one_line_invoice",
+          "callee": "_seed_lot",
+          "lineNumber": 53
+        },
+        {
+          "caller": "test_cashier_finalizes_a_one_line_invoice",
+          "callee": "cashier_client.post",
+          "lineNumber": 55
+        },
+        {
+          "caller": "test_cashier_finalizes_a_one_line_invoice",
+          "callee": "_idem_key",
+          "lineNumber": 57
+        },
+        {
+          "caller": "test_cashier_finalizes_a_one_line_invoice",
+          "callee": "resp.json",
+          "lineNumber": 64
+        },
+        {
+          "caller": "test_cashier_finalizes_a_one_line_invoice",
+          "callee": "len",
+          "lineNumber": 70
+        },
+        {
+          "caller": "test_cashier_finalizes_multi_line_invoice",
+          "callee": "_seed_product",
+          "lineNumber": 83
+        },
+        {
+          "caller": "test_cashier_finalizes_multi_line_invoice",
+          "callee": "_seed_lot",
+          "lineNumber": 84
+        },
+        {
+          "caller": "test_cashier_finalizes_multi_line_invoice",
+          "callee": "cashier_client.post",
+          "lineNumber": 89
+        },
+        {
+          "caller": "test_cashier_finalizes_multi_line_invoice",
+          "callee": "_idem_key",
+          "lineNumber": 91
+        },
+        {
+          "caller": "test_cashier_finalizes_multi_line_invoice",
+          "callee": "resp.json",
+          "lineNumber": 101
+        },
+        {
+          "caller": "test_cashier_finalizes_multi_line_invoice",
+          "callee": "len",
+          "lineNumber": 103
+        },
+        {
+          "caller": "test_payment_split_across_modes",
+          "callee": "_seed_product",
+          "lineNumber": 113
+        },
+        {
+          "caller": "test_payment_split_across_modes",
+          "callee": "_seed_lot",
+          "lineNumber": 114
+        },
+        {
+          "caller": "test_payment_split_across_modes",
+          "callee": "cashier_client.post",
+          "lineNumber": 116
+        },
+        {
+          "caller": "test_payment_split_across_modes",
+          "callee": "_idem_key",
+          "lineNumber": 118
+        },
+        {
+          "caller": "test_payment_split_across_modes",
+          "callee": "resp.json",
+          "lineNumber": 128
+        },
+        {
+          "caller": "test_payment_mismatch_is_rejected_with_400",
+          "callee": "_seed_product",
+          "lineNumber": 138
+        },
+        {
+          "caller": "test_payment_mismatch_is_rejected_with_400",
+          "callee": "_seed_lot",
+          "lineNumber": 139
+        },
+        {
+          "caller": "test_payment_mismatch_is_rejected_with_400",
+          "callee": "cashier_client.post",
+          "lineNumber": 141
+        },
+        {
+          "caller": "test_payment_mismatch_is_rejected_with_400",
+          "callee": "_idem_key",
+          "lineNumber": 143
+        },
+        {
+          "caller": "test_payment_mismatch_is_rejected_with_400",
+          "callee": "resp.json",
+          "lineNumber": 150
+        },
+        {
+          "caller": "test_quantity_exceeding_stock_is_rejected",
+          "callee": "_seed_product",
+          "lineNumber": 160
+        },
+        {
+          "caller": "test_quantity_exceeding_stock_is_rejected",
+          "callee": "_seed_lot",
+          "lineNumber": 161
+        },
+        {
+          "caller": "test_quantity_exceeding_stock_is_rejected",
+          "callee": "cashier_client.post",
+          "lineNumber": 163
+        },
+        {
+          "caller": "test_quantity_exceeding_stock_is_rejected",
+          "callee": "_idem_key",
+          "lineNumber": 165
+        },
+        {
+          "caller": "test_quantity_exceeding_stock_is_rejected",
+          "callee": "resp.json",
+          "lineNumber": 172
+        },
+        {
+          "caller": "test_unknown_barcode_is_rejected_with_404",
+          "callee": "_seed_product",
+          "lineNumber": 179
+        },
+        {
+          "caller": "test_unknown_barcode_is_rejected_with_404",
+          "callee": "_seed_lot",
+          "lineNumber": 180
+        },
+        {
+          "caller": "test_unknown_barcode_is_rejected_with_404",
+          "callee": "cashier_client.post",
+          "lineNumber": 182
+        },
+        {
+          "caller": "test_unknown_barcode_is_rejected_with_404",
+          "callee": "_idem_key",
+          "lineNumber": 184
+        },
+        {
+          "caller": "test_unknown_barcode_is_rejected_with_404",
+          "callee": "resp.json",
+          "lineNumber": 191
+        },
+        {
+          "caller": "test_idempotency_key_replay_returns_same_invoice",
+          "callee": "_seed_product",
+          "lineNumber": 201
+        },
+        {
+          "caller": "test_idempotency_key_replay_returns_same_invoice",
+          "callee": "_seed_lot",
+          "lineNumber": 202
+        },
+        {
+          "caller": "test_idempotency_key_replay_returns_same_invoice",
+          "callee": "_idem_key",
+          "lineNumber": 204
+        },
+        {
+          "caller": "test_idempotency_key_replay_returns_same_invoice",
+          "callee": "cashier_client.post",
+          "lineNumber": 209
+        },
+        {
+          "caller": "test_idempotency_key_replay_returns_same_invoice",
+          "callee": "first.json",
+          "lineNumber": 213
+        },
+        {
+          "caller": "test_idempotency_key_replay_returns_same_invoice",
+          "callee": "cashier_client.post",
+          "lineNumber": 215
+        },
+        {
+          "caller": "test_idempotency_key_replay_returns_same_invoice",
+          "callee": "second.json",
+          "lineNumber": 219
+        },
+        {
+          "caller": "test_idempotency_key_replay_returns_same_invoice",
+          "callee": "second.json",
+          "lineNumber": 220
+        },
+        {
+          "caller": "test_missing_idempotency_key_is_400",
+          "callee": "_seed_product",
+          "lineNumber": 227
+        },
+        {
+          "caller": "test_missing_idempotency_key_is_400",
+          "callee": "_seed_lot",
+          "lineNumber": 228
+        },
+        {
+          "caller": "test_missing_idempotency_key_is_400",
+          "callee": "cashier_client.post",
+          "lineNumber": 230
+        },
+        {
+          "caller": "test_missing_idempotency_key_is_400",
+          "callee": "resp.json",
+          "lineNumber": 238
+        },
+        {
+          "caller": "test_two_concurrent_finalizes_for_last_unit_only_one_wins",
+          "callee": "_seed_product",
+          "lineNumber": 251
+        },
+        {
+          "caller": "test_two_concurrent_finalizes_for_last_unit_only_one_wins",
+          "callee": "_seed_lot",
+          "lineNumber": 253
+        },
+        {
+          "caller": "cashier_call",
+          "callee": "HttpxClient",
+          "lineNumber": 269
+        },
+        {
+          "caller": "cashier_call",
+          "callee": "ASGITransport",
+          "lineNumber": 269
+        },
+        {
+          "caller": "cashier_call",
+          "callee": "c.post",
+          "lineNumber": 270
+        },
+        {
+          "caller": "cashier_call",
+          "callee": "login.json",
+          "lineNumber": 274
+        },
+        {
+          "caller": "cashier_call",
+          "callee": "c.post",
+          "lineNumber": 275
+        },
+        {
+          "caller": "cashier_call",
+          "callee": "_idem_key",
+          "lineNumber": 277
+        },
+        {
+          "caller": "test_two_concurrent_finalizes_for_last_unit_only_one_wins",
+          "callee": "asyncio.gather",
+          "lineNumber": 285
+        },
+        {
+          "caller": "test_two_concurrent_finalizes_for_last_unit_only_one_wins",
+          "callee": "cashier_call",
+          "lineNumber": 285
+        },
+        {
+          "caller": "test_two_concurrent_finalizes_for_last_unit_only_one_wins",
+          "callee": "cashier_call",
+          "lineNumber": 285
+        },
+        {
+          "caller": "test_two_concurrent_finalizes_for_last_unit_only_one_wins",
+          "callee": "sorted",
+          "lineNumber": 286
+        },
+        {
+          "caller": "test_two_concurrent_finalizes_for_last_unit_only_one_wins",
+          "callee": "get_sessionmaker",
+          "lineNumber": 292
+        },
+        {
+          "caller": "test_two_concurrent_finalizes_for_last_unit_only_one_wins",
+          "callee": "Session",
+          "lineNumber": 293
+        },
+        {
+          "caller": "test_two_concurrent_finalizes_for_last_unit_only_one_wins",
+          "callee": "session.begin",
+          "lineNumber": 293
+        },
+        {
+          "caller": "test_two_concurrent_finalizes_for_last_unit_only_one_wins",
+          "callee": "(await session.execute(select(Invoice))).scalars().all",
+          "lineNumber": 294
+        },
+        {
+          "caller": "test_two_concurrent_finalizes_for_last_unit_only_one_wins",
+          "callee": "(await session.execute(select(Invoice))).scalars",
+          "lineNumber": 294
+        },
+        {
+          "caller": "test_two_concurrent_finalizes_for_last_unit_only_one_wins",
+          "callee": "session.execute",
+          "lineNumber": 294
+        },
+        {
+          "caller": "test_two_concurrent_finalizes_for_last_unit_only_one_wins",
+          "callee": "select",
+          "lineNumber": 294
+        },
+        {
+          "caller": "test_two_concurrent_finalizes_for_last_unit_only_one_wins",
+          "callee": "len",
+          "lineNumber": 295
+        },
+        {
+          "caller": "test_two_concurrent_finalizes_for_last_unit_only_one_wins",
+          "callee": "(\n            await session.execute(\n                select(LotLine.product_id)\n            )\n        ).all",
+          "lineNumber": 297
+        },
+        {
+          "caller": "test_two_concurrent_finalizes_for_last_unit_only_one_wins",
+          "callee": "session.execute",
+          "lineNumber": 298
+        },
+        {
+          "caller": "test_two_concurrent_finalizes_for_last_unit_only_one_wins",
+          "callee": "select",
+          "lineNumber": 299
+        },
+        {
+          "caller": "test_two_concurrent_finalizes_for_last_unit_only_one_wins",
+          "callee": "len",
+          "lineNumber": 302
+        },
+        {
+          "caller": "test_receiver_cannot_finalize_checkout",
+          "callee": "receiver_client.post",
+          "lineNumber": 310
+        },
+        {
+          "caller": "test_receiver_cannot_finalize_checkout",
+          "callee": "_idem_key",
+          "lineNumber": 312
+        },
+        {
+          "caller": "test_owner_can_finalize_checkout",
+          "callee": "_seed_product",
+          "lineNumber": 325
+        },
+        {
+          "caller": "test_owner_can_finalize_checkout",
+          "callee": "_seed_lot",
+          "lineNumber": 326
+        },
+        {
+          "caller": "test_owner_can_finalize_checkout",
+          "callee": "owner_client.post",
+          "lineNumber": 328
+        },
+        {
+          "caller": "test_owner_can_finalize_checkout",
+          "callee": "_idem_key",
+          "lineNumber": 330
+        },
+        {
+          "caller": "test_finalized_invoice_lines_are_immutable",
+          "callee": "_seed_product",
+          "lineNumber": 348
+        },
+        {
+          "caller": "test_finalized_invoice_lines_are_immutable",
+          "callee": "_seed_lot",
+          "lineNumber": 349
+        },
+        {
+          "caller": "test_finalized_invoice_lines_are_immutable",
+          "callee": "cashier_client.post",
+          "lineNumber": 350
+        },
+        {
+          "caller": "test_finalized_invoice_lines_are_immutable",
+          "callee": "_idem_key",
+          "lineNumber": 352
+        },
+        {
+          "caller": "test_finalized_invoice_lines_are_immutable",
+          "callee": "cr.json",
+          "lineNumber": 358
+        },
+        {
+          "caller": "test_finalized_invoice_lines_are_immutable",
+          "callee": "cashier_client.get",
+          "lineNumber": 361
+        },
+        {
+          "caller": "test_finalized_invoice_lines_are_immutable",
+          "callee": "g.json",
+          "lineNumber": 363
+        },
+        {
+          "caller": "test_finalized_invoice_lines_are_immutable",
+          "callee": "getattr",
+          "lineNumber": 368
+        },
+        {
+          "caller": "test_finalize_writes_an_invoicing_log",
+          "callee": "_seed_product",
+          "lineNumber": 382
+        },
+        {
+          "caller": "test_finalize_writes_an_invoicing_log",
+          "callee": "_seed_lot",
+          "lineNumber": 383
+        },
+        {
+          "caller": "test_finalize_writes_an_invoicing_log",
+          "callee": "cashier_client.post",
+          "lineNumber": 385
+        },
+        {
+          "caller": "test_finalize_writes_an_invoicing_log",
+          "callee": "_idem_key",
+          "lineNumber": 387
+        },
+        {
+          "caller": "test_finalize_writes_an_invoicing_log",
+          "callee": "cr.json",
+          "lineNumber": 393
+        },
+        {
+          "caller": "test_finalize_writes_an_invoicing_log",
+          "callee": "(await db_session.execute(select(InvoicingLog))).scalars().all",
+          "lineNumber": 394
+        },
+        {
+          "caller": "test_finalize_writes_an_invoicing_log",
+          "callee": "(await db_session.execute(select(InvoicingLog))).scalars",
+          "lineNumber": 394
+        },
+        {
+          "caller": "test_finalize_writes_an_invoicing_log",
+          "callee": "db_session.execute",
+          "lineNumber": 394
+        },
+        {
+          "caller": "test_finalize_writes_an_invoicing_log",
+          "callee": "select",
+          "lineNumber": 394
+        },
+        {
+          "caller": "test_finalize_writes_an_invoicing_log",
+          "callee": "len",
+          "lineNumber": 396
+        },
+        {
+          "caller": "test_invoice_pdf_is_a_real_pdf",
+          "callee": "_seed_product",
+          "lineNumber": 407
+        },
+        {
+          "caller": "test_invoice_pdf_is_a_real_pdf",
+          "callee": "_seed_lot",
+          "lineNumber": 408
+        },
+        {
+          "caller": "test_invoice_pdf_is_a_real_pdf",
+          "callee": "cashier_client.post",
+          "lineNumber": 409
+        },
+        {
+          "caller": "test_invoice_pdf_is_a_real_pdf",
+          "callee": "_idem_key",
+          "lineNumber": 411
+        },
+        {
+          "caller": "test_invoice_pdf_is_a_real_pdf",
+          "callee": "cr.json",
+          "lineNumber": 417
+        },
+        {
+          "caller": "test_invoice_pdf_is_a_real_pdf",
+          "callee": "cashier_client.get",
+          "lineNumber": 419
+        },
+        {
+          "caller": "test_invoice_pdf_is_a_real_pdf",
+          "callee": "body.startswith",
+          "lineNumber": 423
+        },
+        {
+          "caller": "test_invoice_pdf_is_a_real_pdf",
+          "callee": "len",
+          "lineNumber": 424
+        },
+        {
+          "caller": "test_invoice_pdf_is_403_for_receiver",
+          "callee": "_seed_product",
+          "lineNumber": 433
+        },
+        {
+          "caller": "test_invoice_pdf_is_403_for_receiver",
+          "callee": "receiver_client.get",
+          "lineNumber": 434
+        },
+        {
+          "caller": "test_empty_cart_rejected",
+          "callee": "cashier_client.post",
+          "lineNumber": 445
+        },
+        {
+          "caller": "test_empty_cart_rejected",
+          "callee": "_idem_key",
+          "lineNumber": 447
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 19,
+        "functionCount": 19,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "tests/test_lots.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 260,
+      "nonEmptyLines": 226,
+      "functions": [
+        {
+          "name": "_create_product",
+          "startLine": 13,
+          "endLine": 19,
+          "params": [
+            "client",
+            "barcode",
+            "brand"
+          ]
+        },
+        {
+          "name": "test_receiver_creates_lot_with_one_line",
+          "startLine": 23,
+          "endLine": 44,
+          "params": [
+            "receiver_client",
+            "owner_client"
+          ]
+        },
+        {
+          "name": "test_receiver_creates_lot_with_many_lines",
+          "startLine": 48,
+          "endLine": 71,
+          "params": [
+            "receiver_client",
+            "owner_client"
+          ]
+        },
+        {
+          "name": "test_cashier_cannot_create_lot",
+          "startLine": 75,
+          "endLine": 80,
+          "params": [
+            "cashier_client"
+          ]
+        },
+        {
+          "name": "test_owner_can_also_create_lot",
+          "startLine": 84,
+          "endLine": 92,
+          "params": [
+            "owner_client"
+          ]
+        },
+        {
+          "name": "test_unknown_barcode_in_lot_returns_404",
+          "startLine": 96,
+          "endLine": 105,
+          "params": [
+            "receiver_client",
+            "owner_client"
+          ]
+        },
+        {
+          "name": "test_barcode_must_exist_in_receiver_shop_only",
+          "startLine": 109,
+          "endLine": 121,
+          "params": [
+            "receiver_client"
+          ]
+        },
+        {
+          "name": "test_empty_lot_rejected",
+          "startLine": 125,
+          "endLine": 127,
+          "params": [
+            "receiver_client"
+          ]
+        },
+        {
+          "name": "test_duplicate_barcode_in_lot_rejected",
+          "startLine": 131,
+          "endLine": 145,
+          "params": [
+            "receiver_client",
+            "owner_client"
+          ]
+        },
+        {
+          "name": "test_receiving_writes_a_stockin_log",
+          "startLine": 149,
+          "endLine": 166,
+          "params": [
+            "receiver_client",
+            "owner_client",
+            "db_session"
+          ]
+        },
+        {
+          "name": "test_receiving_increases_derivable_stock",
+          "startLine": 170,
+          "endLine": 209,
+          "params": [
+            "receiver_client",
+            "owner_client",
+            "db_session"
+          ]
+        },
+        {
+          "name": "test_lot_listing_is_shop_scoped",
+          "startLine": 213,
+          "endLine": 238,
+          "params": [
+            "receiver_client",
+            "owner_client"
+          ]
+        },
+        {
+          "name": "test_get_lot_by_id",
+          "startLine": 242,
+          "endLine": 254,
+          "params": [
+            "receiver_client",
+            "owner_client"
+          ]
+        },
+        {
+          "name": "test_cashier_cannot_list_lots",
+          "startLine": 258,
+          "endLine": 260,
+          "params": [
+            "cashier_client"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "_create_product",
+          "line": 13,
+          "isDefault": false
+        },
+        {
+          "name": "test_receiver_creates_lot_with_one_line",
+          "line": 22,
+          "isDefault": false
+        },
+        {
+          "name": "test_receiver_creates_lot_with_many_lines",
+          "line": 47,
+          "isDefault": false
+        },
+        {
+          "name": "test_cashier_cannot_create_lot",
+          "line": 74,
+          "isDefault": false
+        },
+        {
+          "name": "test_owner_can_also_create_lot",
+          "line": 83,
+          "isDefault": false
+        },
+        {
+          "name": "test_unknown_barcode_in_lot_returns_404",
+          "line": 95,
+          "isDefault": false
+        },
+        {
+          "name": "test_barcode_must_exist_in_receiver_shop_only",
+          "line": 108,
+          "isDefault": false
+        },
+        {
+          "name": "test_empty_lot_rejected",
+          "line": 124,
+          "isDefault": false
+        },
+        {
+          "name": "test_duplicate_barcode_in_lot_rejected",
+          "line": 130,
+          "isDefault": false
+        },
+        {
+          "name": "test_receiving_writes_a_stockin_log",
+          "line": 148,
+          "isDefault": false
+        },
+        {
+          "name": "test_receiving_increases_derivable_stock",
+          "line": 169,
+          "isDefault": false
+        },
+        {
+          "name": "test_lot_listing_is_shop_scoped",
+          "line": 212,
+          "isDefault": false
+        },
+        {
+          "name": "test_get_lot_by_id",
+          "line": 241,
+          "isDefault": false
+        },
+        {
+          "name": "test_cashier_cannot_list_lots",
+          "line": 257,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "_create_product",
+          "callee": "client.post",
+          "lineNumber": 14
+        },
+        {
+          "caller": "_create_product",
+          "callee": "resp.json",
+          "lineNumber": 19
+        },
+        {
+          "caller": "test_receiver_creates_lot_with_one_line",
+          "callee": "_create_product",
+          "lineNumber": 26
+        },
+        {
+          "caller": "test_receiver_creates_lot_with_one_line",
+          "callee": "receiver_client.post",
+          "lineNumber": 27
+        },
+        {
+          "caller": "test_receiver_creates_lot_with_one_line",
+          "callee": "resp.json",
+          "lineNumber": 36
+        },
+        {
+          "caller": "test_receiver_creates_lot_with_one_line",
+          "callee": "len",
+          "lineNumber": 42
+        },
+        {
+          "caller": "test_receiver_creates_lot_with_many_lines",
+          "callee": "_create_product",
+          "lineNumber": 56
+        },
+        {
+          "caller": "test_receiver_creates_lot_with_many_lines",
+          "callee": "receiver_client.post",
+          "lineNumber": 57
+        },
+        {
+          "caller": "test_receiver_creates_lot_with_many_lines",
+          "callee": "resp.json",
+          "lineNumber": 68
+        },
+        {
+          "caller": "test_receiver_creates_lot_with_many_lines",
+          "callee": "len",
+          "lineNumber": 69
+        },
+        {
+          "caller": "test_receiver_creates_lot_with_many_lines",
+          "callee": "sum",
+          "lineNumber": 70
+        },
+        {
+          "caller": "test_cashier_cannot_create_lot",
+          "callee": "cashier_client.post",
+          "lineNumber": 76
+        },
+        {
+          "caller": "test_owner_can_also_create_lot",
+          "callee": "_create_product",
+          "lineNumber": 87
+        },
+        {
+          "caller": "test_owner_can_also_create_lot",
+          "callee": "owner_client.post",
+          "lineNumber": 88
+        },
+        {
+          "caller": "test_unknown_barcode_in_lot_returns_404",
+          "callee": "_create_product",
+          "lineNumber": 99
+        },
+        {
+          "caller": "test_unknown_barcode_in_lot_returns_404",
+          "callee": "receiver_client.post",
+          "lineNumber": 100
+        },
+        {
+          "caller": "test_unknown_barcode_in_lot_returns_404",
+          "callee": "resp.json",
+          "lineNumber": 105
+        },
+        {
+          "caller": "test_barcode_must_exist_in_receiver_shop_only",
+          "callee": "receiver_client.post",
+          "lineNumber": 117
+        },
+        {
+          "caller": "test_empty_lot_rejected",
+          "callee": "receiver_client.post",
+          "lineNumber": 126
+        },
+        {
+          "caller": "test_duplicate_barcode_in_lot_rejected",
+          "callee": "_create_product",
+          "lineNumber": 134
+        },
+        {
+          "caller": "test_duplicate_barcode_in_lot_rejected",
+          "callee": "receiver_client.post",
+          "lineNumber": 135
+        },
+        {
+          "caller": "test_receiving_writes_a_stockin_log",
+          "callee": "_create_product",
+          "lineNumber": 152
+        },
+        {
+          "caller": "test_receiving_writes_a_stockin_log",
+          "callee": "receiver_client.post",
+          "lineNumber": 153
+        },
+        {
+          "caller": "test_receiving_writes_a_stockin_log",
+          "callee": "resp.json",
+          "lineNumber": 158
+        },
+        {
+          "caller": "test_receiving_writes_a_stockin_log",
+          "callee": "(await db_session.execute(select(StockinLog))).scalars().all",
+          "lineNumber": 160
+        },
+        {
+          "caller": "test_receiving_writes_a_stockin_log",
+          "callee": "(await db_session.execute(select(StockinLog))).scalars",
+          "lineNumber": 160
+        },
+        {
+          "caller": "test_receiving_writes_a_stockin_log",
+          "callee": "db_session.execute",
+          "lineNumber": 160
+        },
+        {
+          "caller": "test_receiving_writes_a_stockin_log",
+          "callee": "select",
+          "lineNumber": 160
+        },
+        {
+          "caller": "test_receiving_writes_a_stockin_log",
+          "callee": "len",
+          "lineNumber": 161
+        },
+        {
+          "caller": "test_receiving_writes_a_stockin_log",
+          "callee": "len",
+          "lineNumber": 164
+        },
+        {
+          "caller": "test_receiving_increases_derivable_stock",
+          "callee": "_create_product",
+          "lineNumber": 178
+        },
+        {
+          "caller": "test_receiving_increases_derivable_stock",
+          "callee": "_create_product",
+          "lineNumber": 179
+        },
+        {
+          "caller": "test_receiving_increases_derivable_stock",
+          "callee": "receiver_client.post",
+          "lineNumber": 180
+        },
+        {
+          "caller": "test_receiving_increases_derivable_stock",
+          "callee": "(\r\n        await db_session.execute(\r\n            select(Product).where(Product.barcode.in_([\"8900000000009\", \"8900000000010\"]))\r\n        )\r\n    ).scalars().all",
+          "lineNumber": 193
+        },
+        {
+          "caller": "test_receiving_increases_derivable_stock",
+          "callee": "(\r\n        await db_session.execute(\r\n            select(Product).where(Product.barcode.in_([\"8900000000009\", \"8900000000010\"]))\r\n        )\r\n    ).scalars",
+          "lineNumber": 193
+        },
+        {
+          "caller": "test_receiving_increases_derivable_stock",
+          "callee": "db_session.execute",
+          "lineNumber": 194
+        },
+        {
+          "caller": "test_receiving_increases_derivable_stock",
+          "callee": "select(Product).where",
+          "lineNumber": 195
+        },
+        {
+          "caller": "test_receiving_increases_derivable_stock",
+          "callee": "select",
+          "lineNumber": 195
+        },
+        {
+          "caller": "test_receiving_increases_derivable_stock",
+          "callee": "Product.barcode.in_",
+          "lineNumber": 195
+        },
+        {
+          "caller": "test_receiving_increases_derivable_stock",
+          "callee": "(\r\n        await db_session.execute(\r\n            select(LotLine.product_id, func.coalesce(func.sum(LotLine.quantity), 0))\r\n            .group_by(LotLine.product_id)\r\n        )\r\n    ).all",
+          "lineNumber": 202
+        },
+        {
+          "caller": "test_receiving_increases_derivable_stock",
+          "callee": "db_session.execute",
+          "lineNumber": 203
+        },
+        {
+          "caller": "test_receiving_increases_derivable_stock",
+          "callee": "select(LotLine.product_id, func.coalesce(func.sum(LotLine.quantity), 0))\r\n            .group_by",
+          "lineNumber": 204
+        },
+        {
+          "caller": "test_receiving_increases_derivable_stock",
+          "callee": "select",
+          "lineNumber": 204
+        },
+        {
+          "caller": "test_receiving_increases_derivable_stock",
+          "callee": "func.coalesce",
+          "lineNumber": 204
+        },
+        {
+          "caller": "test_receiving_increases_derivable_stock",
+          "callee": "func.sum",
+          "lineNumber": 204
+        },
+        {
+          "caller": "test_receiving_increases_derivable_stock",
+          "callee": "dict",
+          "lineNumber": 208
+        },
+        {
+          "caller": "test_lot_listing_is_shop_scoped",
+          "callee": "_create_product",
+          "lineNumber": 217
+        },
+        {
+          "caller": "test_lot_listing_is_shop_scoped",
+          "callee": "receiver_client.post",
+          "lineNumber": 218
+        },
+        {
+          "caller": "test_lot_listing_is_shop_scoped",
+          "callee": "receiver_client.post",
+          "lineNumber": 225
+        },
+        {
+          "caller": "test_lot_listing_is_shop_scoped",
+          "callee": "receiver_client.get",
+          "lineNumber": 232
+        },
+        {
+          "caller": "test_lot_listing_is_shop_scoped",
+          "callee": "resp.json",
+          "lineNumber": 234
+        },
+        {
+          "caller": "test_lot_listing_is_shop_scoped",
+          "callee": "len",
+          "lineNumber": 235
+        },
+        {
+          "caller": "test_get_lot_by_id",
+          "callee": "_create_product",
+          "lineNumber": 245
+        },
+        {
+          "caller": "test_get_lot_by_id",
+          "callee": "receiver_client.post",
+          "lineNumber": 246
+        },
+        {
+          "caller": "test_get_lot_by_id",
+          "callee": "cr.json",
+          "lineNumber": 250
+        },
+        {
+          "caller": "test_get_lot_by_id",
+          "callee": "receiver_client.get",
+          "lineNumber": 251
+        },
+        {
+          "caller": "test_get_lot_by_id",
+          "callee": "resp.json",
+          "lineNumber": 253
+        },
+        {
+          "caller": "test_get_lot_by_id",
+          "callee": "len",
+          "lineNumber": 254
+        },
+        {
+          "caller": "test_get_lot_by_id",
+          "callee": "resp.json",
+          "lineNumber": 254
+        },
+        {
+          "caller": "test_cashier_cannot_list_lots",
+          "callee": "cashier_client.get",
+          "lineNumber": 259
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 14,
+        "functionCount": 14,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "tests/test_low_stock.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 256,
+      "nonEmptyLines": 212,
+      "functions": [
+        {
+          "name": "_seed_product",
+          "startLine": 14,
+          "endLine": 22,
+          "params": [
+            "client",
+            "barcode",
+            "price",
+            "brand"
+          ]
+        },
+        {
+          "name": "_seed_lot",
+          "startLine": 25,
+          "endLine": 32,
+          "params": [
+            "receiver_client",
+            "items"
+          ]
+        },
+        {
+          "name": "_finalize",
+          "startLine": 35,
+          "endLine": 52,
+          "params": [
+            "cashier_client",
+            "barcode",
+            "quantity",
+            "amount"
+          ]
+        },
+        {
+          "name": "test_no_default_no_overrides_returns_empty",
+          "startLine": 59,
+          "endLine": 69,
+          "params": [
+            "owner_client",
+            "receiver_client"
+          ]
+        },
+        {
+          "name": "test_per_product_override_triggers_alert",
+          "startLine": 73,
+          "endLine": 92,
+          "params": [
+            "owner_client",
+            "receiver_client"
+          ]
+        },
+        {
+          "name": "test_product_above_threshold_not_in_list",
+          "startLine": 96,
+          "endLine": 110,
+          "params": [
+            "owner_client",
+            "receiver_client",
+            "db_session"
+          ]
+        },
+        {
+          "name": "test_product_at_threshold_appears",
+          "startLine": 114,
+          "endLine": 131,
+          "params": [
+            "owner_client",
+            "receiver_client",
+            "db_session"
+          ]
+        },
+        {
+          "name": "test_sale_brings_product_below_threshold",
+          "startLine": 135,
+          "endLine": 158,
+          "params": [
+            "owner_client",
+            "receiver_client",
+            "cashier_client",
+            "db_session"
+          ]
+        },
+        {
+          "name": "test_per_product_override_beats_shop_default",
+          "startLine": 162,
+          "endLine": 195,
+          "params": [
+            "owner_client",
+            "receiver_client",
+            "db_session"
+          ]
+        },
+        {
+          "name": "test_list_sorted_most_urgent_first",
+          "startLine": 199,
+          "endLine": 216,
+          "params": [
+            "owner_client",
+            "receiver_client",
+            "db_session"
+          ]
+        },
+        {
+          "name": "test_receiver_can_view_low_stock",
+          "startLine": 220,
+          "endLine": 233,
+          "params": [
+            "owner_client",
+            "receiver_client",
+            "db_session"
+          ]
+        },
+        {
+          "name": "test_low_stock_inactive_products_excluded",
+          "startLine": 237,
+          "endLine": 256,
+          "params": [
+            "owner_client",
+            "receiver_client",
+            "db_session"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "_seed_product",
+          "line": 14,
+          "isDefault": false
+        },
+        {
+          "name": "_seed_lot",
+          "line": 25,
+          "isDefault": false
+        },
+        {
+          "name": "_finalize",
+          "line": 35,
+          "isDefault": false
+        },
+        {
+          "name": "test_no_default_no_overrides_returns_empty",
+          "line": 58,
+          "isDefault": false
+        },
+        {
+          "name": "test_per_product_override_triggers_alert",
+          "line": 72,
+          "isDefault": false
+        },
+        {
+          "name": "test_product_above_threshold_not_in_list",
+          "line": 95,
+          "isDefault": false
+        },
+        {
+          "name": "test_product_at_threshold_appears",
+          "line": 113,
+          "isDefault": false
+        },
+        {
+          "name": "test_sale_brings_product_below_threshold",
+          "line": 134,
+          "isDefault": false
+        },
+        {
+          "name": "test_per_product_override_beats_shop_default",
+          "line": 161,
+          "isDefault": false
+        },
+        {
+          "name": "test_list_sorted_most_urgent_first",
+          "line": 198,
+          "isDefault": false
+        },
+        {
+          "name": "test_receiver_can_view_low_stock",
+          "line": 219,
+          "isDefault": false
+        },
+        {
+          "name": "test_low_stock_inactive_products_excluded",
+          "line": 236,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "_seed_product",
+          "callee": "client.post",
+          "lineNumber": 17
+        },
+        {
+          "caller": "_seed_product",
+          "callee": "resp.json",
+          "lineNumber": 22
+        },
+        {
+          "caller": "_seed_lot",
+          "callee": "receiver_client.post",
+          "lineNumber": 28
+        },
+        {
+          "caller": "_finalize",
+          "callee": "cashier_client.post",
+          "lineNumber": 44
+        },
+        {
+          "caller": "_finalize",
+          "callee": "uuid.uuid4",
+          "lineNumber": 46
+        },
+        {
+          "caller": "test_no_default_no_overrides_returns_empty",
+          "callee": "_seed_product",
+          "lineNumber": 64
+        },
+        {
+          "caller": "test_no_default_no_overrides_returns_empty",
+          "callee": "_seed_lot",
+          "lineNumber": 65
+        },
+        {
+          "caller": "test_no_default_no_overrides_returns_empty",
+          "callee": "owner_client.get",
+          "lineNumber": 67
+        },
+        {
+          "caller": "test_no_default_no_overrides_returns_empty",
+          "callee": "resp.json",
+          "lineNumber": 69
+        },
+        {
+          "caller": "test_per_product_override_triggers_alert",
+          "callee": "_seed_product",
+          "lineNumber": 76
+        },
+        {
+          "caller": "test_per_product_override_triggers_alert",
+          "callee": "_seed_lot",
+          "lineNumber": 77
+        },
+        {
+          "caller": "test_per_product_override_triggers_alert",
+          "callee": "owner_client.patch",
+          "lineNumber": 80
+        },
+        {
+          "caller": "test_per_product_override_triggers_alert",
+          "callee": "owner_client.get",
+          "lineNumber": 87
+        },
+        {
+          "caller": "test_per_product_override_triggers_alert",
+          "callee": "resp.json",
+          "lineNumber": 88
+        },
+        {
+          "caller": "test_per_product_override_triggers_alert",
+          "callee": "len",
+          "lineNumber": 89
+        },
+        {
+          "caller": "test_product_above_threshold_not_in_list",
+          "callee": "db_session.execute",
+          "lineNumber": 101
+        },
+        {
+          "caller": "test_product_above_threshold_not_in_list",
+          "callee": "update(Shop).where(Shop.id == 1).values",
+          "lineNumber": 102
+        },
+        {
+          "caller": "test_product_above_threshold_not_in_list",
+          "callee": "update(Shop).where",
+          "lineNumber": 102
+        },
+        {
+          "caller": "test_product_above_threshold_not_in_list",
+          "callee": "update",
+          "lineNumber": 102
+        },
+        {
+          "caller": "test_product_above_threshold_not_in_list",
+          "callee": "db_session.commit",
+          "lineNumber": 104
+        },
+        {
+          "caller": "test_product_above_threshold_not_in_list",
+          "callee": "_seed_product",
+          "lineNumber": 106
+        },
+        {
+          "caller": "test_product_above_threshold_not_in_list",
+          "callee": "_seed_lot",
+          "lineNumber": 107
+        },
+        {
+          "caller": "test_product_above_threshold_not_in_list",
+          "callee": "owner_client.get",
+          "lineNumber": 109
+        },
+        {
+          "caller": "test_product_above_threshold_not_in_list",
+          "callee": "resp.json",
+          "lineNumber": 110
+        },
+        {
+          "caller": "test_product_at_threshold_appears",
+          "callee": "db_session.execute",
+          "lineNumber": 118
+        },
+        {
+          "caller": "test_product_at_threshold_appears",
+          "callee": "update(Shop).where(Shop.id == 1).values",
+          "lineNumber": 119
+        },
+        {
+          "caller": "test_product_at_threshold_appears",
+          "callee": "update(Shop).where",
+          "lineNumber": 119
+        },
+        {
+          "caller": "test_product_at_threshold_appears",
+          "callee": "update",
+          "lineNumber": 119
+        },
+        {
+          "caller": "test_product_at_threshold_appears",
+          "callee": "db_session.commit",
+          "lineNumber": 121
+        },
+        {
+          "caller": "test_product_at_threshold_appears",
+          "callee": "_seed_product",
+          "lineNumber": 123
+        },
+        {
+          "caller": "test_product_at_threshold_appears",
+          "callee": "_seed_lot",
+          "lineNumber": 124
+        },
+        {
+          "caller": "test_product_at_threshold_appears",
+          "callee": "owner_client.get",
+          "lineNumber": 126
+        },
+        {
+          "caller": "test_product_at_threshold_appears",
+          "callee": "resp.json",
+          "lineNumber": 127
+        },
+        {
+          "caller": "test_product_at_threshold_appears",
+          "callee": "len",
+          "lineNumber": 128
+        },
+        {
+          "caller": "test_sale_brings_product_below_threshold",
+          "callee": "db_session.execute",
+          "lineNumber": 144
+        },
+        {
+          "caller": "test_sale_brings_product_below_threshold",
+          "callee": "update(Shop).where(Shop.id == 1).values",
+          "lineNumber": 145
+        },
+        {
+          "caller": "test_sale_brings_product_below_threshold",
+          "callee": "update(Shop).where",
+          "lineNumber": 145
+        },
+        {
+          "caller": "test_sale_brings_product_below_threshold",
+          "callee": "update",
+          "lineNumber": 145
+        },
+        {
+          "caller": "test_sale_brings_product_below_threshold",
+          "callee": "db_session.commit",
+          "lineNumber": 147
+        },
+        {
+          "caller": "test_sale_brings_product_below_threshold",
+          "callee": "_seed_product",
+          "lineNumber": 149
+        },
+        {
+          "caller": "test_sale_brings_product_below_threshold",
+          "callee": "_seed_lot",
+          "lineNumber": 150
+        },
+        {
+          "caller": "test_sale_brings_product_below_threshold",
+          "callee": "_finalize",
+          "lineNumber": 151
+        },
+        {
+          "caller": "test_sale_brings_product_below_threshold",
+          "callee": "owner_client.get",
+          "lineNumber": 153
+        },
+        {
+          "caller": "test_sale_brings_product_below_threshold",
+          "callee": "resp.json",
+          "lineNumber": 154
+        },
+        {
+          "caller": "test_sale_brings_product_below_threshold",
+          "callee": "len",
+          "lineNumber": 155
+        },
+        {
+          "caller": "test_per_product_override_beats_shop_default",
+          "callee": "db_session.execute",
+          "lineNumber": 167
+        },
+        {
+          "caller": "test_per_product_override_beats_shop_default",
+          "callee": "update(Shop).where(Shop.id == 1).values",
+          "lineNumber": 168
+        },
+        {
+          "caller": "test_per_product_override_beats_shop_default",
+          "callee": "update(Shop).where",
+          "lineNumber": 168
+        },
+        {
+          "caller": "test_per_product_override_beats_shop_default",
+          "callee": "update",
+          "lineNumber": 168
+        },
+        {
+          "caller": "test_per_product_override_beats_shop_default",
+          "callee": "db_session.commit",
+          "lineNumber": 170
+        },
+        {
+          "caller": "test_per_product_override_beats_shop_default",
+          "callee": "_seed_product",
+          "lineNumber": 172
+        },
+        {
+          "caller": "test_per_product_override_beats_shop_default",
+          "callee": "_seed_product",
+          "lineNumber": 173
+        },
+        {
+          "caller": "test_per_product_override_beats_shop_default",
+          "callee": "_seed_lot",
+          "lineNumber": 174
+        },
+        {
+          "caller": "test_per_product_override_beats_shop_default",
+          "callee": "(\r\n        await db_session.execute(\r\n            select(Product).where(Product.barcode == \"8905000000006\")\r\n        )\r\n    ).scalar_one",
+          "lineNumber": 180
+        },
+        {
+          "caller": "test_per_product_override_beats_shop_default",
+          "callee": "db_session.execute",
+          "lineNumber": 181
+        },
+        {
+          "caller": "test_per_product_override_beats_shop_default",
+          "callee": "select(Product).where",
+          "lineNumber": 182
+        },
+        {
+          "caller": "test_per_product_override_beats_shop_default",
+          "callee": "select",
+          "lineNumber": 182
+        },
+        {
+          "caller": "test_per_product_override_beats_shop_default",
+          "callee": "owner_client.patch",
+          "lineNumber": 185
+        },
+        {
+          "caller": "test_per_product_override_beats_shop_default",
+          "callee": "owner_client.get",
+          "lineNumber": 189
+        },
+        {
+          "caller": "test_per_product_override_beats_shop_default",
+          "callee": "resp.json",
+          "lineNumber": 190
+        },
+        {
+          "caller": "test_list_sorted_most_urgent_first",
+          "callee": "db_session.execute",
+          "lineNumber": 202
+        },
+        {
+          "caller": "test_list_sorted_most_urgent_first",
+          "callee": "update(Shop).where(Shop.id == 1).values",
+          "lineNumber": 203
+        },
+        {
+          "caller": "test_list_sorted_most_urgent_first",
+          "callee": "update(Shop).where",
+          "lineNumber": 203
+        },
+        {
+          "caller": "test_list_sorted_most_urgent_first",
+          "callee": "update",
+          "lineNumber": 203
+        },
+        {
+          "caller": "test_list_sorted_most_urgent_first",
+          "callee": "db_session.commit",
+          "lineNumber": 205
+        },
+        {
+          "caller": "test_list_sorted_most_urgent_first",
+          "callee": "_seed_product",
+          "lineNumber": 207
+        },
+        {
+          "caller": "test_list_sorted_most_urgent_first",
+          "callee": "_seed_lot",
+          "lineNumber": 208
+        },
+        {
+          "caller": "test_list_sorted_most_urgent_first",
+          "callee": "owner_client.get",
+          "lineNumber": 213
+        },
+        {
+          "caller": "test_list_sorted_most_urgent_first",
+          "callee": "resp.json",
+          "lineNumber": 214
+        },
+        {
+          "caller": "test_list_sorted_most_urgent_first",
+          "callee": "sorted",
+          "lineNumber": 216
+        },
+        {
+          "caller": "test_receiver_can_view_low_stock",
+          "callee": "db_session.execute",
+          "lineNumber": 223
+        },
+        {
+          "caller": "test_receiver_can_view_low_stock",
+          "callee": "update(Shop).where(Shop.id == 1).values",
+          "lineNumber": 224
+        },
+        {
+          "caller": "test_receiver_can_view_low_stock",
+          "callee": "update(Shop).where",
+          "lineNumber": 224
+        },
+        {
+          "caller": "test_receiver_can_view_low_stock",
+          "callee": "update",
+          "lineNumber": 224
+        },
+        {
+          "caller": "test_receiver_can_view_low_stock",
+          "callee": "db_session.commit",
+          "lineNumber": 226
+        },
+        {
+          "caller": "test_receiver_can_view_low_stock",
+          "callee": "_seed_product",
+          "lineNumber": 227
+        },
+        {
+          "caller": "test_receiver_can_view_low_stock",
+          "callee": "_seed_lot",
+          "lineNumber": 228
+        },
+        {
+          "caller": "test_receiver_can_view_low_stock",
+          "callee": "receiver_client.get",
+          "lineNumber": 231
+        },
+        {
+          "caller": "test_receiver_can_view_low_stock",
+          "callee": "len",
+          "lineNumber": 233
+        },
+        {
+          "caller": "test_receiver_can_view_low_stock",
+          "callee": "resp.json",
+          "lineNumber": 233
+        },
+        {
+          "caller": "test_low_stock_inactive_products_excluded",
+          "callee": "db_session.execute",
+          "lineNumber": 240
+        },
+        {
+          "caller": "test_low_stock_inactive_products_excluded",
+          "callee": "update(Shop).where(Shop.id == 1).values",
+          "lineNumber": 241
+        },
+        {
+          "caller": "test_low_stock_inactive_products_excluded",
+          "callee": "update(Shop).where",
+          "lineNumber": 241
+        },
+        {
+          "caller": "test_low_stock_inactive_products_excluded",
+          "callee": "update",
+          "lineNumber": 241
+        },
+        {
+          "caller": "test_low_stock_inactive_products_excluded",
+          "callee": "db_session.commit",
+          "lineNumber": 243
+        },
+        {
+          "caller": "test_low_stock_inactive_products_excluded",
+          "callee": "_seed_product",
+          "lineNumber": 244
+        },
+        {
+          "caller": "test_low_stock_inactive_products_excluded",
+          "callee": "_seed_lot",
+          "lineNumber": 245
+        },
+        {
+          "caller": "test_low_stock_inactive_products_excluded",
+          "callee": "(\r\n        await db_session.execute(\r\n            select(Product).where(Product.barcode == \"8905000000012\")\r\n        )\r\n    ).scalar_one",
+          "lineNumber": 247
+        },
+        {
+          "caller": "test_low_stock_inactive_products_excluded",
+          "callee": "db_session.execute",
+          "lineNumber": 248
+        },
+        {
+          "caller": "test_low_stock_inactive_products_excluded",
+          "callee": "select(Product).where",
+          "lineNumber": 249
+        },
+        {
+          "caller": "test_low_stock_inactive_products_excluded",
+          "callee": "select",
+          "lineNumber": 249
+        },
+        {
+          "caller": "test_low_stock_inactive_products_excluded",
+          "callee": "db_session.commit",
+          "lineNumber": 253
+        },
+        {
+          "caller": "test_low_stock_inactive_products_excluded",
+          "callee": "owner_client.get",
+          "lineNumber": 255
+        },
+        {
+          "caller": "test_low_stock_inactive_products_excluded",
+          "callee": "resp.json",
+          "lineNumber": 256
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 12,
+        "functionCount": 12,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "tests/test_voids.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 290,
+      "nonEmptyLines": 243,
+      "functions": [
+        {
+          "name": "_seed_product",
+          "startLine": 18,
+          "endLine": 26,
+          "params": [
+            "client",
+            "barcode",
+            "price"
+          ]
+        },
+        {
+          "name": "_seed_lot",
+          "startLine": 29,
+          "endLine": 36,
+          "params": [
+            "receiver_client",
+            "items"
+          ]
+        },
+        {
+          "name": "_finalize",
+          "startLine": 39,
+          "endLine": 55,
+          "params": [
+            "cashier_client",
+            "barcode",
+            "quantity",
+            "amount"
+          ]
+        },
+        {
+          "name": "test_cashier_can_directly_void_a_pre_eod_invoice",
+          "startLine": 62,
+          "endLine": 74,
+          "params": [
+            "cashier_client",
+            "owner_client",
+            "receiver_client"
+          ]
+        },
+        {
+          "name": "test_pre_eod_void_restores_stock",
+          "startLine": 78,
+          "endLine": 111,
+          "params": [
+            "cashier_client",
+            "owner_client",
+            "receiver_client",
+            "db_session"
+          ]
+        },
+        {
+          "name": "test_voiding_a_voided_invoice_returns_409",
+          "startLine": 115,
+          "endLine": 127,
+          "params": [
+            "cashier_client",
+            "owner_client",
+            "receiver_client"
+          ]
+        },
+        {
+          "name": "test_pre_eod_void_writes_invoicing_log",
+          "startLine": 131,
+          "endLine": 151,
+          "params": [
+            "cashier_client",
+            "owner_client",
+            "receiver_client",
+            "db_session"
+          ]
+        },
+        {
+          "name": "_mark_signed_off",
+          "startLine": 157,
+          "endLine": 164,
+          "params": [
+            "db_session",
+            "invoice_id"
+          ]
+        },
+        {
+          "name": "test_cashier_can_request_void_on_signed_off_invoice",
+          "startLine": 168,
+          "endLine": 180,
+          "params": [
+            "cashier_client",
+            "owner_client",
+            "receiver_client",
+            "db_session"
+          ]
+        },
+        {
+          "name": "test_cashier_cannot_approve_pending_void",
+          "startLine": 184,
+          "endLine": 196,
+          "params": [
+            "cashier_client",
+            "owner_client",
+            "receiver_client",
+            "db_session"
+          ]
+        },
+        {
+          "name": "test_owner_approving_pending_void_creates_reversal",
+          "startLine": 200,
+          "endLine": 233,
+          "params": [
+            "cashier_client",
+            "owner_client",
+            "receiver_client",
+            "db_session"
+          ]
+        },
+        {
+          "name": "test_owner_rejecting_pending_void_reverts_to_finalized",
+          "startLine": 237,
+          "endLine": 252,
+          "params": [
+            "cashier_client",
+            "owner_client",
+            "receiver_client",
+            "db_session"
+          ]
+        },
+        {
+          "name": "test_approve_on_non_pending_invoice_is_409",
+          "startLine": 256,
+          "endLine": 267,
+          "params": [
+            "cashier_client",
+            "owner_client",
+            "receiver_client"
+          ]
+        },
+        {
+          "name": "test_void_actions_write_invoicing_logs",
+          "startLine": 271,
+          "endLine": 290,
+          "params": [
+            "cashier_client",
+            "owner_client",
+            "receiver_client",
+            "db_session"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "_seed_product",
+          "line": 18,
+          "isDefault": false
+        },
+        {
+          "name": "_seed_lot",
+          "line": 29,
+          "isDefault": false
+        },
+        {
+          "name": "_finalize",
+          "line": 39,
+          "isDefault": false
+        },
+        {
+          "name": "test_cashier_can_directly_void_a_pre_eod_invoice",
+          "line": 61,
+          "isDefault": false
+        },
+        {
+          "name": "test_pre_eod_void_restores_stock",
+          "line": 77,
+          "isDefault": false
+        },
+        {
+          "name": "test_voiding_a_voided_invoice_returns_409",
+          "line": 114,
+          "isDefault": false
+        },
+        {
+          "name": "test_pre_eod_void_writes_invoicing_log",
+          "line": 130,
+          "isDefault": false
+        },
+        {
+          "name": "_mark_signed_off",
+          "line": 157,
+          "isDefault": false
+        },
+        {
+          "name": "test_cashier_can_request_void_on_signed_off_invoice",
+          "line": 167,
+          "isDefault": false
+        },
+        {
+          "name": "test_cashier_cannot_approve_pending_void",
+          "line": 183,
+          "isDefault": false
+        },
+        {
+          "name": "test_owner_approving_pending_void_creates_reversal",
+          "line": 199,
+          "isDefault": false
+        },
+        {
+          "name": "test_owner_rejecting_pending_void_reverts_to_finalized",
+          "line": 236,
+          "isDefault": false
+        },
+        {
+          "name": "test_approve_on_non_pending_invoice_is_409",
+          "line": 255,
+          "isDefault": false
+        },
+        {
+          "name": "test_void_actions_write_invoicing_logs",
+          "line": 270,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "_seed_product",
+          "callee": "client.post",
+          "lineNumber": 21
+        },
+        {
+          "caller": "_seed_product",
+          "callee": "resp.json",
+          "lineNumber": 26
+        },
+        {
+          "caller": "_seed_lot",
+          "callee": "receiver_client.post",
+          "lineNumber": 32
+        },
+        {
+          "caller": "_finalize",
+          "callee": "cashier_client.post",
+          "lineNumber": 46
+        },
+        {
+          "caller": "_finalize",
+          "callee": "uuid.uuid4",
+          "lineNumber": 48
+        },
+        {
+          "caller": "_finalize",
+          "callee": "resp.json",
+          "lineNumber": 55
+        },
+        {
+          "caller": "test_cashier_can_directly_void_a_pre_eod_invoice",
+          "callee": "_seed_product",
+          "lineNumber": 65
+        },
+        {
+          "caller": "test_cashier_can_directly_void_a_pre_eod_invoice",
+          "callee": "_seed_lot",
+          "lineNumber": 66
+        },
+        {
+          "caller": "test_cashier_can_directly_void_a_pre_eod_invoice",
+          "callee": "_finalize",
+          "lineNumber": 67
+        },
+        {
+          "caller": "test_cashier_can_directly_void_a_pre_eod_invoice",
+          "callee": "cashier_client.post",
+          "lineNumber": 71
+        },
+        {
+          "caller": "test_cashier_can_directly_void_a_pre_eod_invoice",
+          "callee": "resp.json",
+          "lineNumber": 73
+        },
+        {
+          "caller": "test_pre_eod_void_restores_stock",
+          "callee": "_seed_product",
+          "lineNumber": 81
+        },
+        {
+          "caller": "test_pre_eod_void_restores_stock",
+          "callee": "_seed_lot",
+          "lineNumber": 82
+        },
+        {
+          "caller": "test_pre_eod_void_restores_stock",
+          "callee": "_finalize",
+          "lineNumber": 83
+        },
+        {
+          "caller": "test_pre_eod_void_restores_stock",
+          "callee": "(await db_session.execute(select(Product))).scalars().all",
+          "lineNumber": 87
+        },
+        {
+          "caller": "test_pre_eod_void_restores_stock",
+          "callee": "(await db_session.execute(select(Product))).scalars",
+          "lineNumber": 87
+        },
+        {
+          "caller": "test_pre_eod_void_restores_stock",
+          "callee": "db_session.execute",
+          "lineNumber": 87
+        },
+        {
+          "caller": "test_pre_eod_void_restores_stock",
+          "callee": "select",
+          "lineNumber": 87
+        },
+        {
+          "caller": "test_pre_eod_void_restores_stock",
+          "callee": "len",
+          "lineNumber": 89
+        },
+        {
+          "caller": "test_pre_eod_void_restores_stock",
+          "callee": "(\r\n        await db_session.execute(\r\n            select(LotLine.quantity).where(LotLine.product_id == product_id)\r\n        )\r\n    ).scalar_one",
+          "lineNumber": 91
+        },
+        {
+          "caller": "test_pre_eod_void_restores_stock",
+          "callee": "db_session.execute",
+          "lineNumber": 92
+        },
+        {
+          "caller": "test_pre_eod_void_restores_stock",
+          "callee": "select(LotLine.quantity).where",
+          "lineNumber": 93
+        },
+        {
+          "caller": "test_pre_eod_void_restores_stock",
+          "callee": "select",
+          "lineNumber": 93
+        },
+        {
+          "caller": "test_pre_eod_void_restores_stock",
+          "callee": "cashier_client.post",
+          "lineNumber": 100
+        },
+        {
+          "caller": "test_pre_eod_void_restores_stock",
+          "callee": "(\r\n        await db_session.execute(\r\n            select(Invoice).where(Invoice.id == inv[\"id\"])\r\n        )\r\n    ).scalar_one",
+          "lineNumber": 106
+        },
+        {
+          "caller": "test_pre_eod_void_restores_stock",
+          "callee": "db_session.execute",
+          "lineNumber": 107
+        },
+        {
+          "caller": "test_pre_eod_void_restores_stock",
+          "callee": "select(Invoice).where",
+          "lineNumber": 108
+        },
+        {
+          "caller": "test_pre_eod_void_restores_stock",
+          "callee": "select",
+          "lineNumber": 108
+        },
+        {
+          "caller": "test_voiding_a_voided_invoice_returns_409",
+          "callee": "_seed_product",
+          "lineNumber": 118
+        },
+        {
+          "caller": "test_voiding_a_voided_invoice_returns_409",
+          "callee": "_seed_lot",
+          "lineNumber": 119
+        },
+        {
+          "caller": "test_voiding_a_voided_invoice_returns_409",
+          "callee": "_finalize",
+          "lineNumber": 120
+        },
+        {
+          "caller": "test_voiding_a_voided_invoice_returns_409",
+          "callee": "cashier_client.post",
+          "lineNumber": 123
+        },
+        {
+          "caller": "test_voiding_a_voided_invoice_returns_409",
+          "callee": "cashier_client.post",
+          "lineNumber": 125
+        },
+        {
+          "caller": "test_voiding_a_voided_invoice_returns_409",
+          "callee": "second.json",
+          "lineNumber": 127
+        },
+        {
+          "caller": "test_pre_eod_void_writes_invoicing_log",
+          "callee": "_seed_product",
+          "lineNumber": 134
+        },
+        {
+          "caller": "test_pre_eod_void_writes_invoicing_log",
+          "callee": "_seed_lot",
+          "lineNumber": 135
+        },
+        {
+          "caller": "test_pre_eod_void_writes_invoicing_log",
+          "callee": "_finalize",
+          "lineNumber": 136
+        },
+        {
+          "caller": "test_pre_eod_void_writes_invoicing_log",
+          "callee": "cashier_client.post",
+          "lineNumber": 139
+        },
+        {
+          "caller": "test_pre_eod_void_writes_invoicing_log",
+          "callee": "(\r\n        await db_session.execute(\r\n            select(InvoicingLog).where(\r\n                InvoicingLog.event_type == \"invoice.voided\"\r\n            )\r\n        )\r\n    ).scalars().all",
+          "lineNumber": 141
+        },
+        {
+          "caller": "test_pre_eod_void_writes_invoicing_log",
+          "callee": "(\r\n        await db_session.execute(\r\n            select(InvoicingLog).where(\r\n                InvoicingLog.event_type == \"invoice.voided\"\r\n            )\r\n        )\r\n    ).scalars",
+          "lineNumber": 141
+        },
+        {
+          "caller": "test_pre_eod_void_writes_invoicing_log",
+          "callee": "db_session.execute",
+          "lineNumber": 142
+        },
+        {
+          "caller": "test_pre_eod_void_writes_invoicing_log",
+          "callee": "select(InvoicingLog).where",
+          "lineNumber": 143
+        },
+        {
+          "caller": "test_pre_eod_void_writes_invoicing_log",
+          "callee": "select",
+          "lineNumber": 143
+        },
+        {
+          "caller": "test_pre_eod_void_writes_invoicing_log",
+          "callee": "len",
+          "lineNumber": 148
+        },
+        {
+          "caller": "_mark_signed_off",
+          "callee": "(\r\n        await db_session.execute(\r\n            select(Invoice).where(Invoice.id == invoice_id)\r\n        )\r\n    ).scalar_one",
+          "lineNumber": 158
+        },
+        {
+          "caller": "_mark_signed_off",
+          "callee": "db_session.execute",
+          "lineNumber": 159
+        },
+        {
+          "caller": "_mark_signed_off",
+          "callee": "select(Invoice).where",
+          "lineNumber": 160
+        },
+        {
+          "caller": "_mark_signed_off",
+          "callee": "select",
+          "lineNumber": 160
+        },
+        {
+          "caller": "_mark_signed_off",
+          "callee": "db_session.commit",
+          "lineNumber": 164
+        },
+        {
+          "caller": "test_cashier_can_request_void_on_signed_off_invoice",
+          "callee": "_seed_product",
+          "lineNumber": 171
+        },
+        {
+          "caller": "test_cashier_can_request_void_on_signed_off_invoice",
+          "callee": "_seed_lot",
+          "lineNumber": 172
+        },
+        {
+          "caller": "test_cashier_can_request_void_on_signed_off_invoice",
+          "callee": "_finalize",
+          "lineNumber": 173
+        },
+        {
+          "caller": "test_cashier_can_request_void_on_signed_off_invoice",
+          "callee": "_mark_signed_off",
+          "lineNumber": 176
+        },
+        {
+          "caller": "test_cashier_can_request_void_on_signed_off_invoice",
+          "callee": "cashier_client.post",
+          "lineNumber": 178
+        },
+        {
+          "caller": "test_cashier_can_request_void_on_signed_off_invoice",
+          "callee": "resp.json",
+          "lineNumber": 180
+        },
+        {
+          "caller": "test_cashier_cannot_approve_pending_void",
+          "callee": "_seed_product",
+          "lineNumber": 187
+        },
+        {
+          "caller": "test_cashier_cannot_approve_pending_void",
+          "callee": "_seed_lot",
+          "lineNumber": 188
+        },
+        {
+          "caller": "test_cashier_cannot_approve_pending_void",
+          "callee": "_finalize",
+          "lineNumber": 189
+        },
+        {
+          "caller": "test_cashier_cannot_approve_pending_void",
+          "callee": "_mark_signed_off",
+          "lineNumber": 192
+        },
+        {
+          "caller": "test_cashier_cannot_approve_pending_void",
+          "callee": "cashier_client.post",
+          "lineNumber": 193
+        },
+        {
+          "caller": "test_cashier_cannot_approve_pending_void",
+          "callee": "cashier_client.post",
+          "lineNumber": 195
+        },
+        {
+          "caller": "test_owner_approving_pending_void_creates_reversal",
+          "callee": "_seed_product",
+          "lineNumber": 203
+        },
+        {
+          "caller": "test_owner_approving_pending_void_creates_reversal",
+          "callee": "_seed_lot",
+          "lineNumber": 204
+        },
+        {
+          "caller": "test_owner_approving_pending_void_creates_reversal",
+          "callee": "_finalize",
+          "lineNumber": 205
+        },
+        {
+          "caller": "test_owner_approving_pending_void_creates_reversal",
+          "callee": "_mark_signed_off",
+          "lineNumber": 208
+        },
+        {
+          "caller": "test_owner_approving_pending_void_creates_reversal",
+          "callee": "cashier_client.post",
+          "lineNumber": 209
+        },
+        {
+          "caller": "test_owner_approving_pending_void_creates_reversal",
+          "callee": "owner_client.post",
+          "lineNumber": 211
+        },
+        {
+          "caller": "test_owner_approving_pending_void_creates_reversal",
+          "callee": "approve.json",
+          "lineNumber": 215
+        },
+        {
+          "caller": "test_owner_approving_pending_void_creates_reversal",
+          "callee": "(\r\n        await db_session.execute(\r\n            sa_select(Invoice).where(Invoice.reverses_invoice_id == inv[\"id\"])\r\n        )\r\n    ).scalars().all",
+          "lineNumber": 221
+        },
+        {
+          "caller": "test_owner_approving_pending_void_creates_reversal",
+          "callee": "(\r\n        await db_session.execute(\r\n            sa_select(Invoice).where(Invoice.reverses_invoice_id == inv[\"id\"])\r\n        )\r\n    ).scalars",
+          "lineNumber": 221
+        },
+        {
+          "caller": "test_owner_approving_pending_void_creates_reversal",
+          "callee": "db_session.execute",
+          "lineNumber": 222
+        },
+        {
+          "caller": "test_owner_approving_pending_void_creates_reversal",
+          "callee": "sa_select(Invoice).where",
+          "lineNumber": 223
+        },
+        {
+          "caller": "test_owner_approving_pending_void_creates_reversal",
+          "callee": "sa_select",
+          "lineNumber": 223
+        },
+        {
+          "caller": "test_owner_approving_pending_void_creates_reversal",
+          "callee": "len",
+          "lineNumber": 226
+        },
+        {
+          "caller": "test_owner_approving_pending_void_creates_reversal",
+          "callee": "db_session.refresh",
+          "lineNumber": 231
+        },
+        {
+          "caller": "test_owner_approving_pending_void_creates_reversal",
+          "callee": "len",
+          "lineNumber": 232
+        },
+        {
+          "caller": "test_owner_rejecting_pending_void_reverts_to_finalized",
+          "callee": "_seed_product",
+          "lineNumber": 240
+        },
+        {
+          "caller": "test_owner_rejecting_pending_void_reverts_to_finalized",
+          "callee": "_seed_lot",
+          "lineNumber": 241
+        },
+        {
+          "caller": "test_owner_rejecting_pending_void_reverts_to_finalized",
+          "callee": "_finalize",
+          "lineNumber": 242
+        },
+        {
+          "caller": "test_owner_rejecting_pending_void_reverts_to_finalized",
+          "callee": "_mark_signed_off",
+          "lineNumber": 245
+        },
+        {
+          "caller": "test_owner_rejecting_pending_void_reverts_to_finalized",
+          "callee": "cashier_client.post",
+          "lineNumber": 246
+        },
+        {
+          "caller": "test_owner_rejecting_pending_void_reverts_to_finalized",
+          "callee": "owner_client.post",
+          "lineNumber": 248
+        },
+        {
+          "caller": "test_owner_rejecting_pending_void_reverts_to_finalized",
+          "callee": "reject.json",
+          "lineNumber": 252
+        },
+        {
+          "caller": "test_approve_on_non_pending_invoice_is_409",
+          "callee": "_seed_product",
+          "lineNumber": 259
+        },
+        {
+          "caller": "test_approve_on_non_pending_invoice_is_409",
+          "callee": "_seed_lot",
+          "lineNumber": 260
+        },
+        {
+          "caller": "test_approve_on_non_pending_invoice_is_409",
+          "callee": "_finalize",
+          "lineNumber": 261
+        },
+        {
+          "caller": "test_approve_on_non_pending_invoice_is_409",
+          "callee": "owner_client.post",
+          "lineNumber": 265
+        },
+        {
+          "caller": "test_approve_on_non_pending_invoice_is_409",
+          "callee": "approve.json",
+          "lineNumber": 267
+        },
+        {
+          "caller": "test_void_actions_write_invoicing_logs",
+          "callee": "_seed_product",
+          "lineNumber": 274
+        },
+        {
+          "caller": "test_void_actions_write_invoicing_logs",
+          "callee": "_seed_lot",
+          "lineNumber": 275
+        },
+        {
+          "caller": "test_void_actions_write_invoicing_logs",
+          "callee": "_finalize",
+          "lineNumber": 276
+        },
+        {
+          "caller": "test_void_actions_write_invoicing_logs",
+          "callee": "_mark_signed_off",
+          "lineNumber": 279
+        },
+        {
+          "caller": "test_void_actions_write_invoicing_logs",
+          "callee": "cashier_client.post",
+          "lineNumber": 280
+        },
+        {
+          "caller": "test_void_actions_write_invoicing_logs",
+          "callee": "owner_client.post",
+          "lineNumber": 281
+        },
+        {
+          "caller": "test_void_actions_write_invoicing_logs",
+          "callee": "sorted",
+          "lineNumber": 283
+        },
+        {
+          "caller": "test_void_actions_write_invoicing_logs",
+          "callee": "(await db_session.execute(select(InvoicingLog))).scalars().all",
+          "lineNumber": 285
+        },
+        {
+          "caller": "test_void_actions_write_invoicing_logs",
+          "callee": "(await db_session.execute(select(InvoicingLog))).scalars",
+          "lineNumber": 285
+        },
+        {
+          "caller": "test_void_actions_write_invoicing_logs",
+          "callee": "db_session.execute",
+          "lineNumber": 285
+        },
+        {
+          "caller": "test_void_actions_write_invoicing_logs",
+          "callee": "select",
+          "lineNumber": 285
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 14,
+        "functionCount": 14,
+        "classCount": 0
+      }
+    }
+  ]
+}

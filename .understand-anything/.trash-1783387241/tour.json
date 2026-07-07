@@ -1,0 +1,84 @@
+[
+  {
+    "order": 1,
+    "title": "Project Overview",
+    "description": "Barstock is a single-counter liquor shop inventory and billing system built for a shop in Odisha, India, on FastAPI + SQLAlchemy 2.0 async + Postgres. The README lays out the stack (uv, Uvicorn, Alembic, structlog, JWT auth via passlib/python-jose) and the app/ layout: main.py, config.py, db.py, models/, schemas/, api/, security/, services/, cli.py. This tour follows that same layout, but traces it through the 8 vertical feature slices the project was actually built in: foundation, products, lots, checkout/invoicing, voids, EOD reconciliation, low-stock alerts, and GST/excise.",
+    "nodeIds": ["document:README.md"]
+  },
+  {
+    "order": 2,
+    "title": "Application Entry Point",
+    "description": "app/main.py is where everything is wired together: it builds the FastAPI app, runs an async lifespan that starts the DB engine and also spins up a background polling task for low-stock alerts, configures middleware, and mounts every router (auth, staff, shops, products, lots, checkout, voids, dashboard, health). It has the highest fan-out of any file in the codebase, touching nearly every router module, which is why it makes the natural starting point for reading the code after the README.",
+    "nodeIds": ["file:app/main.py"]
+  },
+  {
+    "order": 3,
+    "title": "Configuration, Database & Logging Foundation",
+    "description": "Before any feature slice can run, three cross-cutting modules set the ground rules. config.py uses pydantic-settings to load env vars (DB URL, JWT/bcrypt parameters, CORS, low-stock poll interval) behind a cached get_settings(); db.py builds the async SQLAlchemy engine/sessionmaker and exposes the get_db() FastAPI dependency with automatic rollback on error; logging_config.py wires structlog into stdlib logging for structured JSON output to stdout. These three are among the most depended-upon files in the whole project (db.py alone has 12 incoming references), which is why they belong in the 'Application Entry & Configuration' layer rather than any single feature slice.",
+    "nodeIds": ["file:app/config.py", "file:app/db.py", "file:app/logging_config.py"]
+  },
+  {
+    "order": 4,
+    "title": "Foundation: Shops, Users & Access Control",
+    "description": "This is slice #1, foundation, and it establishes the tenancy and role model everything else builds on. app/models/user.py defines the UserRole enum (superadmin/owner/receiver/cashier) and the User ORM model tying credentials to a shop; app/models/shop.py holds shop identity, GSTIN, excise duty rate, and the invoice-numbering counter later slices rely on. app/api/deps.py is the busiest dependency module in the project: it resolves the current user from a bearer JWT and exposes require_role/require_shop_scope guard factories that every other router in this tour uses to enforce who is allowed to do what.",
+    "nodeIds": ["file:app/models/user.py", "file:app/models/shop.py", "file:app/api/deps.py"]
+  },
+  {
+    "order": 5,
+    "title": "Authentication Flow",
+    "description": "Building on the User and Shop models from Step 4, this group implements the actual login flow. app/security/jwt.py issues and verifies tokens carrying subject, shop_id, role and expiry; app/security/passwords.py wraps bcrypt hashing; app/api/auth.py exposes separate login endpoints for superadmins and shop staff, sharing a private _authenticate helper that checks role, shop scope, active status and password before minting a token; app/schemas/auth.py defines the Pydantic contracts (login requests by username or phone, token responses, staff-creation payloads) that keep the wire format validated end to end.",
+    "nodeIds": ["file:app/security/jwt.py", "file:app/security/passwords.py", "file:app/api/auth.py", "file:app/schemas/auth.py"],
+    "languageLesson": "python-jose + passlib is a common FastAPI pairing: JWTs carry stateless claims (here shop_id and role) that deps.py decodes on every request, avoiding a DB round-trip just to check permissions."
+  },
+  {
+    "order": 6,
+    "title": "Slice #2: Product Catalog",
+    "description": "This is the second vertical slice delivered: the product catalog. app/models/product.py is the core catalog record (barcode, brand, size, price, low-stock threshold, active flag, shop scoping) referenced by nearly every later feature -- lots, invoices, and low-stock computation all point back to it. app/api/products.py exposes create/list/lookup/update endpoints plus a bulk CSV import endpoint that parses, validates, and upserts many rows per request with per-row error collection, while app/schemas/product.py defines the matching Pydantic contracts, including barcode and size-label validators shared between the single-create and CSV-import paths.",
+    "nodeIds": ["file:app/models/product.py", "file:app/api/products.py", "file:app/schemas/product.py"]
+  },
+  {
+    "order": 7,
+    "title": "Slice #3: Stock Receiving (Lots)",
+    "description": "Slice #3 introduces lots: the source of truth for how stock enters the shop. app/models/lot.py defines Lot (a single receiving event) and LotLine (per-product quantity received within that lot) -- stock-on-hand is always derived, never stored directly, as received-minus-sold. app/api/lots.py creates lots with per-barcode line validation against the receiving shop and writes a StockinLog audit entry on every create, while app/schemas/lot.py rejects duplicate barcodes within a single lot at the validation layer before it ever reaches the database.",
+    "nodeIds": ["file:app/models/lot.py", "file:app/api/lots.py", "file:app/schemas/lot.py"]
+  },
+  {
+    "order": 8,
+    "title": "Slice #4: Checkout & Invoicing",
+    "description": "This is the heart of the system: turning a cart into a paid, printable invoice. app/models/invoice.py defines Invoice, InvoiceLine, Payment, EodSignOff and IdempotencyKey along with the InvoiceStatus/PaymentMode enums that drive the later void/reversal state machine. app/services/checkout.py is the core checkout engine -- it resolves cart barcodes to products, computes current stock via the same received-minus-sold subquery pattern as lots, and atomically finalizes a sale under a row lock (FOR UPDATE) with idempotency-key replay protection and payment-split validation. app/api/checkout.py exposes this as an idempotent finalize endpoint plus invoice/PDF retrieval, app/schemas/checkout.py validates that split payments sum correctly, and app/services/invoice_pdf.py renders the finalized invoice as a PDF receipt via ReportLab.",
+    "nodeIds": ["file:app/models/invoice.py", "file:app/services/checkout.py", "file:app/api/checkout.py", "file:app/schemas/checkout.py", "file:app/services/invoice_pdf.py"],
+    "languageLesson": "The row-lock-under-transaction pattern (SELECT ... FOR UPDATE inside an async session) is how this codebase prevents two concurrent checkouts from selling the same last unit of stock -- a classic race condition in single-counter POS systems."
+  },
+  {
+    "order": 9,
+    "title": "Slice #5: Voids & Reversal",
+    "description": "Building directly on the invoice state machine from Step 8, slice #5 handles mistakes and returns. app/services/voids.py implements a two-tier state machine: same-day direct voids apply immediately and restore stock, while post-EOD voids require an owner request/approve/reject cycle where approval creates a signed reversal invoice under the same row-lock pattern used in checkout. app/api/voids.py exposes this as cashier-initiated void/void-request endpoints plus owner approve/reject endpoints, all sharing one audit-log writer so every void action is traceable.",
+    "nodeIds": ["file:app/services/voids.py", "file:app/api/voids.py"]
+  },
+  {
+    "order": 10,
+    "title": "Slice #6: EOD Reconciliation & Owner Dashboard",
+    "description": "Slice #6 closes the daily loop. app/services/eod.py enforces a once-per-business-day sign-off, aggregates a day's invoice and payment totals while excluding voids and reversals, and surfaces sign-off history plus the queue of pending post-EOD void requests that Step 9's voids service creates. app/api/dashboard.py is the owner-facing surface for all of this -- EOD sign-off, EOD totals/history, the pending void queue, and low-stock alerts -- making it the single busiest router in the API layer by fan-out. app/schemas/eod.py defines the response shapes for each of those dashboard views.",
+    "nodeIds": ["file:app/services/eod.py", "file:app/api/dashboard.py", "file:app/schemas/eod.py"]
+  },
+  {
+    "order": 11,
+    "title": "Slice #7: Low-Stock Alerts & Audit Trail",
+    "description": "app/services/low_stock.py computes low-stock alerts per shop by deriving current stock the same received-minus-sold way as checkout and lots, via a UNION ALL of two aggregated subqueries, then compares it against each product's effective threshold (a per-product override falling back to the shop default) and returns the most urgent shortages first. app/models/log.py underpins traceability across every slice in this tour: it defines a shared audit-log base and three concrete tables -- InvoicingLog, StockinLog, AdminLog -- that record shop, actor, event type and payload for every billing, stock-receiving, and admin action seen so far.",
+    "nodeIds": ["file:app/services/low_stock.py", "file:app/models/log.py"]
+  },
+  {
+    "order": 12,
+    "title": "Slice #8: GST/Excise Compliance & Schema Evolution",
+    "description": "The final delivered slice adds Odisha-specific tax compliance. The GST/excise migration adds a gstin string column and an excise_duty_rate numeric column to the shops table (visible back in Step 4's Shop model), laying the groundwork for GST/excise invoice-line stubs on top of the existing invoicing engine. alembic.ini is the migration runner configuration that every slice's migration -- from the foundation tables in Step 4 through this one -- has been applied through, making it the connective thread across the whole schema's evolution.",
+    "nodeIds": ["file:alembic/versions/af4b5e908f57_shops_gstin_excise_duty_rate_for_8_gst_.py", "config:alembic.ini"],
+    "languageLesson": "Alembic migrations are additive and ordered: each revision file has an upgrade()/downgrade() pair and a pointer to its parent revision, forming a linear chain that lets the schema evolve one vertical slice at a time without ever rewriting history."
+  },
+  {
+    "order": 13,
+    "title": "Deployment, Configuration & the Planning Trail",
+    "description": "Rounding out the tour, docker-compose.yml defines the local Postgres 16 service (barstock-db) with a pg_isready healthcheck that every developer and the test suite depend on; .env.example documents the env vars a developer must set, including a JWT access-token TTL tuned to a single 12-hour shift; and pyproject.toml declares the FastAPI/SQLAlchemy/Alembic/Pydantic/structlog/passlib dependencies plus the `barstock` CLI entry point and ruff/pytest configuration. Finally, harness/03-prd.md is the frozen Product Requirements Document -- 44 numbered requirements across 14 domains -- that every one of the 8 feature slices in this tour traces back to, giving you the 'why' behind the 'what' you just walked through.",
+    "nodeIds": ["service:docker-compose.yml", "config:.env.example", "config:pyproject.toml", "document:harness/03-prd.md"],
+    "languageLesson": "Docker Compose's depends_on plus a healthcheck (pg_isready) ensures the app container, or the test suite, only starts talking to Postgres once it is actually accepting connections, not just once the process has started."
+  }
+]

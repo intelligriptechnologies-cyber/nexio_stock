@@ -1,0 +1,20 @@
+{
+  "projectRoot": "C:/barstock",
+  "batchFiles": [
+    {"path": "app/api/__init__.py", "language": "python", "sizeLines": 1, "fileCategory": "code"},
+    {"path": "app/api/_errors.py", "language": "python", "sizeLines": 71, "fileCategory": "code"},
+    {"path": "app/api/_test_only.py", "language": "python", "sizeLines": 16, "fileCategory": "code"},
+    {"path": "app/api/auth.py", "language": "python", "sizeLines": 140, "fileCategory": "code"},
+    {"path": "app/api/deps.py", "language": "python", "sizeLines": 94, "fileCategory": "code"},
+    {"path": "app/api/health.py", "language": "python", "sizeLines": 20, "fileCategory": "code"},
+    {"path": "app/api/shops.py", "language": "python", "sizeLines": 95, "fileCategory": "code"},
+    {"path": "app/api/staff.py", "language": "python", "sizeLines": 121, "fileCategory": "code"},
+    {"path": "app/api/users.py", "language": "python", "sizeLines": 18, "fileCategory": "code"},
+    {"path": "app/logging_config.py", "language": "python", "sizeLines": 69, "fileCategory": "code"},
+    {"path": "app/main.py", "language": "python", "sizeLines": 149, "fileCategory": "code"},
+    {"path": "app/schemas/auth.py", "language": "python", "sizeLines": 87, "fileCategory": "code"},
+    {"path": "app/schemas/shop.py", "language": "python", "sizeLines": 55, "fileCategory": "code"},
+    {"path": "app/security/jwt.py", "language": "python", "sizeLines": 44, "fileCategory": "code"}
+  ],
+  "batchImportData": {"app/api/__init__.py": [], "app/api/_errors.py": [], "app/api/_test_only.py": [], "app/api/auth.py": ["app/api/deps.py", "app/config.py", "app/logging_config.py", "app/models/user.py", "app/schemas/auth.py", "app/security/jwt.py", "app/security/passwords.py"], "app/api/deps.py": ["app/db.py", "app/models/user.py", "app/security/jwt.py"], "app/api/health.py": [], "app/api/shops.py": ["app/api/deps.py", "app/models/shop.py", "app/models/user.py", "app/schemas/shop.py"], "app/api/staff.py": ["app/api/deps.py", "app/models/user.py", "app/schemas/auth.py", "app/security/passwords.py"], "app/api/users.py": ["app/api/deps.py"], "app/logging_config.py": [], "app/main.py": ["app/api/auth.py","app/api/checkout.py","app/api/dashboard.py","app/api/health.py","app/api/lots.py","app/api/products.py","app/api/shops.py","app/api/staff.py","app/api/users.py","app/api/voids.py","app/config.py","app/db.py","app/logging_config.py","app/services/low_stock.py"], "app/schemas/auth.py": [], "app/schemas/shop.py": [], "app/security/jwt.py": ["app/config.py"]}
+}

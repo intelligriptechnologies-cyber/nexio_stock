@@ -1,0 +1,68 @@
+{
+  "batchIndex": 5,
+  "projectRoot": "C:\\barstock",
+  "filesAnalyzed": 5,
+  "filesSkipped": [],
+  "scriptCompleted": true,
+  "nodes": [
+    {
+      "id": "file:.env.example",
+      "type": "file",
+      "path": ".env.example",
+      "language": "config",
+      "fileCategory": "config",
+      "totalLines": 21,
+      "label": ".env.example"
+    },
+    {
+      "id": "file:README.md",
+      "type": "file",
+      "path": "README.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 66,
+      "label": "README.md"
+    },
+    {
+      "id": "file:alembic.ini",
+      "type": "file",
+      "path": "alembic.ini",
+      "language": "config",
+      "fileCategory": "config",
+      "totalLines": 149,
+      "label": "alembic.ini"
+    },
+    {
+      "id": "file:docker-compose.yml",
+      "type": "file",
+      "path": "docker-compose.yml",
+      "language": "yaml",
+      "fileCategory": "infra",
+      "totalLines": 22,
+      "label": "docker-compose.yml"
+    },
+    {
+      "id": "file:pyproject.toml",
+      "type": "file",
+      "path": "pyproject.toml",
+      "language": "toml",
+      "fileCategory": "config",
+      "totalLines": 103,
+      "label": "pyproject.toml"
+    }
+  ],
+  "edges": [],
+  "summary": {
+    "nodeCount": 5,
+    "edgeCount": 0,
+    "fileNodes": 5,
+    "functionNodes": 0,
+    "classNodes": 0,
+    "importsEdges": 0,
+    "containsEdges": 0,
+    "crossBatchDrops": 0,
+    "crossBatchDropList": [],
+    "skippedFiles": 0,
+    "splits": []
+  }
+}

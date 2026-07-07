@@ -1,0 +1,477 @@
+{
+  "scriptCompleted": true,
+  "directoryGroups": {
+    "app": [
+      "file:app/api/__init__.py",
+      "file:app/api/_errors.py",
+      "file:app/api/_test_only.py",
+      "file:app/api/auth.py",
+      "file:app/api/deps.py",
+      "file:app/api/health.py",
+      "file:app/api/shops.py",
+      "file:app/api/staff.py",
+      "file:app/api/users.py",
+      "file:app/logging_config.py",
+      "file:app/main.py",
+      "file:app/schemas/auth.py",
+      "file:app/schemas/shop.py",
+      "file:app/security/jwt.py",
+      "file:app/api/lots.py",
+      "file:app/api/products.py",
+      "file:app/models/log.py",
+      "file:app/models/lot.py",
+      "file:app/models/product.py",
+      "file:app/schemas/lot.py",
+      "file:app/schemas/product.py",
+      "file:app/services/low_stock.py",
+      "file:app/__init__.py",
+      "file:app/cli.py",
+      "file:app/config.py",
+      "file:app/db.py",
+      "file:app/models/__init__.py",
+      "file:app/models/shop.py",
+      "file:app/models/user.py",
+      "file:app/security/passwords.py",
+      "file:app/api/checkout.py",
+      "file:app/api/dashboard.py",
+      "file:app/api/voids.py",
+      "file:app/models/invoice.py",
+      "file:app/schemas/checkout.py",
+      "file:app/schemas/eod.py",
+      "file:app/services/checkout.py",
+      "file:app/services/eod.py",
+      "file:app/services/invoice_pdf.py",
+      "file:app/services/voids.py",
+      "file:app/schemas/__init__.py",
+      "file:app/security/__init__.py",
+      "file:app/services/__init__.py"
+    ],
+    "tests": [
+      "file:tests/test_checkout.py",
+      "file:tests/test_lots.py",
+      "file:tests/test_low_stock.py",
+      "file:tests/test_voids.py",
+      "file:tests/conftest.py",
+      "file:tests/test_shops.py",
+      "file:tests/test_eod.py",
+      "file:tests/test_auth.py",
+      "file:tests/test_authorization.py",
+      "file:tests/test_health.py",
+      "file:tests/test_log_tables.py",
+      "file:tests/test_products.py",
+      "file:tests/test_staff.py"
+    ],
+    "alembic": [
+      "file:alembic/env.py",
+      "file:alembic/README",
+      "file:alembic/script.py.mako",
+      "file:alembic/versions/0243c7acf544_foundation_shops_users_log_tables.py",
+      "file:alembic/versions/058759837183_eod_eod_signed_off_at_eod_signoffs_table.py",
+      "file:alembic/versions/2e68e776867b_voids_void_reversal_pending_void_status_.py",
+      "file:alembic/versions/3efd6817d954_lots_lot_lot_lines_tables.py",
+      "file:alembic/versions/423948112aae_products_catalog_shop_low_stock_.py",
+      "file:alembic/versions/af4b5e908f57_shops_gstin_excise_duty_rate_for_8_gst_.py",
+      "file:alembic/versions/c514c436a0b1_eod_eod_signoffs_business_date_to_date.py",
+      "file:alembic/versions/ea0fba754aaa_invoices_invoice_lines_payments_.py"
+    ],
+    "root(example)": [
+      "config:.env.example"
+    ],
+    "root(md)": [
+      "document:README.md"
+    ],
+    "root(ini)": [
+      "config:alembic.ini"
+    ],
+    "root(yml)": [
+      "service:docker-compose.yml"
+    ],
+    "root(toml)": [
+      "config:pyproject.toml"
+    ],
+    "harness": [
+      "document:harness/00-intake.md",
+      "document:harness/01-branch-map.md",
+      "document:harness/02-ledger.md",
+      "document:harness/03-prd.md",
+      "document:harness/04-absences.md",
+      "document:harness/05-issues/README.md"
+    ],
+    "docs": [
+      "document:docs/ONBOARDING.md"
+    ]
+  },
+  "nodeTypeGroups": {
+    "file": [
+      "file:app/api/__init__.py",
+      "file:app/api/_errors.py",
+      "file:app/api/_test_only.py",
+      "file:app/api/auth.py",
+      "file:app/api/deps.py",
+      "file:app/api/health.py",
+      "file:app/api/shops.py",
+      "file:app/api/staff.py",
+      "file:app/api/users.py",
+      "file:app/logging_config.py",
+      "file:app/main.py",
+      "file:app/schemas/auth.py",
+      "file:app/schemas/shop.py",
+      "file:app/security/jwt.py",
+      "file:app/api/lots.py",
+      "file:app/api/products.py",
+      "file:app/models/log.py",
+      "file:app/models/lot.py",
+      "file:app/models/product.py",
+      "file:app/schemas/lot.py",
+      "file:app/schemas/product.py",
+      "file:app/services/low_stock.py",
+      "file:tests/test_checkout.py",
+      "file:tests/test_lots.py",
+      "file:tests/test_low_stock.py",
+      "file:tests/test_voids.py",
+      "file:alembic/env.py",
+      "file:app/__init__.py",
+      "file:app/cli.py",
+      "file:app/config.py",
+      "file:app/db.py",
+      "file:app/models/__init__.py",
+      "file:app/models/shop.py",
+      "file:app/models/user.py",
+      "file:app/security/passwords.py",
+      "file:tests/conftest.py",
+      "file:tests/test_shops.py",
+      "file:app/api/checkout.py",
+      "file:app/api/dashboard.py",
+      "file:app/api/voids.py",
+      "file:app/models/invoice.py",
+      "file:app/schemas/checkout.py",
+      "file:app/schemas/eod.py",
+      "file:app/services/checkout.py",
+      "file:app/services/eod.py",
+      "file:app/services/invoice_pdf.py",
+      "file:app/services/voids.py",
+      "file:tests/test_eod.py",
+      "file:alembic/README",
+      "file:alembic/script.py.mako",
+      "file:alembic/versions/0243c7acf544_foundation_shops_users_log_tables.py",
+      "file:alembic/versions/058759837183_eod_eod_signed_off_at_eod_signoffs_table.py",
+      "file:alembic/versions/2e68e776867b_voids_void_reversal_pending_void_status_.py",
+      "file:alembic/versions/3efd6817d954_lots_lot_lot_lines_tables.py",
+      "file:alembic/versions/423948112aae_products_catalog_shop_low_stock_.py",
+      "file:alembic/versions/af4b5e908f57_shops_gstin_excise_duty_rate_for_8_gst_.py",
+      "file:alembic/versions/c514c436a0b1_eod_eod_signoffs_business_date_to_date.py",
+      "file:alembic/versions/ea0fba754aaa_invoices_invoice_lines_payments_.py",
+      "file:app/schemas/__init__.py",
+      "file:app/security/__init__.py",
+      "file:app/services/__init__.py",
+      "file:tests/test_auth.py",
+      "file:tests/test_authorization.py",
+      "file:tests/test_health.py",
+      "file:tests/test_log_tables.py",
+      "file:tests/test_products.py",
+      "file:tests/test_staff.py"
+    ],
+    "config": [
+      "config:.env.example",
+      "config:alembic.ini",
+      "config:pyproject.toml"
+    ],
+    "document": [
+      "document:README.md",
+      "document:harness/00-intake.md",
+      "document:harness/01-branch-map.md",
+      "document:harness/02-ledger.md",
+      "document:harness/03-prd.md",
+      "document:harness/04-absences.md",
+      "document:docs/ONBOARDING.md",
+      "document:harness/05-issues/README.md"
+    ],
+    "service": [
+      "service:docker-compose.yml"
+    ]
+  },
+  "crossCategoryEdges": [
+    {
+      "fromType": "config",
+      "toType": "service",
+      "edgeType": "related",
+      "count": 1
+    },
+    {
+      "fromType": "config",
+      "toType": "file",
+      "edgeType": "configures",
+      "count": 6
+    },
+    {
+      "fromType": "document",
+      "toType": "file",
+      "edgeType": "documents",
+      "count": 8
+    },
+    {
+      "fromType": "document",
+      "toType": "config",
+      "edgeType": "documents",
+      "count": 3
+    },
+    {
+      "fromType": "document",
+      "toType": "service",
+      "edgeType": "documents",
+      "count": 1
+    }
+  ],
+  "interGroupImports": [
+    {
+      "from": "app",
+      "to": "app",
+      "count": 119
+    },
+    {
+      "from": "alembic",
+      "to": "app",
+      "count": 4
+    },
+    {
+      "from": "tests",
+      "to": "app",
+      "count": 21
+    }
+  ],
+  "intraGroupDensity": {
+    "app": {
+      "internalEdges": 119,
+      "totalEdges": 144,
+      "density": 0.8263888888888888
+    },
+    "tests": {
+      "internalEdges": 0,
+      "totalEdges": 21,
+      "density": 0
+    },
+    "alembic": {
+      "internalEdges": 0,
+      "totalEdges": 4,
+      "density": 0
+    },
+    "root(example)": {
+      "internalEdges": 0,
+      "totalEdges": 0,
+      "density": 0
+    },
+    "root(md)": {
+      "internalEdges": 0,
+      "totalEdges": 0,
+      "density": 0
+    },
+    "root(ini)": {
+      "internalEdges": 0,
+      "totalEdges": 0,
+      "density": 0
+    },
+    "root(yml)": {
+      "internalEdges": 0,
+      "totalEdges": 0,
+      "density": 0
+    },
+    "root(toml)": {
+      "internalEdges": 0,
+      "totalEdges": 0,
+      "density": 0
+    },
+    "harness": {
+      "internalEdges": 0,
+      "totalEdges": 0,
+      "density": 0
+    },
+    "docs": {
+      "internalEdges": 0,
+      "totalEdges": 0,
+      "density": 0
+    }
+  },
+  "patternMatches": {
+    "tests": "test",
+    "alembic": "data",
+    "harness": "documentation",
+    "docs": "documentation"
+  },
+  "deploymentTopology": {
+    "hasDockerfile": false,
+    "hasCompose": true,
+    "hasK8s": false,
+    "hasTerraform": false,
+    "hasCI": false,
+    "infraFiles": [
+      "docker-compose.yml"
+    ]
+  },
+  "dataPipeline": {
+    "schemaFiles": [],
+    "migrationFiles": [
+      "alembic/versions/0243c7acf544_foundation_shops_users_log_tables.py",
+      "alembic/versions/058759837183_eod_eod_signed_off_at_eod_signoffs_table.py",
+      "alembic/versions/2e68e776867b_voids_void_reversal_pending_void_status_.py",
+      "alembic/versions/3efd6817d954_lots_lot_lot_lines_tables.py",
+      "alembic/versions/423948112aae_products_catalog_shop_low_stock_.py",
+      "alembic/versions/af4b5e908f57_shops_gstin_excise_duty_rate_for_8_gst_.py",
+      "alembic/versions/c514c436a0b1_eod_eod_signoffs_business_date_to_date.py",
+      "alembic/versions/ea0fba754aaa_invoices_invoice_lines_payments_.py"
+    ],
+    "dataModelFiles": [
+      "app/models/log.py",
+      "app/models/lot.py",
+      "app/models/product.py",
+      "app/models/__init__.py",
+      "app/models/shop.py",
+      "app/models/user.py",
+      "app/models/invoice.py"
+    ],
+    "apiHandlerFiles": [
+      "app/api/__init__.py",
+      "app/api/_errors.py",
+      "app/api/_test_only.py",
+      "app/api/auth.py",
+      "app/api/deps.py",
+      "app/api/health.py",
+      "app/api/shops.py",
+      "app/api/staff.py",
+      "app/api/users.py",
+      "app/api/lots.py",
+      "app/api/products.py",
+      "app/api/checkout.py",
+      "app/api/dashboard.py",
+      "app/api/voids.py"
+    ]
+  },
+  "docCoverage": {
+    "groupsWithDocs": 3,
+    "totalGroups": 10,
+    "coverageRatio": 0.3,
+    "undocumentedGroups": [
+      "app",
+      "tests",
+      "root(example)",
+      "root(ini)",
+      "root(yml)",
+      "root(toml)",
+      "docs"
+    ]
+  },
+  "dependencyDirection": [
+    {
+      "dependent": "alembic",
+      "dependsOn": "app"
+    },
+    {
+      "dependent": "tests",
+      "dependsOn": "app"
+    }
+  ],
+  "fileStats": {
+    "totalFileNodes": 79,
+    "filesPerGroup": {
+      "app": 43,
+      "tests": 13,
+      "alembic": 11,
+      "root(example)": 1,
+      "root(md)": 1,
+      "root(ini)": 1,
+      "root(yml)": 1,
+      "root(toml)": 1,
+      "harness": 6,
+      "docs": 1
+    },
+    "nodeTypeCounts": {
+      "file": 67,
+      "config": 3,
+      "document": 8,
+      "service": 1
+    }
+  },
+  "fileFanIn": {
+    "file:app/api/deps.py": 10,
+    "file:app/config.py": 8,
+    "file:app/logging_config.py": 10,
+    "file:app/models/user.py": 14,
+    "file:app/schemas/auth.py": 3,
+    "file:app/security/jwt.py": 2,
+    "file:app/security/passwords.py": 4,
+    "file:app/db.py": 11,
+    "file:app/models/shop.py": 10,
+    "file:app/schemas/shop.py": 1,
+    "file:app/api/auth.py": 1,
+    "file:app/api/checkout.py": 1,
+    "file:app/api/dashboard.py": 1,
+    "file:app/api/health.py": 1,
+    "file:app/api/lots.py": 1,
+    "file:app/api/products.py": 1,
+    "file:app/api/shops.py": 1,
+    "file:app/api/staff.py": 1,
+    "file:app/api/users.py": 1,
+    "file:app/api/voids.py": 1,
+    "file:app/services/low_stock.py": 2,
+    "file:app/models/log.py": 10,
+    "file:app/models/lot.py": 8,
+    "file:app/models/product.py": 11,
+    "file:app/schemas/lot.py": 1,
+    "file:app/schemas/product.py": 1,
+    "file:app/__init__.py": 1,
+    "file:app/models/__init__.py": 2,
+    "file:app/models/invoice.py": 13,
+    "file:app/main.py": 1,
+    "file:app/schemas/checkout.py": 3,
+    "file:app/services/checkout.py": 1,
+    "file:app/services/eod.py": 1,
+    "file:app/services/voids.py": 1,
+    "file:app/schemas/eod.py": 1,
+    "file:app/api/_errors.py": 2,
+    "file:app/api/__init__.py": 1,
+    "file:app/api/_test_only.py": 1
+  },
+  "fileFanOut": {
+    "file:app/api/auth.py": 7,
+    "file:app/api/deps.py": 3,
+    "file:app/api/shops.py": 5,
+    "file:app/api/staff.py": 6,
+    "file:app/api/users.py": 2,
+    "file:app/main.py": 16,
+    "file:app/security/jwt.py": 1,
+    "file:app/api/lots.py": 7,
+    "file:app/api/products.py": 6,
+    "file:app/models/lot.py": 2,
+    "file:app/services/low_stock.py": 3,
+    "file:alembic/env.py": 4,
+    "file:app/cli.py": 6,
+    "file:app/db.py": 1,
+    "file:app/models/__init__.py": 6,
+    "file:app/models/user.py": 2,
+    "file:tests/conftest.py": 7,
+    "file:app/api/checkout.py": 7,
+    "file:app/api/dashboard.py": 7,
+    "file:app/api/voids.py": 7,
+    "file:app/models/invoice.py": 4,
+    "file:app/services/checkout.py": 5,
+    "file:app/services/eod.py": 2,
+    "file:app/services/invoice_pdf.py": 1,
+    "file:app/services/voids.py": 3,
+    "file:app/api/health.py": 1,
+    "file:app/models/log.py": 1,
+    "file:app/models/product.py": 1,
+    "file:app/models/shop.py": 1,
+    "file:app/schemas/auth.py": 1,
+    "file:app/schemas/checkout.py": 1,
+    "file:app/schemas/eod.py": 1,
+    "file:app/schemas/lot.py": 1,
+    "file:app/schemas/product.py": 1,
+    "file:app/security/passwords.py": 1,
+    "file:tests/test_checkout.py": 3,
+    "file:tests/test_eod.py": 1,
+    "file:tests/test_lots.py": 3,
+    "file:tests/test_low_stock.py": 2,
+    "file:tests/test_shops.py": 1,
+    "file:tests/test_voids.py": 4
+  },
+  "commonPrefix": ""
+}

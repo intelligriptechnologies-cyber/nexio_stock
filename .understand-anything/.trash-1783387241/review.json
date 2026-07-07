@@ -1,0 +1,40 @@
+{
+  "issues": [],
+  "warnings": [
+    "Node 'file:alembic/README' has no edges (orphan)",
+    "Node 'file:alembic/script.py.mako' has no edges (orphan)",
+    "Node 'file:alembic/versions/c514c436a0b1_eod_eod_signoffs_business_date_to_date.py' has no edges (orphan)",
+    "Node 'file:app/schemas/__init__.py' has no edges (orphan)",
+    "Node 'file:app/security/__init__.py' has no edges (orphan)",
+    "Node 'file:app/services/__init__.py' has no edges (orphan)",
+    "Node 'file:tests/test_auth.py' has no edges (orphan)",
+    "Node 'file:tests/test_authorization.py' has no edges (orphan)",
+    "Node 'file:tests/test_health.py' has no edges (orphan)"
+  ],
+  "stats": {
+    "totalNodes": 262,
+    "totalEdges": 587,
+    "totalLayers": 8,
+    "tourSteps": 13,
+    "nodeTypes": {
+      "file": 67,
+      "function": 136,
+      "class": 47,
+      "config": 3,
+      "document": 8,
+      "service": 1
+    },
+    "edgeTypes": {
+      "imports": 144,
+      "contains": 182,
+      "exports": 144,
+      "calls": 59,
+      "depends_on": 5,
+      "related": 15,
+      "inherits": 5,
+      "tested_by": 14,
+      "configures": 6,
+      "documents": 13
+    }
+  }
+}

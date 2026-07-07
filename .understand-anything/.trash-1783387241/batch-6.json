@@ -1,0 +1,109 @@
+{
+  "nodes": [
+    {
+      "id": "document:harness/00-intake.md",
+      "type": "document",
+      "name": "00-intake.md",
+      "filePath": "harness/00-intake.md",
+      "summary": "Initial project intake for Barstock: restates the raw wishlist (barcode-based product onboarding, checkout/invoicing, cash/UPI payment recording, EOD reconciliation), clarifies that 'punch in/punch out' means stock check-in/check-out rather than staff attendance, lists open unknowns (users, scale, compliance, stack), and surveys existing commercial liquor-POS competitors (VasyERP, Kamiti, Romio) before closing Phase 0 confirmation.",
+      "tags": ["documentation", "requirements", "planning", "product-scope"],
+      "complexity": "simple"
+    },
+    {
+      "id": "document:harness/01-branch-map.md",
+      "type": "document",
+      "name": "01-branch-map.md",
+      "filePath": "harness/01-branch-map.md",
+      "summary": "Fans the confirmed intake out into 14 architectural domains (users/personas, domain model, backend/API, frontend/UX, data/persistence, auth/security, integrations, observability, failure modes, testing, performance, deployment, compliance, docs) each with implications and open questions, plus a dependency-ordered grilling sequence for Phase 2.",
+      "tags": ["documentation", "planning", "architecture", "requirements"],
+      "complexity": "complex",
+      "languageNotes": "Structured as 17 numbered/lettered sections with per-domain open-question lists (Q1.1-Q14.2), the most structurally elaborate planning document besides the PRD."
+    },
+    {
+      "id": "document:harness/02-ledger.md",
+      "type": "document",
+      "name": "02-ledger.md",
+      "filePath": "harness/02-ledger.md",
+      "summary": "Chronological decisions ledger recording ~63 numbered decisions (D-1 through D-63) made across Phase 0 confirmation, Phase 2 grilling, a logging-detail follow-up, and the Phase 4 absence hunt — covering roles, domain model (Lot/Product/Invoice), concurrency (multi-counter selling), payment modes, void/reversal workflow, storage tiers, and compliance scoping for Odisha excise/GST.",
+      "tags": ["documentation", "decision-log", "planning", "audit-trail"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "document:harness/03-prd.md",
+      "type": "document",
+      "name": "03-prd.md",
+      "filePath": "harness/03-prd.md",
+      "summary": "The frozen Product Requirements Document for Barstock: problem statement, goals, non-goals, and 44 numbered requirements (R-1 through R-44) organized by the 14 branch-map domains, plus a roles summary table, a deferred-items table with v1 defaults, and a verbatim appendix reproducing the full decisions ledger. This is the authoritative, re-frozen spec that all implementation work traces back to.",
+      "tags": ["documentation", "prd", "requirements", "frozen-spec"],
+      "complexity": "complex",
+      "languageNotes": "The longest and most structurally dense document in the harness (27 headings across 3 nesting levels), because it both defines requirements and embeds the entire ledger as an appendix."
+    },
+    {
+      "id": "document:harness/04-absences.md",
+      "type": "document",
+      "name": "04-absences.md",
+      "filePath": "harness/04-absences.md",
+      "summary": "Short Phase 4 'absence hunt' report listing 14 gaps never discussed against the frozen PRD and ledger (split payments, partial returns, bulk catalog import, printed receipts, EOD scope across counters, cost/margin tracking, discounts, duplicate barcodes, password reset, backups, day-boundary, concurrent sessions, trend reporting, multi-shop provisioning), with a disposition noting all findings were resolved into ledger entries D-50 through D-63 and folded back into the PRD.",
+      "tags": ["documentation", "planning", "gap-analysis", "decision-log"],
+      "complexity": "simple"
+    }
+  ],
+  "edges": [
+    {
+      "source": "document:harness/00-intake.md",
+      "target": "document:harness/02-ledger.md",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:harness/01-branch-map.md",
+      "target": "document:harness/00-intake.md",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:harness/01-branch-map.md",
+      "target": "document:harness/02-ledger.md",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:harness/02-ledger.md",
+      "target": "document:harness/00-intake.md",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:harness/03-prd.md",
+      "target": "document:harness/01-branch-map.md",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:harness/03-prd.md",
+      "target": "document:harness/02-ledger.md",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:harness/04-absences.md",
+      "target": "document:harness/03-prd.md",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:harness/04-absences.md",
+      "target": "document:harness/02-ledger.md",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    }
+  ]
+}

@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Barstock - Stock-In</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "primary": "#091426",
+                      "on-tertiary-container": "#1aa54c",
+                      "primary-fixed": "#d8e3fb",
+                      "on-surface": "#191c1e",
+                      "tertiary-container": "#003010",
+                      "surface-bright": "#f7f9fb",
+                      "on-secondary": "#ffffff",
+                      "on-secondary-container": "#5c2400",
+                      "surface-container-low": "#f2f4f6",
+                      "secondary-container": "#fd761a",
+                      "on-tertiary-fixed-variant": "#005320",
+                      "on-tertiary-fixed": "#002109",
+                      "surface-container-lowest": "#ffffff",
+                      "surface": "#f7f9fb",
+                      "error-container": "#ffdad6",
+                      "error": "#ba1a1a",
+                      "primary-fixed-dim": "#bcc7de",
+                      "outline-variant": "#c5c6cd",
+                      "tertiary-fixed-dim": "#62df7d",
+                      "primary-container": "#1e293b",
+                      "inverse-primary": "#bcc7de",
+                      "on-secondary-fixed-variant": "#783200",
+                      "surface-container-highest": "#e0e3e5",
+                      "tertiary-fixed": "#7ffc97",
+                      "on-primary-fixed-variant": "#3c475a",
+                      "outline": "#75777d",
+                      "on-tertiary": "#ffffff",
+                      "on-surface-variant": "#45474c",
+                      "surface-tint": "#545f73",
+                      "secondary-fixed-dim": "#ffb690",
+                      "background": "#f7f9fb",
+                      "on-secondary-fixed": "#341100",
+                      "on-background": "#191c1e",
+                      "inverse-surface": "#2d3133",
+                      "on-primary-container": "#8590a6",
+                      "secondary-fixed": "#ffdbca",
+                      "secondary": "#9d4300",
+                      "on-primary": "#ffffff",
+                      "inverse-on-surface": "#eff1f3",
+                      "on-error": "#ffffff",
+                      "surface-dim": "#d8dadc",
+                      "surface-variant": "#e0e3e5",
+                      "tertiary": "#001905",
+                      "on-error-container": "#93000a",
+                      "surface-container-high": "#e6e8ea",
+                      "surface-container": "#eceef0",
+                      "on-primary-fixed": "#111c2d"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "0.5rem",
+                      "xl": "0.75rem",
+                      "full": "9999px"
+              },
+              "spacing": {
+                      "gutter": "1.5rem",
+                      "stack-gap": "1rem",
+                      "touch-target-min": "64px",
+                      "margin-desktop": "2.5rem",
+                      "margin-mobile": "1rem",
+                      "section-gap": "2rem"
+              },
+              "fontFamily": {
+                      "body-lg": [
+                              "Inter"
+                      ],
+                      "body-md": [
+                              "Inter"
+                      ],
+                      "headline-md": [
+                              "Inter"
+                      ],
+                      "label-md": [
+                              "Inter"
+                      ],
+                      "label-xl": [
+                              "Inter"
+                      ],
+                      "headline-lg-mobile": [
+                              "Inter"
+                      ],
+                      "display-lg": [
+                              "Inter"
+                      ],
+                      "headline-lg": [
+                              "Inter"
+                      ]
+              },
+              "fontSize": {
+                      "body-lg": [
+                              "20px",
+                              {
+                                      "lineHeight": "30px",
+                                      "fontWeight": "500"
+                              }
+                      ],
+                      "body-md": [
+                              "18px",
+                              {
+                                      "lineHeight": "28px",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "headline-md": [
+                              "24px",
+                              {
+                                      "lineHeight": "32px",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "label-md": [
+                              "16px",
+                              {
+                                      "lineHeight": "20px",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "label-xl": [
+                              "20px",
+                              {
+                                      "lineHeight": "24px",
+                                      "fontWeight": "700"
+                              }
+                      ],
+                      "headline-lg-mobile": [
+                              "24px",
+                              {
+                                      "lineHeight": "32px",
+                                      "fontWeight": "700"
+                              }
+                      ],
+                      "display-lg": [
+                              "48px",
+                              {
+                                      "lineHeight": "56px",
+                                      "letterSpacing": "-0.02em",
+                                      "fontWeight": "800"
+                              }
+                      ],
+                      "headline-lg": [
+                              "32px",
+                              {
+                                      "lineHeight": "40px",
+                                      "fontWeight": "700"
+                              }
+                      ]
+              }
+      },
+          },
+        }
+    </script>
+</head>
+<body class="bg-background text-on-background font-body-md min-h-screen flex flex-col md:flex-row">
+<!-- Desktop Side Navigation -->
+<aside class="hidden md:flex flex-col gap-stack-gap p-gutter bg-primary text-on-primary fixed h-screen left-0 w-[280px] border-r-2 border-outline flat no shadows z-40">
+<div class="mb-section-gap">
+<h1 class="text-headline-lg font-headline-lg font-black text-on-primary">Barstock</h1>
+<h2 class="text-label-xl font-label-xl mt-2 text-on-primary-fixed-variant">Admin Panel</h2>
+<p class="text-body-md font-body-md text-on-primary-fixed-variant">Odisha Store #42</p>
+</div>
+<nav class="flex-1 flex flex-col gap-2">
+<a class="flex items-center gap-4 p-4 rounded-lg text-on-primary-fixed-variant hover:bg-primary-container text-label-xl font-label-xl" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">shopping_cart</span>
+                Checkout
+            </a>
+<a class="flex items-center gap-4 p-4 bg-secondary-container text-on-secondary-container rounded-lg font-bold hover:bg-primary-container text-label-xl font-label-xl scale-98 transition-all duration-200" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">inventory</span>
+                Stock-in
+            </a>
+<a class="flex items-center gap-4 p-4 rounded-lg text-on-primary-fixed-variant hover:bg-primary-container text-label-xl font-label-xl" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">analytics</span>
+                Reports
+            </a>
+<a class="flex items-center gap-4 p-4 rounded-lg text-on-primary-fixed-variant hover:bg-primary-container text-label-xl font-label-xl" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">settings</span>
+                Settings
+            </a>
+</nav>
+<div class="mt-auto flex items-center gap-4">
+<img class="w-12 h-12 rounded-full object-cover border border-outline" data-alt="A formal corporate headshot of a middle-aged professional operator in a crisp white shirt, isolated against a neutral gray background. The lighting is even and flat, typical of an ID photo, reflecting a serious, administrative mood suitable for a utility-focused interface." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAfmDHuFSpt2YWJ_nbCYip1oTs9t5K-2Va_mEXBaRNKtvSeh-OngNV2BGexaPpQOGz6Y_VhfwKCbxPf9kSEsPBDc5EzD7nzojG4-Rlz9l78w3RYplMU1OKB20OpHj1v4rh7RnXhlv-2HyO8DJBfyyRJDjmm7JMED-QWIYNzh-MFpEEode7WvAW2CGquhDtA9h28uLkmsCZ2BCsncVM1AJPWOrr8evBZr4lTKO94fjWNW3IW2blEPeA"/>
+</div>
+</aside>
+<!-- Mobile Top App Bar -->
+<header class="md:hidden bg-surface text-primary fixed top-0 w-full z-50 flex justify-between items-center h-20 px-gutter border-b-2 border-outline-variant flat no shadows">
+<h1 class="text-headline-lg-mobile font-headline-lg-mobile font-extrabold text-primary">Barstock</h1>
+<div class="flex gap-4">
+<span class="material-symbols-outlined hover:bg-surface-container-high p-2 rounded-full cursor-pointer">sync</span>
+<span class="material-symbols-outlined hover:bg-surface-container-high p-2 rounded-full cursor-pointer">account_circle</span>
+</div>
+</header>
+<!-- Main Content Area -->
+<main class="flex-1 md:ml-[280px] pt-20 md:pt-0 pb-[100px] md:pb-0 px-margin-mobile md:px-margin-desktop py-section-gap flex flex-col max-w-5xl mx-auto w-full">
+<!-- Header Section -->
+<header class="mb-section-gap flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b-2 border-outline pb-6">
+<div>
+<h1 class="text-display-lg font-display-lg text-on-background">New Lot</h1>
+<p class="text-body-lg font-body-lg text-on-surface-variant mt-2" id="current-datetime">Oct 26, 2023 - 14:30</p>
+<p class="text-label-md font-label-md text-on-surface mt-1">Receiver: Ramesh K.</p>
+</div>
+<button class="bg-secondary text-on-primary h-touch-target-min px-8 rounded-lg flex items-center gap-3 w-full md:w-auto justify-center font-label-xl text-label-xl hover:bg-secondary-fixed-dim transition-colors shadow-md">
+<span class="material-symbols-outlined text-[32px]">barcode_scanner</span>
+                SCAN BOTTLE
+            </button>
+</header>
+<!-- Scanned Items List -->
+<section class="flex-1 flex flex-col gap-stack-gap">
+<!-- Item Row 1 -->
+<article class="bg-surface-container-lowest border border-outline rounded-lg p-4 flex flex-col md:flex-row items-center gap-6 shadow-sm hover:border-secondary-container transition-colors relative group">
+<!-- Image Placeholder -->
+<div class="w-full md:w-24 h-32 md:h-24 bg-surface-container flex-shrink-0 rounded flex items-center justify-center overflow-hidden border border-outline-variant">
+<img class="object-cover w-full h-full" data-alt="A sharply focused close-up product shot of a premium generic liquor bottle label, brightly lit against a stark white background. The image is highly legible, emphasizing practical utility and high contrast suitable for an industrial inventory management system context." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDqxqCdSzBMPG_70DMdDJI_mT33_7WMEa_YHo9pquVqVnVEGIl5N1-TCDGgbiSs5rRdtkhkzeiI9_NFx10cKXxHa7Ppdhw_eooHO2ze_Ig_PXN34hwxHga04FXY6_NxNzy-pKsbdpk9PzTtr2PTbwge0uoytV62UGvtG8cOVr_LwS_OMWP44CstRdjP8cQqnK60ECRgZTb--HdapOZBhZKT1tr4LNruE20dveOpTQuG7XDCIClw93Y"/>
+</div>
+<!-- Item Details -->
+<div class="flex-1 flex flex-col text-center md:text-left w-full">
+<p class="text-label-md font-label-md text-on-surface-variant mb-1 font-mono tracking-widest">8901234567890</p>
+<h2 class="text-headline-md font-headline-md text-on-background mb-2 line-clamp-2">Royal Challenge Premium Whisky 750ml</h2>
+</div>
+<!-- Quantity Stepper -->
+<div class="flex items-center gap-4 bg-surface rounded-lg border-2 border-outline p-2 w-full md:w-auto justify-between">
+<button aria-label="Decrease quantity" class="w-touch-target-min h-touch-target-min bg-surface-container-high rounded flex items-center justify-center hover:bg-surface-variant active:bg-outline-variant transition-colors group-focus-within:border-secondary-container">
+<span class="material-symbols-outlined text-[32px] text-on-surface">remove</span>
+</button>
+<span class="text-display-lg font-display-lg text-on-background w-20 text-center select-none tabular-nums">24</span>
+<button aria-label="Increase quantity" class="w-touch-target-min h-touch-target-min bg-surface-container-high rounded flex items-center justify-center hover:bg-surface-variant active:bg-outline-variant transition-colors">
+<span class="material-symbols-outlined text-[32px] text-on-surface">add</span>
+</button>
+</div>
+</article>
+<!-- Item Row 2 -->
+<article class="bg-surface-container-lowest border border-outline rounded-lg p-4 flex flex-col md:flex-row items-center gap-6 shadow-sm hover:border-secondary-container transition-colors">
+<!-- Image Placeholder -->
+<div class="w-full md:w-24 h-32 md:h-24 bg-surface-container flex-shrink-0 rounded flex items-center justify-center overflow-hidden border border-outline-variant">
+<img class="object-cover w-full h-full" data-alt="A sharply focused close-up product shot of a generic rum bottle label, brightly lit against a stark white background. The image is highly legible, emphasizing practical utility and high contrast suitable for an industrial inventory management system context." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBeN2gsNn-q0QLdZbdM2uWBQcRWLiEWgy6lhAOMbn2J4xxECn4S2mWgYQhZTXCnS5yBrUXc3INKTOG50Hp3KmoBH17IcD_e4rM8uywP8-1oqrVa-VV_ttb37sze2nXRid4wc7gXUlygaL22ftWG0owe6TtQQgt2AE4NyRmbB3y_aw6QBfVcAg8peflhAknZ1EVa_8rFd-VO5RJwBr9eAzD7dSIgGUuuvdU62CiL5ELIFL20ITSVLwQ"/>
+</div>
+<!-- Item Details -->
+<div class="flex-1 flex flex-col text-center md:text-left w-full">
+<p class="text-label-md font-label-md text-on-surface-variant mb-1 font-mono tracking-widest">8909876543210</p>
+<h2 class="text-headline-md font-headline-md text-on-background mb-2 line-clamp-2">Old Monk Supreme Rum 1L</h2>
+</div>
+<!-- Quantity Stepper -->
+<div class="flex items-center gap-4 bg-surface rounded-lg border-2 border-outline p-2 w-full md:w-auto justify-between">
+<button aria-label="Decrease quantity" class="w-touch-target-min h-touch-target-min bg-surface-container-high rounded flex items-center justify-center hover:bg-surface-variant active:bg-outline-variant transition-colors">
+<span class="material-symbols-outlined text-[32px] text-on-surface">remove</span>
+</button>
+<span class="text-display-lg font-display-lg text-on-background w-20 text-center select-none tabular-nums">12</span>
+<button aria-label="Increase quantity" class="w-touch-target-min h-touch-target-min bg-surface-container-high rounded flex items-center justify-center hover:bg-surface-variant active:bg-outline-variant transition-colors">
+<span class="material-symbols-outlined text-[32px] text-on-surface">add</span>
+</button>
+</div>
+</article>
+</section>
+<!-- Save Action -->
+<footer class="mt-section-gap pt-6 border-t-2 border-outline bg-background sticky bottom-[90px] md:static">
+<button class="w-full h-[80px] bg-tertiary-container text-on-tertiary flex items-center justify-center gap-4 rounded-xl text-headline-lg font-headline-lg font-black hover:bg-tertiary-fixed-dim transition-colors shadow-lg active:scale-95 duration-150">
+<span class="material-symbols-outlined text-[40px] font-bold">save</span>
+                 SAVE STOCK
+             </button>
+</footer>
+</main>
+<!-- Mobile Bottom Navigation -->
+<nav class="md:hidden fixed bottom-0 w-full flex justify-around items-center px-2 pb-safe bg-surface border-t-2 border-outline-variant h-[80px] z-50 shadow-lg text-primary">
+<a class="flex flex-col items-center justify-center text-on-surface-variant hover:bg-surface-container-high w-full h-full" href="#">
+<span class="material-symbols-outlined">point_of_sale</span>
+<span class="text-label-md font-label-md mt-1">Checkout</span>
+</a>
+<a class="flex flex-col items-center justify-center bg-secondary-container text-on-secondary-container rounded-xl px-6 py-2 scale-90 transition-transform duration-150 font-bold" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">box</span>
+<span class="text-label-md font-label-md mt-1">Stock</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant hover:bg-surface-container-high w-full h-full" href="#">
+<span class="material-symbols-outlined">description</span>
+<span class="text-label-md font-label-md mt-1">Reports</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant hover:bg-surface-container-high w-full h-full" href="#">
+<span class="material-symbols-outlined">menu</span>
+<span class="text-label-md font-label-md mt-1">More</span>
+</a>
+</nav>
+<script>
+        // Set current date time
+        const now = new Date();
+        const options = { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' };
+        document.getElementById('current-datetime').textContent = now.toLocaleDateString('en-US', options);
+    </script>
+</body></html>

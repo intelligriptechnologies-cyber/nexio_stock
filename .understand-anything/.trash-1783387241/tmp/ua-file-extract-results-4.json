@@ -1,0 +1,4238 @@
+{
+  "scriptCompleted": true,
+  "filesAnalyzed": 11,
+  "filesSkipped": [],
+  "results": [
+    {
+      "path": "app/api/checkout.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 247,
+      "nonEmptyLines": 213,
+      "functions": [
+        {
+          "name": "_error_to_http",
+          "startLine": 70,
+          "endLine": 76,
+          "params": [
+            "exc"
+          ]
+        },
+        {
+          "name": "finalize",
+          "startLine": 85,
+          "endLine": 170,
+          "params": [
+            "payload",
+            "db",
+            "_user",
+            "idempotency_key"
+          ]
+        },
+        {
+          "name": "_load_invoice_or_404",
+          "startLine": 176,
+          "endLine": 186,
+          "params": [
+            "db",
+            "invoice_id"
+          ]
+        },
+        {
+          "name": "get_invoice",
+          "startLine": 194,
+          "endLine": 205,
+          "params": [
+            "invoice_id",
+            "db",
+            "_user"
+          ]
+        },
+        {
+          "name": "get_invoice_pdf",
+          "startLine": 213,
+          "endLine": 247,
+          "params": [
+            "invoice_id",
+            "db",
+            "_user"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "_error_to_http",
+          "line": 70,
+          "isDefault": false
+        },
+        {
+          "name": "finalize",
+          "line": 79,
+          "isDefault": false
+        },
+        {
+          "name": "_load_invoice_or_404",
+          "line": 176,
+          "isDefault": false
+        },
+        {
+          "name": "get_invoice",
+          "line": 189,
+          "isDefault": false
+        },
+        {
+          "name": "get_invoice_pdf",
+          "line": 208,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "_error_to_http",
+          "callee": "map_error_to_http",
+          "lineNumber": 73
+        },
+        {
+          "caller": "_error_to_http",
+          "callee": "log.error",
+          "lineNumber": 75
+        },
+        {
+          "caller": "finalize",
+          "callee": "Depends",
+          "lineNumber": 88
+        },
+        {
+          "caller": "finalize",
+          "callee": "require_role",
+          "lineNumber": 88
+        },
+        {
+          "caller": "finalize",
+          "callee": "Header",
+          "lineNumber": 91
+        },
+        {
+          "caller": "finalize",
+          "callee": "CartLine",
+          "lineNumber": 103
+        },
+        {
+          "caller": "finalize",
+          "callee": "PaymentLine",
+          "lineNumber": 106
+        },
+        {
+          "caller": "finalize",
+          "callee": "finalize_checkout",
+          "lineNumber": 109
+        },
+        {
+          "caller": "finalize",
+          "callee": "db.rollback",
+          "lineNumber": 120
+        },
+        {
+          "caller": "finalize",
+          "callee": "_error_to_http",
+          "lineNumber": 121
+        },
+        {
+          "caller": "finalize",
+          "callee": "db.commit",
+          "lineNumber": 125
+        },
+        {
+          "caller": "finalize",
+          "callee": "db.refresh",
+          "lineNumber": 129
+        },
+        {
+          "caller": "finalize",
+          "callee": "db.add",
+          "lineNumber": 134
+        },
+        {
+          "caller": "finalize",
+          "callee": "InvoicingLog",
+          "lineNumber": 135
+        },
+        {
+          "caller": "finalize",
+          "callee": "str",
+          "lineNumber": 142
+        },
+        {
+          "caller": "finalize",
+          "callee": "str",
+          "lineNumber": 143
+        },
+        {
+          "caller": "finalize",
+          "callee": "str",
+          "lineNumber": 148
+        },
+        {
+          "caller": "finalize",
+          "callee": "str",
+          "lineNumber": 149
+        },
+        {
+          "caller": "finalize",
+          "callee": "db.commit",
+          "lineNumber": 156
+        },
+        {
+          "caller": "finalize",
+          "callee": "log.info",
+          "lineNumber": 158
+        },
+        {
+          "caller": "finalize",
+          "callee": "str",
+          "lineNumber": 164
+        },
+        {
+          "caller": "finalize",
+          "callee": "len",
+          "lineNumber": 165
+        },
+        {
+          "caller": "finalize",
+          "callee": "InvoicePublic.model_validate",
+          "lineNumber": 169
+        },
+        {
+          "caller": "finalize",
+          "callee": "CheckoutFinalizeResponse",
+          "lineNumber": 170
+        },
+        {
+          "caller": "_load_invoice_or_404",
+          "callee": "(\r\n        await db.execute(\r\n            select(Invoice)\r\n            .where(Invoice.id == invoice_id)\r\n            .options(selectinload(Invoice.lines), selectinload(Invoice.payments))\r\n        )\r\n    ).scalar_one_or_none",
+          "lineNumber": 177
+        },
+        {
+          "caller": "_load_invoice_or_404",
+          "callee": "db.execute",
+          "lineNumber": 178
+        },
+        {
+          "caller": "_load_invoice_or_404",
+          "callee": "select(Invoice)\r\n            .where(Invoice.id == invoice_id)\r\n            .options",
+          "lineNumber": 179
+        },
+        {
+          "caller": "_load_invoice_or_404",
+          "callee": "select(Invoice)\r\n            .where",
+          "lineNumber": 179
+        },
+        {
+          "caller": "_load_invoice_or_404",
+          "callee": "select",
+          "lineNumber": 179
+        },
+        {
+          "caller": "_load_invoice_or_404",
+          "callee": "selectinload",
+          "lineNumber": 181
+        },
+        {
+          "caller": "_load_invoice_or_404",
+          "callee": "selectinload",
+          "lineNumber": 181
+        },
+        {
+          "caller": "_load_invoice_or_404",
+          "callee": "HTTPException",
+          "lineNumber": 185
+        },
+        {
+          "caller": "get_invoice",
+          "callee": "Depends",
+          "lineNumber": 197
+        },
+        {
+          "caller": "get_invoice",
+          "callee": "require_role",
+          "lineNumber": 197
+        },
+        {
+          "caller": "get_invoice",
+          "callee": "_load_invoice_or_404",
+          "lineNumber": 202
+        },
+        {
+          "caller": "get_invoice",
+          "callee": "HTTPException",
+          "lineNumber": 204
+        },
+        {
+          "caller": "get_invoice",
+          "callee": "InvoicePublic.model_validate",
+          "lineNumber": 205
+        },
+        {
+          "caller": "get_invoice_pdf",
+          "callee": "Depends",
+          "lineNumber": 216
+        },
+        {
+          "caller": "get_invoice_pdf",
+          "callee": "require_role",
+          "lineNumber": 216
+        },
+        {
+          "caller": "get_invoice_pdf",
+          "callee": "_load_invoice_or_404",
+          "lineNumber": 221
+        },
+        {
+          "caller": "get_invoice_pdf",
+          "callee": "HTTPException",
+          "lineNumber": 223
+        },
+        {
+          "caller": "get_invoice_pdf",
+          "callee": "db.get",
+          "lineNumber": 232
+        },
+        {
+          "caller": "get_invoice_pdf",
+          "callee": "render_invoice_pdf",
+          "lineNumber": 233
+        },
+        {
+          "caller": "get_invoice_pdf",
+          "callee": "Response",
+          "lineNumber": 239
+        }
+      ],
+      "metrics": {
+        "importCount": 7,
+        "exportCount": 5,
+        "functionCount": 5,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "app/api/dashboard.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 223,
+      "nonEmptyLines": 197,
+      "functions": [
+        {
+          "name": "_error_to_http",
+          "startLine": 48,
+          "endLine": 54,
+          "params": [
+            "exc"
+          ]
+        },
+        {
+          "name": "sign_off",
+          "startLine": 63,
+          "endLine": 96,
+          "params": [
+            "payload",
+            "db",
+            "_user"
+          ]
+        },
+        {
+          "name": "eod_totals",
+          "startLine": 104,
+          "endLine": 126,
+          "params": [
+            "db",
+            "_user",
+            "business_date"
+          ]
+        },
+        {
+          "name": "eod_history",
+          "startLine": 134,
+          "endLine": 158,
+          "params": [
+            "db",
+            "_user",
+            "from_date",
+            "to_date",
+            "limit"
+          ]
+        },
+        {
+          "name": "void_queue",
+          "startLine": 166,
+          "endLine": 188,
+          "params": [
+            "db",
+            "_user",
+            "limit"
+          ]
+        },
+        {
+          "name": "low_stock",
+          "startLine": 195,
+          "endLine": 223,
+          "params": [
+            "db",
+            "_user"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "_error_to_http",
+          "line": 48,
+          "isDefault": false
+        },
+        {
+          "name": "sign_off",
+          "line": 57,
+          "isDefault": false
+        },
+        {
+          "name": "eod_totals",
+          "line": 99,
+          "isDefault": false
+        },
+        {
+          "name": "eod_history",
+          "line": 129,
+          "isDefault": false
+        },
+        {
+          "name": "void_queue",
+          "line": 161,
+          "isDefault": false
+        },
+        {
+          "name": "low_stock",
+          "line": 190,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "_error_to_http",
+          "callee": "map_error_to_http",
+          "lineNumber": 51
+        },
+        {
+          "caller": "_error_to_http",
+          "callee": "log.error",
+          "lineNumber": 53
+        },
+        {
+          "caller": "sign_off",
+          "callee": "Depends",
+          "lineNumber": 66
+        },
+        {
+          "caller": "sign_off",
+          "callee": "require_role",
+          "lineNumber": 66
+        },
+        {
+          "caller": "sign_off",
+          "callee": "sign_off_day",
+          "lineNumber": 72
+        },
+        {
+          "caller": "sign_off",
+          "callee": "db.rollback",
+          "lineNumber": 80
+        },
+        {
+          "caller": "sign_off",
+          "callee": "_error_to_http",
+          "lineNumber": 81
+        },
+        {
+          "caller": "sign_off",
+          "callee": "db.commit",
+          "lineNumber": 83
+        },
+        {
+          "caller": "sign_off",
+          "callee": "log.info",
+          "lineNumber": 84
+        },
+        {
+          "caller": "sign_off",
+          "callee": "payload.business_date.isoformat",
+          "lineNumber": 88
+        },
+        {
+          "caller": "sign_off",
+          "callee": "SignOffResponse",
+          "lineNumber": 91
+        },
+        {
+          "caller": "eod_totals",
+          "callee": "Depends",
+          "lineNumber": 106
+        },
+        {
+          "caller": "eod_totals",
+          "callee": "require_role",
+          "lineNumber": 106
+        },
+        {
+          "caller": "eod_totals",
+          "callee": "Query",
+          "lineNumber": 109
+        },
+        {
+          "caller": "eod_totals",
+          "callee": "get_day_totals",
+          "lineNumber": 112
+        },
+        {
+          "caller": "eod_totals",
+          "callee": "EodTotalsResponse",
+          "lineNumber": 115
+        },
+        {
+          "caller": "eod_totals",
+          "callee": "PaymentModeTotal",
+          "lineNumber": 123
+        },
+        {
+          "caller": "eod_totals",
+          "callee": "sorted",
+          "lineNumber": 124
+        },
+        {
+          "caller": "eod_totals",
+          "callee": "totals.payments_by_mode.items",
+          "lineNumber": 124
+        },
+        {
+          "caller": "eod_history",
+          "callee": "Depends",
+          "lineNumber": 136
+        },
+        {
+          "caller": "eod_history",
+          "callee": "require_role",
+          "lineNumber": 136
+        },
+        {
+          "caller": "eod_history",
+          "callee": "Query",
+          "lineNumber": 137
+        },
+        {
+          "caller": "eod_history",
+          "callee": "Query",
+          "lineNumber": 138
+        },
+        {
+          "caller": "eod_history",
+          "callee": "Query",
+          "lineNumber": 139
+        },
+        {
+          "caller": "eod_history",
+          "callee": "list_signoff_history",
+          "lineNumber": 141
+        },
+        {
+          "caller": "eod_history",
+          "callee": "SignOffHistoryResponse",
+          "lineNumber": 148
+        },
+        {
+          "caller": "eod_history",
+          "callee": "SignOffResponse",
+          "lineNumber": 150
+        },
+        {
+          "caller": "void_queue",
+          "callee": "Depends",
+          "lineNumber": 168
+        },
+        {
+          "caller": "void_queue",
+          "callee": "require_role",
+          "lineNumber": 168
+        },
+        {
+          "caller": "void_queue",
+          "callee": "Query",
+          "lineNumber": 169
+        },
+        {
+          "caller": "void_queue",
+          "callee": "list_pending_voids",
+          "lineNumber": 171
+        },
+        {
+          "caller": "void_queue",
+          "callee": "db.refresh",
+          "lineNumber": 176
+        },
+        {
+          "caller": "void_queue",
+          "callee": "db.refresh",
+          "lineNumber": 180
+        },
+        {
+          "caller": "void_queue",
+          "callee": "db.refresh",
+          "lineNumber": 186
+        },
+        {
+          "caller": "void_queue",
+          "callee": "invoices.append",
+          "lineNumber": 187
+        },
+        {
+          "caller": "void_queue",
+          "callee": "InvoicePublic.model_validate",
+          "lineNumber": 187
+        },
+        {
+          "caller": "void_queue",
+          "callee": "PendingVoidResponse",
+          "lineNumber": 188
+        },
+        {
+          "caller": "low_stock",
+          "callee": "Depends",
+          "lineNumber": 197
+        },
+        {
+          "caller": "low_stock",
+          "callee": "require_role",
+          "lineNumber": 197
+        },
+        {
+          "caller": "low_stock",
+          "callee": "compute_low_stock",
+          "lineNumber": 209
+        },
+        {
+          "caller": "low_stock",
+          "callee": "LowStockResponse",
+          "lineNumber": 210
+        },
+        {
+          "caller": "low_stock",
+          "callee": "LowStockItem",
+          "lineNumber": 212
+        },
+        {
+          "caller": "low_stock",
+          "callee": "datetime.now",
+          "lineNumber": 222
+        }
+      ],
+      "metrics": {
+        "importCount": 5,
+        "exportCount": 6,
+        "functionCount": 6,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "app/api/voids.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 285,
+      "nonEmptyLines": 248,
+      "functions": [
+        {
+          "name": "_error_to_http",
+          "startLine": 58,
+          "endLine": 64,
+          "params": [
+            "exc"
+          ]
+        },
+        {
+          "name": "request_void",
+          "startLine": 72,
+          "endLine": 131,
+          "params": [
+            "invoice_id",
+            "db",
+            "_user",
+            "reason"
+          ]
+        },
+        {
+          "name": "approve_void",
+          "startLine": 139,
+          "endLine": 182,
+          "params": [
+            "invoice_id",
+            "db",
+            "_user",
+            "reason"
+          ]
+        },
+        {
+          "name": "reject_void",
+          "startLine": 190,
+          "endLine": 231,
+          "params": [
+            "invoice_id",
+            "db",
+            "_user",
+            "reason"
+          ]
+        },
+        {
+          "name": "_load_invoice",
+          "startLine": 237,
+          "endLine": 248,
+          "params": [
+            "db",
+            "invoice_id",
+            "shop_id"
+          ]
+        },
+        {
+          "name": "_not_found",
+          "startLine": 251,
+          "endLine": 254,
+          "params": []
+        },
+        {
+          "name": "_write_void_log",
+          "startLine": 257,
+          "endLine": 285,
+          "params": [
+            "db",
+            "actor_id",
+            "shop_id",
+            "invoice",
+            "event_type",
+            "from_status",
+            "to_status",
+            "reason",
+            "extra"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "_error_to_http",
+          "line": 58,
+          "isDefault": false
+        },
+        {
+          "name": "request_void",
+          "line": 67,
+          "isDefault": false
+        },
+        {
+          "name": "approve_void",
+          "line": 134,
+          "isDefault": false
+        },
+        {
+          "name": "reject_void",
+          "line": 185,
+          "isDefault": false
+        },
+        {
+          "name": "_load_invoice",
+          "line": 237,
+          "isDefault": false
+        },
+        {
+          "name": "_not_found",
+          "line": 251,
+          "isDefault": false
+        },
+        {
+          "name": "_write_void_log",
+          "line": 257,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "_error_to_http",
+          "callee": "map_error_to_http",
+          "lineNumber": 61
+        },
+        {
+          "caller": "_error_to_http",
+          "callee": "log.error",
+          "lineNumber": 63
+        },
+        {
+          "caller": "request_void",
+          "callee": "Depends",
+          "lineNumber": 75
+        },
+        {
+          "caller": "request_void",
+          "callee": "require_role",
+          "lineNumber": 75
+        },
+        {
+          "caller": "request_void",
+          "callee": "_load_invoice",
+          "lineNumber": 81
+        },
+        {
+          "caller": "request_void",
+          "callee": "request_post_eod_void",
+          "lineNumber": 87
+        },
+        {
+          "caller": "request_void",
+          "callee": "direct_void",
+          "lineNumber": 96
+        },
+        {
+          "caller": "request_void",
+          "callee": "db.rollback",
+          "lineNumber": 105
+        },
+        {
+          "caller": "request_void",
+          "callee": "_error_to_http",
+          "lineNumber": 106
+        },
+        {
+          "caller": "request_void",
+          "callee": "db.commit",
+          "lineNumber": 108
+        },
+        {
+          "caller": "request_void",
+          "callee": "_write_void_log",
+          "lineNumber": 109
+        },
+        {
+          "caller": "request_void",
+          "callee": "db.commit",
+          "lineNumber": 119
+        },
+        {
+          "caller": "request_void",
+          "callee": "log.info",
+          "lineNumber": 121
+        },
+        {
+          "caller": "request_void",
+          "callee": "db.refresh",
+          "lineNumber": 130
+        },
+        {
+          "caller": "request_void",
+          "callee": "InvoicePublic.model_validate",
+          "lineNumber": 131
+        },
+        {
+          "caller": "approve_void",
+          "callee": "Depends",
+          "lineNumber": 142
+        },
+        {
+          "caller": "approve_void",
+          "callee": "require_role",
+          "lineNumber": 142
+        },
+        {
+          "caller": "approve_void",
+          "callee": "approve_post_eod_void",
+          "lineNumber": 149
+        },
+        {
+          "caller": "approve_void",
+          "callee": "db.rollback",
+          "lineNumber": 157
+        },
+        {
+          "caller": "approve_void",
+          "callee": "_error_to_http",
+          "lineNumber": 158
+        },
+        {
+          "caller": "approve_void",
+          "callee": "db.commit",
+          "lineNumber": 160
+        },
+        {
+          "caller": "approve_void",
+          "callee": "_write_void_log",
+          "lineNumber": 161
+        },
+        {
+          "caller": "approve_void",
+          "callee": "db.commit",
+          "lineNumber": 172
+        },
+        {
+          "caller": "approve_void",
+          "callee": "log.info",
+          "lineNumber": 174
+        },
+        {
+          "caller": "approve_void",
+          "callee": "db.refresh",
+          "lineNumber": 181
+        },
+        {
+          "caller": "approve_void",
+          "callee": "InvoicePublic.model_validate",
+          "lineNumber": 182
+        },
+        {
+          "caller": "reject_void",
+          "callee": "Depends",
+          "lineNumber": 193
+        },
+        {
+          "caller": "reject_void",
+          "callee": "require_role",
+          "lineNumber": 193
+        },
+        {
+          "caller": "reject_void",
+          "callee": "reject_post_eod_void",
+          "lineNumber": 200
+        },
+        {
+          "caller": "reject_void",
+          "callee": "db.rollback",
+          "lineNumber": 208
+        },
+        {
+          "caller": "reject_void",
+          "callee": "_error_to_http",
+          "lineNumber": 209
+        },
+        {
+          "caller": "reject_void",
+          "callee": "db.commit",
+          "lineNumber": 211
+        },
+        {
+          "caller": "reject_void",
+          "callee": "_write_void_log",
+          "lineNumber": 212
+        },
+        {
+          "caller": "reject_void",
+          "callee": "db.commit",
+          "lineNumber": 222
+        },
+        {
+          "caller": "reject_void",
+          "callee": "log.info",
+          "lineNumber": 224
+        },
+        {
+          "caller": "reject_void",
+          "callee": "db.refresh",
+          "lineNumber": 230
+        },
+        {
+          "caller": "reject_void",
+          "callee": "InvoicePublic.model_validate",
+          "lineNumber": 231
+        },
+        {
+          "caller": "_load_invoice",
+          "callee": "(\r\n        await db.execute(\r\n            select(Invoice).where(\r\n                Invoice.id == invoice_id, Invoice.shop_id == shop_id\r\n            )\r\n        )\r\n    ).scalar_one_or_none",
+          "lineNumber": 242
+        },
+        {
+          "caller": "_load_invoice",
+          "callee": "db.execute",
+          "lineNumber": 243
+        },
+        {
+          "caller": "_load_invoice",
+          "callee": "select(Invoice).where",
+          "lineNumber": 244
+        },
+        {
+          "caller": "_load_invoice",
+          "callee": "select",
+          "lineNumber": 244
+        },
+        {
+          "caller": "_load_invoice",
+          "callee": "_not_found",
+          "lineNumber": 248
+        },
+        {
+          "caller": "_not_found",
+          "callee": "HTTPException",
+          "lineNumber": 252
+        },
+        {
+          "caller": "_write_void_log",
+          "callee": "payload.update",
+          "lineNumber": 277
+        },
+        {
+          "caller": "_write_void_log",
+          "callee": "db.add",
+          "lineNumber": 278
+        },
+        {
+          "caller": "_write_void_log",
+          "callee": "InvoicingLog",
+          "lineNumber": 279
+        }
+      ],
+      "metrics": {
+        "importCount": 4,
+        "exportCount": 7,
+        "functionCount": 7,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "app/models/invoice.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 284,
+      "nonEmptyLines": 243,
+      "classes": [
+        {
+          "name": "InvoiceStatus",
+          "startLine": 48,
+          "endLine": 52,
+          "methods": [],
+          "properties": []
+        },
+        {
+          "name": "PaymentMode",
+          "startLine": 70,
+          "endLine": 73,
+          "methods": [],
+          "properties": []
+        },
+        {
+          "name": "Invoice",
+          "startLine": 76,
+          "endLine": 146,
+          "methods": [],
+          "properties": [
+            "id",
+            "shop_id",
+            "cashier_user_id",
+            "invoice_number",
+            "status",
+            "total_amount",
+            "finalized_at",
+            "eod_signed_off",
+            "eod_signed_off_at",
+            "eod_signed_off_by_user_id",
+            "note",
+            "reverses_invoice_id",
+            "void_requested_by_user_id",
+            "void_requested_at",
+            "lines",
+            "payments"
+          ]
+        },
+        {
+          "name": "InvoiceLine",
+          "startLine": 149,
+          "endLine": 183,
+          "methods": [],
+          "properties": [
+            "id",
+            "invoice_id",
+            "product_id",
+            "quantity",
+            "unit_price",
+            "line_total",
+            "invoice",
+            "product"
+          ]
+        },
+        {
+          "name": "Payment",
+          "startLine": 186,
+          "endLine": 210,
+          "methods": [],
+          "properties": [
+            "id",
+            "invoice_id",
+            "mode",
+            "amount",
+            "invoice"
+          ]
+        },
+        {
+          "name": "EodSignOff",
+          "startLine": 213,
+          "endLine": 251,
+          "methods": [],
+          "properties": [
+            "id",
+            "shop_id",
+            "business_date",
+            "signed_off_by_user_id",
+            "signed_off_at",
+            "invoices_signed_off",
+            "notes"
+          ]
+        },
+        {
+          "name": "IdempotencyKey",
+          "startLine": 254,
+          "endLine": 284,
+          "methods": [],
+          "properties": [
+            "id",
+            "shop_id",
+            "key",
+            "invoice_id",
+            "created_at"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "InvoiceStatus",
+          "line": 48,
+          "isDefault": false
+        },
+        {
+          "name": "PaymentMode",
+          "line": 70,
+          "isDefault": false
+        },
+        {
+          "name": "Invoice",
+          "line": 76,
+          "isDefault": false
+        },
+        {
+          "name": "InvoiceLine",
+          "line": 149,
+          "isDefault": false
+        },
+        {
+          "name": "Payment",
+          "line": 186,
+          "isDefault": false
+        },
+        {
+          "name": "EodSignOff",
+          "line": 213,
+          "isDefault": false
+        },
+        {
+          "name": "IdempotencyKey",
+          "line": 254,
+          "isDefault": false
+        }
+      ],
+      "metrics": {
+        "importCount": 3,
+        "exportCount": 7,
+        "functionCount": 0,
+        "classCount": 7
+      }
+    },
+    {
+      "path": "app/schemas/checkout.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 111,
+      "nonEmptyLines": 81,
+      "classes": [
+        {
+          "name": "CheckoutLine",
+          "startLine": 18,
+          "endLine": 25,
+          "methods": [],
+          "properties": [
+            "barcode",
+            "quantity"
+          ]
+        },
+        {
+          "name": "PaymentInput",
+          "startLine": 28,
+          "endLine": 34,
+          "methods": [],
+          "properties": [
+            "mode",
+            "amount"
+          ]
+        },
+        {
+          "name": "CheckoutFinalizeRequest",
+          "startLine": 37,
+          "endLine": 55,
+          "methods": [
+            "_payments_nonempty_amount"
+          ],
+          "properties": [
+            "lines",
+            "payments",
+            "note"
+          ]
+        },
+        {
+          "name": "InvoiceLinePublic",
+          "startLine": 58,
+          "endLine": 65,
+          "methods": [],
+          "properties": [
+            "id",
+            "product_id",
+            "quantity",
+            "unit_price",
+            "line_total"
+          ]
+        },
+        {
+          "name": "PaymentPublic",
+          "startLine": 68,
+          "endLine": 73,
+          "methods": [],
+          "properties": [
+            "id",
+            "mode",
+            "amount"
+          ]
+        },
+        {
+          "name": "InvoicePublic",
+          "startLine": 76,
+          "endLine": 89,
+          "methods": [],
+          "properties": [
+            "id",
+            "shop_id",
+            "cashier_user_id",
+            "invoice_number",
+            "status",
+            "total_amount",
+            "note",
+            "finalized_at",
+            "eod_signed_off",
+            "lines",
+            "payments"
+          ]
+        },
+        {
+          "name": "CheckoutFinalizeResponse",
+          "startLine": 92,
+          "endLine": 94,
+          "methods": [],
+          "properties": [
+            "invoice",
+            "is_replay"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "CheckoutLine",
+          "line": 18,
+          "isDefault": false
+        },
+        {
+          "name": "PaymentInput",
+          "line": 28,
+          "isDefault": false
+        },
+        {
+          "name": "CheckoutFinalizeRequest",
+          "line": 37,
+          "isDefault": false
+        },
+        {
+          "name": "InvoiceLinePublic",
+          "line": 58,
+          "isDefault": false
+        },
+        {
+          "name": "PaymentPublic",
+          "line": 68,
+          "isDefault": false
+        },
+        {
+          "name": "InvoicePublic",
+          "line": 76,
+          "isDefault": false
+        },
+        {
+          "name": "CheckoutFinalizeResponse",
+          "line": 92,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "_payments_nonempty_amount",
+          "callee": "sum",
+          "lineNumber": 52
+        },
+        {
+          "caller": "_payments_nonempty_amount",
+          "callee": "Decimal",
+          "lineNumber": 52
+        },
+        {
+          "caller": "_payments_nonempty_amount",
+          "callee": "ValueError",
+          "lineNumber": 54
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 7,
+        "functionCount": 0,
+        "classCount": 7
+      }
+    },
+    {
+      "path": "app/schemas/eod.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 78,
+      "nonEmptyLines": 56,
+      "classes": [
+        {
+          "name": "SignOffRequest",
+          "startLine": 12,
+          "endLine": 21,
+          "methods": [
+            "_not_far_past"
+          ],
+          "properties": [
+            "business_date",
+            "notes"
+          ]
+        },
+        {
+          "name": "SignOffResponse",
+          "startLine": 24,
+          "endLine": 28,
+          "methods": [],
+          "properties": [
+            "business_date",
+            "signed_off_at",
+            "signed_off_by_user_id",
+            "invoices_signed_off"
+          ]
+        },
+        {
+          "name": "PaymentModeTotal",
+          "startLine": 31,
+          "endLine": 33,
+          "methods": [],
+          "properties": [
+            "mode",
+            "amount"
+          ]
+        },
+        {
+          "name": "EodTotalsResponse",
+          "startLine": 36,
+          "endLine": 43,
+          "methods": [],
+          "properties": [
+            "business_date",
+            "signed_off",
+            "invoice_count",
+            "revenue",
+            "voided_count",
+            "reversal_count",
+            "payments_by_mode"
+          ]
+        },
+        {
+          "name": "SignOffHistoryResponse",
+          "startLine": 46,
+          "endLine": 47,
+          "methods": [],
+          "properties": [
+            "signoffs"
+          ]
+        },
+        {
+          "name": "PendingVoidResponse",
+          "startLine": 50,
+          "endLine": 51,
+          "methods": [],
+          "properties": [
+            "invoices"
+          ]
+        },
+        {
+          "name": "LowStockItem",
+          "startLine": 53,
+          "endLine": 59,
+          "methods": [],
+          "properties": [
+            "product_id",
+            "barcode",
+            "brand",
+            "size_label",
+            "current_stock",
+            "effective_threshold"
+          ]
+        },
+        {
+          "name": "LowStockResponse",
+          "startLine": 62,
+          "endLine": 66,
+          "methods": [],
+          "properties": [
+            "items",
+            "evaluated_at"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "SignOffRequest",
+          "line": 12,
+          "isDefault": false
+        },
+        {
+          "name": "SignOffResponse",
+          "line": 24,
+          "isDefault": false
+        },
+        {
+          "name": "PaymentModeTotal",
+          "line": 31,
+          "isDefault": false
+        },
+        {
+          "name": "EodTotalsResponse",
+          "line": 36,
+          "isDefault": false
+        },
+        {
+          "name": "SignOffHistoryResponse",
+          "line": 46,
+          "isDefault": false
+        },
+        {
+          "name": "PendingVoidResponse",
+          "line": 50,
+          "isDefault": false
+        },
+        {
+          "name": "LowStockItem",
+          "line": 53,
+          "isDefault": false
+        },
+        {
+          "name": "LowStockResponse",
+          "line": 62,
+          "isDefault": false
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 8,
+        "functionCount": 0,
+        "classCount": 8
+      }
+    },
+    {
+      "path": "app/services/checkout.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 410,
+      "nonEmptyLines": 360,
+      "functions": [
+        {
+          "name": "_check_idempotency_key_present",
+          "startLine": 87,
+          "endLine": 96,
+          "params": [
+            "key"
+          ]
+        },
+        {
+          "name": "_is_today_signed_off",
+          "startLine": 98,
+          "endLine": 110,
+          "params": [
+            "db",
+            "shop_id"
+          ]
+        },
+        {
+          "name": "_resolve_products_for_cart",
+          "startLine": 113,
+          "endLine": 137,
+          "params": [
+            "db",
+            "shop_id",
+            "lines"
+          ]
+        },
+        {
+          "name": "_current_stock_for",
+          "startLine": 140,
+          "endLine": 224,
+          "params": [
+            "db",
+            "product_ids"
+          ]
+        },
+        {
+          "name": "finalize_checkout",
+          "startLine": 227,
+          "endLine": 399,
+          "params": [
+            "db",
+            "shop_id",
+            "cashier_user_id",
+            "cart",
+            "payments",
+            "idempotency_key",
+            "note"
+          ]
+        }
+      ],
+      "classes": [
+        {
+          "name": "CheckoutError",
+          "startLine": 49,
+          "endLine": 59,
+          "methods": [
+            "__init__"
+          ],
+          "properties": []
+        },
+        {
+          "name": "CartLine",
+          "startLine": 62,
+          "endLine": 66,
+          "methods": [],
+          "properties": [
+            "barcode",
+            "quantity"
+          ]
+        },
+        {
+          "name": "PaymentLine",
+          "startLine": 69,
+          "endLine": 73,
+          "methods": [],
+          "properties": [
+            "mode",
+            "amount"
+          ]
+        },
+        {
+          "name": "FinalizeResult",
+          "startLine": 77,
+          "endLine": 79,
+          "methods": [],
+          "properties": [
+            "invoice",
+            "is_replay"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "CheckoutError",
+          "line": 49,
+          "isDefault": false
+        },
+        {
+          "name": "CartLine",
+          "line": 62,
+          "isDefault": false
+        },
+        {
+          "name": "PaymentLine",
+          "line": 69,
+          "isDefault": false
+        },
+        {
+          "name": "FinalizeResult",
+          "line": 76,
+          "isDefault": false
+        },
+        {
+          "name": "_check_idempotency_key_present",
+          "line": 87,
+          "isDefault": false
+        },
+        {
+          "name": "_is_today_signed_off",
+          "line": 98,
+          "isDefault": false
+        },
+        {
+          "name": "_resolve_products_for_cart",
+          "line": 113,
+          "isDefault": false
+        },
+        {
+          "name": "_current_stock_for",
+          "line": 140,
+          "isDefault": false
+        },
+        {
+          "name": "finalize_checkout",
+          "line": 227,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "__init__",
+          "callee": "super().__init__",
+          "lineNumber": 57
+        },
+        {
+          "caller": "__init__",
+          "callee": "super",
+          "lineNumber": 57
+        },
+        {
+          "caller": "_check_idempotency_key_present",
+          "callee": "key.strip",
+          "lineNumber": 88
+        },
+        {
+          "caller": "_check_idempotency_key_present",
+          "callee": "CheckoutError",
+          "lineNumber": 89
+        },
+        {
+          "caller": "_check_idempotency_key_present",
+          "callee": "key.strip",
+          "lineNumber": 93
+        },
+        {
+          "caller": "_check_idempotency_key_present",
+          "callee": "len",
+          "lineNumber": 94
+        },
+        {
+          "caller": "_check_idempotency_key_present",
+          "callee": "CheckoutError",
+          "lineNumber": 95
+        },
+        {
+          "caller": "_is_today_signed_off",
+          "callee": "datetime.now(UTC).astimezone().date",
+          "lineNumber": 103
+        },
+        {
+          "caller": "_is_today_signed_off",
+          "callee": "datetime.now(UTC).astimezone",
+          "lineNumber": 103
+        },
+        {
+          "caller": "_is_today_signed_off",
+          "callee": "datetime.now",
+          "lineNumber": 103
+        },
+        {
+          "caller": "_is_today_signed_off",
+          "callee": "db.execute",
+          "lineNumber": 104
+        },
+        {
+          "caller": "_is_today_signed_off",
+          "callee": "select(EodSignOff.id).where",
+          "lineNumber": 105
+        },
+        {
+          "caller": "_is_today_signed_off",
+          "callee": "select",
+          "lineNumber": 105
+        },
+        {
+          "caller": "_is_today_signed_off",
+          "callee": "rows.first",
+          "lineNumber": 110
+        },
+        {
+          "caller": "_resolve_products_for_cart",
+          "callee": "(\r\n        await db.execute(\r\n            select(Product).where(\r\n                Product.shop_id == shop_id,\r\n                Product.barcode.in_(barcodes),\r\n                Product.is_active.is_(True),\r\n            )\r\n        )\r\n    ).scalars().all",
+          "lineNumber": 120
+        },
+        {
+          "caller": "_resolve_products_for_cart",
+          "callee": "(\r\n        await db.execute(\r\n            select(Product).where(\r\n                Product.shop_id == shop_id,\r\n                Product.barcode.in_(barcodes),\r\n                Product.is_active.is_(True),\r\n            )\r\n        )\r\n    ).scalars",
+          "lineNumber": 120
+        },
+        {
+          "caller": "_resolve_products_for_cart",
+          "callee": "db.execute",
+          "lineNumber": 121
+        },
+        {
+          "caller": "_resolve_products_for_cart",
+          "callee": "select(Product).where",
+          "lineNumber": 122
+        },
+        {
+          "caller": "_resolve_products_for_cart",
+          "callee": "select",
+          "lineNumber": 122
+        },
+        {
+          "caller": "_resolve_products_for_cart",
+          "callee": "Product.barcode.in_",
+          "lineNumber": 124
+        },
+        {
+          "caller": "_resolve_products_for_cart",
+          "callee": "Product.is_active.is_",
+          "lineNumber": 125
+        },
+        {
+          "caller": "_resolve_products_for_cart",
+          "callee": "sorted",
+          "lineNumber": 131
+        },
+        {
+          "caller": "_resolve_products_for_cart",
+          "callee": "CheckoutError",
+          "lineNumber": 133
+        },
+        {
+          "caller": "_current_stock_for",
+          "callee": "select(\r\n            LotLine.product_id.label(\"product_id\"),\r\n            func.coalesce(func.sum(LotLine.quantity), 0).label(\"received\"),\r\n        )\r\n        .where(LotLine.product_id.in_(product_ids))\r\n        .group_by(LotLine.product_id)\r\n        .subquery",
+          "lineNumber": 157
+        },
+        {
+          "caller": "_current_stock_for",
+          "callee": "select(\r\n            LotLine.product_id.label(\"product_id\"),\r\n            func.coalesce(func.sum(LotLine.quantity), 0).label(\"received\"),\r\n        )\r\n        .where(LotLine.product_id.in_(product_ids))\r\n        .group_by",
+          "lineNumber": 157
+        },
+        {
+          "caller": "_current_stock_for",
+          "callee": "select(\r\n            LotLine.product_id.label(\"product_id\"),\r\n            func.coalesce(func.sum(LotLine.quantity), 0).label(\"received\"),\r\n        )\r\n        .where",
+          "lineNumber": 157
+        },
+        {
+          "caller": "_current_stock_for",
+          "callee": "select",
+          "lineNumber": 157
+        },
+        {
+          "caller": "_current_stock_for",
+          "callee": "LotLine.product_id.label",
+          "lineNumber": 158
+        },
+        {
+          "caller": "_current_stock_for",
+          "callee": "func.coalesce(func.sum(LotLine.quantity), 0).label",
+          "lineNumber": 159
+        },
+        {
+          "caller": "_current_stock_for",
+          "callee": "func.coalesce",
+          "lineNumber": 159
+        },
+        {
+          "caller": "_current_stock_for",
+          "callee": "func.sum",
+          "lineNumber": 159
+        },
+        {
+          "caller": "_current_stock_for",
+          "callee": "LotLine.product_id.in_",
+          "lineNumber": 161
+        },
+        {
+          "caller": "_current_stock_for",
+          "callee": "frozenset",
+          "lineNumber": 173
+        },
+        {
+          "caller": "_current_stock_for",
+          "callee": "select(\r\n            InvoiceLine.product_id.label(\"product_id\"),\r\n            func.coalesce(func.sum(InvoiceLine.quantity), 0).label(\"sold\"),\r\n        )\r\n        .join(Invoice, InvoiceLine.invoice_id == Invoice.id)\r\n        .where(\r\n            InvoiceLine.product_id.in_(product_ids),\r\n            Invoice.status == InvoiceStatus.FINALIZED,\r\n        )\r\n        .group_by(InvoiceLine.product_id)\r\n        .subquery",
+          "lineNumber": 175
+        },
+        {
+          "caller": "_current_stock_for",
+          "callee": "select(\r\n            InvoiceLine.product_id.label(\"product_id\"),\r\n            func.coalesce(func.sum(InvoiceLine.quantity), 0).label(\"sold\"),\r\n        )\r\n        .join(Invoice, InvoiceLine.invoice_id == Invoice.id)\r\n        .where(\r\n            InvoiceLine.product_id.in_(product_ids),\r\n            Invoice.status == InvoiceStatus.FINALIZED,\r\n        )\r\n        .group_by",
+          "lineNumber": 175
+        },
+        {
+          "caller": "_current_stock_for",
+          "callee": "select(\r\n            InvoiceLine.product_id.label(\"product_id\"),\r\n            func.coalesce(func.sum(InvoiceLine.quantity), 0).label(\"sold\"),\r\n        )\r\n        .join(Invoice, InvoiceLine.invoice_id == Invoice.id)\r\n        .where",
+          "lineNumber": 175
+        },
+        {
+          "caller": "_current_stock_for",
+          "callee": "select(\r\n            InvoiceLine.product_id.label(\"product_id\"),\r\n            func.coalesce(func.sum(InvoiceLine.quantity), 0).label(\"sold\"),\r\n        )\r\n        .join",
+          "lineNumber": 175
+        },
+        {
+          "caller": "_current_stock_for",
+          "callee": "select",
+          "lineNumber": 175
+        },
+        {
+          "caller": "_current_stock_for",
+          "callee": "InvoiceLine.product_id.label",
+          "lineNumber": 176
+        },
+        {
+          "caller": "_current_stock_for",
+          "callee": "func.coalesce(func.sum(InvoiceLine.quantity), 0).label",
+          "lineNumber": 177
+        },
+        {
+          "caller": "_current_stock_for",
+          "callee": "func.coalesce",
+          "lineNumber": 177
+        },
+        {
+          "caller": "_current_stock_for",
+          "callee": "func.sum",
+          "lineNumber": 177
+        },
+        {
+          "caller": "_current_stock_for",
+          "callee": "InvoiceLine.product_id.in_",
+          "lineNumber": 181
+        },
+        {
+          "caller": "_current_stock_for",
+          "callee": "(\r\n        await db.execute(\r\n            select(\r\n                func.coalesce(received_subq.c.product_id, sold_subq.c.product_id).label(\r\n                    \"product_id\"\r\n                ),\r\n                (\r\n                    func.coalesce(received_subq.c.received, 0)\r\n                    - func.coalesce(sold_subq.c.sold, 0)\r\n                ).label(\"stock\"),\r\n            )\r\n            .select_from(received_subq)\r\n            .outerjoin(\r\n                sold_subq, received_subq.c.product_id == sold_subq.c.product_id\r\n            )\r\n            .union_all(\r\n                select(\r\n                    sold_subq.c.product_id.label(\"product_id\"),\r\n                    (\r\n                        literal(0)\r\n                        - func.coalesce(sold_subq.c.sold, 0)\r\n                    ).label(\"stock\"),\r\n                )\r\n                .select_from(sold_subq)\r\n                .outerjoin(\r\n                    received_subq, sold_subq.c.product_id == received_subq.c.product_id\r\n                )\r\n                .where(received_subq.c.product_id.is_(None))\r\n            )\r\n        )\r\n    ).all",
+          "lineNumber": 187
+        },
+        {
+          "caller": "_current_stock_for",
+          "callee": "db.execute",
+          "lineNumber": 188
+        },
+        {
+          "caller": "_current_stock_for",
+          "callee": "select(\r\n                func.coalesce(received_subq.c.product_id, sold_subq.c.product_id).label(\r\n                    \"product_id\"\r\n                ),\r\n                (\r\n                    func.coalesce(received_subq.c.received, 0)\r\n                    - func.coalesce(sold_subq.c.sold, 0)\r\n                ).label(\"stock\"),\r\n            )\r\n            .select_from(received_subq)\r\n            .outerjoin(\r\n                sold_subq, received_subq.c.product_id == sold_subq.c.product_id\r\n            )\r\n            .union_all",
+          "lineNumber": 189
+        },
+        {
+          "caller": "_current_stock_for",
+          "callee": "select(\r\n                func.coalesce(received_subq.c.product_id, sold_subq.c.product_id).label(\r\n                    \"product_id\"\r\n                ),\r\n                (\r\n                    func.coalesce(received_subq.c.received, 0)\r\n                    - func.coalesce(sold_subq.c.sold, 0)\r\n                ).label(\"stock\"),\r\n            )\r\n            .select_from(received_subq)\r\n            .outerjoin",
+          "lineNumber": 189
+        },
+        {
+          "caller": "_current_stock_for",
+          "callee": "select(\r\n                func.coalesce(received_subq.c.product_id, sold_subq.c.product_id).label(\r\n                    \"product_id\"\r\n                ),\r\n                (\r\n                    func.coalesce(received_subq.c.received, 0)\r\n                    - func.coalesce(sold_subq.c.sold, 0)\r\n                ).label(\"stock\"),\r\n            )\r\n            .select_from",
+          "lineNumber": 189
+        },
+        {
+          "caller": "_current_stock_for",
+          "callee": "select",
+          "lineNumber": 189
+        },
+        {
+          "caller": "_current_stock_for",
+          "callee": "func.coalesce(received_subq.c.product_id, sold_subq.c.product_id).label",
+          "lineNumber": 190
+        },
+        {
+          "caller": "_current_stock_for",
+          "callee": "func.coalesce",
+          "lineNumber": 190
+        },
+        {
+          "caller": "_current_stock_for",
+          "callee": "(\r\n                    func.coalesce(received_subq.c.received, 0)\r\n                    - func.coalesce(sold_subq.c.sold, 0)\r\n                ).label",
+          "lineNumber": 193
+        },
+        {
+          "caller": "_current_stock_for",
+          "callee": "func.coalesce",
+          "lineNumber": 194
+        },
+        {
+          "caller": "_current_stock_for",
+          "callee": "func.coalesce",
+          "lineNumber": 195
+        },
+        {
+          "caller": "_current_stock_for",
+          "callee": "select(\r\n                    sold_subq.c.product_id.label(\"product_id\"),\r\n                    (\r\n                        literal(0)\r\n                        - func.coalesce(sold_subq.c.sold, 0)\r\n                    ).label(\"stock\"),\r\n                )\r\n                .select_from(sold_subq)\r\n                .outerjoin(\r\n                    received_subq, sold_subq.c.product_id == received_subq.c.product_id\r\n                )\r\n                .where",
+          "lineNumber": 203
+        },
+        {
+          "caller": "_current_stock_for",
+          "callee": "select(\r\n                    sold_subq.c.product_id.label(\"product_id\"),\r\n                    (\r\n                        literal(0)\r\n                        - func.coalesce(sold_subq.c.sold, 0)\r\n                    ).label(\"stock\"),\r\n                )\r\n                .select_from(sold_subq)\r\n                .outerjoin",
+          "lineNumber": 203
+        },
+        {
+          "caller": "_current_stock_for",
+          "callee": "select(\r\n                    sold_subq.c.product_id.label(\"product_id\"),\r\n                    (\r\n                        literal(0)\r\n                        - func.coalesce(sold_subq.c.sold, 0)\r\n                    ).label(\"stock\"),\r\n                )\r\n                .select_from",
+          "lineNumber": 203
+        },
+        {
+          "caller": "_current_stock_for",
+          "callee": "select",
+          "lineNumber": 203
+        },
+        {
+          "caller": "_current_stock_for",
+          "callee": "sold_subq.c.product_id.label",
+          "lineNumber": 204
+        },
+        {
+          "caller": "_current_stock_for",
+          "callee": "(\r\n                        literal(0)\r\n                        - func.coalesce(sold_subq.c.sold, 0)\r\n                    ).label",
+          "lineNumber": 205
+        },
+        {
+          "caller": "_current_stock_for",
+          "callee": "literal",
+          "lineNumber": 206
+        },
+        {
+          "caller": "_current_stock_for",
+          "callee": "func.coalesce",
+          "lineNumber": 207
+        },
+        {
+          "caller": "_current_stock_for",
+          "callee": "received_subq.c.product_id.is_",
+          "lineNumber": 214
+        },
+        {
+          "caller": "_current_stock_for",
+          "callee": "net.get",
+          "lineNumber": 223
+        },
+        {
+          "caller": "_current_stock_for",
+          "callee": "int",
+          "lineNumber": 223
+        },
+        {
+          "caller": "finalize_checkout",
+          "callee": "_check_idempotency_key_present",
+          "lineNumber": 242
+        },
+        {
+          "caller": "finalize_checkout",
+          "callee": "CheckoutError",
+          "lineNumber": 245
+        },
+        {
+          "caller": "finalize_checkout",
+          "callee": "CheckoutError",
+          "lineNumber": 248
+        },
+        {
+          "caller": "finalize_checkout",
+          "callee": "CheckoutError",
+          "lineNumber": 254
+        },
+        {
+          "caller": "finalize_checkout",
+          "callee": "sum",
+          "lineNumber": 255
+        },
+        {
+          "caller": "finalize_checkout",
+          "callee": "Decimal",
+          "lineNumber": 255
+        },
+        {
+          "caller": "finalize_checkout",
+          "callee": "CheckoutError",
+          "lineNumber": 257
+        },
+        {
+          "caller": "finalize_checkout",
+          "callee": "_is_today_signed_off",
+          "lineNumber": 264
+        },
+        {
+          "caller": "finalize_checkout",
+          "callee": "CheckoutError",
+          "lineNumber": 265
+        },
+        {
+          "caller": "finalize_checkout",
+          "callee": "(\r\n        await db.execute(\r\n            select(IdempotencyKey).where(\r\n                IdempotencyKey.shop_id == shop_id,\r\n                IdempotencyKey.key == key,\r\n            )\r\n        )\r\n    ).scalar_one_or_none",
+          "lineNumber": 274
+        },
+        {
+          "caller": "finalize_checkout",
+          "callee": "db.execute",
+          "lineNumber": 275
+        },
+        {
+          "caller": "finalize_checkout",
+          "callee": "select(IdempotencyKey).where",
+          "lineNumber": 276
+        },
+        {
+          "caller": "finalize_checkout",
+          "callee": "select",
+          "lineNumber": 276
+        },
+        {
+          "caller": "finalize_checkout",
+          "callee": "db.get",
+          "lineNumber": 283
+        },
+        {
+          "caller": "finalize_checkout",
+          "callee": "FinalizeResult",
+          "lineNumber": 285
+        },
+        {
+          "caller": "finalize_checkout",
+          "callee": "_resolve_products_for_cart",
+          "lineNumber": 291
+        },
+        {
+          "caller": "finalize_checkout",
+          "callee": "requested.get",
+          "lineNumber": 298
+        },
+        {
+          "caller": "finalize_checkout",
+          "callee": "(\r\n        await db.execute(\r\n            select(Product)\r\n            .where(Product.id.in_(list(requested.keys())))\r\n            .with_for_update()\r\n        )\r\n    ).scalars().all",
+          "lineNumber": 304
+        },
+        {
+          "caller": "finalize_checkout",
+          "callee": "(\r\n        await db.execute(\r\n            select(Product)\r\n            .where(Product.id.in_(list(requested.keys())))\r\n            .with_for_update()\r\n        )\r\n    ).scalars",
+          "lineNumber": 304
+        },
+        {
+          "caller": "finalize_checkout",
+          "callee": "db.execute",
+          "lineNumber": 305
+        },
+        {
+          "caller": "finalize_checkout",
+          "callee": "select(Product)\r\n            .where(Product.id.in_(list(requested.keys())))\r\n            .with_for_update",
+          "lineNumber": 306
+        },
+        {
+          "caller": "finalize_checkout",
+          "callee": "select(Product)\r\n            .where",
+          "lineNumber": 306
+        },
+        {
+          "caller": "finalize_checkout",
+          "callee": "select",
+          "lineNumber": 306
+        },
+        {
+          "caller": "finalize_checkout",
+          "callee": "Product.id.in_",
+          "lineNumber": 307
+        },
+        {
+          "caller": "finalize_checkout",
+          "callee": "list",
+          "lineNumber": 307
+        },
+        {
+          "caller": "finalize_checkout",
+          "callee": "requested.keys",
+          "lineNumber": 307
+        },
+        {
+          "caller": "finalize_checkout",
+          "callee": "_current_stock_for",
+          "lineNumber": 314
+        },
+        {
+          "caller": "finalize_checkout",
+          "callee": "list",
+          "lineNumber": 314
+        },
+        {
+          "caller": "finalize_checkout",
+          "callee": "requested.keys",
+          "lineNumber": 314
+        },
+        {
+          "caller": "finalize_checkout",
+          "callee": "sorted",
+          "lineNumber": 315
+        },
+        {
+          "caller": "finalize_checkout",
+          "callee": "current.get",
+          "lineNumber": 316
+        },
+        {
+          "caller": "finalize_checkout",
+          "callee": "current.get",
+          "lineNumber": 318
+        },
+        {
+          "caller": "finalize_checkout",
+          "callee": "\", \".join",
+          "lineNumber": 321
+        },
+        {
+          "caller": "finalize_checkout",
+          "callee": "CheckoutError",
+          "lineNumber": 325
+        },
+        {
+          "caller": "finalize_checkout",
+          "callee": "Decimal",
+          "lineNumber": 333
+        },
+        {
+          "caller": "finalize_checkout",
+          "callee": "requested.items",
+          "lineNumber": 335
+        },
+        {
+          "caller": "finalize_checkout",
+          "callee": "(product.price * qty).quantize",
+          "lineNumber": 337
+        },
+        {
+          "caller": "finalize_checkout",
+          "callee": "Decimal",
+          "lineNumber": 337
+        },
+        {
+          "caller": "finalize_checkout",
+          "callee": "line_specs.append",
+          "lineNumber": 338
+        },
+        {
+          "caller": "finalize_checkout",
+          "callee": "total.quantize",
+          "lineNumber": 340
+        },
+        {
+          "caller": "finalize_checkout",
+          "callee": "Decimal",
+          "lineNumber": 340
+        },
+        {
+          "caller": "finalize_checkout",
+          "callee": "total_paid.quantize",
+          "lineNumber": 342
+        },
+        {
+          "caller": "finalize_checkout",
+          "callee": "Decimal",
+          "lineNumber": 342
+        },
+        {
+          "caller": "finalize_checkout",
+          "callee": "CheckoutError",
+          "lineNumber": 343
+        },
+        {
+          "caller": "finalize_checkout",
+          "callee": "(\r\n        await db.execute(\r\n            select(Shop).where(Shop.id == shop_id).with_for_update()\r\n        )\r\n    ).scalar_one",
+          "lineNumber": 351
+        },
+        {
+          "caller": "finalize_checkout",
+          "callee": "db.execute",
+          "lineNumber": 352
+        },
+        {
+          "caller": "finalize_checkout",
+          "callee": "select(Shop).where(Shop.id == shop_id).with_for_update",
+          "lineNumber": 353
+        },
+        {
+          "caller": "finalize_checkout",
+          "callee": "select(Shop).where",
+          "lineNumber": 353
+        },
+        {
+          "caller": "finalize_checkout",
+          "callee": "select",
+          "lineNumber": 353
+        },
+        {
+          "caller": "finalize_checkout",
+          "callee": "Invoice",
+          "lineNumber": 360
+        },
+        {
+          "caller": "finalize_checkout",
+          "callee": "db.add",
+          "lineNumber": 368
+        },
+        {
+          "caller": "finalize_checkout",
+          "callee": "db.flush",
+          "lineNumber": 369
+        },
+        {
+          "caller": "finalize_checkout",
+          "callee": "db.add",
+          "lineNumber": 372
+        },
+        {
+          "caller": "finalize_checkout",
+          "callee": "InvoiceLine",
+          "lineNumber": 373
+        },
+        {
+          "caller": "finalize_checkout",
+          "callee": "db.add",
+          "lineNumber": 383
+        },
+        {
+          "caller": "finalize_checkout",
+          "callee": "Payment",
+          "lineNumber": 384
+        },
+        {
+          "caller": "finalize_checkout",
+          "callee": "pay.amount.quantize",
+          "lineNumber": 387
+        },
+        {
+          "caller": "finalize_checkout",
+          "callee": "Decimal",
+          "lineNumber": 387
+        },
+        {
+          "caller": "finalize_checkout",
+          "callee": "db.add",
+          "lineNumber": 391
+        },
+        {
+          "caller": "finalize_checkout",
+          "callee": "IdempotencyKey",
+          "lineNumber": 392
+        },
+        {
+          "caller": "finalize_checkout",
+          "callee": "FinalizeResult",
+          "lineNumber": 399
+        }
+      ],
+      "metrics": {
+        "importCount": 4,
+        "exportCount": 9,
+        "functionCount": 5,
+        "classCount": 4
+      }
+    },
+    {
+      "path": "app/services/eod.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 253,
+      "nonEmptyLines": 220,
+      "functions": [
+        {
+          "name": "_day_bounds",
+          "startLine": 66,
+          "endLine": 70,
+          "params": [
+            "business_date"
+          ]
+        },
+        {
+          "name": "sign_off_day",
+          "startLine": 73,
+          "endLine": 139,
+          "params": [
+            "db",
+            "shop_id",
+            "business_date",
+            "signed_off_by_user_id",
+            "notes"
+          ]
+        },
+        {
+          "name": "get_day_totals",
+          "startLine": 142,
+          "endLine": 202,
+          "params": [
+            "db",
+            "shop_id",
+            "business_date"
+          ]
+        },
+        {
+          "name": "list_signoff_history",
+          "startLine": 205,
+          "endLine": 222,
+          "params": [
+            "db",
+            "shop_id",
+            "from_date",
+            "to_date",
+            "limit"
+          ]
+        },
+        {
+          "name": "list_pending_voids",
+          "startLine": 225,
+          "endLine": 242,
+          "params": [
+            "db",
+            "shop_id",
+            "limit"
+          ]
+        }
+      ],
+      "classes": [
+        {
+          "name": "EodError",
+          "startLine": 42,
+          "endLine": 46,
+          "methods": [
+            "__init__"
+          ],
+          "properties": []
+        },
+        {
+          "name": "SignOffResult",
+          "startLine": 50,
+          "endLine": 52,
+          "methods": [],
+          "properties": [
+            "sign_off",
+            "invoices_signed_off"
+          ]
+        },
+        {
+          "name": "EodTotals",
+          "startLine": 56,
+          "endLine": 63,
+          "methods": [],
+          "properties": [
+            "business_date",
+            "signed_off",
+            "invoice_count",
+            "revenue",
+            "voided_count",
+            "reversal_count",
+            "payments_by_mode"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "EodError",
+          "line": 42,
+          "isDefault": false
+        },
+        {
+          "name": "SignOffResult",
+          "line": 49,
+          "isDefault": false
+        },
+        {
+          "name": "EodTotals",
+          "line": 55,
+          "isDefault": false
+        },
+        {
+          "name": "_day_bounds",
+          "line": 66,
+          "isDefault": false
+        },
+        {
+          "name": "sign_off_day",
+          "line": 73,
+          "isDefault": false
+        },
+        {
+          "name": "get_day_totals",
+          "line": 142,
+          "isDefault": false
+        },
+        {
+          "name": "list_signoff_history",
+          "line": 205,
+          "isDefault": false
+        },
+        {
+          "name": "list_pending_voids",
+          "line": 225,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "__init__",
+          "callee": "super().__init__",
+          "lineNumber": 44
+        },
+        {
+          "caller": "__init__",
+          "callee": "super",
+          "lineNumber": 44
+        },
+        {
+          "caller": "_day_bounds",
+          "callee": "datetime.combine",
+          "lineNumber": 68
+        },
+        {
+          "caller": "_day_bounds",
+          "callee": "timedelta",
+          "lineNumber": 69
+        },
+        {
+          "caller": "sign_off_day",
+          "callee": "date.today",
+          "lineNumber": 88
+        },
+        {
+          "caller": "sign_off_day",
+          "callee": "EodError",
+          "lineNumber": 89
+        },
+        {
+          "caller": "sign_off_day",
+          "callee": "(\r\n        await db.execute(\r\n            select(EodSignOff).where(\r\n                EodSignOff.shop_id == shop_id,\r\n                EodSignOff.business_date == business_date,\r\n            )\r\n        )\r\n    ).scalar_one_or_none",
+          "lineNumber": 97
+        },
+        {
+          "caller": "sign_off_day",
+          "callee": "db.execute",
+          "lineNumber": 98
+        },
+        {
+          "caller": "sign_off_day",
+          "callee": "select(EodSignOff).where",
+          "lineNumber": 99
+        },
+        {
+          "caller": "sign_off_day",
+          "callee": "select",
+          "lineNumber": 99
+        },
+        {
+          "caller": "sign_off_day",
+          "callee": "EodError",
+          "lineNumber": 106
+        },
+        {
+          "caller": "sign_off_day",
+          "callee": "business_date.isoformat",
+          "lineNumber": 108
+        },
+        {
+          "caller": "sign_off_day",
+          "callee": "_day_bounds",
+          "lineNumber": 111
+        },
+        {
+          "caller": "sign_off_day",
+          "callee": "datetime.now",
+          "lineNumber": 112
+        },
+        {
+          "caller": "sign_off_day",
+          "callee": "(\r\n        await db.execute(\r\n            select(Invoice).where(\r\n                Invoice.shop_id == shop_id,\r\n                Invoice.finalized_at >= start,\r\n                Invoice.finalized_at < end,\r\n                Invoice.eod_signed_off.is_(False),\r\n            )\r\n        )\r\n    ).scalars().all",
+          "lineNumber": 114
+        },
+        {
+          "caller": "sign_off_day",
+          "callee": "(\r\n        await db.execute(\r\n            select(Invoice).where(\r\n                Invoice.shop_id == shop_id,\r\n                Invoice.finalized_at >= start,\r\n                Invoice.finalized_at < end,\r\n                Invoice.eod_signed_off.is_(False),\r\n            )\r\n        )\r\n    ).scalars",
+          "lineNumber": 114
+        },
+        {
+          "caller": "sign_off_day",
+          "callee": "db.execute",
+          "lineNumber": 115
+        },
+        {
+          "caller": "sign_off_day",
+          "callee": "select(Invoice).where",
+          "lineNumber": 116
+        },
+        {
+          "caller": "sign_off_day",
+          "callee": "select",
+          "lineNumber": 116
+        },
+        {
+          "caller": "sign_off_day",
+          "callee": "Invoice.eod_signed_off.is_",
+          "lineNumber": 120
+        },
+        {
+          "caller": "sign_off_day",
+          "callee": "EodSignOff",
+          "lineNumber": 130
+        },
+        {
+          "caller": "sign_off_day",
+          "callee": "len",
+          "lineNumber": 135
+        },
+        {
+          "caller": "sign_off_day",
+          "callee": "db.add",
+          "lineNumber": 138
+        },
+        {
+          "caller": "sign_off_day",
+          "callee": "SignOffResult",
+          "lineNumber": 139
+        },
+        {
+          "caller": "sign_off_day",
+          "callee": "len",
+          "lineNumber": 139
+        },
+        {
+          "caller": "get_day_totals",
+          "callee": "_day_bounds",
+          "lineNumber": 148
+        },
+        {
+          "caller": "get_day_totals",
+          "callee": "(\r\n        await db.execute(\r\n            select(EodSignOff.id).where(\r\n                EodSignOff.shop_id == shop_id,\r\n                EodSignOff.business_date == business_date,\r\n            )\r\n        )\r\n    ).first",
+          "lineNumber": 149
+        },
+        {
+          "caller": "get_day_totals",
+          "callee": "db.execute",
+          "lineNumber": 150
+        },
+        {
+          "caller": "get_day_totals",
+          "callee": "select(EodSignOff.id).where",
+          "lineNumber": 151
+        },
+        {
+          "caller": "get_day_totals",
+          "callee": "select",
+          "lineNumber": 151
+        },
+        {
+          "caller": "get_day_totals",
+          "callee": "(\r\n        await db.execute(\r\n            select(Invoice).where(\r\n                Invoice.shop_id == shop_id,\r\n                Invoice.finalized_at >= start,\r\n                Invoice.finalized_at < end,\r\n            )\r\n        )\r\n    ).scalars().all",
+          "lineNumber": 158
+        },
+        {
+          "caller": "get_day_totals",
+          "callee": "(\r\n        await db.execute(\r\n            select(Invoice).where(\r\n                Invoice.shop_id == shop_id,\r\n                Invoice.finalized_at >= start,\r\n                Invoice.finalized_at < end,\r\n            )\r\n        )\r\n    ).scalars",
+          "lineNumber": 158
+        },
+        {
+          "caller": "get_day_totals",
+          "callee": "db.execute",
+          "lineNumber": 159
+        },
+        {
+          "caller": "get_day_totals",
+          "callee": "select(Invoice).where",
+          "lineNumber": 160
+        },
+        {
+          "caller": "get_day_totals",
+          "callee": "select",
+          "lineNumber": 160
+        },
+        {
+          "caller": "get_day_totals",
+          "callee": "sum",
+          "lineNumber": 172
+        },
+        {
+          "caller": "get_day_totals",
+          "callee": "Decimal",
+          "lineNumber": 174
+        },
+        {
+          "caller": "get_day_totals",
+          "callee": "sum",
+          "lineNumber": 176
+        },
+        {
+          "caller": "get_day_totals",
+          "callee": "sum",
+          "lineNumber": 179
+        },
+        {
+          "caller": "get_day_totals",
+          "callee": "sum",
+          "lineNumber": 180
+        },
+        {
+          "caller": "get_day_totals",
+          "callee": "defaultdict",
+          "lineNumber": 184
+        },
+        {
+          "caller": "get_day_totals",
+          "callee": "Decimal",
+          "lineNumber": 184
+        },
+        {
+          "caller": "get_day_totals",
+          "callee": "(\r\n            await db.execute(\r\n                select(Payment).where(Payment.invoice_id.in_(invoice_ids))\r\n            )\r\n        ).scalars().all",
+          "lineNumber": 186
+        },
+        {
+          "caller": "get_day_totals",
+          "callee": "(\r\n            await db.execute(\r\n                select(Payment).where(Payment.invoice_id.in_(invoice_ids))\r\n            )\r\n        ).scalars",
+          "lineNumber": 186
+        },
+        {
+          "caller": "get_day_totals",
+          "callee": "db.execute",
+          "lineNumber": 187
+        },
+        {
+          "caller": "get_day_totals",
+          "callee": "select(Payment).where",
+          "lineNumber": 188
+        },
+        {
+          "caller": "get_day_totals",
+          "callee": "select",
+          "lineNumber": 188
+        },
+        {
+          "caller": "get_day_totals",
+          "callee": "Payment.invoice_id.in_",
+          "lineNumber": 188
+        },
+        {
+          "caller": "get_day_totals",
+          "callee": "EodTotals",
+          "lineNumber": 194
+        },
+        {
+          "caller": "get_day_totals",
+          "callee": "dict",
+          "lineNumber": 201
+        },
+        {
+          "caller": "list_signoff_history",
+          "callee": "select(EodSignOff).where",
+          "lineNumber": 215
+        },
+        {
+          "caller": "list_signoff_history",
+          "callee": "select",
+          "lineNumber": 215
+        },
+        {
+          "caller": "list_signoff_history",
+          "callee": "stmt.where",
+          "lineNumber": 217
+        },
+        {
+          "caller": "list_signoff_history",
+          "callee": "stmt.where",
+          "lineNumber": 220
+        },
+        {
+          "caller": "list_signoff_history",
+          "callee": "stmt.order_by(EodSignOff.business_date.desc()).limit",
+          "lineNumber": 221
+        },
+        {
+          "caller": "list_signoff_history",
+          "callee": "stmt.order_by",
+          "lineNumber": 221
+        },
+        {
+          "caller": "list_signoff_history",
+          "callee": "EodSignOff.business_date.desc",
+          "lineNumber": 221
+        },
+        {
+          "caller": "list_signoff_history",
+          "callee": "list",
+          "lineNumber": 222
+        },
+        {
+          "caller": "list_signoff_history",
+          "callee": "(await db.execute(stmt)).scalars().all",
+          "lineNumber": 222
+        },
+        {
+          "caller": "list_signoff_history",
+          "callee": "(await db.execute(stmt)).scalars",
+          "lineNumber": 222
+        },
+        {
+          "caller": "list_signoff_history",
+          "callee": "db.execute",
+          "lineNumber": 222
+        },
+        {
+          "caller": "list_pending_voids",
+          "callee": "select(Invoice)\r\n        .where(\r\n            Invoice.shop_id == shop_id,\r\n            Invoice.status == InvoiceStatus.PENDING_VOID,\r\n        )\r\n        .order_by(Invoice.void_requested_at.asc().nulls_last())\r\n        .limit",
+          "lineNumber": 234
+        },
+        {
+          "caller": "list_pending_voids",
+          "callee": "select(Invoice)\r\n        .where(\r\n            Invoice.shop_id == shop_id,\r\n            Invoice.status == InvoiceStatus.PENDING_VOID,\r\n        )\r\n        .order_by",
+          "lineNumber": 234
+        },
+        {
+          "caller": "list_pending_voids",
+          "callee": "select(Invoice)\r\n        .where",
+          "lineNumber": 234
+        },
+        {
+          "caller": "list_pending_voids",
+          "callee": "select",
+          "lineNumber": 234
+        },
+        {
+          "caller": "list_pending_voids",
+          "callee": "Invoice.void_requested_at.asc().nulls_last",
+          "lineNumber": 239
+        },
+        {
+          "caller": "list_pending_voids",
+          "callee": "Invoice.void_requested_at.asc",
+          "lineNumber": 239
+        },
+        {
+          "caller": "list_pending_voids",
+          "callee": "list",
+          "lineNumber": 242
+        },
+        {
+          "caller": "list_pending_voids",
+          "callee": "(await db.execute(stmt)).scalars().all",
+          "lineNumber": 242
+        },
+        {
+          "caller": "list_pending_voids",
+          "callee": "(await db.execute(stmt)).scalars",
+          "lineNumber": 242
+        },
+        {
+          "caller": "list_pending_voids",
+          "callee": "db.execute",
+          "lineNumber": 242
+        }
+      ],
+      "metrics": {
+        "importCount": 2,
+        "exportCount": 8,
+        "functionCount": 5,
+        "classCount": 3
+      }
+    },
+    {
+      "path": "app/services/invoice_pdf.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 160,
+      "nonEmptyLines": 144,
+      "functions": [
+        {
+          "name": "render_invoice_pdf",
+          "startLine": 29,
+          "endLine": 160,
+          "params": [
+            "invoice",
+            "shop_name",
+            "shop_gstin",
+            "shop_excise_duty_rate"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "render_invoice_pdf",
+          "line": 29,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "render_invoice_pdf",
+          "callee": "BytesIO",
+          "lineNumber": 46
+        },
+        {
+          "caller": "render_invoice_pdf",
+          "callee": "SimpleDocTemplate",
+          "lineNumber": 47
+        },
+        {
+          "caller": "render_invoice_pdf",
+          "callee": "getSampleStyleSheet",
+          "lineNumber": 60
+        },
+        {
+          "caller": "render_invoice_pdf",
+          "callee": "story.append",
+          "lineNumber": 63
+        },
+        {
+          "caller": "render_invoice_pdf",
+          "callee": "Paragraph",
+          "lineNumber": 63
+        },
+        {
+          "caller": "render_invoice_pdf",
+          "callee": "story.append",
+          "lineNumber": 67
+        },
+        {
+          "caller": "render_invoice_pdf",
+          "callee": "Paragraph",
+          "lineNumber": 67
+        },
+        {
+          "caller": "render_invoice_pdf",
+          "callee": "story.append",
+          "lineNumber": 68
+        },
+        {
+          "caller": "render_invoice_pdf",
+          "callee": "Paragraph",
+          "lineNumber": 69
+        },
+        {
+          "caller": "render_invoice_pdf",
+          "callee": "invoice.finalized_at.strftime",
+          "lineNumber": 71
+        },
+        {
+          "caller": "render_invoice_pdf",
+          "callee": "story.append",
+          "lineNumber": 75
+        },
+        {
+          "caller": "render_invoice_pdf",
+          "callee": "Spacer",
+          "lineNumber": 75
+        },
+        {
+          "caller": "render_invoice_pdf",
+          "callee": "enumerate",
+          "lineNumber": 79
+        },
+        {
+          "caller": "render_invoice_pdf",
+          "callee": "line_data.append",
+          "lineNumber": 80
+        },
+        {
+          "caller": "render_invoice_pdf",
+          "callee": "str",
+          "lineNumber": 82
+        },
+        {
+          "caller": "render_invoice_pdf",
+          "callee": "str",
+          "lineNumber": 83
+        },
+        {
+          "caller": "render_invoice_pdf",
+          "callee": "str",
+          "lineNumber": 84
+        },
+        {
+          "caller": "render_invoice_pdf",
+          "callee": "Table",
+          "lineNumber": 89
+        },
+        {
+          "caller": "render_invoice_pdf",
+          "callee": "line_table.setStyle",
+          "lineNumber": 90
+        },
+        {
+          "caller": "render_invoice_pdf",
+          "callee": "TableStyle",
+          "lineNumber": 91
+        },
+        {
+          "caller": "render_invoice_pdf",
+          "callee": "colors.HexColor",
+          "lineNumber": 93
+        },
+        {
+          "caller": "render_invoice_pdf",
+          "callee": "story.append",
+          "lineNumber": 101
+        },
+        {
+          "caller": "render_invoice_pdf",
+          "callee": "story.append",
+          "lineNumber": 102
+        },
+        {
+          "caller": "render_invoice_pdf",
+          "callee": "Spacer",
+          "lineNumber": 102
+        },
+        {
+          "caller": "render_invoice_pdf",
+          "callee": "story.append",
+          "lineNumber": 105
+        },
+        {
+          "caller": "render_invoice_pdf",
+          "callee": "Paragraph",
+          "lineNumber": 106
+        },
+        {
+          "caller": "render_invoice_pdf",
+          "callee": "story.append",
+          "lineNumber": 111
+        },
+        {
+          "caller": "render_invoice_pdf",
+          "callee": "Spacer",
+          "lineNumber": 111
+        },
+        {
+          "caller": "render_invoice_pdf",
+          "callee": "story.append",
+          "lineNumber": 118
+        },
+        {
+          "caller": "render_invoice_pdf",
+          "callee": "Paragraph",
+          "lineNumber": 119
+        },
+        {
+          "caller": "render_invoice_pdf",
+          "callee": "story.append",
+          "lineNumber": 124
+        },
+        {
+          "caller": "render_invoice_pdf",
+          "callee": "Spacer",
+          "lineNumber": 124
+        },
+        {
+          "caller": "render_invoice_pdf",
+          "callee": "pay_data.append",
+          "lineNumber": 129
+        },
+        {
+          "caller": "render_invoice_pdf",
+          "callee": "p.mode.value.upper",
+          "lineNumber": 129
+        },
+        {
+          "caller": "render_invoice_pdf",
+          "callee": "Table",
+          "lineNumber": 130
+        },
+        {
+          "caller": "render_invoice_pdf",
+          "callee": "pay_table.setStyle",
+          "lineNumber": 131
+        },
+        {
+          "caller": "render_invoice_pdf",
+          "callee": "TableStyle",
+          "lineNumber": 132
+        },
+        {
+          "caller": "render_invoice_pdf",
+          "callee": "colors.HexColor",
+          "lineNumber": 134
+        },
+        {
+          "caller": "render_invoice_pdf",
+          "callee": "story.append",
+          "lineNumber": 141
+        },
+        {
+          "caller": "render_invoice_pdf",
+          "callee": "story.append",
+          "lineNumber": 144
+        },
+        {
+          "caller": "render_invoice_pdf",
+          "callee": "Spacer",
+          "lineNumber": 144
+        },
+        {
+          "caller": "render_invoice_pdf",
+          "callee": "story.append",
+          "lineNumber": 145
+        },
+        {
+          "caller": "render_invoice_pdf",
+          "callee": "Paragraph",
+          "lineNumber": 145
+        },
+        {
+          "caller": "render_invoice_pdf",
+          "callee": "story.append",
+          "lineNumber": 147
+        },
+        {
+          "caller": "render_invoice_pdf",
+          "callee": "Spacer",
+          "lineNumber": 147
+        },
+        {
+          "caller": "render_invoice_pdf",
+          "callee": "story.append",
+          "lineNumber": 148
+        },
+        {
+          "caller": "render_invoice_pdf",
+          "callee": "Paragraph",
+          "lineNumber": 149
+        },
+        {
+          "caller": "render_invoice_pdf",
+          "callee": "doc.build",
+          "lineNumber": 159
+        },
+        {
+          "caller": "render_invoice_pdf",
+          "callee": "buf.getvalue",
+          "lineNumber": 160
+        }
+      ],
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "app/services/voids.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 272,
+      "nonEmptyLines": 240,
+      "functions": [
+        {
+          "name": "_load_invoice_for_void",
+          "startLine": 55,
+          "endLine": 68,
+          "params": [
+            "db",
+            "invoice_id",
+            "shop_id"
+          ]
+        },
+        {
+          "name": "direct_void",
+          "startLine": 71,
+          "endLine": 109,
+          "params": [
+            "db",
+            "invoice_id",
+            "shop_id",
+            "actor_user_id",
+            "reason"
+          ]
+        },
+        {
+          "name": "request_post_eod_void",
+          "startLine": 112,
+          "endLine": 146,
+          "params": [
+            "db",
+            "invoice_id",
+            "shop_id",
+            "actor_user_id",
+            "reason"
+          ]
+        },
+        {
+          "name": "approve_post_eod_void",
+          "startLine": 149,
+          "endLine": 230,
+          "params": [
+            "db",
+            "invoice_id",
+            "shop_id",
+            "owner_user_id",
+            "reason"
+          ]
+        },
+        {
+          "name": "reject_post_eod_void",
+          "startLine": 233,
+          "endLine": 262,
+          "params": [
+            "db",
+            "invoice_id",
+            "shop_id",
+            "owner_user_id",
+            "reason"
+          ]
+        }
+      ],
+      "classes": [
+        {
+          "name": "VoidError",
+          "startLine": 42,
+          "endLine": 46,
+          "methods": [
+            "__init__"
+          ],
+          "properties": []
+        },
+        {
+          "name": "VoidResult",
+          "startLine": 50,
+          "endLine": 52,
+          "methods": [],
+          "properties": [
+            "invoice",
+            "reversal"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "VoidError",
+          "line": 42,
+          "isDefault": false
+        },
+        {
+          "name": "VoidResult",
+          "line": 49,
+          "isDefault": false
+        },
+        {
+          "name": "_load_invoice_for_void",
+          "line": 55,
+          "isDefault": false
+        },
+        {
+          "name": "direct_void",
+          "line": 71,
+          "isDefault": false
+        },
+        {
+          "name": "request_post_eod_void",
+          "line": 112,
+          "isDefault": false
+        },
+        {
+          "name": "approve_post_eod_void",
+          "line": 149,
+          "isDefault": false
+        },
+        {
+          "name": "reject_post_eod_void",
+          "line": 233,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "__init__",
+          "callee": "super().__init__",
+          "lineNumber": 44
+        },
+        {
+          "caller": "__init__",
+          "callee": "super",
+          "lineNumber": 44
+        },
+        {
+          "caller": "_load_invoice_for_void",
+          "callee": "(\n        await db.execute(\n            select(Invoice).where(\n                Invoice.id == invoice_id,\n                Invoice.shop_id == shop_id,\n            )\n        )\n    ).scalar_one_or_none",
+          "lineNumber": 58
+        },
+        {
+          "caller": "_load_invoice_for_void",
+          "callee": "db.execute",
+          "lineNumber": 59
+        },
+        {
+          "caller": "_load_invoice_for_void",
+          "callee": "select(Invoice).where",
+          "lineNumber": 60
+        },
+        {
+          "caller": "_load_invoice_for_void",
+          "callee": "select",
+          "lineNumber": 60
+        },
+        {
+          "caller": "_load_invoice_for_void",
+          "callee": "VoidError",
+          "lineNumber": 67
+        },
+        {
+          "caller": "direct_void",
+          "callee": "_load_invoice_for_void",
+          "lineNumber": 81
+        },
+        {
+          "caller": "direct_void",
+          "callee": "VoidError",
+          "lineNumber": 85
+        },
+        {
+          "caller": "direct_void",
+          "callee": "VoidError",
+          "lineNumber": 87
+        },
+        {
+          "caller": "direct_void",
+          "callee": "VoidError",
+          "lineNumber": 89
+        },
+        {
+          "caller": "direct_void",
+          "callee": "VoidError",
+          "lineNumber": 95
+        },
+        {
+          "caller": "direct_void",
+          "callee": "datetime.now",
+          "lineNumber": 101
+        },
+        {
+          "caller": "request_post_eod_void",
+          "callee": "_load_invoice_for_void",
+          "lineNumber": 123
+        },
+        {
+          "caller": "request_post_eod_void",
+          "callee": "VoidError",
+          "lineNumber": 127
+        },
+        {
+          "caller": "request_post_eod_void",
+          "callee": "VoidError",
+          "lineNumber": 132
+        },
+        {
+          "caller": "request_post_eod_void",
+          "callee": "datetime.now",
+          "lineNumber": 138
+        },
+        {
+          "caller": "approve_post_eod_void",
+          "callee": "_load_invoice_for_void",
+          "lineNumber": 161
+        },
+        {
+          "caller": "approve_post_eod_void",
+          "callee": "VoidError",
+          "lineNumber": 165
+        },
+        {
+          "caller": "approve_post_eod_void",
+          "callee": "VoidError",
+          "lineNumber": 170
+        },
+        {
+          "caller": "approve_post_eod_void",
+          "callee": "(\n        await db.execute(\n            select(Shop).where(Shop.id == shop_id).with_for_update()\n        )\n    ).scalar_one",
+          "lineNumber": 178
+        },
+        {
+          "caller": "approve_post_eod_void",
+          "callee": "db.execute",
+          "lineNumber": 179
+        },
+        {
+          "caller": "approve_post_eod_void",
+          "callee": "select(Shop).where(Shop.id == shop_id).with_for_update",
+          "lineNumber": 180
+        },
+        {
+          "caller": "approve_post_eod_void",
+          "callee": "select(Shop).where",
+          "lineNumber": 180
+        },
+        {
+          "caller": "approve_post_eod_void",
+          "callee": "select",
+          "lineNumber": 180
+        },
+        {
+          "caller": "approve_post_eod_void",
+          "callee": "db.refresh",
+          "lineNumber": 187
+        },
+        {
+          "caller": "approve_post_eod_void",
+          "callee": "Invoice",
+          "lineNumber": 189
+        },
+        {
+          "caller": "approve_post_eod_void",
+          "callee": "db.add",
+          "lineNumber": 201
+        },
+        {
+          "caller": "approve_post_eod_void",
+          "callee": "db.flush",
+          "lineNumber": 202
+        },
+        {
+          "caller": "approve_post_eod_void",
+          "callee": "db.add",
+          "lineNumber": 205
+        },
+        {
+          "caller": "approve_post_eod_void",
+          "callee": "InvoiceLine",
+          "lineNumber": 206
+        },
+        {
+          "caller": "approve_post_eod_void",
+          "callee": "db.add",
+          "lineNumber": 217
+        },
+        {
+          "caller": "approve_post_eod_void",
+          "callee": "Payment",
+          "lineNumber": 218
+        },
+        {
+          "caller": "approve_post_eod_void",
+          "callee": "datetime.now",
+          "lineNumber": 227
+        },
+        {
+          "caller": "approve_post_eod_void",
+          "callee": "VoidResult",
+          "lineNumber": 230
+        },
+        {
+          "caller": "reject_post_eod_void",
+          "callee": "_load_invoice_for_void",
+          "lineNumber": 243
+        },
+        {
+          "caller": "reject_post_eod_void",
+          "callee": "VoidError",
+          "lineNumber": 247
+        }
+      ],
+      "metrics": {
+        "importCount": 2,
+        "exportCount": 7,
+        "functionCount": 5,
+        "classCount": 2
+      }
+    },
+    {
+      "path": "tests/test_eod.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 374,
+      "nonEmptyLines": 311,
+      "functions": [
+        {
+          "name": "_seed_product",
+          "startLine": 16,
+          "endLine": 21,
+          "params": [
+            "client",
+            "barcode"
+          ]
+        },
+        {
+          "name": "_seed_lot",
+          "startLine": 24,
+          "endLine": 31,
+          "params": [
+            "receiver_client",
+            "items"
+          ]
+        },
+        {
+          "name": "_finalize",
+          "startLine": 34,
+          "endLine": 51,
+          "params": [
+            "cashier_client",
+            "barcode",
+            "quantity",
+            "amount",
+            "mode"
+          ]
+        },
+        {
+          "name": "test_owner_signs_off_today",
+          "startLine": 58,
+          "endLine": 76,
+          "params": [
+            "owner_client",
+            "receiver_client",
+            "cashier_client"
+          ]
+        },
+        {
+          "name": "test_double_sign_off_returns_409",
+          "startLine": 80,
+          "endLine": 98,
+          "params": [
+            "owner_client",
+            "receiver_client",
+            "cashier_client"
+          ]
+        },
+        {
+          "name": "test_future_date_rejected",
+          "startLine": 102,
+          "endLine": 110,
+          "params": [
+            "owner_client"
+          ]
+        },
+        {
+          "name": "test_cashier_cannot_sign_off",
+          "startLine": 114,
+          "endLine": 119,
+          "params": [
+            "cashier_client"
+          ]
+        },
+        {
+          "name": "test_checkout_rejected_after_eod_sign_off",
+          "startLine": 126,
+          "endLine": 150,
+          "params": [
+            "owner_client",
+            "receiver_client",
+            "cashier_client"
+          ]
+        },
+        {
+          "name": "test_eod_totals_for_signed_off_day",
+          "startLine": 157,
+          "endLine": 182,
+          "params": [
+            "owner_client",
+            "receiver_client",
+            "cashier_client"
+          ]
+        },
+        {
+          "name": "test_eod_totals_for_unsigned_day_returns_zero_signed_off_false",
+          "startLine": 186,
+          "endLine": 204,
+          "params": [
+            "owner_client",
+            "receiver_client",
+            "cashier_client"
+          ]
+        },
+        {
+          "name": "test_eod_totals_excludes_voided_and_reversal_from_revenue",
+          "startLine": 208,
+          "endLine": 236,
+          "params": [
+            "owner_client",
+            "receiver_client",
+            "cashier_client",
+            "db_session"
+          ]
+        },
+        {
+          "name": "test_eod_history_lists_signoffs_in_descending_order",
+          "startLine": 243,
+          "endLine": 267,
+          "params": [
+            "owner_client",
+            "receiver_client",
+            "cashier_client"
+          ]
+        },
+        {
+          "name": "test_eod_history_filters_by_date_range",
+          "startLine": 271,
+          "endLine": 301,
+          "params": [
+            "owner_client",
+            "receiver_client",
+            "cashier_client"
+          ]
+        },
+        {
+          "name": "test_void_queue_lists_pending_invoices",
+          "startLine": 308,
+          "endLine": 330,
+          "params": [
+            "cashier_client",
+            "owner_client",
+            "receiver_client",
+            "db_session"
+          ]
+        },
+        {
+          "name": "test_void_queue_excludes_resolved_voids",
+          "startLine": 334,
+          "endLine": 353,
+          "params": [
+            "cashier_client",
+            "owner_client",
+            "receiver_client",
+            "db_session"
+          ]
+        },
+        {
+          "name": "test_eod_signoff_record_persists",
+          "startLine": 360,
+          "endLine": 374,
+          "params": [
+            "owner_client",
+            "receiver_client",
+            "cashier_client",
+            "db_session"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "_seed_product",
+          "line": 16,
+          "isDefault": false
+        },
+        {
+          "name": "_seed_lot",
+          "line": 24,
+          "isDefault": false
+        },
+        {
+          "name": "_finalize",
+          "line": 34,
+          "isDefault": false
+        },
+        {
+          "name": "test_owner_signs_off_today",
+          "line": 57,
+          "isDefault": false
+        },
+        {
+          "name": "test_double_sign_off_returns_409",
+          "line": 79,
+          "isDefault": false
+        },
+        {
+          "name": "test_future_date_rejected",
+          "line": 101,
+          "isDefault": false
+        },
+        {
+          "name": "test_cashier_cannot_sign_off",
+          "line": 113,
+          "isDefault": false
+        },
+        {
+          "name": "test_checkout_rejected_after_eod_sign_off",
+          "line": 125,
+          "isDefault": false
+        },
+        {
+          "name": "test_eod_totals_for_signed_off_day",
+          "line": 156,
+          "isDefault": false
+        },
+        {
+          "name": "test_eod_totals_for_unsigned_day_returns_zero_signed_off_false",
+          "line": 185,
+          "isDefault": false
+        },
+        {
+          "name": "test_eod_totals_excludes_voided_and_reversal_from_revenue",
+          "line": 207,
+          "isDefault": false
+        },
+        {
+          "name": "test_eod_history_lists_signoffs_in_descending_order",
+          "line": 242,
+          "isDefault": false
+        },
+        {
+          "name": "test_eod_history_filters_by_date_range",
+          "line": 270,
+          "isDefault": false
+        },
+        {
+          "name": "test_void_queue_lists_pending_invoices",
+          "line": 307,
+          "isDefault": false
+        },
+        {
+          "name": "test_void_queue_excludes_resolved_voids",
+          "line": 333,
+          "isDefault": false
+        },
+        {
+          "name": "test_eod_signoff_record_persists",
+          "line": 359,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "_seed_product",
+          "callee": "client.post",
+          "lineNumber": 17
+        },
+        {
+          "caller": "_seed_lot",
+          "callee": "receiver_client.post",
+          "lineNumber": 27
+        },
+        {
+          "caller": "_finalize",
+          "callee": "cashier_client.post",
+          "lineNumber": 42
+        },
+        {
+          "caller": "_finalize",
+          "callee": "uuid.uuid4",
+          "lineNumber": 44
+        },
+        {
+          "caller": "_finalize",
+          "callee": "resp.json",
+          "lineNumber": 51
+        },
+        {
+          "caller": "test_owner_signs_off_today",
+          "callee": "_seed_product",
+          "lineNumber": 63
+        },
+        {
+          "caller": "test_owner_signs_off_today",
+          "callee": "_seed_lot",
+          "lineNumber": 64
+        },
+        {
+          "caller": "test_owner_signs_off_today",
+          "callee": "_finalize",
+          "lineNumber": 65
+        },
+        {
+          "caller": "test_owner_signs_off_today",
+          "callee": "_finalize",
+          "lineNumber": 66
+        },
+        {
+          "caller": "test_owner_signs_off_today",
+          "callee": "date.today",
+          "lineNumber": 70
+        },
+        {
+          "caller": "test_owner_signs_off_today",
+          "callee": "owner_client.post",
+          "lineNumber": 71
+        },
+        {
+          "caller": "test_owner_signs_off_today",
+          "callee": "today.isoformat",
+          "lineNumber": 72
+        },
+        {
+          "caller": "test_owner_signs_off_today",
+          "callee": "resp.json",
+          "lineNumber": 75
+        },
+        {
+          "caller": "test_double_sign_off_returns_409",
+          "callee": "_seed_product",
+          "lineNumber": 85
+        },
+        {
+          "caller": "test_double_sign_off_returns_409",
+          "callee": "_seed_lot",
+          "lineNumber": 86
+        },
+        {
+          "caller": "test_double_sign_off_returns_409",
+          "callee": "_finalize",
+          "lineNumber": 87
+        },
+        {
+          "caller": "test_double_sign_off_returns_409",
+          "callee": "date.today().isoformat",
+          "lineNumber": 89
+        },
+        {
+          "caller": "test_double_sign_off_returns_409",
+          "callee": "date.today",
+          "lineNumber": 89
+        },
+        {
+          "caller": "test_double_sign_off_returns_409",
+          "callee": "owner_client.post",
+          "lineNumber": 90
+        },
+        {
+          "caller": "test_double_sign_off_returns_409",
+          "callee": "owner_client.post",
+          "lineNumber": 94
+        },
+        {
+          "caller": "test_double_sign_off_returns_409",
+          "callee": "second.json",
+          "lineNumber": 98
+        },
+        {
+          "caller": "test_future_date_rejected",
+          "callee": "(date.today() + timedelta(days=2)).isoformat",
+          "lineNumber": 105
+        },
+        {
+          "caller": "test_future_date_rejected",
+          "callee": "date.today",
+          "lineNumber": 105
+        },
+        {
+          "caller": "test_future_date_rejected",
+          "callee": "timedelta",
+          "lineNumber": 105
+        },
+        {
+          "caller": "test_future_date_rejected",
+          "callee": "owner_client.post",
+          "lineNumber": 106
+        },
+        {
+          "caller": "test_future_date_rejected",
+          "callee": "resp.json",
+          "lineNumber": 110
+        },
+        {
+          "caller": "test_cashier_cannot_sign_off",
+          "callee": "date.today().isoformat",
+          "lineNumber": 115
+        },
+        {
+          "caller": "test_cashier_cannot_sign_off",
+          "callee": "date.today",
+          "lineNumber": 115
+        },
+        {
+          "caller": "test_cashier_cannot_sign_off",
+          "callee": "cashier_client.post",
+          "lineNumber": 116
+        },
+        {
+          "caller": "test_checkout_rejected_after_eod_sign_off",
+          "callee": "_seed_product",
+          "lineNumber": 131
+        },
+        {
+          "caller": "test_checkout_rejected_after_eod_sign_off",
+          "callee": "_seed_lot",
+          "lineNumber": 132
+        },
+        {
+          "caller": "test_checkout_rejected_after_eod_sign_off",
+          "callee": "date.today().isoformat",
+          "lineNumber": 134
+        },
+        {
+          "caller": "test_checkout_rejected_after_eod_sign_off",
+          "callee": "date.today",
+          "lineNumber": 134
+        },
+        {
+          "caller": "test_checkout_rejected_after_eod_sign_off",
+          "callee": "owner_client.post",
+          "lineNumber": 135
+        },
+        {
+          "caller": "test_checkout_rejected_after_eod_sign_off",
+          "callee": "cashier_client.post",
+          "lineNumber": 141
+        },
+        {
+          "caller": "test_checkout_rejected_after_eod_sign_off",
+          "callee": "uuid.uuid4",
+          "lineNumber": 143
+        },
+        {
+          "caller": "test_checkout_rejected_after_eod_sign_off",
+          "callee": "resp.json",
+          "lineNumber": 150
+        },
+        {
+          "caller": "test_eod_totals_for_signed_off_day",
+          "callee": "_seed_product",
+          "lineNumber": 162
+        },
+        {
+          "caller": "test_eod_totals_for_signed_off_day",
+          "callee": "_seed_lot",
+          "lineNumber": 163
+        },
+        {
+          "caller": "test_eod_totals_for_signed_off_day",
+          "callee": "_finalize",
+          "lineNumber": 164
+        },
+        {
+          "caller": "test_eod_totals_for_signed_off_day",
+          "callee": "_finalize",
+          "lineNumber": 165
+        },
+        {
+          "caller": "test_eod_totals_for_signed_off_day",
+          "callee": "date.today().isoformat",
+          "lineNumber": 167
+        },
+        {
+          "caller": "test_eod_totals_for_signed_off_day",
+          "callee": "date.today",
+          "lineNumber": 167
+        },
+        {
+          "caller": "test_eod_totals_for_signed_off_day",
+          "callee": "owner_client.post",
+          "lineNumber": 168
+        },
+        {
+          "caller": "test_eod_totals_for_signed_off_day",
+          "callee": "owner_client.get",
+          "lineNumber": 173
+        },
+        {
+          "caller": "test_eod_totals_for_signed_off_day",
+          "callee": "totals.json",
+          "lineNumber": 177
+        },
+        {
+          "caller": "test_eod_totals_for_unsigned_day_returns_zero_signed_off_false",
+          "callee": "_seed_product",
+          "lineNumber": 191
+        },
+        {
+          "caller": "test_eod_totals_for_unsigned_day_returns_zero_signed_off_false",
+          "callee": "_seed_lot",
+          "lineNumber": 192
+        },
+        {
+          "caller": "test_eod_totals_for_unsigned_day_returns_zero_signed_off_false",
+          "callee": "_finalize",
+          "lineNumber": 193
+        },
+        {
+          "caller": "test_eod_totals_for_unsigned_day_returns_zero_signed_off_false",
+          "callee": "date.today().isoformat",
+          "lineNumber": 196
+        },
+        {
+          "caller": "test_eod_totals_for_unsigned_day_returns_zero_signed_off_false",
+          "callee": "date.today",
+          "lineNumber": 196
+        },
+        {
+          "caller": "test_eod_totals_for_unsigned_day_returns_zero_signed_off_false",
+          "callee": "owner_client.get",
+          "lineNumber": 197
+        },
+        {
+          "caller": "test_eod_totals_for_unsigned_day_returns_zero_signed_off_false",
+          "callee": "totals.json",
+          "lineNumber": 200
+        },
+        {
+          "caller": "test_eod_totals_excludes_voided_and_reversal_from_revenue",
+          "callee": "_seed_product",
+          "lineNumber": 216
+        },
+        {
+          "caller": "test_eod_totals_excludes_voided_and_reversal_from_revenue",
+          "callee": "_seed_lot",
+          "lineNumber": 217
+        },
+        {
+          "caller": "test_eod_totals_excludes_voided_and_reversal_from_revenue",
+          "callee": "_finalize",
+          "lineNumber": 218
+        },
+        {
+          "caller": "test_eod_totals_excludes_voided_and_reversal_from_revenue",
+          "callee": "_finalize",
+          "lineNumber": 219
+        },
+        {
+          "caller": "test_eod_totals_excludes_voided_and_reversal_from_revenue",
+          "callee": "cashier_client.post",
+          "lineNumber": 221
+        },
+        {
+          "caller": "test_eod_totals_excludes_voided_and_reversal_from_revenue",
+          "callee": "date.today().isoformat",
+          "lineNumber": 223
+        },
+        {
+          "caller": "test_eod_totals_excludes_voided_and_reversal_from_revenue",
+          "callee": "date.today",
+          "lineNumber": 223
+        },
+        {
+          "caller": "test_eod_totals_excludes_voided_and_reversal_from_revenue",
+          "callee": "owner_client.post",
+          "lineNumber": 224
+        },
+        {
+          "caller": "test_eod_totals_excludes_voided_and_reversal_from_revenue",
+          "callee": "owner_client.get",
+          "lineNumber": 228
+        },
+        {
+          "caller": "test_eod_totals_excludes_voided_and_reversal_from_revenue",
+          "callee": "totals.json",
+          "lineNumber": 231
+        },
+        {
+          "caller": "test_eod_history_lists_signoffs_in_descending_order",
+          "callee": "_seed_product",
+          "lineNumber": 248
+        },
+        {
+          "caller": "test_eod_history_lists_signoffs_in_descending_order",
+          "callee": "_seed_lot",
+          "lineNumber": 249
+        },
+        {
+          "caller": "test_eod_history_lists_signoffs_in_descending_order",
+          "callee": "_finalize",
+          "lineNumber": 250
+        },
+        {
+          "caller": "test_eod_history_lists_signoffs_in_descending_order",
+          "callee": "date.today().isoformat",
+          "lineNumber": 252
+        },
+        {
+          "caller": "test_eod_history_lists_signoffs_in_descending_order",
+          "callee": "date.today",
+          "lineNumber": 252
+        },
+        {
+          "caller": "test_eod_history_lists_signoffs_in_descending_order",
+          "callee": "(date.today() - timedelta(days=1)).isoformat",
+          "lineNumber": 253
+        },
+        {
+          "caller": "test_eod_history_lists_signoffs_in_descending_order",
+          "callee": "date.today",
+          "lineNumber": 253
+        },
+        {
+          "caller": "test_eod_history_lists_signoffs_in_descending_order",
+          "callee": "timedelta",
+          "lineNumber": 253
+        },
+        {
+          "caller": "test_eod_history_lists_signoffs_in_descending_order",
+          "callee": "owner_client.post",
+          "lineNumber": 254
+        },
+        {
+          "caller": "test_eod_history_lists_signoffs_in_descending_order",
+          "callee": "owner_client.post",
+          "lineNumber": 257
+        },
+        {
+          "caller": "test_eod_history_lists_signoffs_in_descending_order",
+          "callee": "owner_client.get",
+          "lineNumber": 261
+        },
+        {
+          "caller": "test_eod_history_lists_signoffs_in_descending_order",
+          "callee": "h.json",
+          "lineNumber": 263
+        },
+        {
+          "caller": "test_eod_history_lists_signoffs_in_descending_order",
+          "callee": "len",
+          "lineNumber": 264
+        },
+        {
+          "caller": "test_eod_history_lists_signoffs_in_descending_order",
+          "callee": "body[\"signoffs\"][0][\"business_date\"].startswith",
+          "lineNumber": 266
+        },
+        {
+          "caller": "test_eod_history_lists_signoffs_in_descending_order",
+          "callee": "body[\"signoffs\"][1][\"business_date\"].startswith",
+          "lineNumber": 267
+        },
+        {
+          "caller": "test_eod_history_filters_by_date_range",
+          "callee": "_seed_product",
+          "lineNumber": 276
+        },
+        {
+          "caller": "test_eod_history_filters_by_date_range",
+          "callee": "_seed_lot",
+          "lineNumber": 277
+        },
+        {
+          "caller": "test_eod_history_filters_by_date_range",
+          "callee": "_finalize",
+          "lineNumber": 278
+        },
+        {
+          "caller": "test_eod_history_filters_by_date_range",
+          "callee": "date.today",
+          "lineNumber": 280
+        },
+        {
+          "caller": "test_eod_history_filters_by_date_range",
+          "callee": "timedelta",
+          "lineNumber": 281
+        },
+        {
+          "caller": "test_eod_history_filters_by_date_range",
+          "callee": "timedelta",
+          "lineNumber": 282
+        },
+        {
+          "caller": "test_eod_history_filters_by_date_range",
+          "callee": "owner_client.post",
+          "lineNumber": 285
+        },
+        {
+          "caller": "test_eod_history_filters_by_date_range",
+          "callee": "d.isoformat",
+          "lineNumber": 286
+        },
+        {
+          "caller": "test_eod_history_filters_by_date_range",
+          "callee": "owner_client.get",
+          "lineNumber": 289
+        },
+        {
+          "caller": "test_eod_history_filters_by_date_range",
+          "callee": "(today - timedelta(days=3)).isoformat",
+          "lineNumber": 292
+        },
+        {
+          "caller": "test_eod_history_filters_by_date_range",
+          "callee": "timedelta",
+          "lineNumber": 292
+        },
+        {
+          "caller": "test_eod_history_filters_by_date_range",
+          "callee": "today.isoformat",
+          "lineNumber": 293
+        },
+        {
+          "caller": "test_eod_history_filters_by_date_range",
+          "callee": "h.json",
+          "lineNumber": 296
+        },
+        {
+          "caller": "test_eod_history_filters_by_date_range",
+          "callee": "two_days_ago.isoformat",
+          "lineNumber": 299
+        },
+        {
+          "caller": "test_eod_history_filters_by_date_range",
+          "callee": "today.isoformat",
+          "lineNumber": 300
+        },
+        {
+          "caller": "test_eod_history_filters_by_date_range",
+          "callee": "five_days_ago.isoformat",
+          "lineNumber": 301
+        },
+        {
+          "caller": "test_void_queue_lists_pending_invoices",
+          "callee": "_seed_product",
+          "lineNumber": 314
+        },
+        {
+          "caller": "test_void_queue_lists_pending_invoices",
+          "callee": "_seed_lot",
+          "lineNumber": 315
+        },
+        {
+          "caller": "test_void_queue_lists_pending_invoices",
+          "callee": "_finalize",
+          "lineNumber": 316
+        },
+        {
+          "caller": "test_void_queue_lists_pending_invoices",
+          "callee": "(\n        await db_session.execute(select(Invoice).where(Invoice.id == inv[\"id\"]))\n    ).scalar_one",
+          "lineNumber": 318
+        },
+        {
+          "caller": "test_void_queue_lists_pending_invoices",
+          "callee": "db_session.execute",
+          "lineNumber": 319
+        },
+        {
+          "caller": "test_void_queue_lists_pending_invoices",
+          "callee": "select(Invoice).where",
+          "lineNumber": 319
+        },
+        {
+          "caller": "test_void_queue_lists_pending_invoices",
+          "callee": "select",
+          "lineNumber": 319
+        },
+        {
+          "caller": "test_void_queue_lists_pending_invoices",
+          "callee": "db_session.commit",
+          "lineNumber": 322
+        },
+        {
+          "caller": "test_void_queue_lists_pending_invoices",
+          "callee": "cashier_client.post",
+          "lineNumber": 323
+        },
+        {
+          "caller": "test_void_queue_lists_pending_invoices",
+          "callee": "owner_client.get",
+          "lineNumber": 325
+        },
+        {
+          "caller": "test_void_queue_lists_pending_invoices",
+          "callee": "q.json",
+          "lineNumber": 327
+        },
+        {
+          "caller": "test_void_queue_lists_pending_invoices",
+          "callee": "len",
+          "lineNumber": 328
+        },
+        {
+          "caller": "test_void_queue_excludes_resolved_voids",
+          "callee": "_seed_product",
+          "lineNumber": 340
+        },
+        {
+          "caller": "test_void_queue_excludes_resolved_voids",
+          "callee": "_seed_lot",
+          "lineNumber": 341
+        },
+        {
+          "caller": "test_void_queue_excludes_resolved_voids",
+          "callee": "_finalize",
+          "lineNumber": 342
+        },
+        {
+          "caller": "test_void_queue_excludes_resolved_voids",
+          "callee": "(\n        await db_session.execute(select(Invoice).where(Invoice.id == inv[\"id\"]))\n    ).scalar_one",
+          "lineNumber": 343
+        },
+        {
+          "caller": "test_void_queue_excludes_resolved_voids",
+          "callee": "db_session.execute",
+          "lineNumber": 344
+        },
+        {
+          "caller": "test_void_queue_excludes_resolved_voids",
+          "callee": "select(Invoice).where",
+          "lineNumber": 344
+        },
+        {
+          "caller": "test_void_queue_excludes_resolved_voids",
+          "callee": "select",
+          "lineNumber": 344
+        },
+        {
+          "caller": "test_void_queue_excludes_resolved_voids",
+          "callee": "db_session.commit",
+          "lineNumber": 347
+        },
+        {
+          "caller": "test_void_queue_excludes_resolved_voids",
+          "callee": "cashier_client.post",
+          "lineNumber": 348
+        },
+        {
+          "caller": "test_void_queue_excludes_resolved_voids",
+          "callee": "owner_client.post",
+          "lineNumber": 350
+        },
+        {
+          "caller": "test_void_queue_excludes_resolved_voids",
+          "callee": "owner_client.get",
+          "lineNumber": 352
+        },
+        {
+          "caller": "test_void_queue_excludes_resolved_voids",
+          "callee": "q.json",
+          "lineNumber": 353
+        },
+        {
+          "caller": "test_eod_signoff_record_persists",
+          "callee": "_seed_product",
+          "lineNumber": 366
+        },
+        {
+          "caller": "test_eod_signoff_record_persists",
+          "callee": "_seed_lot",
+          "lineNumber": 367
+        },
+        {
+          "caller": "test_eod_signoff_record_persists",
+          "callee": "_finalize",
+          "lineNumber": 368
+        },
+        {
+          "caller": "test_eod_signoff_record_persists",
+          "callee": "owner_client.post",
+          "lineNumber": 369
+        },
+        {
+          "caller": "test_eod_signoff_record_persists",
+          "callee": "date.today().isoformat",
+          "lineNumber": 370
+        },
+        {
+          "caller": "test_eod_signoff_record_persists",
+          "callee": "date.today",
+          "lineNumber": 370
+        },
+        {
+          "caller": "test_eod_signoff_record_persists",
+          "callee": "(await db_session.execute(select(EodSignOff))).scalars().all",
+          "lineNumber": 372
+        },
+        {
+          "caller": "test_eod_signoff_record_persists",
+          "callee": "(await db_session.execute(select(EodSignOff))).scalars",
+          "lineNumber": 372
+        },
+        {
+          "caller": "test_eod_signoff_record_persists",
+          "callee": "db_session.execute",
+          "lineNumber": 372
+        },
+        {
+          "caller": "test_eod_signoff_record_persists",
+          "callee": "select",
+          "lineNumber": 372
+        },
+        {
+          "caller": "test_eod_signoff_record_persists",
+          "callee": "len",
+          "lineNumber": 373
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 16,
+        "functionCount": 16,
+        "classCount": 0
+      }
+    }
+  ]
+}

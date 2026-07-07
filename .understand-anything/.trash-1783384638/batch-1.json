@@ -1,0 +1,679 @@
+{
+  "batchIndex": 1,
+  "projectRoot": "C:\\barstock",
+  "filesAnalyzed": 14,
+  "filesSkipped": [],
+  "scriptCompleted": true,
+  "nodes": [
+    {
+      "id": "file:app/api/__init__.py",
+      "type": "file",
+      "path": "app/api/__init__.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 1,
+      "label": "__init__.py"
+    },
+    {
+      "id": "file:app/api/_errors.py",
+      "type": "file",
+      "path": "app/api/_errors.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 71,
+      "label": "_errors.py"
+    },
+    {
+      "id": "file:app/api/_test_only.py",
+      "type": "file",
+      "path": "app/api/_test_only.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 16,
+      "label": "_test_only.py"
+    },
+    {
+      "id": "file:app/api/auth.py",
+      "type": "file",
+      "path": "app/api/auth.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 140,
+      "label": "auth.py"
+    },
+    {
+      "id": "file:app/api/deps.py",
+      "type": "file",
+      "path": "app/api/deps.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 94,
+      "label": "deps.py"
+    },
+    {
+      "id": "file:app/api/health.py",
+      "type": "file",
+      "path": "app/api/health.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 20,
+      "label": "health.py"
+    },
+    {
+      "id": "file:app/api/shops.py",
+      "type": "file",
+      "path": "app/api/shops.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 95,
+      "label": "shops.py"
+    },
+    {
+      "id": "file:app/api/staff.py",
+      "type": "file",
+      "path": "app/api/staff.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 121,
+      "label": "staff.py"
+    },
+    {
+      "id": "file:app/api/users.py",
+      "type": "file",
+      "path": "app/api/users.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 18,
+      "label": "users.py"
+    },
+    {
+      "id": "file:app/logging_config.py",
+      "type": "file",
+      "path": "app/logging_config.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 69,
+      "label": "logging_config.py"
+    },
+    {
+      "id": "file:app/main.py",
+      "type": "file",
+      "path": "app/main.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 149,
+      "label": "main.py"
+    },
+    {
+      "id": "file:app/schemas/auth.py",
+      "type": "file",
+      "path": "app/schemas/auth.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 87,
+      "label": "auth.py"
+    },
+    {
+      "id": "file:app/schemas/shop.py",
+      "type": "file",
+      "path": "app/schemas/shop.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 55,
+      "label": "shop.py"
+    },
+    {
+      "id": "file:app/security/jwt.py",
+      "type": "file",
+      "path": "app/security/jwt.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 44,
+      "label": "jwt.py"
+    },
+    {
+      "id": "function:app/api/_errors.py:is_unique_violation",
+      "type": "function",
+      "path": "app/api/_errors.py",
+      "name": "is_unique_violation",
+      "startLine": 26,
+      "endLine": 44,
+      "loc": 19,
+      "params": [
+        "exc"
+      ],
+      "label": "is_unique_violation"
+    },
+    {
+      "id": "function:app/api/_errors.py:map_error_to_http",
+      "type": "function",
+      "path": "app/api/_errors.py",
+      "name": "map_error_to_http",
+      "startLine": 47,
+      "endLine": 68,
+      "loc": 22,
+      "params": [
+        "exc",
+        "code_to_status",
+        "fallback_status"
+      ],
+      "label": "map_error_to_http"
+    },
+    {
+      "id": "function:app/api/auth.py:_authenticate",
+      "type": "function",
+      "path": "app/api/auth.py",
+      "name": "_authenticate",
+      "startLine": 27,
+      "endLine": 78,
+      "loc": 52,
+      "params": [
+        "db",
+        "shop_id",
+        "identifier_field",
+        "identifier_value",
+        "password",
+        "allowed_roles"
+      ],
+      "label": "_authenticate"
+    },
+    {
+      "id": "function:app/api/auth.py:login_superadmin",
+      "type": "function",
+      "path": "app/api/auth.py",
+      "name": "login_superadmin",
+      "startLine": 86,
+      "endLine": 109,
+      "loc": 24,
+      "params": [
+        "payload",
+        "db"
+      ],
+      "label": "login_superadmin"
+    },
+    {
+      "id": "function:app/api/auth.py:login_shop",
+      "type": "function",
+      "path": "app/api/auth.py",
+      "name": "login_shop",
+      "startLine": 117,
+      "endLine": 140,
+      "loc": 24,
+      "params": [
+        "payload",
+        "db"
+      ],
+      "label": "login_shop"
+    },
+    {
+      "id": "function:app/api/deps.py:get_current_user",
+      "type": "function",
+      "path": "app/api/deps.py",
+      "name": "get_current_user",
+      "startLine": 33,
+      "endLine": 63,
+      "loc": 31,
+      "params": [
+        "db",
+        "creds"
+      ],
+      "label": "get_current_user"
+    },
+    {
+      "id": "function:app/api/deps.py:require_role",
+      "type": "function",
+      "path": "app/api/deps.py",
+      "name": "require_role",
+      "startLine": 69,
+      "endLine": 84,
+      "loc": 16,
+      "params": [],
+      "label": "require_role"
+    },
+    {
+      "id": "function:app/api/shops.py:get_my_shop",
+      "type": "function",
+      "path": "app/api/shops.py",
+      "name": "get_my_shop",
+      "startLine": 36,
+      "endLine": 54,
+      "loc": 19,
+      "params": [
+        "db",
+        "_user"
+      ],
+      "label": "get_my_shop"
+    },
+    {
+      "id": "function:app/api/shops.py:update_my_shop",
+      "type": "function",
+      "path": "app/api/shops.py",
+      "name": "update_my_shop",
+      "startLine": 62,
+      "endLine": 95,
+      "loc": 34,
+      "params": [
+        "payload",
+        "db",
+        "_user"
+      ],
+      "label": "update_my_shop"
+    },
+    {
+      "id": "function:app/api/staff.py:create_staff",
+      "type": "function",
+      "path": "app/api/staff.py",
+      "name": "create_staff",
+      "startLine": 39,
+      "endLine": 103,
+      "loc": 65,
+      "params": [
+        "payload",
+        "db",
+        "user"
+      ],
+      "label": "create_staff"
+    },
+    {
+      "id": "function:app/api/staff.py:list_staff",
+      "type": "function",
+      "path": "app/api/staff.py",
+      "name": "list_staff",
+      "startLine": 111,
+      "endLine": 121,
+      "loc": 11,
+      "params": [
+        "db",
+        "user"
+      ],
+      "label": "list_staff"
+    },
+    {
+      "id": "function:app/logging_config.py:configure_logging",
+      "type": "function",
+      "path": "app/logging_config.py",
+      "name": "configure_logging",
+      "startLine": 20,
+      "endLine": 65,
+      "loc": 46,
+      "params": [
+        "level"
+      ],
+      "label": "configure_logging"
+    },
+    {
+      "id": "function:app/main.py:lifespan",
+      "type": "function",
+      "path": "app/main.py",
+      "name": "lifespan",
+      "startLine": 32,
+      "endLine": 61,
+      "loc": 30,
+      "params": [
+        "_"
+      ],
+      "label": "lifespan"
+    },
+    {
+      "id": "function:app/main.py:_low_stock_loop",
+      "type": "function",
+      "path": "app/main.py",
+      "name": "_low_stock_loop",
+      "startLine": 64,
+      "endLine": 107,
+      "loc": 44,
+      "params": [],
+      "label": "_low_stock_loop"
+    },
+    {
+      "id": "function:app/main.py:create_app",
+      "type": "function",
+      "path": "app/main.py",
+      "name": "create_app",
+      "startLine": 110,
+      "endLine": 146,
+      "loc": 37,
+      "params": [],
+      "label": "create_app"
+    },
+    {
+      "id": "class:app/schemas/auth.py:StaffCreate",
+      "type": "class",
+      "path": "app/schemas/auth.py",
+      "name": "StaffCreate",
+      "startLine": 52,
+      "endLine": 77,
+      "loc": 26,
+      "methodCount": 2,
+      "methods": [
+        "_only_staff_roles",
+        "_phone_format"
+      ],
+      "label": "StaffCreate"
+    },
+    {
+      "id": "class:app/schemas/shop.py:ShopUpdate",
+      "type": "class",
+      "path": "app/schemas/shop.py",
+      "name": "ShopUpdate",
+      "startLine": 25,
+      "endLine": 55,
+      "loc": 31,
+      "methodCount": 1,
+      "methods": [
+        "_gstin_shape"
+      ],
+      "label": "ShopUpdate"
+    },
+    {
+      "id": "function:app/security/jwt.py:create_access_token",
+      "type": "function",
+      "path": "app/security/jwt.py",
+      "name": "create_access_token",
+      "startLine": 16,
+      "endLine": 36,
+      "loc": 21,
+      "params": [
+        "sub",
+        "shop_id",
+        "role",
+        "extra",
+        "ttl_minutes"
+      ],
+      "label": "create_access_token"
+    }
+  ],
+  "edges": [
+    {
+      "source": "file:app/api/_errors.py",
+      "target": "function:app/api/_errors.py:is_unique_violation",
+      "relation": "contains"
+    },
+    {
+      "source": "file:app/api/_errors.py",
+      "target": "function:app/api/_errors.py:map_error_to_http",
+      "relation": "contains"
+    },
+    {
+      "source": "file:app/api/auth.py",
+      "target": "function:app/api/auth.py:_authenticate",
+      "relation": "contains"
+    },
+    {
+      "source": "file:app/api/auth.py",
+      "target": "function:app/api/auth.py:login_superadmin",
+      "relation": "contains"
+    },
+    {
+      "source": "file:app/api/auth.py",
+      "target": "function:app/api/auth.py:login_shop",
+      "relation": "contains"
+    },
+    {
+      "source": "file:app/api/deps.py",
+      "target": "function:app/api/deps.py:get_current_user",
+      "relation": "contains"
+    },
+    {
+      "source": "file:app/api/deps.py",
+      "target": "function:app/api/deps.py:require_role",
+      "relation": "contains"
+    },
+    {
+      "source": "file:app/api/shops.py",
+      "target": "function:app/api/shops.py:get_my_shop",
+      "relation": "contains"
+    },
+    {
+      "source": "file:app/api/shops.py",
+      "target": "function:app/api/shops.py:update_my_shop",
+      "relation": "contains"
+    },
+    {
+      "source": "file:app/api/staff.py",
+      "target": "function:app/api/staff.py:create_staff",
+      "relation": "contains"
+    },
+    {
+      "source": "file:app/api/staff.py",
+      "target": "function:app/api/staff.py:list_staff",
+      "relation": "contains"
+    },
+    {
+      "source": "file:app/logging_config.py",
+      "target": "function:app/logging_config.py:configure_logging",
+      "relation": "contains"
+    },
+    {
+      "source": "file:app/main.py",
+      "target": "function:app/main.py:lifespan",
+      "relation": "contains"
+    },
+    {
+      "source": "file:app/main.py",
+      "target": "function:app/main.py:_low_stock_loop",
+      "relation": "contains"
+    },
+    {
+      "source": "file:app/main.py",
+      "target": "function:app/main.py:create_app",
+      "relation": "contains"
+    },
+    {
+      "source": "file:app/schemas/auth.py",
+      "target": "class:app/schemas/auth.py:StaffCreate",
+      "relation": "contains"
+    },
+    {
+      "source": "file:app/schemas/shop.py",
+      "target": "class:app/schemas/shop.py:ShopUpdate",
+      "relation": "contains"
+    },
+    {
+      "source": "file:app/security/jwt.py",
+      "target": "function:app/security/jwt.py:create_access_token",
+      "relation": "contains"
+    },
+    {
+      "source": "file:app/api/auth.py",
+      "target": "file:app/api/deps.py",
+      "relation": "imports"
+    },
+    {
+      "source": "file:app/api/auth.py",
+      "target": "file:app/logging_config.py",
+      "relation": "imports"
+    },
+    {
+      "source": "file:app/api/auth.py",
+      "target": "file:app/schemas/auth.py",
+      "relation": "imports"
+    },
+    {
+      "source": "file:app/api/auth.py",
+      "target": "file:app/security/jwt.py",
+      "relation": "imports"
+    },
+    {
+      "source": "file:app/api/deps.py",
+      "target": "file:app/security/jwt.py",
+      "relation": "imports"
+    },
+    {
+      "source": "file:app/api/health.py",
+      "target": "file:app/api/deps.py",
+      "relation": "imports"
+    },
+    {
+      "source": "file:app/api/shops.py",
+      "target": "file:app/api/deps.py",
+      "relation": "imports"
+    },
+    {
+      "source": "file:app/api/shops.py",
+      "target": "file:app/logging_config.py",
+      "relation": "imports"
+    },
+    {
+      "source": "file:app/api/shops.py",
+      "target": "file:app/schemas/shop.py",
+      "relation": "imports"
+    },
+    {
+      "source": "file:app/api/staff.py",
+      "target": "file:app/api/_errors.py",
+      "relation": "imports"
+    },
+    {
+      "source": "file:app/api/staff.py",
+      "target": "file:app/api/deps.py",
+      "relation": "imports"
+    },
+    {
+      "source": "file:app/api/staff.py",
+      "target": "file:app/logging_config.py",
+      "relation": "imports"
+    },
+    {
+      "source": "file:app/api/staff.py",
+      "target": "file:app/schemas/auth.py",
+      "relation": "imports"
+    },
+    {
+      "source": "file:app/api/users.py",
+      "target": "file:app/api/deps.py",
+      "relation": "imports"
+    },
+    {
+      "source": "file:app/api/users.py",
+      "target": "file:app/schemas/auth.py",
+      "relation": "imports"
+    },
+    {
+      "source": "file:app/main.py",
+      "target": "file:app/api/__init__.py",
+      "relation": "imports"
+    },
+    {
+      "source": "file:app/main.py",
+      "target": "file:app/api/_test_only.py",
+      "relation": "imports"
+    },
+    {
+      "source": "file:app/main.py",
+      "target": "file:app/api/auth.py",
+      "relation": "imports"
+    },
+    {
+      "source": "file:app/main.py",
+      "target": "file:app/api/health.py",
+      "relation": "imports"
+    },
+    {
+      "source": "file:app/main.py",
+      "target": "file:app/api/shops.py",
+      "relation": "imports"
+    },
+    {
+      "source": "file:app/main.py",
+      "target": "file:app/api/staff.py",
+      "relation": "imports"
+    },
+    {
+      "source": "file:app/main.py",
+      "target": "file:app/api/users.py",
+      "relation": "imports"
+    },
+    {
+      "source": "file:app/main.py",
+      "target": "file:app/logging_config.py",
+      "relation": "imports"
+    }
+  ],
+  "summary": {
+    "nodeCount": 32,
+    "edgeCount": 41,
+    "fileNodes": 14,
+    "functionNodes": 16,
+    "classNodes": 2,
+    "importsEdges": 23,
+    "containsEdges": 18,
+    "crossBatchDrops": 18,
+    "crossBatchDropList": [
+      {
+        "from": "app/api/auth.py",
+        "to": "app/config.py"
+      },
+      {
+        "from": "app/api/auth.py",
+        "to": "app/models/user.py"
+      },
+      {
+        "from": "app/api/auth.py",
+        "to": "app/security/passwords.py"
+      },
+      {
+        "from": "app/api/deps.py",
+        "to": "app/db.py"
+      },
+      {
+        "from": "app/api/deps.py",
+        "to": "app/models/user.py"
+      },
+      {
+        "from": "app/api/shops.py",
+        "to": "app/models/shop.py"
+      },
+      {
+        "from": "app/api/shops.py",
+        "to": "app/models/user.py"
+      },
+      {
+        "from": "app/api/staff.py",
+        "to": "app/models/user.py"
+      },
+      {
+        "from": "app/api/staff.py",
+        "to": "app/security/passwords.py"
+      },
+      {
+        "from": "app/main.py",
+        "to": "app/api/checkout.py"
+      },
+      {
+        "from": "app/main.py",
+        "to": "app/api/dashboard.py"
+      },
+      {
+        "from": "app/main.py",
+        "to": "app/api/lots.py"
+      },
+      {
+        "from": "app/main.py",
+        "to": "app/api/products.py"
+      },
+      {
+        "from": "app/main.py",
+        "to": "app/api/voids.py"
+      },
+      {
+        "from": "app/main.py",
+        "to": "app/config.py"
+      },
+      {
+        "from": "app/main.py",
+        "to": "app/db.py"
+      },
+      {
+        "from": "app/schemas/auth.py",
+        "to": "app/models/user.py"
+      },
+      {
+        "from": "app/security/jwt.py",
+        "to": "app/config.py"
+      }
+    ],
+    "skippedFiles": 0,
+    "splits": []
+  }
+}

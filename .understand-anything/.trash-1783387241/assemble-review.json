@@ -1,0 +1,16 @@
+{
+  "fixedSectionOk": true,
+  "nodesRecovered": 3,
+  "edgesRestored": 6,
+  "crossBatchEdgesAdded": 0,
+  "typesRemapped": 0,
+  "complexityRemapped": 0,
+  "notes": [
+    "Complexity-degeneracy bug from the previous run is fixed: distribution across 259 original nodes is simple=131, moderate=93, complex=35 - not collapsed to a single value.",
+    "Placeholder-summary bug is also fixed: 0 of 259 nodes have summary == 'No summary available'; sampled summaries are specific, file-content-grounded prose (e.g. auth router, error-mapping helpers, logging config).",
+    "'Fixed' section from the merge script was minimal (3 tested_by edges flipped direction) - no evidence of upstream ID/complexity normalization problems, nothing to flag.",
+    "All 6 'could not fix' dangling edges were caused by the same root issue: three genuinely-existing but trivial functions (app/api/users.py:me, app/logging_config.py:get_logger, tests/test_voids.py:test_cashier_can_request_void_on_signed_off_invoice) were never emitted as nodes by their batch's LLM pass, even though edges referencing them were produced and the containing files were analyzed with real summaries. Verified against actual source files, recreated all 3 nodes with grounded summaries/lineRanges, and restored all 6 edges (2x contains/exports for get_logger, 1x contains for me, 1x calls test->_mark_signed_off, 2x calls from app/cli.py helpers to get_logger).",
+    "Cross-checked all 129 file-level import relationships in scan-result.json's importMap against assembled-graph.json imports edges: all are already represented (144 imports edges present, including some batch-detected ones beyond the import map) - no cross-batch import edges needed to be added.",
+    "No unknown node types or unknown complexity values were reported by the merge script, and none were found on inspection - nothing to remap."
+  ]
+}

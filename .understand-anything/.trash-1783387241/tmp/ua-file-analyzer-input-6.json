@@ -1,0 +1,11 @@
+{
+  "projectRoot": "C:/barstock",
+  "batchFiles": [
+    {"path": "harness/00-intake.md", "language": "markdown", "sizeLines": 69, "fileCategory": "docs"},
+    {"path": "harness/01-branch-map.md", "language": "markdown", "sizeLines": 158, "fileCategory": "docs"},
+    {"path": "harness/02-ledger.md", "language": "markdown", "sizeLines": 149, "fileCategory": "docs"},
+    {"path": "harness/03-prd.md", "language": "markdown", "sizeLines": 284, "fileCategory": "docs"},
+    {"path": "harness/04-absences.md", "language": "markdown", "sizeLines": 26, "fileCategory": "docs"}
+  ],
+  "batchImportData": {"harness/00-intake.md": [], "harness/01-branch-map.md": [], "harness/02-ledger.md": [], "harness/03-prd.md": [], "harness/04-absences.md": []}
+}

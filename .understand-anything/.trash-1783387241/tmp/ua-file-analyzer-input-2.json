@@ -1,0 +1,18 @@
+{
+  "projectRoot": "C:/barstock",
+  "batchFiles": [
+    {"path": "app/api/lots.py", "language": "python", "sizeLines": 202, "fileCategory": "code"},
+    {"path": "app/api/products.py", "language": "python", "sizeLines": 349, "fileCategory": "code"},
+    {"path": "app/models/log.py", "language": "python", "sizeLines": 90, "fileCategory": "code"},
+    {"path": "app/models/lot.py", "language": "python", "sizeLines": 88, "fileCategory": "code"},
+    {"path": "app/models/product.py", "language": "python", "sizeLines": 72, "fileCategory": "code"},
+    {"path": "app/schemas/lot.py", "language": "python", "sizeLines": 77, "fileCategory": "code"},
+    {"path": "app/schemas/product.py", "language": "python", "sizeLines": 114, "fileCategory": "code"},
+    {"path": "app/services/low_stock.py", "language": "python", "sizeLines": 173, "fileCategory": "code"},
+    {"path": "tests/test_checkout.py", "language": "python", "sizeLines": 451, "fileCategory": "code"},
+    {"path": "tests/test_lots.py", "language": "python", "sizeLines": 260, "fileCategory": "code"},
+    {"path": "tests/test_low_stock.py", "language": "python", "sizeLines": 256, "fileCategory": "code"},
+    {"path": "tests/test_voids.py", "language": "python", "sizeLines": 290, "fileCategory": "code"}
+  ],
+  "batchImportData": {"app/api/lots.py": ["app/api/deps.py", "app/logging_config.py", "app/models/log.py", "app/models/lot.py", "app/models/product.py", "app/models/user.py", "app/schemas/lot.py"], "app/api/products.py": ["app/api/deps.py", "app/models/product.py", "app/models/user.py", "app/schemas/product.py"], "app/models/log.py": [], "app/models/lot.py": ["app/models/product.py"], "app/models/product.py": [], "app/schemas/lot.py": [], "app/schemas/product.py": [], "app/services/low_stock.py": ["app/models/lot.py", "app/models/product.py"], "tests/test_checkout.py": [], "tests/test_lots.py": [], "tests/test_low_stock.py": [], "tests/test_voids.py": []}
+}

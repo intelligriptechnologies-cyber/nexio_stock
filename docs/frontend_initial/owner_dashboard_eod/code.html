@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Barstock - Owner Dashboard</title>
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Theme Configuration -->
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "primary": "#091426",
+                    "on-tertiary-container": "#1aa54c",
+                    "primary-fixed": "#d8e3fb",
+                    "on-surface": "#191c1e",
+                    "tertiary-container": "#003010",
+                    "surface-bright": "#f7f9fb",
+                    "on-secondary": "#ffffff",
+                    "on-secondary-container": "#5c2400",
+                    "surface-container-low": "#f2f4f6",
+                    "secondary-container": "#fd761a",
+                    "on-tertiary-fixed-variant": "#005320",
+                    "on-tertiary-fixed": "#002109",
+                    "surface-container-lowest": "#ffffff",
+                    "surface": "#f7f9fb",
+                    "error-container": "#ffdad6",
+                    "error": "#ba1a1a",
+                    "primary-fixed-dim": "#bcc7de",
+                    "outline-variant": "#c5c6cd",
+                    "tertiary-fixed-dim": "#62df7d",
+                    "primary-container": "#1e293b",
+                    "inverse-primary": "#bcc7de",
+                    "on-secondary-fixed-variant": "#783200",
+                    "surface-container-highest": "#e0e3e5",
+                    "tertiary-fixed": "#7ffc97",
+                    "on-primary-fixed-variant": "#3c475a",
+                    "outline": "#75777d",
+                    "on-tertiary": "#ffffff",
+                    "on-surface-variant": "#45474c",
+                    "surface-tint": "#545f73",
+                    "secondary-fixed-dim": "#ffb690",
+                    "background": "#f7f9fb",
+                    "on-secondary-fixed": "#341100",
+                    "on-background": "#191c1e",
+                    "inverse-surface": "#2d3133",
+                    "on-primary-container": "#8590a6",
+                    "secondary-fixed": "#ffdbca",
+                    "secondary": "#9d4300",
+                    "on-primary": "#ffffff",
+                    "inverse-on-surface": "#eff1f3",
+                    "on-error": "#ffffff",
+                    "surface-dim": "#d8dadc",
+                    "surface-variant": "#e0e3e5",
+                    "tertiary": "#001905",
+                    "on-error-container": "#93000a",
+                    "surface-container-high": "#e6e8ea",
+                    "surface-container": "#eceef0",
+                    "on-primary-fixed": "#111c2d"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "gutter": "1.5rem",
+                    "stack-gap": "1rem",
+                    "touch-target-min": "64px",
+                    "margin-desktop": "2.5rem",
+                    "margin-mobile": "1rem",
+                    "section-gap": "2rem"
+            },
+            "fontFamily": {
+                    "body-lg": ["Inter"],
+                    "body-md": ["Inter"],
+                    "headline-md": ["Inter"],
+                    "label-md": ["Inter"],
+                    "label-xl": ["Inter"],
+                    "headline-lg-mobile": ["Inter"],
+                    "display-lg": ["Inter"],
+                    "headline-lg": ["Inter"]
+            },
+            "fontSize": {
+                    "body-lg": ["20px", {"lineHeight": "30px", "fontWeight": "500"}],
+                    "body-md": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                    "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                    "label-md": ["16px", {"lineHeight": "20px", "fontWeight": "600"}],
+                    "label-xl": ["20px", {"lineHeight": "24px", "fontWeight": "700"}],
+                    "headline-lg-mobile": ["24px", {"lineHeight": "32px", "fontWeight": "700"}],
+                    "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "800"}],
+                    "headline-lg": ["32px", {"lineHeight": "40px", "fontWeight": "700"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .pb-safe { padding-bottom: env(safe-area-inset-bottom); }
+        
+        /* Utility for chart line */
+        .chart-path {
+            stroke-dasharray: 1000;
+            stroke-dashoffset: 1000;
+            animation: dash 2s ease-out forwards;
+        }
+        @keyframes dash {
+            to { stroke-dashoffset: 0; }
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background font-body-md antialiased h-screen overflow-hidden flex flex-col md:flex-row">
+<!-- TopAppBar (Web & Mobile, docked top) -->
+<header class="bg-surface border-b-2 border-outline-variant fixed top-0 w-full z-50 flex justify-between items-center h-20 px-gutter">
+<div class="flex items-center gap-4">
+<!-- Brand Logo -->
+<span class="text-headline-md font-headline-md font-extrabold text-primary">Barstock</span>
+</div>
+<div class="flex items-center gap-4">
+<button class="w-12 h-12 flex items-center justify-center text-primary hover:bg-surface-container-high rounded-full transition-transform duration-100 active:scale-95">
+<span class="material-symbols-outlined" data-icon="sync" style="font-size: 28px;">sync</span>
+</button>
+<button class="w-12 h-12 flex items-center justify-center text-primary hover:bg-surface-container-high rounded-full transition-transform duration-100 active:scale-95">
+<span class="material-symbols-outlined" data-icon="account_circle" style="font-size: 32px;">account_circle</span>
+</button>
+</div>
+</header>
+<!-- SideNavBar (Desktop Only) -->
+<nav class="bg-primary text-on-primary fixed h-screen left-0 w-[280px] border-r-2 border-outline hidden md:flex flex-col gap-stack-gap p-gutter pt-[100px] z-40">
+<!-- Header Info -->
+<div class="mb-8">
+<h2 class="text-headline-lg font-headline-lg font-black text-on-primary">Admin Panel</h2>
+<p class="text-body-md font-body-md text-primary-fixed-dim">Odisha Store #42</p>
+</div>
+<!-- Navigation Links -->
+<div class="flex flex-col gap-2 flex-1">
+<a class="flex items-center gap-4 px-4 py-4 text-on-primary-fixed-variant hover:bg-primary-container rounded-lg text-label-xl font-label-xl transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="shopping_cart">shopping_cart</span>
+                Checkout
+            </a>
+<a class="flex items-center gap-4 px-4 py-4 text-on-primary-fixed-variant hover:bg-primary-container rounded-lg text-label-xl font-label-xl transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="inventory">inventory</span>
+                Stock-in
+            </a>
+<!-- Active Tab: Reports / Dashboard -->
+<a class="flex items-center gap-4 px-4 py-4 bg-secondary-container text-on-secondary-container rounded-lg text-label-xl font-label-xl font-bold active:scale-98 transition-all duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="analytics" data-weight="fill" style="font-variation-settings: 'FILL' 1;">analytics</span>
+                Reports
+            </a>
+<a class="flex items-center gap-4 px-4 py-4 text-on-primary-fixed-variant hover:bg-primary-container rounded-lg text-label-xl font-label-xl transition-all mt-auto mb-20" href="#">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+                Settings
+            </a>
+</div>
+</nav>
+<!-- Main Content Area -->
+<main class="flex-1 flex flex-col h-full overflow-hidden pt-20 md:ml-[280px] pb-[80px] md:pb-0 relative z-10">
+<!-- Scrollable Canvas -->
+<div class="flex-1 overflow-y-auto p-margin-mobile md:p-margin-desktop gap-section-gap flex flex-col pb-safe">
+<!-- Page Header -->
+<div class="mb-4">
+<h1 class="text-headline-lg-mobile md:text-headline-lg font-headline-lg-mobile md:font-headline-lg text-on-background">Owner Dashboard & EOD</h1>
+<p class="text-body-lg font-body-lg text-on-surface-variant mt-2">Today's Sales & Operational Overview</p>
+</div>
+<!-- Stats Grid -->
+<section class="grid grid-cols-1 md:grid-cols-3 gap-stack-gap mb-section-gap">
+<!-- Total Revenue -->
+<div class="bg-surface-container-lowest border-2 border-outline-variant p-6 flex flex-col justify-between min-h-[160px]">
+<div class="flex items-center gap-3 mb-2">
+<span class="material-symbols-outlined text-primary" data-icon="payments" style="font-size: 32px;">payments</span>
+<h3 class="text-label-xl font-label-xl text-on-surface-variant uppercase tracking-wider">Total Revenue</h3>
+</div>
+<div class="text-display-lg font-display-lg text-primary tracking-tight">
+                        ₹48,250
+                    </div>
+</div>
+<!-- Invoice Count -->
+<div class="bg-surface-container-lowest border-2 border-outline-variant p-6 flex flex-col justify-between min-h-[160px]">
+<div class="flex items-center gap-3 mb-2">
+<span class="material-symbols-outlined text-primary" data-icon="receipt_long" style="font-size: 32px;">receipt_long</span>
+<h3 class="text-label-xl font-label-xl text-on-surface-variant uppercase tracking-wider">Invoices</h3>
+</div>
+<div class="text-display-lg font-display-lg text-primary tracking-tight">
+                        142
+                    </div>
+</div>
+<!-- Payment Split -->
+<div class="bg-surface-container-lowest border-2 border-outline-variant p-6 flex flex-col justify-between min-h-[160px]">
+<div class="flex items-center gap-3 mb-4">
+<span class="material-symbols-outlined text-primary" data-icon="account_balance_wallet" style="font-size: 32px;">account_balance_wallet</span>
+<h3 class="text-label-xl font-label-xl text-on-surface-variant uppercase tracking-wider">Payment Split</h3>
+</div>
+<div class="flex flex-col gap-2 w-full">
+<div class="flex items-center justify-between text-body-md font-body-md">
+<span>UPI (65%)</span>
+<span class="font-bold">₹31,362</span>
+</div>
+<div class="w-full bg-surface-variant h-3 rounded-full overflow-hidden">
+<div class="bg-primary h-full" style="width: 65%"></div>
+</div>
+<div class="flex items-center justify-between text-body-md font-body-md mt-2">
+<span>Cash (35%)</span>
+<span class="font-bold">₹16,888</span>
+</div>
+<div class="w-full bg-surface-variant h-3 rounded-full overflow-hidden">
+<div class="bg-secondary-container h-full" style="width: 35%"></div>
+</div>
+</div>
+</div>
+</section>
+<!-- Sales Volume Chart (Simple SVG) -->
+<section class="mb-section-gap">
+<h2 class="text-headline-md font-headline-md text-on-background mb-4 border-b-2 border-outline-variant pb-2">Sales Volume by Hour</h2>
+<div class="bg-surface-container-lowest border-2 border-outline-variant p-6 h-[300px] w-full flex items-end relative overflow-hidden">
+<!-- Faux Grid Lines -->
+<div class="absolute inset-0 flex flex-col justify-between py-6 px-4 z-0 pointer-events-none opacity-20">
+<div class="w-full h-px bg-outline"></div>
+<div class="w-full h-px bg-outline"></div>
+<div class="w-full h-px bg-outline"></div>
+<div class="w-full h-px bg-outline"></div>
+<div class="w-full h-px bg-outline"></div>
+</div>
+<!-- SVG Chart Line -->
+<svg class="w-full h-full z-10 overflow-visible" preserveaspectratio="none" viewbox="0 0 1000 200">
+<path class="chart-path" d="M0,180 L100,160 L200,170 L300,120 L400,130 L500,60 L600,90 L700,40 L800,20 L900,50 L1000,10" fill="none" stroke="#091426" stroke-linecap="round" stroke-linejoin="round" stroke-width="4"></path>
+<!-- Data Points -->
+<circle cx="500" cy="60" fill="#fd761a" r="6"></circle>
+<circle cx="800" cy="20" fill="#fd761a" r="6"></circle>
+</svg>
+<!-- X-Axis Labels -->
+<div class="absolute bottom-1 left-0 w-full flex justify-between px-4 text-label-md font-label-md text-on-surface-variant">
+<span>10 AM</span>
+<span>1 PM</span>
+<span>4 PM</span>
+<span>7 PM</span>
+<span>10 PM</span>
+</div>
+</div>
+</section>
+<!-- Grid Layout for Alerts & Approvals -->
+<div class="grid grid-cols-1 xl:grid-cols-2 gap-section-gap mb-section-gap">
+<!-- Low Stock Alerts -->
+<section>
+<div class="flex items-center gap-3 mb-4 border-b-2 border-error pb-2">
+<span class="material-symbols-outlined text-error" data-icon="warning" data-weight="fill" style="font-variation-settings: 'FILL' 1; font-size: 32px;">warning</span>
+<h2 class="text-headline-md font-headline-md text-error">Low Stock Alerts</h2>
+</div>
+<div class="flex flex-col gap-4">
+<!-- Alert Item 1 -->
+<div class="bg-error-container border-2 border-error p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+<div class="flex items-center gap-4">
+<div class="w-16 h-16 bg-surface border border-outline flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-on-surface-variant" data-icon="liquor" style="font-size: 32px;">liquor</span>
+</div>
+<div>
+<h4 class="text-body-lg font-body-lg font-bold text-on-error-container">Royal Stag 750ml</h4>
+<p class="text-label-md font-label-md text-error mt-1">Current Stock: 4 Btls (Threshold: 12)</p>
+</div>
+</div>
+<button class="min-h-touch-target-min h-[64px] px-8 bg-error text-on-error text-label-xl font-label-xl font-bold flex items-center justify-center whitespace-nowrap active:scale-95 transition-transform">
+                                RESTOCK
+                            </button>
+</div>
+<!-- Alert Item 2 -->
+<div class="bg-error-container border-2 border-error p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+<div class="flex items-center gap-4">
+<div class="w-16 h-16 bg-surface border border-outline flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-on-surface-variant" data-icon="liquor" style="font-size: 32px;">liquor</span>
+</div>
+<div>
+<h4 class="text-body-lg font-body-lg font-bold text-on-error-container">Old Monk 1000ml</h4>
+<p class="text-label-md font-label-md text-error mt-1">Current Stock: 2 Btls (Threshold: 10)</p>
+</div>
+</div>
+<button class="min-h-touch-target-min h-[64px] px-8 bg-error text-on-error text-label-xl font-label-xl font-bold flex items-center justify-center whitespace-nowrap active:scale-95 transition-transform">
+                                RESTOCK
+                            </button>
+</div>
+</div>
+</section>
+<!-- Void Requests -->
+<section>
+<div class="flex items-center gap-3 mb-4 border-b-2 border-secondary pb-2">
+<span class="material-symbols-outlined text-secondary" data-icon="gavel" style="font-size: 32px;">gavel</span>
+<h2 class="text-headline-md font-headline-md text-secondary">Void Requests (Requires Approval)</h2>
+</div>
+<div class="flex flex-col gap-4">
+<!-- Void Request Item 1 -->
+<div class="bg-surface-container-lowest border-2 border-outline-variant p-4 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+<div>
+<h4 class="text-body-lg font-body-lg font-bold text-on-surface">Invoice #INV-9942</h4>
+<p class="text-body-md font-body-md text-on-surface-variant mt-1">Cashier: Operator 2 • Reason: Customer changed mind</p>
+<p class="text-label-xl font-label-xl text-primary mt-2">Amount: ₹1,250</p>
+</div>
+<div class="flex gap-2 w-full lg:w-auto">
+<button class="flex-1 lg:flex-none min-h-touch-target-min h-[64px] px-6 border-2 border-error text-error text-label-xl font-label-xl font-bold flex items-center justify-center active:scale-95 transition-transform bg-surface">
+                                    REJECT
+                                </button>
+<button class="flex-1 lg:flex-none min-h-touch-target-min h-[64px] px-6 bg-tertiary-container text-on-tertiary-container border-2 border-tertiary-container text-label-xl font-label-xl font-bold flex items-center justify-center active:scale-95 transition-transform">
+                                    APPROVE
+                                </button>
+</div>
+</div>
+</div>
+</section>
+</div>
+<!-- Massive End of Day Button -->
+<div class="mt-auto pt-8 border-t-2 border-outline-variant border-dashed">
+<button class="w-full min-h-[96px] bg-secondary-container text-on-secondary-container text-headline-lg font-headline-lg font-black flex items-center justify-center gap-4 active:scale-95 transition-transform shadow-[0_4px_0_0_#9d4300] active:shadow-none active:translate-y-1">
+<span class="material-symbols-outlined" data-icon="lock" data-weight="fill" style="font-variation-settings: 'FILL' 1; font-size: 40px;">lock</span>
+                    MARK DAY END & CLOSE
+                </button>
+</div>
+</div>
+</main>
+<!-- BottomNavBar (Mobile Only) -->
+<nav class="md:hidden bg-surface border-t-2 border-outline-variant shadow-lg fixed bottom-0 w-full h-[80px] z-50 flex justify-around items-center px-2 pb-safe">
+<a class="flex flex-col items-center justify-center text-on-surface-variant w-1/4 h-full" href="#">
+<span class="material-symbols-outlined mb-1" data-icon="point_of_sale">point_of_sale</span>
+<span class="text-label-md font-label-md">Checkout</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant w-1/4 h-full" href="#">
+<span class="material-symbols-outlined mb-1" data-icon="box">box</span>
+<span class="text-label-md font-label-md">Stock</span>
+</a>
+<!-- Active Tab: Reports -->
+<a class="flex flex-col items-center justify-center bg-secondary-container text-on-secondary-container rounded-xl px-6 py-2 w-[80px] h-full mx-1 scale-90 transition-transform duration-150" href="#">
+<span class="material-symbols-outlined mb-1" data-icon="description" data-weight="fill" style="font-variation-settings: 'FILL' 1;">description</span>
+<span class="text-label-md font-label-md">Reports</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant hover:bg-surface-container-high w-1/4 h-full" href="#">
+<span class="material-symbols-outlined mb-1" data-icon="menu">menu</span>
+<span class="text-label-md font-label-md">More</span>
+</a>
+</nav>
+</body></html>

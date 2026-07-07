@@ -1,0 +1,1508 @@
+{
+  "batchIndex": 2,
+  "projectRoot": "C:\\barstock",
+  "filesAnalyzed": 12,
+  "filesSkipped": [],
+  "scriptCompleted": true,
+  "nodes": [
+    {
+      "id": "file:app/api/lots.py",
+      "type": "file",
+      "path": "app/api/lots.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 202,
+      "label": "lots.py"
+    },
+    {
+      "id": "file:app/api/products.py",
+      "type": "file",
+      "path": "app/api/products.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 349,
+      "label": "products.py"
+    },
+    {
+      "id": "file:app/models/log.py",
+      "type": "file",
+      "path": "app/models/log.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 90,
+      "label": "log.py"
+    },
+    {
+      "id": "file:app/models/lot.py",
+      "type": "file",
+      "path": "app/models/lot.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 88,
+      "label": "lot.py"
+    },
+    {
+      "id": "file:app/models/product.py",
+      "type": "file",
+      "path": "app/models/product.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 72,
+      "label": "product.py"
+    },
+    {
+      "id": "file:app/schemas/lot.py",
+      "type": "file",
+      "path": "app/schemas/lot.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 77,
+      "label": "lot.py"
+    },
+    {
+      "id": "file:app/schemas/product.py",
+      "type": "file",
+      "path": "app/schemas/product.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 114,
+      "label": "product.py"
+    },
+    {
+      "id": "file:app/services/low_stock.py",
+      "type": "file",
+      "path": "app/services/low_stock.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 173,
+      "label": "low_stock.py"
+    },
+    {
+      "id": "file:tests/test_checkout.py",
+      "type": "file",
+      "path": "tests/test_checkout.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 451,
+      "label": "test_checkout.py"
+    },
+    {
+      "id": "file:tests/test_lots.py",
+      "type": "file",
+      "path": "tests/test_lots.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 260,
+      "label": "test_lots.py"
+    },
+    {
+      "id": "file:tests/test_low_stock.py",
+      "type": "file",
+      "path": "tests/test_low_stock.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 256,
+      "label": "test_low_stock.py"
+    },
+    {
+      "id": "file:tests/test_voids.py",
+      "type": "file",
+      "path": "tests/test_voids.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 290,
+      "label": "test_voids.py"
+    },
+    {
+      "id": "function:app/api/lots.py:create_lot",
+      "type": "function",
+      "path": "app/api/lots.py",
+      "name": "create_lot",
+      "startLine": 49,
+      "endLine": 142,
+      "loc": 94,
+      "params": [
+        "payload",
+        "db",
+        "_user"
+      ],
+      "label": "create_lot"
+    },
+    {
+      "id": "function:app/api/lots.py:list_lots",
+      "type": "function",
+      "path": "app/api/lots.py",
+      "name": "list_lots",
+      "startLine": 150,
+      "endLine": 168,
+      "loc": 19,
+      "params": [
+        "db",
+        "_user",
+        "limit",
+        "offset"
+      ],
+      "label": "list_lots"
+    },
+    {
+      "id": "function:app/api/lots.py:get_lot",
+      "type": "function",
+      "path": "app/api/lots.py",
+      "name": "get_lot",
+      "startLine": 176,
+      "endLine": 190,
+      "loc": 15,
+      "params": [
+        "lot_id",
+        "db",
+        "_user"
+      ],
+      "label": "get_lot"
+    },
+    {
+      "id": "function:app/api/lots.py:_load_lines",
+      "type": "function",
+      "path": "app/api/lots.py",
+      "name": "_load_lines",
+      "startLine": 193,
+      "endLine": 202,
+      "loc": 10,
+      "params": [
+        "db",
+        "lot"
+      ],
+      "label": "_load_lines"
+    },
+    {
+      "id": "function:app/api/products.py:create_product",
+      "type": "function",
+      "path": "app/api/products.py",
+      "name": "create_product",
+      "startLine": 51,
+      "endLine": 99,
+      "loc": 49,
+      "params": [
+        "payload",
+        "db",
+        "_user"
+      ],
+      "label": "create_product"
+    },
+    {
+      "id": "function:app/api/products.py:list_products",
+      "type": "function",
+      "path": "app/api/products.py",
+      "name": "list_products",
+      "startLine": 107,
+      "endLine": 126,
+      "loc": 20,
+      "params": [
+        "db",
+        "_user",
+        "active_only",
+        "q",
+        "limit",
+        "offset"
+      ],
+      "label": "list_products"
+    },
+    {
+      "id": "function:app/api/products.py:lookup_product",
+      "type": "function",
+      "path": "app/api/products.py",
+      "name": "lookup_product",
+      "startLine": 134,
+      "endLine": 154,
+      "loc": 21,
+      "params": [
+        "db",
+        "_user",
+        "barcode"
+      ],
+      "label": "lookup_product"
+    },
+    {
+      "id": "function:app/api/products.py:update_product",
+      "type": "function",
+      "path": "app/api/products.py",
+      "name": "update_product",
+      "startLine": 162,
+      "endLine": 190,
+      "loc": 29,
+      "params": [
+        "product_id",
+        "payload",
+        "db",
+        "_user"
+      ],
+      "label": "update_product"
+    },
+    {
+      "id": "function:app/api/products.py:import_products_csv",
+      "type": "function",
+      "path": "app/api/products.py",
+      "name": "import_products_csv",
+      "startLine": 205,
+      "endLine": 349,
+      "loc": 145,
+      "params": [
+        "db",
+        "_user",
+        "file"
+      ],
+      "label": "import_products_csv"
+    },
+    {
+      "id": "class:app/models/log.py:_BaseLog",
+      "type": "class",
+      "path": "app/models/log.py",
+      "name": "_BaseLog",
+      "startLine": 40,
+      "endLine": 60,
+      "loc": 21,
+      "methodCount": 0,
+      "methods": [],
+      "label": "_BaseLog"
+    },
+    {
+      "id": "class:app/models/lot.py:Lot",
+      "type": "class",
+      "path": "app/models/lot.py",
+      "name": "Lot",
+      "startLine": 27,
+      "endLine": 62,
+      "loc": 36,
+      "methodCount": 0,
+      "methods": [],
+      "label": "Lot"
+    },
+    {
+      "id": "class:app/models/lot.py:LotLine",
+      "type": "class",
+      "path": "app/models/lot.py",
+      "name": "LotLine",
+      "startLine": 65,
+      "endLine": 88,
+      "loc": 24,
+      "methodCount": 0,
+      "methods": [],
+      "label": "LotLine"
+    },
+    {
+      "id": "class:app/models/product.py:Product",
+      "type": "class",
+      "path": "app/models/product.py",
+      "name": "Product",
+      "startLine": 37,
+      "endLine": 72,
+      "loc": 36,
+      "methodCount": 0,
+      "methods": [],
+      "label": "Product"
+    },
+    {
+      "id": "class:app/schemas/lot.py:LotCreate",
+      "type": "class",
+      "path": "app/schemas/lot.py",
+      "name": "LotCreate",
+      "startLine": 28,
+      "endLine": 48,
+      "loc": 21,
+      "methodCount": 1,
+      "methods": [
+        "_unique_barcodes"
+      ],
+      "label": "LotCreate"
+    },
+    {
+      "id": "class:app/schemas/product.py:ProductCreate",
+      "type": "class",
+      "path": "app/schemas/product.py",
+      "name": "ProductCreate",
+      "startLine": 19,
+      "endLine": 42,
+      "loc": 24,
+      "methodCount": 2,
+      "methods": [
+        "_barcode_no_ws",
+        "_size_label_shape"
+      ],
+      "label": "ProductCreate"
+    },
+    {
+      "id": "function:app/services/low_stock.py:_stock_per_product",
+      "type": "function",
+      "path": "app/services/low_stock.py",
+      "name": "_stock_per_product",
+      "startLine": 47,
+      "endLine": 118,
+      "loc": 72,
+      "params": [
+        "db",
+        "shop_id"
+      ],
+      "label": "_stock_per_product"
+    },
+    {
+      "id": "function:app/services/low_stock.py:compute_low_stock",
+      "type": "function",
+      "path": "app/services/low_stock.py",
+      "name": "compute_low_stock",
+      "startLine": 121,
+      "endLine": 170,
+      "loc": 50,
+      "params": [
+        "db",
+        "shop_id"
+      ],
+      "label": "compute_low_stock"
+    },
+    {
+      "id": "function:tests/test_checkout.py:test_cashier_finalizes_a_one_line_invoice",
+      "type": "function",
+      "path": "tests/test_checkout.py",
+      "name": "test_cashier_finalizes_a_one_line_invoice",
+      "startLine": 49,
+      "endLine": 75,
+      "loc": 27,
+      "params": [
+        "cashier_client",
+        "owner_client",
+        "receiver_client"
+      ],
+      "label": "test_cashier_finalizes_a_one_line_invoice"
+    },
+    {
+      "id": "function:tests/test_checkout.py:test_cashier_finalizes_multi_line_invoice",
+      "type": "function",
+      "path": "tests/test_checkout.py",
+      "name": "test_cashier_finalizes_multi_line_invoice",
+      "startLine": 79,
+      "endLine": 103,
+      "loc": 25,
+      "params": [
+        "cashier_client",
+        "owner_client",
+        "receiver_client"
+      ],
+      "label": "test_cashier_finalizes_multi_line_invoice"
+    },
+    {
+      "id": "function:tests/test_checkout.py:test_payment_split_across_modes",
+      "type": "function",
+      "path": "tests/test_checkout.py",
+      "name": "test_payment_split_across_modes",
+      "startLine": 110,
+      "endLine": 131,
+      "loc": 22,
+      "params": [
+        "cashier_client",
+        "owner_client",
+        "receiver_client"
+      ],
+      "label": "test_payment_split_across_modes"
+    },
+    {
+      "id": "function:tests/test_checkout.py:test_payment_mismatch_is_rejected_with_400",
+      "type": "function",
+      "path": "tests/test_checkout.py",
+      "name": "test_payment_mismatch_is_rejected_with_400",
+      "startLine": 135,
+      "endLine": 150,
+      "loc": 16,
+      "params": [
+        "cashier_client",
+        "owner_client",
+        "receiver_client"
+      ],
+      "label": "test_payment_mismatch_is_rejected_with_400"
+    },
+    {
+      "id": "function:tests/test_checkout.py:test_quantity_exceeding_stock_is_rejected",
+      "type": "function",
+      "path": "tests/test_checkout.py",
+      "name": "test_quantity_exceeding_stock_is_rejected",
+      "startLine": 157,
+      "endLine": 172,
+      "loc": 16,
+      "params": [
+        "cashier_client",
+        "owner_client",
+        "receiver_client"
+      ],
+      "label": "test_quantity_exceeding_stock_is_rejected"
+    },
+    {
+      "id": "function:tests/test_checkout.py:test_unknown_barcode_is_rejected_with_404",
+      "type": "function",
+      "path": "tests/test_checkout.py",
+      "name": "test_unknown_barcode_is_rejected_with_404",
+      "startLine": 176,
+      "endLine": 191,
+      "loc": 16,
+      "params": [
+        "cashier_client",
+        "owner_client",
+        "receiver_client"
+      ],
+      "label": "test_unknown_barcode_is_rejected_with_404"
+    },
+    {
+      "id": "function:tests/test_checkout.py:test_idempotency_key_replay_returns_same_invoice",
+      "type": "function",
+      "path": "tests/test_checkout.py",
+      "name": "test_idempotency_key_replay_returns_same_invoice",
+      "startLine": 198,
+      "endLine": 220,
+      "loc": 23,
+      "params": [
+        "cashier_client",
+        "owner_client",
+        "receiver_client"
+      ],
+      "label": "test_idempotency_key_replay_returns_same_invoice"
+    },
+    {
+      "id": "function:tests/test_checkout.py:test_missing_idempotency_key_is_400",
+      "type": "function",
+      "path": "tests/test_checkout.py",
+      "name": "test_missing_idempotency_key_is_400",
+      "startLine": 224,
+      "endLine": 238,
+      "loc": 15,
+      "params": [
+        "cashier_client",
+        "owner_client",
+        "receiver_client"
+      ],
+      "label": "test_missing_idempotency_key_is_400"
+    },
+    {
+      "id": "function:tests/test_checkout.py:test_two_concurrent_finalizes_for_last_unit_only_one_wins",
+      "type": "function",
+      "path": "tests/test_checkout.py",
+      "name": "test_two_concurrent_finalizes_for_last_unit_only_one_wins",
+      "startLine": 245,
+      "endLine": 302,
+      "loc": 58,
+      "params": [
+        "owner_client",
+        "receiver_client"
+      ],
+      "label": "test_two_concurrent_finalizes_for_last_unit_only_one_wins"
+    },
+    {
+      "id": "function:tests/test_checkout.py:test_receiver_cannot_finalize_checkout",
+      "type": "function",
+      "path": "tests/test_checkout.py",
+      "name": "test_receiver_cannot_finalize_checkout",
+      "startLine": 309,
+      "endLine": 318,
+      "loc": 10,
+      "params": [
+        "receiver_client"
+      ],
+      "label": "test_receiver_cannot_finalize_checkout"
+    },
+    {
+      "id": "function:tests/test_checkout.py:test_owner_can_finalize_checkout",
+      "type": "function",
+      "path": "tests/test_checkout.py",
+      "name": "test_owner_can_finalize_checkout",
+      "startLine": 322,
+      "endLine": 336,
+      "loc": 15,
+      "params": [
+        "owner_client",
+        "receiver_client"
+      ],
+      "label": "test_owner_can_finalize_checkout"
+    },
+    {
+      "id": "function:tests/test_checkout.py:test_finalized_invoice_lines_are_immutable",
+      "type": "function",
+      "path": "tests/test_checkout.py",
+      "name": "test_finalized_invoice_lines_are_immutable",
+      "startLine": 343,
+      "endLine": 369,
+      "loc": 27,
+      "params": [
+        "cashier_client",
+        "owner_client",
+        "receiver_client"
+      ],
+      "label": "test_finalized_invoice_lines_are_immutable"
+    },
+    {
+      "id": "function:tests/test_checkout.py:test_finalize_writes_an_invoicing_log",
+      "type": "function",
+      "path": "tests/test_checkout.py",
+      "name": "test_finalize_writes_an_invoicing_log",
+      "startLine": 376,
+      "endLine": 397,
+      "loc": 22,
+      "params": [
+        "cashier_client",
+        "owner_client",
+        "receiver_client",
+        "db_session"
+      ],
+      "label": "test_finalize_writes_an_invoicing_log"
+    },
+    {
+      "id": "function:tests/test_checkout.py:test_invoice_pdf_is_a_real_pdf",
+      "type": "function",
+      "path": "tests/test_checkout.py",
+      "name": "test_invoice_pdf_is_a_real_pdf",
+      "startLine": 404,
+      "endLine": 424,
+      "loc": 21,
+      "params": [
+        "cashier_client",
+        "owner_client",
+        "receiver_client"
+      ],
+      "label": "test_invoice_pdf_is_a_real_pdf"
+    },
+    {
+      "id": "function:tests/test_checkout.py:test_empty_cart_rejected",
+      "type": "function",
+      "path": "tests/test_checkout.py",
+      "name": "test_empty_cart_rejected",
+      "startLine": 442,
+      "endLine": 451,
+      "loc": 10,
+      "params": [
+        "cashier_client"
+      ],
+      "label": "test_empty_cart_rejected"
+    },
+    {
+      "id": "function:tests/test_lots.py:test_receiver_creates_lot_with_one_line",
+      "type": "function",
+      "path": "tests/test_lots.py",
+      "name": "test_receiver_creates_lot_with_one_line",
+      "startLine": 23,
+      "endLine": 44,
+      "loc": 22,
+      "params": [
+        "receiver_client",
+        "owner_client"
+      ],
+      "label": "test_receiver_creates_lot_with_one_line"
+    },
+    {
+      "id": "function:tests/test_lots.py:test_receiver_creates_lot_with_many_lines",
+      "type": "function",
+      "path": "tests/test_lots.py",
+      "name": "test_receiver_creates_lot_with_many_lines",
+      "startLine": 48,
+      "endLine": 71,
+      "loc": 24,
+      "params": [
+        "receiver_client",
+        "owner_client"
+      ],
+      "label": "test_receiver_creates_lot_with_many_lines"
+    },
+    {
+      "id": "function:tests/test_lots.py:test_unknown_barcode_in_lot_returns_404",
+      "type": "function",
+      "path": "tests/test_lots.py",
+      "name": "test_unknown_barcode_in_lot_returns_404",
+      "startLine": 96,
+      "endLine": 105,
+      "loc": 10,
+      "params": [
+        "receiver_client",
+        "owner_client"
+      ],
+      "label": "test_unknown_barcode_in_lot_returns_404"
+    },
+    {
+      "id": "function:tests/test_lots.py:test_barcode_must_exist_in_receiver_shop_only",
+      "type": "function",
+      "path": "tests/test_lots.py",
+      "name": "test_barcode_must_exist_in_receiver_shop_only",
+      "startLine": 109,
+      "endLine": 121,
+      "loc": 13,
+      "params": [
+        "receiver_client"
+      ],
+      "label": "test_barcode_must_exist_in_receiver_shop_only"
+    },
+    {
+      "id": "function:tests/test_lots.py:test_duplicate_barcode_in_lot_rejected",
+      "type": "function",
+      "path": "tests/test_lots.py",
+      "name": "test_duplicate_barcode_in_lot_rejected",
+      "startLine": 131,
+      "endLine": 145,
+      "loc": 15,
+      "params": [
+        "receiver_client",
+        "owner_client"
+      ],
+      "label": "test_duplicate_barcode_in_lot_rejected"
+    },
+    {
+      "id": "function:tests/test_lots.py:test_receiving_writes_a_stockin_log",
+      "type": "function",
+      "path": "tests/test_lots.py",
+      "name": "test_receiving_writes_a_stockin_log",
+      "startLine": 149,
+      "endLine": 166,
+      "loc": 18,
+      "params": [
+        "receiver_client",
+        "owner_client",
+        "db_session"
+      ],
+      "label": "test_receiving_writes_a_stockin_log"
+    },
+    {
+      "id": "function:tests/test_lots.py:test_receiving_increases_derivable_stock",
+      "type": "function",
+      "path": "tests/test_lots.py",
+      "name": "test_receiving_increases_derivable_stock",
+      "startLine": 170,
+      "endLine": 209,
+      "loc": 40,
+      "params": [
+        "receiver_client",
+        "owner_client",
+        "db_session"
+      ],
+      "label": "test_receiving_increases_derivable_stock"
+    },
+    {
+      "id": "function:tests/test_lots.py:test_lot_listing_is_shop_scoped",
+      "type": "function",
+      "path": "tests/test_lots.py",
+      "name": "test_lot_listing_is_shop_scoped",
+      "startLine": 213,
+      "endLine": 238,
+      "loc": 26,
+      "params": [
+        "receiver_client",
+        "owner_client"
+      ],
+      "label": "test_lot_listing_is_shop_scoped"
+    },
+    {
+      "id": "function:tests/test_lots.py:test_get_lot_by_id",
+      "type": "function",
+      "path": "tests/test_lots.py",
+      "name": "test_get_lot_by_id",
+      "startLine": 242,
+      "endLine": 254,
+      "loc": 13,
+      "params": [
+        "receiver_client",
+        "owner_client"
+      ],
+      "label": "test_get_lot_by_id"
+    },
+    {
+      "id": "function:tests/test_low_stock.py:_finalize",
+      "type": "function",
+      "path": "tests/test_low_stock.py",
+      "name": "_finalize",
+      "startLine": 35,
+      "endLine": 52,
+      "loc": 18,
+      "params": [
+        "cashier_client",
+        "barcode",
+        "quantity",
+        "amount"
+      ],
+      "label": "_finalize"
+    },
+    {
+      "id": "function:tests/test_low_stock.py:test_no_default_no_overrides_returns_empty",
+      "type": "function",
+      "path": "tests/test_low_stock.py",
+      "name": "test_no_default_no_overrides_returns_empty",
+      "startLine": 59,
+      "endLine": 69,
+      "loc": 11,
+      "params": [
+        "owner_client",
+        "receiver_client"
+      ],
+      "label": "test_no_default_no_overrides_returns_empty"
+    },
+    {
+      "id": "function:tests/test_low_stock.py:test_per_product_override_triggers_alert",
+      "type": "function",
+      "path": "tests/test_low_stock.py",
+      "name": "test_per_product_override_triggers_alert",
+      "startLine": 73,
+      "endLine": 92,
+      "loc": 20,
+      "params": [
+        "owner_client",
+        "receiver_client"
+      ],
+      "label": "test_per_product_override_triggers_alert"
+    },
+    {
+      "id": "function:tests/test_low_stock.py:test_product_above_threshold_not_in_list",
+      "type": "function",
+      "path": "tests/test_low_stock.py",
+      "name": "test_product_above_threshold_not_in_list",
+      "startLine": 96,
+      "endLine": 110,
+      "loc": 15,
+      "params": [
+        "owner_client",
+        "receiver_client",
+        "db_session"
+      ],
+      "label": "test_product_above_threshold_not_in_list"
+    },
+    {
+      "id": "function:tests/test_low_stock.py:test_product_at_threshold_appears",
+      "type": "function",
+      "path": "tests/test_low_stock.py",
+      "name": "test_product_at_threshold_appears",
+      "startLine": 114,
+      "endLine": 131,
+      "loc": 18,
+      "params": [
+        "owner_client",
+        "receiver_client",
+        "db_session"
+      ],
+      "label": "test_product_at_threshold_appears"
+    },
+    {
+      "id": "function:tests/test_low_stock.py:test_sale_brings_product_below_threshold",
+      "type": "function",
+      "path": "tests/test_low_stock.py",
+      "name": "test_sale_brings_product_below_threshold",
+      "startLine": 135,
+      "endLine": 158,
+      "loc": 24,
+      "params": [
+        "owner_client",
+        "receiver_client",
+        "cashier_client",
+        "db_session"
+      ],
+      "label": "test_sale_brings_product_below_threshold"
+    },
+    {
+      "id": "function:tests/test_low_stock.py:test_per_product_override_beats_shop_default",
+      "type": "function",
+      "path": "tests/test_low_stock.py",
+      "name": "test_per_product_override_beats_shop_default",
+      "startLine": 162,
+      "endLine": 195,
+      "loc": 34,
+      "params": [
+        "owner_client",
+        "receiver_client",
+        "db_session"
+      ],
+      "label": "test_per_product_override_beats_shop_default"
+    },
+    {
+      "id": "function:tests/test_low_stock.py:test_list_sorted_most_urgent_first",
+      "type": "function",
+      "path": "tests/test_low_stock.py",
+      "name": "test_list_sorted_most_urgent_first",
+      "startLine": 199,
+      "endLine": 216,
+      "loc": 18,
+      "params": [
+        "owner_client",
+        "receiver_client",
+        "db_session"
+      ],
+      "label": "test_list_sorted_most_urgent_first"
+    },
+    {
+      "id": "function:tests/test_low_stock.py:test_receiver_can_view_low_stock",
+      "type": "function",
+      "path": "tests/test_low_stock.py",
+      "name": "test_receiver_can_view_low_stock",
+      "startLine": 220,
+      "endLine": 233,
+      "loc": 14,
+      "params": [
+        "owner_client",
+        "receiver_client",
+        "db_session"
+      ],
+      "label": "test_receiver_can_view_low_stock"
+    },
+    {
+      "id": "function:tests/test_low_stock.py:test_low_stock_inactive_products_excluded",
+      "type": "function",
+      "path": "tests/test_low_stock.py",
+      "name": "test_low_stock_inactive_products_excluded",
+      "startLine": 237,
+      "endLine": 256,
+      "loc": 20,
+      "params": [
+        "owner_client",
+        "receiver_client",
+        "db_session"
+      ],
+      "label": "test_low_stock_inactive_products_excluded"
+    },
+    {
+      "id": "function:tests/test_voids.py:_finalize",
+      "type": "function",
+      "path": "tests/test_voids.py",
+      "name": "_finalize",
+      "startLine": 39,
+      "endLine": 55,
+      "loc": 17,
+      "params": [
+        "cashier_client",
+        "barcode",
+        "quantity",
+        "amount"
+      ],
+      "label": "_finalize"
+    },
+    {
+      "id": "function:tests/test_voids.py:test_cashier_can_directly_void_a_pre_eod_invoice",
+      "type": "function",
+      "path": "tests/test_voids.py",
+      "name": "test_cashier_can_directly_void_a_pre_eod_invoice",
+      "startLine": 62,
+      "endLine": 74,
+      "loc": 13,
+      "params": [
+        "cashier_client",
+        "owner_client",
+        "receiver_client"
+      ],
+      "label": "test_cashier_can_directly_void_a_pre_eod_invoice"
+    },
+    {
+      "id": "function:tests/test_voids.py:test_pre_eod_void_restores_stock",
+      "type": "function",
+      "path": "tests/test_voids.py",
+      "name": "test_pre_eod_void_restores_stock",
+      "startLine": 78,
+      "endLine": 111,
+      "loc": 34,
+      "params": [
+        "cashier_client",
+        "owner_client",
+        "receiver_client",
+        "db_session"
+      ],
+      "label": "test_pre_eod_void_restores_stock"
+    },
+    {
+      "id": "function:tests/test_voids.py:test_voiding_a_voided_invoice_returns_409",
+      "type": "function",
+      "path": "tests/test_voids.py",
+      "name": "test_voiding_a_voided_invoice_returns_409",
+      "startLine": 115,
+      "endLine": 127,
+      "loc": 13,
+      "params": [
+        "cashier_client",
+        "owner_client",
+        "receiver_client"
+      ],
+      "label": "test_voiding_a_voided_invoice_returns_409"
+    },
+    {
+      "id": "function:tests/test_voids.py:test_pre_eod_void_writes_invoicing_log",
+      "type": "function",
+      "path": "tests/test_voids.py",
+      "name": "test_pre_eod_void_writes_invoicing_log",
+      "startLine": 131,
+      "endLine": 151,
+      "loc": 21,
+      "params": [
+        "cashier_client",
+        "owner_client",
+        "receiver_client",
+        "db_session"
+      ],
+      "label": "test_pre_eod_void_writes_invoicing_log"
+    },
+    {
+      "id": "function:tests/test_voids.py:test_cashier_can_request_void_on_signed_off_invoice",
+      "type": "function",
+      "path": "tests/test_voids.py",
+      "name": "test_cashier_can_request_void_on_signed_off_invoice",
+      "startLine": 168,
+      "endLine": 180,
+      "loc": 13,
+      "params": [
+        "cashier_client",
+        "owner_client",
+        "receiver_client",
+        "db_session"
+      ],
+      "label": "test_cashier_can_request_void_on_signed_off_invoice"
+    },
+    {
+      "id": "function:tests/test_voids.py:test_cashier_cannot_approve_pending_void",
+      "type": "function",
+      "path": "tests/test_voids.py",
+      "name": "test_cashier_cannot_approve_pending_void",
+      "startLine": 184,
+      "endLine": 196,
+      "loc": 13,
+      "params": [
+        "cashier_client",
+        "owner_client",
+        "receiver_client",
+        "db_session"
+      ],
+      "label": "test_cashier_cannot_approve_pending_void"
+    },
+    {
+      "id": "function:tests/test_voids.py:test_owner_approving_pending_void_creates_reversal",
+      "type": "function",
+      "path": "tests/test_voids.py",
+      "name": "test_owner_approving_pending_void_creates_reversal",
+      "startLine": 200,
+      "endLine": 233,
+      "loc": 34,
+      "params": [
+        "cashier_client",
+        "owner_client",
+        "receiver_client",
+        "db_session"
+      ],
+      "label": "test_owner_approving_pending_void_creates_reversal"
+    },
+    {
+      "id": "function:tests/test_voids.py:test_owner_rejecting_pending_void_reverts_to_finalized",
+      "type": "function",
+      "path": "tests/test_voids.py",
+      "name": "test_owner_rejecting_pending_void_reverts_to_finalized",
+      "startLine": 237,
+      "endLine": 252,
+      "loc": 16,
+      "params": [
+        "cashier_client",
+        "owner_client",
+        "receiver_client",
+        "db_session"
+      ],
+      "label": "test_owner_rejecting_pending_void_reverts_to_finalized"
+    },
+    {
+      "id": "function:tests/test_voids.py:test_approve_on_non_pending_invoice_is_409",
+      "type": "function",
+      "path": "tests/test_voids.py",
+      "name": "test_approve_on_non_pending_invoice_is_409",
+      "startLine": 256,
+      "endLine": 267,
+      "loc": 12,
+      "params": [
+        "cashier_client",
+        "owner_client",
+        "receiver_client"
+      ],
+      "label": "test_approve_on_non_pending_invoice_is_409"
+    },
+    {
+      "id": "function:tests/test_voids.py:test_void_actions_write_invoicing_logs",
+      "type": "function",
+      "path": "tests/test_voids.py",
+      "name": "test_void_actions_write_invoicing_logs",
+      "startLine": 271,
+      "endLine": 290,
+      "loc": 20,
+      "params": [
+        "cashier_client",
+        "owner_client",
+        "receiver_client",
+        "db_session"
+      ],
+      "label": "test_void_actions_write_invoicing_logs"
+    }
+  ],
+  "edges": [
+    {
+      "source": "file:app/api/lots.py",
+      "target": "function:app/api/lots.py:create_lot",
+      "relation": "contains"
+    },
+    {
+      "source": "file:app/api/lots.py",
+      "target": "function:app/api/lots.py:list_lots",
+      "relation": "contains"
+    },
+    {
+      "source": "file:app/api/lots.py",
+      "target": "function:app/api/lots.py:get_lot",
+      "relation": "contains"
+    },
+    {
+      "source": "file:app/api/lots.py",
+      "target": "function:app/api/lots.py:_load_lines",
+      "relation": "contains"
+    },
+    {
+      "source": "file:app/api/products.py",
+      "target": "function:app/api/products.py:create_product",
+      "relation": "contains"
+    },
+    {
+      "source": "file:app/api/products.py",
+      "target": "function:app/api/products.py:list_products",
+      "relation": "contains"
+    },
+    {
+      "source": "file:app/api/products.py",
+      "target": "function:app/api/products.py:lookup_product",
+      "relation": "contains"
+    },
+    {
+      "source": "file:app/api/products.py",
+      "target": "function:app/api/products.py:update_product",
+      "relation": "contains"
+    },
+    {
+      "source": "file:app/api/products.py",
+      "target": "function:app/api/products.py:import_products_csv",
+      "relation": "contains"
+    },
+    {
+      "source": "file:app/models/log.py",
+      "target": "class:app/models/log.py:_BaseLog",
+      "relation": "contains"
+    },
+    {
+      "source": "file:app/models/lot.py",
+      "target": "class:app/models/lot.py:Lot",
+      "relation": "contains"
+    },
+    {
+      "source": "file:app/models/lot.py",
+      "target": "class:app/models/lot.py:LotLine",
+      "relation": "contains"
+    },
+    {
+      "source": "file:app/models/product.py",
+      "target": "class:app/models/product.py:Product",
+      "relation": "contains"
+    },
+    {
+      "source": "file:app/schemas/lot.py",
+      "target": "class:app/schemas/lot.py:LotCreate",
+      "relation": "contains"
+    },
+    {
+      "source": "file:app/schemas/product.py",
+      "target": "class:app/schemas/product.py:ProductCreate",
+      "relation": "contains"
+    },
+    {
+      "source": "file:app/services/low_stock.py",
+      "target": "function:app/services/low_stock.py:_stock_per_product",
+      "relation": "contains"
+    },
+    {
+      "source": "file:app/services/low_stock.py",
+      "target": "function:app/services/low_stock.py:compute_low_stock",
+      "relation": "contains"
+    },
+    {
+      "source": "file:tests/test_checkout.py",
+      "target": "function:tests/test_checkout.py:test_cashier_finalizes_a_one_line_invoice",
+      "relation": "contains"
+    },
+    {
+      "source": "file:tests/test_checkout.py",
+      "target": "function:tests/test_checkout.py:test_cashier_finalizes_multi_line_invoice",
+      "relation": "contains"
+    },
+    {
+      "source": "file:tests/test_checkout.py",
+      "target": "function:tests/test_checkout.py:test_payment_split_across_modes",
+      "relation": "contains"
+    },
+    {
+      "source": "file:tests/test_checkout.py",
+      "target": "function:tests/test_checkout.py:test_payment_mismatch_is_rejected_with_400",
+      "relation": "contains"
+    },
+    {
+      "source": "file:tests/test_checkout.py",
+      "target": "function:tests/test_checkout.py:test_quantity_exceeding_stock_is_rejected",
+      "relation": "contains"
+    },
+    {
+      "source": "file:tests/test_checkout.py",
+      "target": "function:tests/test_checkout.py:test_unknown_barcode_is_rejected_with_404",
+      "relation": "contains"
+    },
+    {
+      "source": "file:tests/test_checkout.py",
+      "target": "function:tests/test_checkout.py:test_idempotency_key_replay_returns_same_invoice",
+      "relation": "contains"
+    },
+    {
+      "source": "file:tests/test_checkout.py",
+      "target": "function:tests/test_checkout.py:test_missing_idempotency_key_is_400",
+      "relation": "contains"
+    },
+    {
+      "source": "file:tests/test_checkout.py",
+      "target": "function:tests/test_checkout.py:test_two_concurrent_finalizes_for_last_unit_only_one_wins",
+      "relation": "contains"
+    },
+    {
+      "source": "file:tests/test_checkout.py",
+      "target": "function:tests/test_checkout.py:test_receiver_cannot_finalize_checkout",
+      "relation": "contains"
+    },
+    {
+      "source": "file:tests/test_checkout.py",
+      "target": "function:tests/test_checkout.py:test_owner_can_finalize_checkout",
+      "relation": "contains"
+    },
+    {
+      "source": "file:tests/test_checkout.py",
+      "target": "function:tests/test_checkout.py:test_finalized_invoice_lines_are_immutable",
+      "relation": "contains"
+    },
+    {
+      "source": "file:tests/test_checkout.py",
+      "target": "function:tests/test_checkout.py:test_finalize_writes_an_invoicing_log",
+      "relation": "contains"
+    },
+    {
+      "source": "file:tests/test_checkout.py",
+      "target": "function:tests/test_checkout.py:test_invoice_pdf_is_a_real_pdf",
+      "relation": "contains"
+    },
+    {
+      "source": "file:tests/test_checkout.py",
+      "target": "function:tests/test_checkout.py:test_empty_cart_rejected",
+      "relation": "contains"
+    },
+    {
+      "source": "file:tests/test_lots.py",
+      "target": "function:tests/test_lots.py:test_receiver_creates_lot_with_one_line",
+      "relation": "contains"
+    },
+    {
+      "source": "file:tests/test_lots.py",
+      "target": "function:tests/test_lots.py:test_receiver_creates_lot_with_many_lines",
+      "relation": "contains"
+    },
+    {
+      "source": "file:tests/test_lots.py",
+      "target": "function:tests/test_lots.py:test_unknown_barcode_in_lot_returns_404",
+      "relation": "contains"
+    },
+    {
+      "source": "file:tests/test_lots.py",
+      "target": "function:tests/test_lots.py:test_barcode_must_exist_in_receiver_shop_only",
+      "relation": "contains"
+    },
+    {
+      "source": "file:tests/test_lots.py",
+      "target": "function:tests/test_lots.py:test_duplicate_barcode_in_lot_rejected",
+      "relation": "contains"
+    },
+    {
+      "source": "file:tests/test_lots.py",
+      "target": "function:tests/test_lots.py:test_receiving_writes_a_stockin_log",
+      "relation": "contains"
+    },
+    {
+      "source": "file:tests/test_lots.py",
+      "target": "function:tests/test_lots.py:test_receiving_increases_derivable_stock",
+      "relation": "contains"
+    },
+    {
+      "source": "file:tests/test_lots.py",
+      "target": "function:tests/test_lots.py:test_lot_listing_is_shop_scoped",
+      "relation": "contains"
+    },
+    {
+      "source": "file:tests/test_lots.py",
+      "target": "function:tests/test_lots.py:test_get_lot_by_id",
+      "relation": "contains"
+    },
+    {
+      "source": "file:tests/test_low_stock.py",
+      "target": "function:tests/test_low_stock.py:_finalize",
+      "relation": "contains"
+    },
+    {
+      "source": "file:tests/test_low_stock.py",
+      "target": "function:tests/test_low_stock.py:test_no_default_no_overrides_returns_empty",
+      "relation": "contains"
+    },
+    {
+      "source": "file:tests/test_low_stock.py",
+      "target": "function:tests/test_low_stock.py:test_per_product_override_triggers_alert",
+      "relation": "contains"
+    },
+    {
+      "source": "file:tests/test_low_stock.py",
+      "target": "function:tests/test_low_stock.py:test_product_above_threshold_not_in_list",
+      "relation": "contains"
+    },
+    {
+      "source": "file:tests/test_low_stock.py",
+      "target": "function:tests/test_low_stock.py:test_product_at_threshold_appears",
+      "relation": "contains"
+    },
+    {
+      "source": "file:tests/test_low_stock.py",
+      "target": "function:tests/test_low_stock.py:test_sale_brings_product_below_threshold",
+      "relation": "contains"
+    },
+    {
+      "source": "file:tests/test_low_stock.py",
+      "target": "function:tests/test_low_stock.py:test_per_product_override_beats_shop_default",
+      "relation": "contains"
+    },
+    {
+      "source": "file:tests/test_low_stock.py",
+      "target": "function:tests/test_low_stock.py:test_list_sorted_most_urgent_first",
+      "relation": "contains"
+    },
+    {
+      "source": "file:tests/test_low_stock.py",
+      "target": "function:tests/test_low_stock.py:test_receiver_can_view_low_stock",
+      "relation": "contains"
+    },
+    {
+      "source": "file:tests/test_low_stock.py",
+      "target": "function:tests/test_low_stock.py:test_low_stock_inactive_products_excluded",
+      "relation": "contains"
+    },
+    {
+      "source": "file:tests/test_voids.py",
+      "target": "function:tests/test_voids.py:_finalize",
+      "relation": "contains"
+    },
+    {
+      "source": "file:tests/test_voids.py",
+      "target": "function:tests/test_voids.py:test_cashier_can_directly_void_a_pre_eod_invoice",
+      "relation": "contains"
+    },
+    {
+      "source": "file:tests/test_voids.py",
+      "target": "function:tests/test_voids.py:test_pre_eod_void_restores_stock",
+      "relation": "contains"
+    },
+    {
+      "source": "file:tests/test_voids.py",
+      "target": "function:tests/test_voids.py:test_voiding_a_voided_invoice_returns_409",
+      "relation": "contains"
+    },
+    {
+      "source": "file:tests/test_voids.py",
+      "target": "function:tests/test_voids.py:test_pre_eod_void_writes_invoicing_log",
+      "relation": "contains"
+    },
+    {
+      "source": "file:tests/test_voids.py",
+      "target": "function:tests/test_voids.py:test_cashier_can_request_void_on_signed_off_invoice",
+      "relation": "contains"
+    },
+    {
+      "source": "file:tests/test_voids.py",
+      "target": "function:tests/test_voids.py:test_cashier_cannot_approve_pending_void",
+      "relation": "contains"
+    },
+    {
+      "source": "file:tests/test_voids.py",
+      "target": "function:tests/test_voids.py:test_owner_approving_pending_void_creates_reversal",
+      "relation": "contains"
+    },
+    {
+      "source": "file:tests/test_voids.py",
+      "target": "function:tests/test_voids.py:test_owner_rejecting_pending_void_reverts_to_finalized",
+      "relation": "contains"
+    },
+    {
+      "source": "file:tests/test_voids.py",
+      "target": "function:tests/test_voids.py:test_approve_on_non_pending_invoice_is_409",
+      "relation": "contains"
+    },
+    {
+      "source": "file:tests/test_voids.py",
+      "target": "function:tests/test_voids.py:test_void_actions_write_invoicing_logs",
+      "relation": "contains"
+    },
+    {
+      "source": "file:app/api/lots.py",
+      "target": "file:app/models/log.py",
+      "relation": "imports"
+    },
+    {
+      "source": "file:app/api/lots.py",
+      "target": "file:app/models/lot.py",
+      "relation": "imports"
+    },
+    {
+      "source": "file:app/api/lots.py",
+      "target": "file:app/models/product.py",
+      "relation": "imports"
+    },
+    {
+      "source": "file:app/api/lots.py",
+      "target": "file:app/schemas/lot.py",
+      "relation": "imports"
+    },
+    {
+      "source": "file:app/api/products.py",
+      "target": "file:app/models/product.py",
+      "relation": "imports"
+    },
+    {
+      "source": "file:app/api/products.py",
+      "target": "file:app/schemas/product.py",
+      "relation": "imports"
+    },
+    {
+      "source": "file:app/schemas/lot.py",
+      "target": "file:app/models/lot.py",
+      "relation": "imports"
+    },
+    {
+      "source": "file:app/schemas/product.py",
+      "target": "file:app/models/product.py",
+      "relation": "imports"
+    },
+    {
+      "source": "file:app/services/low_stock.py",
+      "target": "file:app/models/lot.py",
+      "relation": "imports"
+    },
+    {
+      "source": "file:app/services/low_stock.py",
+      "target": "file:app/models/product.py",
+      "relation": "imports"
+    },
+    {
+      "source": "file:tests/test_checkout.py",
+      "target": "file:app/models/log.py",
+      "relation": "imports"
+    },
+    {
+      "source": "file:tests/test_checkout.py",
+      "target": "file:app/models/lot.py",
+      "relation": "imports"
+    },
+    {
+      "source": "file:tests/test_lots.py",
+      "target": "file:app/models/log.py",
+      "relation": "imports"
+    },
+    {
+      "source": "file:tests/test_lots.py",
+      "target": "file:app/models/lot.py",
+      "relation": "imports"
+    },
+    {
+      "source": "file:tests/test_lots.py",
+      "target": "file:app/models/product.py",
+      "relation": "imports"
+    },
+    {
+      "source": "file:tests/test_low_stock.py",
+      "target": "file:app/models/product.py",
+      "relation": "imports"
+    },
+    {
+      "source": "file:tests/test_voids.py",
+      "target": "file:app/models/log.py",
+      "relation": "imports"
+    },
+    {
+      "source": "file:tests/test_voids.py",
+      "target": "file:app/models/lot.py",
+      "relation": "imports"
+    },
+    {
+      "source": "file:tests/test_voids.py",
+      "target": "file:app/models/product.py",
+      "relation": "imports"
+    }
+  ],
+  "summary": {
+    "nodeCount": 74,
+    "edgeCount": 81,
+    "fileNodes": 12,
+    "functionNodes": 56,
+    "classNodes": 6,
+    "importsEdges": 19,
+    "containsEdges": 62,
+    "crossBatchDrops": 14,
+    "crossBatchDropList": [
+      {
+        "from": "app/api/lots.py",
+        "to": "app/api/deps.py"
+      },
+      {
+        "from": "app/api/lots.py",
+        "to": "app/logging_config.py"
+      },
+      {
+        "from": "app/api/lots.py",
+        "to": "app/models/user.py"
+      },
+      {
+        "from": "app/api/products.py",
+        "to": "app/api/_errors.py"
+      },
+      {
+        "from": "app/api/products.py",
+        "to": "app/api/deps.py"
+      },
+      {
+        "from": "app/api/products.py",
+        "to": "app/logging_config.py"
+      },
+      {
+        "from": "app/api/products.py",
+        "to": "app/models/user.py"
+      },
+      {
+        "from": "app/models/log.py",
+        "to": "app/db.py"
+      },
+      {
+        "from": "app/models/lot.py",
+        "to": "app/db.py"
+      },
+      {
+        "from": "app/models/product.py",
+        "to": "app/db.py"
+      },
+      {
+        "from": "app/services/low_stock.py",
+        "to": "app/models/invoice.py"
+      },
+      {
+        "from": "tests/test_checkout.py",
+        "to": "app/models/invoice.py"
+      },
+      {
+        "from": "tests/test_low_stock.py",
+        "to": "app/models/shop.py"
+      },
+      {
+        "from": "tests/test_voids.py",
+        "to": "app/models/invoice.py"
+      }
+    ],
+    "skippedFiles": 0,
+    "splits": []
+  }
+}

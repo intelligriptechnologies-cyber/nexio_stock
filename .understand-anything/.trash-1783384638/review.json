@@ -1,0 +1,42 @@
+{
+  "issues": [],
+  "warnings": [
+    "Node 'file:.env.example' has no edges (orphan)",
+    "Node 'file:README.md' has no edges (orphan)",
+    "Node 'file:alembic.ini' has no edges (orphan)",
+    "Node 'file:docker-compose.yml' has no edges (orphan)",
+    "Node 'file:pyproject.toml' has no edges (orphan)",
+    "Node 'file:harness/00-intake.md' has no edges (orphan)",
+    "Node 'file:harness/01-branch-map.md' has no edges (orphan)",
+    "Node 'file:harness/02-ledger.md' has no edges (orphan)",
+    "Node 'file:harness/03-prd.md' has no edges (orphan)",
+    "Node 'file:harness/04-absences.md' has no edges (orphan)",
+    "Node 'file:.understand-anything/.understandignore' has no edges (orphan)",
+    "Node 'file:alembic/README' has no edges (orphan)",
+    "Node 'file:alembic/script.py.mako' has no edges (orphan)",
+    "Node 'file:alembic/versions/af4b5e908f57_shops_gstin_excise_duty_rate_for_8_gst_.py' has no edges (orphan)",
+    "Node 'file:alembic/versions/c514c436a0b1_eod_eod_signoffs_business_date_to_date.py' has no edges (orphan)",
+    "Node 'file:app/schemas/__init__.py' has no edges (orphan)",
+    "Node 'file:app/security/__init__.py' has no edges (orphan)",
+    "Node 'file:app/services/__init__.py' has no edges (orphan)",
+    "Node 'file:harness/05-issues/README.md' has no edges (orphan)",
+    "Node 'file:tests/test_auth.py' has no edges (orphan)",
+    "Node 'file:tests/test_authorization.py' has no edges (orphan)",
+    "Node 'file:tests/test_health.py' has no edges (orphan)"
+  ],
+  "stats": {
+    "totalNodes": 262,
+    "totalEdges": 388,
+    "totalLayers": 12,
+    "tourSteps": 11,
+    "nodeTypes": {
+      "file": 79,
+      "function": 167,
+      "class": 16
+    },
+    "edgeTypes": {
+      "contains": 183,
+      "imports": 205
+    }
+  }
+}

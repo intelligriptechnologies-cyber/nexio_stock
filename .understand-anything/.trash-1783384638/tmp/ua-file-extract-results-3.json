@@ -1,0 +1,2040 @@
+{
+  "scriptCompleted": true,
+  "filesAnalyzed": 11,
+  "filesSkipped": [],
+  "results": [
+    {
+      "path": "alembic/env.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 72,
+      "nonEmptyLines": 53,
+      "functions": [
+        {
+          "name": "run_migrations_offline",
+          "startLine": 36,
+          "endLine": 45,
+          "params": []
+        },
+        {
+          "name": "do_run_migrations",
+          "startLine": 48,
+          "endLine": 51,
+          "params": [
+            "connection"
+          ]
+        },
+        {
+          "name": "run_async_migrations",
+          "startLine": 54,
+          "endLine": 62,
+          "params": []
+        },
+        {
+          "name": "run_migrations_online",
+          "startLine": 65,
+          "endLine": 66,
+          "params": []
+        }
+      ],
+      "exports": [
+        {
+          "name": "run_migrations_offline",
+          "line": 36,
+          "isDefault": false
+        },
+        {
+          "name": "do_run_migrations",
+          "line": 48,
+          "isDefault": false
+        },
+        {
+          "name": "run_async_migrations",
+          "line": 54,
+          "isDefault": false
+        },
+        {
+          "name": "run_migrations_online",
+          "line": 65,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "run_migrations_offline",
+          "callee": "config.get_main_option",
+          "lineNumber": 37
+        },
+        {
+          "caller": "run_migrations_offline",
+          "callee": "context.configure",
+          "lineNumber": 38
+        },
+        {
+          "caller": "run_migrations_offline",
+          "callee": "context.begin_transaction",
+          "lineNumber": 44
+        },
+        {
+          "caller": "run_migrations_offline",
+          "callee": "context.run_migrations",
+          "lineNumber": 45
+        },
+        {
+          "caller": "do_run_migrations",
+          "callee": "context.configure",
+          "lineNumber": 49
+        },
+        {
+          "caller": "do_run_migrations",
+          "callee": "context.begin_transaction",
+          "lineNumber": 50
+        },
+        {
+          "caller": "do_run_migrations",
+          "callee": "context.run_migrations",
+          "lineNumber": 51
+        },
+        {
+          "caller": "run_async_migrations",
+          "callee": "async_engine_from_config",
+          "lineNumber": 55
+        },
+        {
+          "caller": "run_async_migrations",
+          "callee": "config.get_section",
+          "lineNumber": 56
+        },
+        {
+          "caller": "run_async_migrations",
+          "callee": "connectable.connect",
+          "lineNumber": 60
+        },
+        {
+          "caller": "run_async_migrations",
+          "callee": "connection.run_sync",
+          "lineNumber": 61
+        },
+        {
+          "caller": "run_async_migrations",
+          "callee": "connectable.dispose",
+          "lineNumber": 62
+        },
+        {
+          "caller": "run_migrations_online",
+          "callee": "asyncio.run",
+          "lineNumber": 66
+        },
+        {
+          "caller": "run_migrations_online",
+          "callee": "run_async_migrations",
+          "lineNumber": 66
+        }
+      ],
+      "metrics": {
+        "importCount": 4,
+        "exportCount": 4,
+        "functionCount": 4,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "app/__init__.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 1,
+      "nonEmptyLines": 1,
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "app/cli.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 186,
+      "nonEmptyLines": 165,
+      "functions": [
+        {
+          "name": "_print",
+          "startLine": 27,
+          "endLine": 28,
+          "params": []
+        },
+        {
+          "name": "_createsuperadmin",
+          "startLine": 31,
+          "endLine": 64,
+          "params": [
+            "username",
+            "password"
+          ]
+        },
+        {
+          "name": "_createshop",
+          "startLine": 67,
+          "endLine": 116,
+          "params": [
+            "code",
+            "name",
+            "owner_username",
+            "owner_password"
+          ]
+        },
+        {
+          "name": "main",
+          "startLine": 119,
+          "endLine": 182,
+          "params": [
+            "argv"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "_print",
+          "line": 27,
+          "isDefault": false
+        },
+        {
+          "name": "_createsuperadmin",
+          "line": 31,
+          "isDefault": false
+        },
+        {
+          "name": "_createshop",
+          "line": 67,
+          "isDefault": false
+        },
+        {
+          "name": "main",
+          "line": 119,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "_print",
+          "callee": "print",
+          "lineNumber": 28
+        },
+        {
+          "caller": "_createsuperadmin",
+          "callee": "get_settings",
+          "lineNumber": 32
+        },
+        {
+          "caller": "_createsuperadmin",
+          "callee": "len",
+          "lineNumber": 33
+        },
+        {
+          "caller": "_createsuperadmin",
+          "callee": "_print",
+          "lineNumber": 34
+        },
+        {
+          "caller": "_createsuperadmin",
+          "callee": "SystemExit",
+          "lineNumber": 35
+        },
+        {
+          "caller": "_createsuperadmin",
+          "callee": "configure_logging",
+          "lineNumber": 37
+        },
+        {
+          "caller": "_createsuperadmin",
+          "callee": "get_logger",
+          "lineNumber": 38
+        },
+        {
+          "caller": "_createsuperadmin",
+          "callee": "init_db",
+          "lineNumber": 39
+        },
+        {
+          "caller": "_createsuperadmin",
+          "callee": "get_sessionmaker",
+          "lineNumber": 40
+        },
+        {
+          "caller": "_createsuperadmin",
+          "callee": "Session",
+          "lineNumber": 42
+        },
+        {
+          "caller": "_createsuperadmin",
+          "callee": "session.begin",
+          "lineNumber": 42
+        },
+        {
+          "caller": "_createsuperadmin",
+          "callee": "(\n            await session.execute(\n                select(User).where(\n                    User.username == username, User.role == UserRole.SUPERADMIN\n                )\n            )\n        ).scalar_one_or_none",
+          "lineNumber": 43
+        },
+        {
+          "caller": "_createsuperadmin",
+          "callee": "session.execute",
+          "lineNumber": 44
+        },
+        {
+          "caller": "_createsuperadmin",
+          "callee": "select(User).where",
+          "lineNumber": 45
+        },
+        {
+          "caller": "_createsuperadmin",
+          "callee": "select",
+          "lineNumber": 45
+        },
+        {
+          "caller": "_createsuperadmin",
+          "callee": "_print",
+          "lineNumber": 51
+        },
+        {
+          "caller": "_createsuperadmin",
+          "callee": "User",
+          "lineNumber": 53
+        },
+        {
+          "caller": "_createsuperadmin",
+          "callee": "hash_password",
+          "lineNumber": 59
+        },
+        {
+          "caller": "_createsuperadmin",
+          "callee": "session.add",
+          "lineNumber": 62
+        },
+        {
+          "caller": "_createsuperadmin",
+          "callee": "log.info",
+          "lineNumber": 63
+        },
+        {
+          "caller": "_createsuperadmin",
+          "callee": "_print",
+          "lineNumber": 64
+        },
+        {
+          "caller": "_createshop",
+          "callee": "get_settings",
+          "lineNumber": 68
+        },
+        {
+          "caller": "_createshop",
+          "callee": "configure_logging",
+          "lineNumber": 69
+        },
+        {
+          "caller": "_createshop",
+          "callee": "get_logger",
+          "lineNumber": 70
+        },
+        {
+          "caller": "_createshop",
+          "callee": "init_db",
+          "lineNumber": 71
+        },
+        {
+          "caller": "_createshop",
+          "callee": "get_sessionmaker",
+          "lineNumber": 72
+        },
+        {
+          "caller": "_createshop",
+          "callee": "Session",
+          "lineNumber": 74
+        },
+        {
+          "caller": "_createshop",
+          "callee": "session.begin",
+          "lineNumber": 74
+        },
+        {
+          "caller": "_createshop",
+          "callee": "(await session.execute(select(Shop).where(Shop.code == code))).scalar_one_or_none",
+          "lineNumber": 75
+        },
+        {
+          "caller": "_createshop",
+          "callee": "session.execute",
+          "lineNumber": 75
+        },
+        {
+          "caller": "_createshop",
+          "callee": "select(Shop).where",
+          "lineNumber": 75
+        },
+        {
+          "caller": "_createshop",
+          "callee": "select",
+          "lineNumber": 75
+        },
+        {
+          "caller": "_createshop",
+          "callee": "Shop",
+          "lineNumber": 77
+        },
+        {
+          "caller": "_createshop",
+          "callee": "session.add",
+          "lineNumber": 78
+        },
+        {
+          "caller": "_createshop",
+          "callee": "session.flush",
+          "lineNumber": 79
+        },
+        {
+          "caller": "_createshop",
+          "callee": "_print",
+          "lineNumber": 80
+        },
+        {
+          "caller": "_createshop",
+          "callee": "_print",
+          "lineNumber": 82
+        },
+        {
+          "caller": "_createshop",
+          "callee": "(\n            await session.execute(\n                select(User).where(\n                    User.shop_id == shop.id,\n                    User.username == owner_username,\n                    User.role == UserRole.OWNER,\n                )\n            )\n        ).scalar_one_or_none",
+          "lineNumber": 84
+        },
+        {
+          "caller": "_createshop",
+          "callee": "session.execute",
+          "lineNumber": 85
+        },
+        {
+          "caller": "_createshop",
+          "callee": "select(User).where",
+          "lineNumber": 86
+        },
+        {
+          "caller": "_createshop",
+          "callee": "select",
+          "lineNumber": 86
+        },
+        {
+          "caller": "_createshop",
+          "callee": "_print",
+          "lineNumber": 94
+        },
+        {
+          "caller": "_createshop",
+          "callee": "User",
+          "lineNumber": 99
+        },
+        {
+          "caller": "_createshop",
+          "callee": "hash_password",
+          "lineNumber": 105
+        },
+        {
+          "caller": "_createshop",
+          "callee": "session.add",
+          "lineNumber": 108
+        },
+        {
+          "caller": "_createshop",
+          "callee": "session.flush",
+          "lineNumber": 110
+        },
+        {
+          "caller": "_createshop",
+          "callee": "session.rollback",
+          "lineNumber": 112
+        },
+        {
+          "caller": "_createshop",
+          "callee": "_print",
+          "lineNumber": 113
+        },
+        {
+          "caller": "_createshop",
+          "callee": "SystemExit",
+          "lineNumber": 114
+        },
+        {
+          "caller": "_createshop",
+          "callee": "log.info",
+          "lineNumber": 115
+        },
+        {
+          "caller": "_createshop",
+          "callee": "_print",
+          "lineNumber": 116
+        },
+        {
+          "caller": "main",
+          "callee": "_print",
+          "lineNumber": 123
+        },
+        {
+          "caller": "main",
+          "callee": "len",
+          "lineNumber": 137
+        },
+        {
+          "caller": "main",
+          "callee": "len",
+          "lineNumber": 138
+        },
+        {
+          "caller": "main",
+          "callee": "len",
+          "lineNumber": 141
+        },
+        {
+          "caller": "main",
+          "callee": "_print",
+          "lineNumber": 145
+        },
+        {
+          "caller": "main",
+          "callee": "SystemExit",
+          "lineNumber": 146
+        },
+        {
+          "caller": "main",
+          "callee": "input(\"superadmin username: \").strip",
+          "lineNumber": 148
+        },
+        {
+          "caller": "main",
+          "callee": "input",
+          "lineNumber": 148
+        },
+        {
+          "caller": "main",
+          "callee": "getpass",
+          "lineNumber": 150
+        },
+        {
+          "caller": "main",
+          "callee": "asyncio.run",
+          "lineNumber": 151
+        },
+        {
+          "caller": "main",
+          "callee": "_createsuperadmin",
+          "lineNumber": 151
+        },
+        {
+          "caller": "main",
+          "callee": "len",
+          "lineNumber": 158
+        },
+        {
+          "caller": "main",
+          "callee": "len",
+          "lineNumber": 159
+        },
+        {
+          "caller": "main",
+          "callee": "len",
+          "lineNumber": 162
+        },
+        {
+          "caller": "main",
+          "callee": "len",
+          "lineNumber": 165
+        },
+        {
+          "caller": "main",
+          "callee": "len",
+          "lineNumber": 168
+        },
+        {
+          "caller": "main",
+          "callee": "_print",
+          "lineNumber": 172
+        },
+        {
+          "caller": "main",
+          "callee": "SystemExit",
+          "lineNumber": 173
+        },
+        {
+          "caller": "main",
+          "callee": "all",
+          "lineNumber": 174
+        },
+        {
+          "caller": "main",
+          "callee": "_print",
+          "lineNumber": 175
+        },
+        {
+          "caller": "main",
+          "callee": "SystemExit",
+          "lineNumber": 176
+        },
+        {
+          "caller": "main",
+          "callee": "getpass",
+          "lineNumber": 178
+        },
+        {
+          "caller": "main",
+          "callee": "asyncio.run",
+          "lineNumber": 179
+        },
+        {
+          "caller": "main",
+          "callee": "_createshop",
+          "lineNumber": 179
+        },
+        {
+          "caller": "main",
+          "callee": "_print",
+          "lineNumber": 181
+        },
+        {
+          "caller": "main",
+          "callee": "SystemExit",
+          "lineNumber": 182
+        }
+      ],
+      "metrics": {
+        "importCount": 6,
+        "exportCount": 4,
+        "functionCount": 4,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "app/config.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 42,
+      "nonEmptyLines": 32,
+      "functions": [
+        {
+          "name": "get_settings",
+          "startLine": 41,
+          "endLine": 42,
+          "params": []
+        }
+      ],
+      "classes": [
+        {
+          "name": "Settings",
+          "startLine": 11,
+          "endLine": 37,
+          "methods": [],
+          "properties": [
+            "app_env",
+            "app_name",
+            "app_version",
+            "log_level",
+            "secret_key",
+            "jwt_algorithm",
+            "jwt_access_ttl_min",
+            "bcrypt_rounds",
+            "database_url",
+            "cors_allow_origins",
+            "low_stock_interval_min"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "Settings",
+          "line": 11,
+          "isDefault": false
+        },
+        {
+          "name": "get_settings",
+          "line": 40,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "get_settings",
+          "callee": "Settings",
+          "lineNumber": 42
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 2,
+        "functionCount": 1,
+        "classCount": 1
+      }
+    },
+    {
+      "path": "app/db.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 136,
+      "nonEmptyLines": 109,
+      "functions": [
+        {
+          "name": "get_engine",
+          "startLine": 32,
+          "endLine": 53,
+          "params": []
+        },
+        {
+          "name": "get_sessionmaker",
+          "startLine": 56,
+          "endLine": 64,
+          "params": []
+        },
+        {
+          "name": "reset_engine",
+          "startLine": 67,
+          "endLine": 77,
+          "params": []
+        },
+        {
+          "name": "get_db",
+          "startLine": 80,
+          "endLine": 111,
+          "params": []
+        },
+        {
+          "name": "init_db",
+          "startLine": 114,
+          "endLine": 121,
+          "params": []
+        }
+      ],
+      "classes": [
+        {
+          "name": "Base",
+          "startLine": 24,
+          "endLine": 25,
+          "methods": [],
+          "properties": []
+        }
+      ],
+      "exports": [
+        {
+          "name": "Base",
+          "line": 24,
+          "isDefault": false
+        },
+        {
+          "name": "get_engine",
+          "line": 32,
+          "isDefault": false
+        },
+        {
+          "name": "get_sessionmaker",
+          "line": 56,
+          "isDefault": false
+        },
+        {
+          "name": "reset_engine",
+          "line": 67,
+          "isDefault": false
+        },
+        {
+          "name": "get_db",
+          "line": 80,
+          "isDefault": false
+        },
+        {
+          "name": "init_db",
+          "line": 114,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "get_engine",
+          "callee": "get_settings",
+          "lineNumber": 35
+        },
+        {
+          "caller": "get_engine",
+          "callee": "create_async_engine",
+          "lineNumber": 42
+        },
+        {
+          "caller": "get_engine",
+          "callee": "create_async_engine",
+          "lineNumber": 46
+        },
+        {
+          "caller": "get_sessionmaker",
+          "callee": "async_sessionmaker",
+          "lineNumber": 59
+        },
+        {
+          "caller": "get_sessionmaker",
+          "callee": "get_engine",
+          "lineNumber": 60
+        },
+        {
+          "caller": "get_db",
+          "callee": "get_sessionmaker",
+          "lineNumber": 97
+        },
+        {
+          "caller": "get_db",
+          "callee": "sessionmaker",
+          "lineNumber": 98
+        },
+        {
+          "caller": "get_db",
+          "callee": "session.rollback",
+          "lineNumber": 109
+        },
+        {
+          "caller": "init_db",
+          "callee": "get_engine",
+          "lineNumber": 119
+        },
+        {
+          "caller": "init_db",
+          "callee": "engine.begin",
+          "lineNumber": 120
+        },
+        {
+          "caller": "init_db",
+          "callee": "conn.run_sync",
+          "lineNumber": 121
+        }
+      ],
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 6,
+        "functionCount": 5,
+        "classCount": 1
+      }
+    },
+    {
+      "path": "app/models/__init__.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 43,
+      "nonEmptyLines": 40,
+      "metrics": {
+        "importCount": 6,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "app/models/shop.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 65,
+      "nonEmptyLines": 56,
+      "classes": [
+        {
+          "name": "Shop",
+          "startLine": 22,
+          "endLine": 65,
+          "methods": [],
+          "properties": [
+            "id",
+            "name",
+            "code",
+            "low_stock_threshold_default",
+            "last_invoice_number",
+            "gstin",
+            "excise_duty_rate",
+            "created_at",
+            "updated_at",
+            "users"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "Shop",
+          "line": 22,
+          "isDefault": false
+        }
+      ],
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 1,
+        "functionCount": 0,
+        "classCount": 1
+      }
+    },
+    {
+      "path": "app/models/user.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 84,
+      "nonEmptyLines": 68,
+      "classes": [
+        {
+          "name": "UserRole",
+          "startLine": 30,
+          "endLine": 34,
+          "methods": [],
+          "properties": []
+        },
+        {
+          "name": "User",
+          "startLine": 48,
+          "endLine": 84,
+          "methods": [],
+          "properties": [
+            "id",
+            "shop_id",
+            "role",
+            "username",
+            "full_name",
+            "phone",
+            "password_hash",
+            "is_active",
+            "created_at",
+            "updated_at",
+            "shop"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "UserRole",
+          "line": 30,
+          "isDefault": false
+        },
+        {
+          "name": "User",
+          "line": 48,
+          "isDefault": false
+        }
+      ],
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 2,
+        "functionCount": 0,
+        "classCount": 2
+      }
+    },
+    {
+      "path": "app/security/passwords.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 23,
+      "nonEmptyLines": 17,
+      "functions": [
+        {
+          "name": "hash_password",
+          "startLine": 11,
+          "endLine": 16,
+          "params": [
+            "plain"
+          ]
+        },
+        {
+          "name": "verify_password",
+          "startLine": 19,
+          "endLine": 23,
+          "params": [
+            "plain",
+            "hashed"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "hash_password",
+          "line": 11,
+          "isDefault": false
+        },
+        {
+          "name": "verify_password",
+          "line": 19,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "hash_password",
+          "callee": "get_settings",
+          "lineNumber": 12
+        },
+        {
+          "caller": "hash_password",
+          "callee": "bcrypt.gensalt",
+          "lineNumber": 13
+        },
+        {
+          "caller": "hash_password",
+          "callee": "bcrypt.hashpw(plain.encode(\"utf-8\")[:72], salt).decode",
+          "lineNumber": 16
+        },
+        {
+          "caller": "hash_password",
+          "callee": "bcrypt.hashpw",
+          "lineNumber": 16
+        },
+        {
+          "caller": "hash_password",
+          "callee": "plain.encode",
+          "lineNumber": 16
+        },
+        {
+          "caller": "verify_password",
+          "callee": "bcrypt.checkpw",
+          "lineNumber": 21
+        },
+        {
+          "caller": "verify_password",
+          "callee": "plain.encode",
+          "lineNumber": 21
+        },
+        {
+          "caller": "verify_password",
+          "callee": "hashed.encode",
+          "lineNumber": 21
+        }
+      ],
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 2,
+        "functionCount": 2,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "tests/conftest.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 328,
+      "nonEmptyLines": 264,
+      "functions": [
+        {
+          "name": "_make_test_dsn",
+          "startLine": 43,
+          "endLine": 45,
+          "params": []
+        },
+        {
+          "name": "test_db_dsn",
+          "startLine": 49,
+          "endLine": 112,
+          "params": []
+        },
+        {
+          "name": "_truncate_tables",
+          "startLine": 116,
+          "endLine": 130,
+          "params": [
+            "test_db_dsn"
+          ]
+        },
+        {
+          "name": "db_session",
+          "startLine": 134,
+          "endLine": 147,
+          "params": [
+            "test_db_dsn"
+          ]
+        },
+        {
+          "name": "client",
+          "startLine": 151,
+          "endLine": 168,
+          "params": [
+            "test_db_dsn"
+          ]
+        },
+        {
+          "name": "_make_shop",
+          "startLine": 178,
+          "endLine": 185,
+          "params": [
+            "session",
+            "code",
+            "name"
+          ]
+        },
+        {
+          "name": "_make_user",
+          "startLine": 188,
+          "endLine": 210,
+          "params": [
+            "session",
+            "shop_id",
+            "role",
+            "username",
+            "phone",
+            "password",
+            "full_name"
+          ]
+        },
+        {
+          "name": "shop",
+          "startLine": 214,
+          "endLine": 215,
+          "params": [
+            "db_session"
+          ]
+        },
+        {
+          "name": "owner",
+          "startLine": 219,
+          "endLine": 228,
+          "params": [
+            "db_session",
+            "shop"
+          ]
+        },
+        {
+          "name": "receiver",
+          "startLine": 232,
+          "endLine": 241,
+          "params": [
+            "db_session",
+            "shop"
+          ]
+        },
+        {
+          "name": "cashier",
+          "startLine": 245,
+          "endLine": 254,
+          "params": [
+            "db_session",
+            "shop"
+          ]
+        },
+        {
+          "name": "superadmin",
+          "startLine": 258,
+          "endLine": 267,
+          "params": [
+            "db_session"
+          ]
+        },
+        {
+          "name": "_make_logged_in_client",
+          "startLine": 270,
+          "endLine": 284,
+          "params": [
+            "app",
+            "path",
+            "payload"
+          ]
+        },
+        {
+          "name": "owner_client",
+          "startLine": 288,
+          "endLine": 295,
+          "params": [
+            "owner"
+          ]
+        },
+        {
+          "name": "receiver_client",
+          "startLine": 299,
+          "endLine": 306,
+          "params": [
+            "receiver"
+          ]
+        },
+        {
+          "name": "cashier_client",
+          "startLine": 310,
+          "endLine": 317,
+          "params": [
+            "cashier"
+          ]
+        },
+        {
+          "name": "superadmin_client",
+          "startLine": 321,
+          "endLine": 328,
+          "params": [
+            "superadmin"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "_make_test_dsn",
+          "line": 43,
+          "isDefault": false
+        },
+        {
+          "name": "test_db_dsn",
+          "line": 48,
+          "isDefault": false
+        },
+        {
+          "name": "_truncate_tables",
+          "line": 115,
+          "isDefault": false
+        },
+        {
+          "name": "db_session",
+          "line": 133,
+          "isDefault": false
+        },
+        {
+          "name": "client",
+          "line": 150,
+          "isDefault": false
+        },
+        {
+          "name": "_make_shop",
+          "line": 178,
+          "isDefault": false
+        },
+        {
+          "name": "_make_user",
+          "line": 188,
+          "isDefault": false
+        },
+        {
+          "name": "shop",
+          "line": 213,
+          "isDefault": false
+        },
+        {
+          "name": "owner",
+          "line": 218,
+          "isDefault": false
+        },
+        {
+          "name": "receiver",
+          "line": 231,
+          "isDefault": false
+        },
+        {
+          "name": "cashier",
+          "line": 244,
+          "isDefault": false
+        },
+        {
+          "name": "superadmin",
+          "line": 257,
+          "isDefault": false
+        },
+        {
+          "name": "_make_logged_in_client",
+          "line": 270,
+          "isDefault": false
+        },
+        {
+          "name": "owner_client",
+          "line": 287,
+          "isDefault": false
+        },
+        {
+          "name": "receiver_client",
+          "line": 298,
+          "isDefault": false
+        },
+        {
+          "name": "cashier_client",
+          "line": 309,
+          "isDefault": false
+        },
+        {
+          "name": "superadmin_client",
+          "line": 320,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "_make_test_dsn",
+          "callee": "uuid.uuid4",
+          "lineNumber": 44
+        },
+        {
+          "caller": "test_db_dsn",
+          "callee": "_make_test_dsn",
+          "lineNumber": 55
+        },
+        {
+          "caller": "test_db_dsn",
+          "callee": "get_settings.cache_clear",
+          "lineNumber": 59
+        },
+        {
+          "caller": "test_db_dsn",
+          "callee": "get_settings.cache_clear",
+          "lineNumber": 62
+        },
+        {
+          "caller": "test_db_dsn",
+          "callee": "reset_engine",
+          "lineNumber": 63
+        },
+        {
+          "caller": "test_db_dsn",
+          "callee": "asyncpg.connect",
+          "lineNumber": 68
+        },
+        {
+          "caller": "test_db_dsn",
+          "callee": "admin_dsn.replace",
+          "lineNumber": 68
+        },
+        {
+          "caller": "test_db_dsn",
+          "callee": "admin.execute",
+          "lineNumber": 70
+        },
+        {
+          "caller": "test_db_dsn",
+          "callee": "dsn.split",
+          "lineNumber": 70
+        },
+        {
+          "caller": "test_db_dsn",
+          "callee": "admin.close",
+          "lineNumber": 72
+        },
+        {
+          "caller": "_run_alembic",
+          "callee": "subprocess.run",
+          "lineNumber": 80
+        },
+        {
+          "caller": "_run_alembic",
+          "callee": "str",
+          "lineNumber": 82
+        },
+        {
+          "caller": "test_db_dsn",
+          "callee": "asyncio.to_thread",
+          "lineNumber": 88
+        },
+        {
+          "caller": "test_db_dsn",
+          "callee": "RuntimeError",
+          "lineNumber": 90
+        },
+        {
+          "caller": "test_db_dsn",
+          "callee": "asyncpg.connect",
+          "lineNumber": 98
+        },
+        {
+          "caller": "test_db_dsn",
+          "callee": "admin_dsn.replace",
+          "lineNumber": 98
+        },
+        {
+          "caller": "test_db_dsn",
+          "callee": "admin.execute",
+          "lineNumber": 101
+        },
+        {
+          "caller": "test_db_dsn",
+          "callee": "dsn.split",
+          "lineNumber": 105
+        },
+        {
+          "caller": "test_db_dsn",
+          "callee": "admin.execute",
+          "lineNumber": 108
+        },
+        {
+          "caller": "test_db_dsn",
+          "callee": "dsn.split",
+          "lineNumber": 108
+        },
+        {
+          "caller": "test_db_dsn",
+          "callee": "admin.close",
+          "lineNumber": 110
+        },
+        {
+          "caller": "test_db_dsn",
+          "callee": "reset_engine",
+          "lineNumber": 112
+        },
+        {
+          "caller": "_truncate_tables",
+          "callee": "get_sessionmaker",
+          "lineNumber": 120
+        },
+        {
+          "caller": "_truncate_tables",
+          "callee": "Session",
+          "lineNumber": 121
+        },
+        {
+          "caller": "_truncate_tables",
+          "callee": "session.begin",
+          "lineNumber": 121
+        },
+        {
+          "caller": "_truncate_tables",
+          "callee": "session.execute",
+          "lineNumber": 124
+        },
+        {
+          "caller": "_truncate_tables",
+          "callee": "text",
+          "lineNumber": 125
+        },
+        {
+          "caller": "db_session",
+          "callee": "get_sessionmaker",
+          "lineNumber": 145
+        },
+        {
+          "caller": "db_session",
+          "callee": "Session",
+          "lineNumber": 146
+        },
+        {
+          "caller": "client",
+          "callee": "ASGITransport",
+          "lineNumber": 154
+        },
+        {
+          "caller": "client",
+          "callee": "AsyncClient",
+          "lineNumber": 155
+        },
+        {
+          "caller": "client",
+          "callee": "reset_engine",
+          "lineNumber": 163
+        },
+        {
+          "caller": "client",
+          "callee": "get_settings.cache_clear",
+          "lineNumber": 168
+        },
+        {
+          "caller": "_make_shop",
+          "callee": "Shop",
+          "lineNumber": 181
+        },
+        {
+          "caller": "_make_shop",
+          "callee": "session.add",
+          "lineNumber": 182
+        },
+        {
+          "caller": "_make_shop",
+          "callee": "session.flush",
+          "lineNumber": 183
+        },
+        {
+          "caller": "_make_shop",
+          "callee": "session.commit",
+          "lineNumber": 184
+        },
+        {
+          "caller": "_make_user",
+          "callee": "User",
+          "lineNumber": 198
+        },
+        {
+          "caller": "_make_user",
+          "callee": "username.title",
+          "lineNumber": 202
+        },
+        {
+          "caller": "_make_user",
+          "callee": "hash_password",
+          "lineNumber": 204
+        },
+        {
+          "caller": "_make_user",
+          "callee": "session.add",
+          "lineNumber": 207
+        },
+        {
+          "caller": "_make_user",
+          "callee": "session.flush",
+          "lineNumber": 208
+        },
+        {
+          "caller": "_make_user",
+          "callee": "session.commit",
+          "lineNumber": 209
+        },
+        {
+          "caller": "shop",
+          "callee": "_make_shop",
+          "lineNumber": 215
+        },
+        {
+          "caller": "owner",
+          "callee": "_make_user",
+          "lineNumber": 220
+        },
+        {
+          "caller": "receiver",
+          "callee": "_make_user",
+          "lineNumber": 233
+        },
+        {
+          "caller": "cashier",
+          "callee": "_make_user",
+          "lineNumber": 246
+        },
+        {
+          "caller": "superadmin",
+          "callee": "_make_user",
+          "lineNumber": 259
+        },
+        {
+          "caller": "_make_logged_in_client",
+          "callee": "ASGITransport",
+          "lineNumber": 279
+        },
+        {
+          "caller": "_make_logged_in_client",
+          "callee": "AsyncClient",
+          "lineNumber": 280
+        },
+        {
+          "caller": "_make_logged_in_client",
+          "callee": "ac.post",
+          "lineNumber": 281
+        },
+        {
+          "caller": "_make_logged_in_client",
+          "callee": "resp.json",
+          "lineNumber": 283
+        },
+        {
+          "caller": "owner_client",
+          "callee": "_make_logged_in_client",
+          "lineNumber": 291
+        },
+        {
+          "caller": "receiver_client",
+          "callee": "_make_logged_in_client",
+          "lineNumber": 302
+        },
+        {
+          "caller": "cashier_client",
+          "callee": "_make_logged_in_client",
+          "lineNumber": 313
+        },
+        {
+          "caller": "superadmin_client",
+          "callee": "_make_logged_in_client",
+          "lineNumber": 324
+        }
+      ],
+      "metrics": {
+        "importCount": 3,
+        "exportCount": 17,
+        "functionCount": 17,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "tests/test_shops.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 226,
+      "nonEmptyLines": 184,
+      "functions": [
+        {
+          "name": "_seed_product",
+          "startLine": 24,
+          "endLine": 29,
+          "params": [
+            "client",
+            "barcode"
+          ]
+        },
+        {
+          "name": "_seed_lot",
+          "startLine": 32,
+          "endLine": 36,
+          "params": [
+            "receiver_client",
+            "bc",
+            "qty"
+          ]
+        },
+        {
+          "name": "_finalize",
+          "startLine": 39,
+          "endLine": 51,
+          "params": [
+            "cashier_client",
+            "bc",
+            "qty",
+            "amount"
+          ]
+        },
+        {
+          "name": "test_get_shop_returns_defaults",
+          "startLine": 58,
+          "endLine": 70,
+          "params": [
+            "owner_client",
+            "db_session"
+          ]
+        },
+        {
+          "name": "test_owner_updates_gstin_and_duty_rate",
+          "startLine": 74,
+          "endLine": 89,
+          "params": [
+            "owner_client",
+            "db_session"
+          ]
+        },
+        {
+          "name": "test_cashier_cannot_update_shop",
+          "startLine": 93,
+          "endLine": 98,
+          "params": [
+            "cashier_client"
+          ]
+        },
+        {
+          "name": "test_invalid_gstin_rejected",
+          "startLine": 102,
+          "endLine": 108,
+          "params": [
+            "owner_client"
+          ]
+        },
+        {
+          "name": "test_duty_rate_must_be_0_to_100",
+          "startLine": 112,
+          "endLine": 117,
+          "params": [
+            "owner_client"
+          ]
+        },
+        {
+          "name": "test_pdf_includes_configured_gstin",
+          "startLine": 124,
+          "endLine": 142,
+          "params": [
+            "owner_client",
+            "receiver_client",
+            "cashier_client"
+          ]
+        },
+        {
+          "name": "test_pdf_includes_configured_duty_rate",
+          "startLine": 146,
+          "endLine": 163,
+          "params": [
+            "owner_client",
+            "receiver_client",
+            "cashier_client"
+          ]
+        },
+        {
+          "name": "test_pdf_includes_placeholder_disclaimer",
+          "startLine": 167,
+          "endLine": 181,
+          "params": [
+            "owner_client",
+            "receiver_client",
+            "cashier_client"
+          ]
+        },
+        {
+          "name": "test_pdf_does_not_hardcode_cgst_or_sgst",
+          "startLine": 185,
+          "endLine": 205,
+          "params": [
+            "owner_client",
+            "receiver_client",
+            "cashier_client"
+          ]
+        },
+        {
+          "name": "test_shop_name_appears_on_invoice",
+          "startLine": 209,
+          "endLine": 226,
+          "params": [
+            "owner_client",
+            "receiver_client",
+            "cashier_client",
+            "db_session"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "_seed_product",
+          "line": 24,
+          "isDefault": false
+        },
+        {
+          "name": "_seed_lot",
+          "line": 32,
+          "isDefault": false
+        },
+        {
+          "name": "_finalize",
+          "line": 39,
+          "isDefault": false
+        },
+        {
+          "name": "test_get_shop_returns_defaults",
+          "line": 57,
+          "isDefault": false
+        },
+        {
+          "name": "test_owner_updates_gstin_and_duty_rate",
+          "line": 73,
+          "isDefault": false
+        },
+        {
+          "name": "test_cashier_cannot_update_shop",
+          "line": 92,
+          "isDefault": false
+        },
+        {
+          "name": "test_invalid_gstin_rejected",
+          "line": 101,
+          "isDefault": false
+        },
+        {
+          "name": "test_duty_rate_must_be_0_to_100",
+          "line": 111,
+          "isDefault": false
+        },
+        {
+          "name": "test_pdf_includes_configured_gstin",
+          "line": 123,
+          "isDefault": false
+        },
+        {
+          "name": "test_pdf_includes_configured_duty_rate",
+          "line": 145,
+          "isDefault": false
+        },
+        {
+          "name": "test_pdf_includes_placeholder_disclaimer",
+          "line": 166,
+          "isDefault": false
+        },
+        {
+          "name": "test_pdf_does_not_hardcode_cgst_or_sgst",
+          "line": 184,
+          "isDefault": false
+        },
+        {
+          "name": "test_shop_name_appears_on_invoice",
+          "line": 208,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "_seed_product",
+          "callee": "client.post",
+          "lineNumber": 25
+        },
+        {
+          "caller": "_seed_lot",
+          "callee": "receiver_client.post",
+          "lineNumber": 33
+        },
+        {
+          "caller": "_finalize",
+          "callee": "cashier_client.post",
+          "lineNumber": 42
+        },
+        {
+          "caller": "_finalize",
+          "callee": "uuid.uuid4",
+          "lineNumber": 44
+        },
+        {
+          "caller": "_finalize",
+          "callee": "resp.json",
+          "lineNumber": 51
+        },
+        {
+          "caller": "test_get_shop_returns_defaults",
+          "callee": "(await db_session.execute(select(Shop).where(Shop.id == 1))).scalar_one",
+          "lineNumber": 61
+        },
+        {
+          "caller": "test_get_shop_returns_defaults",
+          "callee": "db_session.execute",
+          "lineNumber": 61
+        },
+        {
+          "caller": "test_get_shop_returns_defaults",
+          "callee": "select(Shop).where",
+          "lineNumber": 61
+        },
+        {
+          "caller": "test_get_shop_returns_defaults",
+          "callee": "select",
+          "lineNumber": 61
+        },
+        {
+          "caller": "test_get_shop_returns_defaults",
+          "callee": "owner_client.get",
+          "lineNumber": 66
+        },
+        {
+          "caller": "test_get_shop_returns_defaults",
+          "callee": "resp.json",
+          "lineNumber": 68
+        },
+        {
+          "caller": "test_owner_updates_gstin_and_duty_rate",
+          "callee": "owner_client.patch",
+          "lineNumber": 77
+        },
+        {
+          "caller": "test_owner_updates_gstin_and_duty_rate",
+          "callee": "resp.json",
+          "lineNumber": 82
+        },
+        {
+          "caller": "test_owner_updates_gstin_and_duty_rate",
+          "callee": "(await db_session.execute(select(Shop).where(Shop.id == 1))).scalar_one",
+          "lineNumber": 87
+        },
+        {
+          "caller": "test_owner_updates_gstin_and_duty_rate",
+          "callee": "db_session.execute",
+          "lineNumber": 87
+        },
+        {
+          "caller": "test_owner_updates_gstin_and_duty_rate",
+          "callee": "select(Shop).where",
+          "lineNumber": 87
+        },
+        {
+          "caller": "test_owner_updates_gstin_and_duty_rate",
+          "callee": "select",
+          "lineNumber": 87
+        },
+        {
+          "caller": "test_cashier_cannot_update_shop",
+          "callee": "cashier_client.patch",
+          "lineNumber": 94
+        },
+        {
+          "caller": "test_invalid_gstin_rejected",
+          "callee": "owner_client.patch",
+          "lineNumber": 104
+        },
+        {
+          "caller": "test_invalid_gstin_rejected",
+          "callee": "owner_client.patch",
+          "lineNumber": 107
+        },
+        {
+          "caller": "test_duty_rate_must_be_0_to_100",
+          "callee": "owner_client.patch",
+          "lineNumber": 114
+        },
+        {
+          "caller": "test_pdf_includes_configured_gstin",
+          "callee": "owner_client.patch",
+          "lineNumber": 129
+        },
+        {
+          "caller": "test_pdf_includes_configured_gstin",
+          "callee": "_seed_product",
+          "lineNumber": 132
+        },
+        {
+          "caller": "test_pdf_includes_configured_gstin",
+          "callee": "_seed_lot",
+          "lineNumber": 133
+        },
+        {
+          "caller": "test_pdf_includes_configured_gstin",
+          "callee": "_finalize",
+          "lineNumber": 134
+        },
+        {
+          "caller": "test_pdf_includes_configured_gstin",
+          "callee": "cashier_client.get",
+          "lineNumber": 136
+        },
+        {
+          "caller": "test_pdf_includes_configured_gstin",
+          "callee": "body.decode",
+          "lineNumber": 141
+        },
+        {
+          "caller": "test_pdf_includes_configured_duty_rate",
+          "callee": "owner_client.patch",
+          "lineNumber": 151
+        },
+        {
+          "caller": "test_pdf_includes_configured_duty_rate",
+          "callee": "_seed_product",
+          "lineNumber": 154
+        },
+        {
+          "caller": "test_pdf_includes_configured_duty_rate",
+          "callee": "_seed_lot",
+          "lineNumber": 155
+        },
+        {
+          "caller": "test_pdf_includes_configured_duty_rate",
+          "callee": "_finalize",
+          "lineNumber": 156
+        },
+        {
+          "caller": "test_pdf_includes_configured_duty_rate",
+          "callee": "cashier_client.get",
+          "lineNumber": 158
+        },
+        {
+          "caller": "test_pdf_includes_configured_duty_rate",
+          "callee": "resp.content.decode",
+          "lineNumber": 159
+        },
+        {
+          "caller": "test_pdf_includes_configured_duty_rate",
+          "callee": "text.lower",
+          "lineNumber": 163
+        },
+        {
+          "caller": "test_pdf_includes_placeholder_disclaimer",
+          "callee": "_seed_product",
+          "lineNumber": 174
+        },
+        {
+          "caller": "test_pdf_includes_placeholder_disclaimer",
+          "callee": "_seed_lot",
+          "lineNumber": 175
+        },
+        {
+          "caller": "test_pdf_includes_placeholder_disclaimer",
+          "callee": "_finalize",
+          "lineNumber": 176
+        },
+        {
+          "caller": "test_pdf_includes_placeholder_disclaimer",
+          "callee": "cashier_client.get",
+          "lineNumber": 178
+        },
+        {
+          "caller": "test_pdf_includes_placeholder_disclaimer",
+          "callee": "resp.content.decode",
+          "lineNumber": 179
+        },
+        {
+          "caller": "test_pdf_includes_placeholder_disclaimer",
+          "callee": "text.lower",
+          "lineNumber": 180
+        },
+        {
+          "caller": "test_pdf_includes_placeholder_disclaimer",
+          "callee": "text.lower",
+          "lineNumber": 181
+        },
+        {
+          "caller": "test_pdf_does_not_hardcode_cgst_or_sgst",
+          "callee": "_seed_product",
+          "lineNumber": 193
+        },
+        {
+          "caller": "test_pdf_does_not_hardcode_cgst_or_sgst",
+          "callee": "_seed_lot",
+          "lineNumber": 194
+        },
+        {
+          "caller": "test_pdf_does_not_hardcode_cgst_or_sgst",
+          "callee": "_finalize",
+          "lineNumber": 195
+        },
+        {
+          "caller": "test_pdf_does_not_hardcode_cgst_or_sgst",
+          "callee": "cashier_client.get",
+          "lineNumber": 197
+        },
+        {
+          "caller": "test_pdf_does_not_hardcode_cgst_or_sgst",
+          "callee": "resp.content.decode",
+          "lineNumber": 198
+        },
+        {
+          "caller": "test_pdf_does_not_hardcode_cgst_or_sgst",
+          "callee": "re.search",
+          "lineNumber": 203
+        },
+        {
+          "caller": "test_pdf_does_not_hardcode_cgst_or_sgst",
+          "callee": "re.search",
+          "lineNumber": 204
+        },
+        {
+          "caller": "test_pdf_does_not_hardcode_cgst_or_sgst",
+          "callee": "re.search",
+          "lineNumber": 205
+        },
+        {
+          "caller": "test_shop_name_appears_on_invoice",
+          "callee": "(await db_session.execute(select(Shop).where(Shop.id == 1))).scalar_one",
+          "lineNumber": 216
+        },
+        {
+          "caller": "test_shop_name_appears_on_invoice",
+          "callee": "db_session.execute",
+          "lineNumber": 216
+        },
+        {
+          "caller": "test_shop_name_appears_on_invoice",
+          "callee": "select(Shop).where",
+          "lineNumber": 216
+        },
+        {
+          "caller": "test_shop_name_appears_on_invoice",
+          "callee": "select",
+          "lineNumber": 216
+        },
+        {
+          "caller": "test_shop_name_appears_on_invoice",
+          "callee": "db_session.commit",
+          "lineNumber": 218
+        },
+        {
+          "caller": "test_shop_name_appears_on_invoice",
+          "callee": "_seed_product",
+          "lineNumber": 220
+        },
+        {
+          "caller": "test_shop_name_appears_on_invoice",
+          "callee": "_seed_lot",
+          "lineNumber": 221
+        },
+        {
+          "caller": "test_shop_name_appears_on_invoice",
+          "callee": "_finalize",
+          "lineNumber": 222
+        },
+        {
+          "caller": "test_shop_name_appears_on_invoice",
+          "callee": "cashier_client.get",
+          "lineNumber": 224
+        },
+        {
+          "caller": "test_shop_name_appears_on_invoice",
+          "callee": "resp.content.decode",
+          "lineNumber": 225
+        }
+      ],
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 13,
+        "functionCount": 13,
+        "classCount": 0
+      }
+    }
+  ]
+}

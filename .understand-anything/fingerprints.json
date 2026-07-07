@@ -1,0 +1,6828 @@
+{
+  "version": "1.0.0",
+  "gitCommitHash": "66485efdc5ba82b110c35c325d2cbb460f72694f",
+  "generatedAt": "2026-07-07T01:20:31.119Z",
+  "files": {
+    ".env.example": {
+      "filePath": ".env.example",
+      "contentHash": "9e052350e82a912a42455098f7b506cc653cc2031ff7d491cd044803926291f6",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 22,
+      "hasStructuralAnalysis": true
+    },
+    "alembic.ini": {
+      "filePath": "alembic.ini",
+      "contentHash": "dc8e19011355f9a471ab329892ba9153e666fca79dfc9b1978f9d7796c7152e5",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 150,
+      "hasStructuralAnalysis": false
+    },
+    "alembic/env.py": {
+      "filePath": "alembic/env.py",
+      "contentHash": "fa6b5a80d18c37d01e7e90ec359135501cc0470b87947ed86501dc500bd91d02",
+      "functions": [
+        {
+          "name": "run_migrations_offline",
+          "params": [],
+          "returnType": "None",
+          "exported": true,
+          "lineCount": 10
+        },
+        {
+          "name": "do_run_migrations",
+          "params": [
+            "connection"
+          ],
+          "returnType": "None",
+          "exported": true,
+          "lineCount": 4
+        },
+        {
+          "name": "run_async_migrations",
+          "params": [],
+          "returnType": "None",
+          "exported": true,
+          "lineCount": 9
+        },
+        {
+          "name": "run_migrations_online",
+          "params": [],
+          "returnType": "None",
+          "exported": true,
+          "lineCount": 2
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "asyncio",
+          "specifiers": [
+            "asyncio"
+          ]
+        },
+        {
+          "source": "logging.config",
+          "specifiers": [
+            "fileConfig"
+          ]
+        },
+        {
+          "source": "sqlalchemy",
+          "specifiers": [
+            "pool"
+          ]
+        },
+        {
+          "source": "sqlalchemy.engine",
+          "specifiers": [
+            "Connection"
+          ]
+        },
+        {
+          "source": "sqlalchemy.ext.asyncio",
+          "specifiers": [
+            "async_engine_from_config"
+          ]
+        },
+        {
+          "source": "alembic",
+          "specifiers": [
+            "context"
+          ]
+        },
+        {
+          "source": "app.config",
+          "specifiers": [
+            "get_settings"
+          ]
+        },
+        {
+          "source": "app.db",
+          "specifiers": [
+            "Base"
+          ]
+        },
+        {
+          "source": "app",
+          "specifiers": [
+            "models"
+          ]
+        }
+      ],
+      "exports": [
+        "run_migrations_offline",
+        "do_run_migrations",
+        "run_async_migrations",
+        "run_migrations_online"
+      ],
+      "totalLines": 73,
+      "hasStructuralAnalysis": true
+    },
+    "alembic/README": {
+      "filePath": "alembic/README",
+      "contentHash": "21256d00ebeabca93fe5384ce62a0913e94c92f7fd21b92715415553fbcf99ae",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 1,
+      "hasStructuralAnalysis": false
+    },
+    "alembic/script.py.mako": {
+      "filePath": "alembic/script.py.mako",
+      "contentHash": "d38920781b4d31ae1c0a71bc09f41c2ade8feab9e5a087e3f30cb4bbf0c1c9d3",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 29,
+      "hasStructuralAnalysis": false
+    },
+    "alembic/versions/0243c7acf544_foundation_shops_users_log_tables.py": {
+      "filePath": "alembic/versions/0243c7acf544_foundation_shops_users_log_tables.py",
+      "contentHash": "48c8dfde7b7d12747911464b6ce8c711af315e964442c458ee4add08f75547c6",
+      "functions": [
+        {
+          "name": "upgrade",
+          "params": [],
+          "returnType": "None",
+          "exported": true,
+          "lineCount": 78
+        },
+        {
+          "name": "downgrade",
+          "params": [],
+          "returnType": "None",
+          "exported": true,
+          "lineCount": 25
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "typing",
+          "specifiers": [
+            "Union"
+          ]
+        },
+        {
+          "source": "collections.abc",
+          "specifiers": [
+            "Sequence"
+          ]
+        },
+        {
+          "source": "alembic",
+          "specifiers": [
+            "op"
+          ]
+        },
+        {
+          "source": "sqlalchemy",
+          "specifiers": [
+            "sa"
+          ]
+        }
+      ],
+      "exports": [
+        "upgrade",
+        "downgrade"
+      ],
+      "totalLines": 127,
+      "hasStructuralAnalysis": true
+    },
+    "alembic/versions/058759837183_eod_eod_signed_off_at_eod_signoffs_table.py": {
+      "filePath": "alembic/versions/058759837183_eod_eod_signed_off_at_eod_signoffs_table.py",
+      "contentHash": "c0938f0fb6263bc6440df0df2b5df46cb22a251585667cdc87d6f005a168fd76",
+      "functions": [
+        {
+          "name": "upgrade",
+          "params": [],
+          "returnType": "None",
+          "exported": true,
+          "lineCount": 20
+        },
+        {
+          "name": "downgrade",
+          "params": [],
+          "returnType": "None",
+          "exported": true,
+          "lineCount": 8
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "typing",
+          "specifiers": [
+            "Union"
+          ]
+        },
+        {
+          "source": "collections.abc",
+          "specifiers": [
+            "Sequence"
+          ]
+        },
+        {
+          "source": "alembic",
+          "specifiers": [
+            "op"
+          ]
+        },
+        {
+          "source": "sqlalchemy",
+          "specifiers": [
+            "sa"
+          ]
+        }
+      ],
+      "exports": [
+        "upgrade",
+        "downgrade"
+      ],
+      "totalLines": 52,
+      "hasStructuralAnalysis": true
+    },
+    "alembic/versions/2e68e776867b_voids_void_reversal_pending_void_status_.py": {
+      "filePath": "alembic/versions/2e68e776867b_voids_void_reversal_pending_void_status_.py",
+      "contentHash": "e672e2c29bb6cf45eeac8b25e59e74a70cb3d06caa78a8b14227e697362f328c",
+      "functions": [
+        {
+          "name": "upgrade",
+          "params": [],
+          "returnType": "None",
+          "exported": true,
+          "lineCount": 10
+        },
+        {
+          "name": "downgrade",
+          "params": [],
+          "returnType": "None",
+          "exported": true,
+          "lineCount": 10
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "typing",
+          "specifiers": [
+            "Union"
+          ]
+        },
+        {
+          "source": "collections.abc",
+          "specifiers": [
+            "Sequence"
+          ]
+        },
+        {
+          "source": "alembic",
+          "specifiers": [
+            "op"
+          ]
+        },
+        {
+          "source": "sqlalchemy",
+          "specifiers": [
+            "sa"
+          ]
+        }
+      ],
+      "exports": [
+        "upgrade",
+        "downgrade"
+      ],
+      "totalLines": 44,
+      "hasStructuralAnalysis": true
+    },
+    "alembic/versions/3efd6817d954_lots_lot_lot_lines_tables.py": {
+      "filePath": "alembic/versions/3efd6817d954_lots_lot_lot_lines_tables.py",
+      "contentHash": "ec1ebafd2f30607fb47dec4faf23417e20d8351cb34e9b0c9ce7f342d523a494",
+      "functions": [
+        {
+          "name": "upgrade",
+          "params": [],
+          "returnType": "None",
+          "exported": true,
+          "lineCount": 30
+        },
+        {
+          "name": "downgrade",
+          "params": [],
+          "returnType": "None",
+          "exported": true,
+          "lineCount": 11
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "typing",
+          "specifiers": [
+            "Union"
+          ]
+        },
+        {
+          "source": "collections.abc",
+          "specifiers": [
+            "Sequence"
+          ]
+        },
+        {
+          "source": "alembic",
+          "specifiers": [
+            "op"
+          ]
+        },
+        {
+          "source": "sqlalchemy",
+          "specifiers": [
+            "sa"
+          ]
+        }
+      ],
+      "exports": [
+        "upgrade",
+        "downgrade"
+      ],
+      "totalLines": 65,
+      "hasStructuralAnalysis": true
+    },
+    "alembic/versions/423948112aae_products_catalog_shop_low_stock_.py": {
+      "filePath": "alembic/versions/423948112aae_products_catalog_shop_low_stock_.py",
+      "contentHash": "a2a172dd01b8397063e6a8148b4097d7da5df5e1907f78e1a4a6928f0b5b9496",
+      "functions": [
+        {
+          "name": "upgrade",
+          "params": [],
+          "returnType": "None",
+          "exported": true,
+          "lineCount": 23
+        },
+        {
+          "name": "downgrade",
+          "params": [],
+          "returnType": "None",
+          "exported": true,
+          "lineCount": 9
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "typing",
+          "specifiers": [
+            "Union"
+          ]
+        },
+        {
+          "source": "collections.abc",
+          "specifiers": [
+            "Sequence"
+          ]
+        },
+        {
+          "source": "alembic",
+          "specifiers": [
+            "op"
+          ]
+        },
+        {
+          "source": "sqlalchemy",
+          "specifiers": [
+            "sa"
+          ]
+        }
+      ],
+      "exports": [
+        "upgrade",
+        "downgrade"
+      ],
+      "totalLines": 56,
+      "hasStructuralAnalysis": true
+    },
+    "alembic/versions/af4b5e908f57_shops_gstin_excise_duty_rate_for_8_gst_.py": {
+      "filePath": "alembic/versions/af4b5e908f57_shops_gstin_excise_duty_rate_for_8_gst_.py",
+      "contentHash": "7513a4babf24954f67d9a6039816fefa294c040320886c79141631f834c75b1f",
+      "functions": [
+        {
+          "name": "upgrade",
+          "params": [],
+          "returnType": "None",
+          "exported": true,
+          "lineCount": 9
+        },
+        {
+          "name": "downgrade",
+          "params": [],
+          "returnType": "None",
+          "exported": true,
+          "lineCount": 4
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "typing",
+          "specifiers": [
+            "Union"
+          ]
+        },
+        {
+          "source": "collections.abc",
+          "specifiers": [
+            "Sequence"
+          ]
+        },
+        {
+          "source": "alembic",
+          "specifiers": [
+            "op"
+          ]
+        },
+        {
+          "source": "sqlalchemy",
+          "specifiers": [
+            "sa"
+          ]
+        }
+      ],
+      "exports": [
+        "upgrade",
+        "downgrade"
+      ],
+      "totalLines": 37,
+      "hasStructuralAnalysis": true
+    },
+    "alembic/versions/c514c436a0b1_eod_eod_signoffs_business_date_to_date.py": {
+      "filePath": "alembic/versions/c514c436a0b1_eod_eod_signoffs_business_date_to_date.py",
+      "contentHash": "78381f0f16e5ad46aa6dab7bf27b08b8e137b3905eb7ae211a01ebedf4b84c96",
+      "functions": [
+        {
+          "name": "upgrade",
+          "params": [],
+          "returnType": "None",
+          "exported": true,
+          "lineCount": 8
+        },
+        {
+          "name": "downgrade",
+          "params": [],
+          "returnType": "None",
+          "exported": true,
+          "lineCount": 8
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "typing",
+          "specifiers": [
+            "Union"
+          ]
+        },
+        {
+          "source": "collections.abc",
+          "specifiers": [
+            "Sequence"
+          ]
+        },
+        {
+          "source": "alembic",
+          "specifiers": [
+            "op"
+          ]
+        },
+        {
+          "source": "sqlalchemy",
+          "specifiers": [
+            "sa"
+          ]
+        },
+        {
+          "source": "sqlalchemy.dialects",
+          "specifiers": [
+            "postgresql"
+          ]
+        }
+      ],
+      "exports": [
+        "upgrade",
+        "downgrade"
+      ],
+      "totalLines": 40,
+      "hasStructuralAnalysis": true
+    },
+    "alembic/versions/ea0fba754aaa_invoices_invoice_lines_payments_.py": {
+      "filePath": "alembic/versions/ea0fba754aaa_invoices_invoice_lines_payments_.py",
+      "contentHash": "78c3bd87526bc0bf5dfab93f1077478e7da9c50be102b5adcff32204ef2b7713",
+      "functions": [
+        {
+          "name": "upgrade",
+          "params": [],
+          "returnType": "None",
+          "exported": true,
+          "lineCount": 54
+        },
+        {
+          "name": "downgrade",
+          "params": [],
+          "returnType": "None",
+          "exported": true,
+          "lineCount": 12
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "typing",
+          "specifiers": [
+            "Union"
+          ]
+        },
+        {
+          "source": "collections.abc",
+          "specifiers": [
+            "Sequence"
+          ]
+        },
+        {
+          "source": "alembic",
+          "specifiers": [
+            "op"
+          ]
+        },
+        {
+          "source": "sqlalchemy",
+          "specifiers": [
+            "sa"
+          ]
+        }
+      ],
+      "exports": [
+        "upgrade",
+        "downgrade"
+      ],
+      "totalLines": 90,
+      "hasStructuralAnalysis": true
+    },
+    "app/__init__.py": {
+      "filePath": "app/__init__.py",
+      "contentHash": "98e99ef96faa9c984105bf8d4c7348117b506ed7ccb531468ae2ebae4a024cba",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 2,
+      "hasStructuralAnalysis": true
+    },
+    "app/api/__init__.py": {
+      "filePath": "app/api/__init__.py",
+      "contentHash": "53ff6f35a82a594e766aa6a976ab7b0af7589721c4b4c3acf735310538604081",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 2,
+      "hasStructuralAnalysis": true
+    },
+    "app/api/_errors.py": {
+      "filePath": "app/api/_errors.py",
+      "contentHash": "dad331b4eb2f292cea097423cb927a4b0114502bb23ec942ede3a8b55c222697",
+      "functions": [
+        {
+          "name": "is_unique_violation",
+          "params": [
+            "exc"
+          ],
+          "returnType": "bool",
+          "exported": true,
+          "lineCount": 19
+        },
+        {
+          "name": "map_error_to_http",
+          "params": [
+            "exc",
+            "code_to_status",
+            "fallback_status"
+          ],
+          "returnType": "HTTPException",
+          "exported": true,
+          "lineCount": 22
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "fastapi",
+          "specifiers": [
+            "HTTPException"
+          ]
+        },
+        {
+          "source": "sqlalchemy.dialects.postgresql.asyncpg",
+          "specifiers": [
+            "AsyncAdapt_asyncpg_dbapi"
+          ]
+        },
+        {
+          "source": "sqlalchemy.exc",
+          "specifiers": [
+            "IntegrityError"
+          ]
+        }
+      ],
+      "exports": [
+        "is_unique_violation",
+        "map_error_to_http"
+      ],
+      "totalLines": 72,
+      "hasStructuralAnalysis": true
+    },
+    "app/api/_test_only.py": {
+      "filePath": "app/api/_test_only.py",
+      "contentHash": "157b35ecc62d6f4ace5934aeba043dfb900864f3da75cba442cbbfe2ff29241e",
+      "functions": [],
+      "classes": [],
+      "imports": [
+        {
+          "source": "fastapi",
+          "specifiers": [
+            "APIRouter"
+          ]
+        }
+      ],
+      "exports": [],
+      "totalLines": 17,
+      "hasStructuralAnalysis": true
+    },
+    "app/api/auth.py": {
+      "filePath": "app/api/auth.py",
+      "contentHash": "fecf145ab4f88d88f82315721fbfcbbf3c51961439a37ee92ea91d4a22535a1a",
+      "functions": [
+        {
+          "name": "_authenticate",
+          "params": [
+            "db",
+            "shop_id",
+            "identifier_field",
+            "identifier_value",
+            "password",
+            "allowed_roles"
+          ],
+          "returnType": "User",
+          "exported": true,
+          "lineCount": 52
+        },
+        {
+          "name": "login_superadmin",
+          "params": [
+            "payload",
+            "db"
+          ],
+          "returnType": "TokenResponse",
+          "exported": true,
+          "lineCount": 24
+        },
+        {
+          "name": "login_shop",
+          "params": [
+            "payload",
+            "db"
+          ],
+          "returnType": "TokenResponse",
+          "exported": true,
+          "lineCount": 24
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "fastapi",
+          "specifiers": [
+            "APIRouter",
+            "HTTPException",
+            "status"
+          ]
+        },
+        {
+          "source": "sqlalchemy",
+          "specifiers": [
+            "select"
+          ]
+        },
+        {
+          "source": "app.api.deps",
+          "specifiers": [
+            "DbSession"
+          ]
+        },
+        {
+          "source": "app.config",
+          "specifiers": [
+            "get_settings"
+          ]
+        },
+        {
+          "source": "app.logging_config",
+          "specifiers": [
+            "get_logger"
+          ]
+        },
+        {
+          "source": "app.models.user",
+          "specifiers": [
+            "User",
+            "UserRole"
+          ]
+        },
+        {
+          "source": "app.schemas.auth",
+          "specifiers": [
+            "LoginRequest",
+            "TokenResponse",
+            "UserPublic"
+          ]
+        },
+        {
+          "source": "app.security.jwt",
+          "specifiers": [
+            "create_access_token"
+          ]
+        },
+        {
+          "source": "app.security.passwords",
+          "specifiers": [
+            "verify_password"
+          ]
+        }
+      ],
+      "exports": [
+        "_authenticate",
+        "login_superadmin",
+        "login_shop"
+      ],
+      "totalLines": 141,
+      "hasStructuralAnalysis": true
+    },
+    "app/api/checkout.py": {
+      "filePath": "app/api/checkout.py",
+      "contentHash": "ac6187bda03f5aa923febda2a7d8296ec21c6b790180a8dab667451683e4991a",
+      "functions": [
+        {
+          "name": "_error_to_http",
+          "params": [
+            "exc"
+          ],
+          "returnType": "HTTPException",
+          "exported": true,
+          "lineCount": 7
+        },
+        {
+          "name": "finalize",
+          "params": [
+            "payload",
+            "db",
+            "_user",
+            "idempotency_key"
+          ],
+          "returnType": "CheckoutFinalizeResponse",
+          "exported": true,
+          "lineCount": 86
+        },
+        {
+          "name": "_load_invoice_or_404",
+          "params": [
+            "db",
+            "invoice_id"
+          ],
+          "returnType": "Invoice",
+          "exported": true,
+          "lineCount": 11
+        },
+        {
+          "name": "get_invoice",
+          "params": [
+            "invoice_id",
+            "db",
+            "_user"
+          ],
+          "returnType": "InvoicePublic",
+          "exported": true,
+          "lineCount": 12
+        },
+        {
+          "name": "get_invoice_pdf",
+          "params": [
+            "invoice_id",
+            "db",
+            "_user"
+          ],
+          "returnType": "Response",
+          "exported": true,
+          "lineCount": 35
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "typing",
+          "specifiers": [
+            "Annotated"
+          ]
+        },
+        {
+          "source": "fastapi",
+          "specifiers": [
+            "APIRouter",
+            "Depends",
+            "Header",
+            "HTTPException",
+            "Response",
+            "status"
+          ]
+        },
+        {
+          "source": "sqlalchemy",
+          "specifiers": [
+            "select"
+          ]
+        },
+        {
+          "source": "sqlalchemy.ext.asyncio",
+          "specifiers": [
+            "AsyncSession"
+          ]
+        },
+        {
+          "source": "sqlalchemy.orm",
+          "specifiers": [
+            "selectinload"
+          ]
+        },
+        {
+          "source": "app.api.deps",
+          "specifiers": [
+            "DbSession",
+            "require_role"
+          ]
+        },
+        {
+          "source": "app.logging_config",
+          "specifiers": [
+            "get_logger"
+          ]
+        },
+        {
+          "source": "app.models.invoice",
+          "specifiers": [
+            "Invoice"
+          ]
+        },
+        {
+          "source": "app.models.log",
+          "specifiers": [
+            "InvoicingLog"
+          ]
+        },
+        {
+          "source": "app.models.user",
+          "specifiers": [
+            "User",
+            "UserRole"
+          ]
+        },
+        {
+          "source": "app.schemas.checkout",
+          "specifiers": [
+            "CheckoutFinalizeRequest",
+            "CheckoutFinalizeResponse",
+            "InvoicePublic"
+          ]
+        },
+        {
+          "source": "app.services.checkout",
+          "specifiers": [
+            "CartLine",
+            "CheckoutError",
+            "PaymentLine",
+            "finalize_checkout"
+          ]
+        }
+      ],
+      "exports": [
+        "_error_to_http",
+        "finalize",
+        "_load_invoice_or_404",
+        "get_invoice",
+        "get_invoice_pdf"
+      ],
+      "totalLines": 248,
+      "hasStructuralAnalysis": true
+    },
+    "app/api/dashboard.py": {
+      "filePath": "app/api/dashboard.py",
+      "contentHash": "88eee74f80b927319e16d2ccb39806256388def6907544bb1149978796e03d95",
+      "functions": [
+        {
+          "name": "_error_to_http",
+          "params": [
+            "exc"
+          ],
+          "returnType": "HTTPException",
+          "exported": true,
+          "lineCount": 7
+        },
+        {
+          "name": "sign_off",
+          "params": [
+            "payload",
+            "db",
+            "_user"
+          ],
+          "returnType": "SignOffResponse",
+          "exported": true,
+          "lineCount": 34
+        },
+        {
+          "name": "eod_totals",
+          "params": [
+            "db",
+            "_user",
+            "business_date"
+          ],
+          "returnType": "EodTotalsResponse",
+          "exported": true,
+          "lineCount": 23
+        },
+        {
+          "name": "eod_history",
+          "params": [
+            "db",
+            "_user",
+            "from_date",
+            "to_date",
+            "limit"
+          ],
+          "returnType": "SignOffHistoryResponse",
+          "exported": true,
+          "lineCount": 25
+        },
+        {
+          "name": "void_queue",
+          "params": [
+            "db",
+            "_user",
+            "limit"
+          ],
+          "returnType": "PendingVoidResponse",
+          "exported": true,
+          "lineCount": 23
+        },
+        {
+          "name": "low_stock",
+          "params": [
+            "db",
+            "_user"
+          ],
+          "returnType": "LowStockResponse",
+          "exported": true,
+          "lineCount": 29
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "datetime",
+          "specifiers": [
+            "date_cls"
+          ]
+        },
+        {
+          "source": "typing",
+          "specifiers": [
+            "Annotated"
+          ]
+        },
+        {
+          "source": "fastapi",
+          "specifiers": [
+            "APIRouter",
+            "Depends",
+            "HTTPException",
+            "Query",
+            "status"
+          ]
+        },
+        {
+          "source": "app.api.deps",
+          "specifiers": [
+            "DbSession",
+            "require_role"
+          ]
+        },
+        {
+          "source": "app.logging_config",
+          "specifiers": [
+            "get_logger"
+          ]
+        },
+        {
+          "source": "app.models.user",
+          "specifiers": [
+            "User",
+            "UserRole"
+          ]
+        },
+        {
+          "source": "app.schemas.eod",
+          "specifiers": [
+            "EodTotalsResponse",
+            "LowStockResponse",
+            "PaymentModeTotal",
+            "PendingVoidResponse",
+            "SignOffHistoryResponse",
+            "SignOffRequest",
+            "SignOffResponse"
+          ]
+        },
+        {
+          "source": "app.services.eod",
+          "specifiers": [
+            "EodError",
+            "get_day_totals",
+            "list_pending_voids",
+            "list_signoff_history",
+            "sign_off_day"
+          ]
+        }
+      ],
+      "exports": [
+        "_error_to_http",
+        "sign_off",
+        "eod_totals",
+        "eod_history",
+        "void_queue",
+        "low_stock"
+      ],
+      "totalLines": 224,
+      "hasStructuralAnalysis": true
+    },
+    "app/api/deps.py": {
+      "filePath": "app/api/deps.py",
+      "contentHash": "a404b0e29eea303f804445d37f25fcd26b3e2ad2403f206b6abe683368fe9003",
+      "functions": [
+        {
+          "name": "db_session",
+          "params": [],
+          "returnType": "AsyncIterator[AsyncSession]",
+          "exported": true,
+          "lineCount": 3
+        },
+        {
+          "name": "get_current_user",
+          "params": [
+            "db",
+            "creds"
+          ],
+          "returnType": "User",
+          "exported": true,
+          "lineCount": 31
+        },
+        {
+          "name": "require_role",
+          "params": [],
+          "exported": true,
+          "lineCount": 16
+        },
+        {
+          "name": "require_shop_scope",
+          "params": [
+            "user"
+          ],
+          "returnType": "None",
+          "exported": true,
+          "lineCount": 8
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "collections.abc",
+          "specifiers": [
+            "AsyncIterator"
+          ]
+        },
+        {
+          "source": "typing",
+          "specifiers": [
+            "Annotated"
+          ]
+        },
+        {
+          "source": "fastapi",
+          "specifiers": [
+            "Depends",
+            "HTTPException",
+            "status"
+          ]
+        },
+        {
+          "source": "fastapi.security",
+          "specifiers": [
+            "HTTPAuthorizationCredentials",
+            "HTTPBearer"
+          ]
+        },
+        {
+          "source": "sqlalchemy.ext.asyncio",
+          "specifiers": [
+            "AsyncSession"
+          ]
+        },
+        {
+          "source": "app.db",
+          "specifiers": [
+            "get_db"
+          ]
+        },
+        {
+          "source": "app.models.user",
+          "specifiers": [
+            "SHOP_SCOPED_ROLES",
+            "User",
+            "UserRole"
+          ]
+        },
+        {
+          "source": "app.security.jwt",
+          "specifiers": [
+            "TokenError",
+            "decode_access_token"
+          ]
+        }
+      ],
+      "exports": [
+        "db_session",
+        "get_current_user",
+        "require_role",
+        "require_shop_scope"
+      ],
+      "totalLines": 95,
+      "hasStructuralAnalysis": true
+    },
+    "app/api/health.py": {
+      "filePath": "app/api/health.py",
+      "contentHash": "99c459b571f10f5265912be28f6673923df7483e4a7e39ca4233b35b70516e70",
+      "functions": [
+        {
+          "name": "liveness",
+          "params": [],
+          "returnType": "dict[str, str]",
+          "exported": true,
+          "lineCount": 2
+        },
+        {
+          "name": "readiness",
+          "params": [
+            "db"
+          ],
+          "returnType": "dict[str, str]",
+          "exported": true,
+          "lineCount": 3
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "fastapi",
+          "specifiers": [
+            "APIRouter"
+          ]
+        },
+        {
+          "source": "sqlalchemy",
+          "specifiers": [
+            "text"
+          ]
+        },
+        {
+          "source": "app.api.deps",
+          "specifiers": [
+            "DbSession"
+          ]
+        }
+      ],
+      "exports": [
+        "liveness",
+        "readiness"
+      ],
+      "totalLines": 21,
+      "hasStructuralAnalysis": true
+    },
+    "app/api/lots.py": {
+      "filePath": "app/api/lots.py",
+      "contentHash": "6fc236c7cd615bf424244a160c4a155f7cb79a7dc412473030edfc6d7290a35c",
+      "functions": [
+        {
+          "name": "create_lot",
+          "params": [
+            "payload",
+            "db",
+            "_user"
+          ],
+          "returnType": "LotPublic",
+          "exported": true,
+          "lineCount": 94
+        },
+        {
+          "name": "list_lots",
+          "params": [
+            "db",
+            "_user",
+            "limit",
+            "offset"
+          ],
+          "returnType": "LotListResponse",
+          "exported": true,
+          "lineCount": 19
+        },
+        {
+          "name": "get_lot",
+          "params": [
+            "lot_id",
+            "db",
+            "_user"
+          ],
+          "returnType": "LotPublic",
+          "exported": true,
+          "lineCount": 15
+        },
+        {
+          "name": "_load_lines",
+          "params": [
+            "db",
+            "lot"
+          ],
+          "returnType": "None",
+          "exported": true,
+          "lineCount": 10
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "typing",
+          "specifiers": [
+            "Annotated"
+          ]
+        },
+        {
+          "source": "fastapi",
+          "specifiers": [
+            "APIRouter",
+            "Depends",
+            "HTTPException",
+            "Query",
+            "status"
+          ]
+        },
+        {
+          "source": "sqlalchemy",
+          "specifiers": [
+            "select"
+          ]
+        },
+        {
+          "source": "sqlalchemy.ext.asyncio",
+          "specifiers": [
+            "AsyncSession"
+          ]
+        },
+        {
+          "source": "app.api.deps",
+          "specifiers": [
+            "DbSession",
+            "require_role"
+          ]
+        },
+        {
+          "source": "app.logging_config",
+          "specifiers": [
+            "get_logger"
+          ]
+        },
+        {
+          "source": "app.models.log",
+          "specifiers": [
+            "StockinLog"
+          ]
+        },
+        {
+          "source": "app.models.lot",
+          "specifiers": [
+            "Lot",
+            "LotLine"
+          ]
+        },
+        {
+          "source": "app.models.product",
+          "specifiers": [
+            "Product"
+          ]
+        },
+        {
+          "source": "app.models.user",
+          "specifiers": [
+            "User",
+            "UserRole"
+          ]
+        },
+        {
+          "source": "app.schemas.lot",
+          "specifiers": [
+            "LotCreate",
+            "LotListResponse",
+            "LotPublic"
+          ]
+        }
+      ],
+      "exports": [
+        "create_lot",
+        "list_lots",
+        "get_lot",
+        "_load_lines"
+      ],
+      "totalLines": 203,
+      "hasStructuralAnalysis": true
+    },
+    "app/api/products.py": {
+      "filePath": "app/api/products.py",
+      "contentHash": "6cd6be25fd435babe95a76be5c48caa18133a4df9e6ae56cbf3270e6fabe669b",
+      "functions": [
+        {
+          "name": "create_product",
+          "params": [
+            "payload",
+            "db",
+            "_user"
+          ],
+          "returnType": "ProductPublic",
+          "exported": true,
+          "lineCount": 49
+        },
+        {
+          "name": "list_products",
+          "params": [
+            "db",
+            "_user",
+            "active_only",
+            "q",
+            "limit",
+            "offset"
+          ],
+          "returnType": "list[ProductPublic]",
+          "exported": true,
+          "lineCount": 20
+        },
+        {
+          "name": "lookup_product",
+          "params": [
+            "db",
+            "_user",
+            "barcode"
+          ],
+          "returnType": "ProductPublic",
+          "exported": true,
+          "lineCount": 21
+        },
+        {
+          "name": "update_product",
+          "params": [
+            "product_id",
+            "payload",
+            "db",
+            "_user"
+          ],
+          "returnType": "ProductPublic",
+          "exported": true,
+          "lineCount": 29
+        },
+        {
+          "name": "import_products_csv",
+          "params": [
+            "db",
+            "_user",
+            "file"
+          ],
+          "returnType": "ProductImportResponse",
+          "exported": true,
+          "lineCount": 145
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "csv",
+          "specifiers": [
+            "csv"
+          ]
+        },
+        {
+          "source": "io",
+          "specifiers": [
+            "io"
+          ]
+        },
+        {
+          "source": "decimal",
+          "specifiers": [
+            "Decimal",
+            "InvalidOperation"
+          ]
+        },
+        {
+          "source": "typing",
+          "specifiers": [
+            "Annotated"
+          ]
+        },
+        {
+          "source": "fastapi",
+          "specifiers": [
+            "APIRouter",
+            "Depends",
+            "File",
+            "HTTPException",
+            "Query",
+            "UploadFile",
+            "status"
+          ]
+        },
+        {
+          "source": "sqlalchemy",
+          "specifiers": [
+            "select"
+          ]
+        },
+        {
+          "source": "sqlalchemy.dialects.postgresql.asyncpg",
+          "specifiers": [
+            "AsyncAdapt_asyncpg_dbapi"
+          ]
+        },
+        {
+          "source": "sqlalchemy.exc",
+          "specifiers": [
+            "IntegrityError"
+          ]
+        },
+        {
+          "source": "app.api._errors",
+          "specifiers": [
+            "is_unique_violation"
+          ]
+        },
+        {
+          "source": "app.api.deps",
+          "specifiers": [
+            "DbSession",
+            "require_role"
+          ]
+        },
+        {
+          "source": "app.logging_config",
+          "specifiers": [
+            "get_logger"
+          ]
+        },
+        {
+          "source": "app.models.product",
+          "specifiers": [
+            "Product"
+          ]
+        },
+        {
+          "source": "app.models.user",
+          "specifiers": [
+            "User",
+            "UserRole"
+          ]
+        },
+        {
+          "source": "app.schemas.product",
+          "specifiers": [
+            "ProductCreate",
+            "ProductImportError",
+            "ProductImportResponse",
+            "ProductPublic",
+            "ProductUpdate"
+          ]
+        }
+      ],
+      "exports": [
+        "create_product",
+        "list_products",
+        "lookup_product",
+        "update_product",
+        "import_products_csv"
+      ],
+      "totalLines": 350,
+      "hasStructuralAnalysis": true
+    },
+    "app/api/shops.py": {
+      "filePath": "app/api/shops.py",
+      "contentHash": "8e017a7c03414bb055bbdb5cb2eb7a2a09ee5ef6e68585da61c7e5a0ae06c6b2",
+      "functions": [
+        {
+          "name": "get_my_shop",
+          "params": [
+            "db",
+            "_user"
+          ],
+          "returnType": "ShopPublic",
+          "exported": true,
+          "lineCount": 19
+        },
+        {
+          "name": "update_my_shop",
+          "params": [
+            "payload",
+            "db",
+            "_user"
+          ],
+          "returnType": "ShopPublic",
+          "exported": true,
+          "lineCount": 34
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "fastapi",
+          "specifiers": [
+            "APIRouter",
+            "Depends"
+          ]
+        },
+        {
+          "source": "sqlalchemy",
+          "specifiers": [
+            "select"
+          ]
+        },
+        {
+          "source": "app.api.deps",
+          "specifiers": [
+            "DbSession",
+            "require_role"
+          ]
+        },
+        {
+          "source": "app.logging_config",
+          "specifiers": [
+            "get_logger"
+          ]
+        },
+        {
+          "source": "app.models.shop",
+          "specifiers": [
+            "Shop"
+          ]
+        },
+        {
+          "source": "app.models.user",
+          "specifiers": [
+            "User",
+            "UserRole"
+          ]
+        },
+        {
+          "source": "app.schemas.shop",
+          "specifiers": [
+            "ShopPublic",
+            "ShopUpdate"
+          ]
+        }
+      ],
+      "exports": [
+        "get_my_shop",
+        "update_my_shop"
+      ],
+      "totalLines": 96,
+      "hasStructuralAnalysis": true
+    },
+    "app/api/staff.py": {
+      "filePath": "app/api/staff.py",
+      "contentHash": "28572516b73366f0c771c70b17a3a163db9f2ee1d43f9bbda55faf6ace17e882",
+      "functions": [
+        {
+          "name": "create_staff",
+          "params": [
+            "payload",
+            "db",
+            "user"
+          ],
+          "returnType": "UserPublic",
+          "exported": true,
+          "lineCount": 65
+        },
+        {
+          "name": "list_staff",
+          "params": [
+            "db",
+            "user"
+          ],
+          "returnType": "list[UserPublic]",
+          "exported": true,
+          "lineCount": 11
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "fastapi",
+          "specifiers": [
+            "APIRouter",
+            "Depends",
+            "HTTPException",
+            "status"
+          ]
+        },
+        {
+          "source": "sqlalchemy",
+          "specifiers": [
+            "select"
+          ]
+        },
+        {
+          "source": "sqlalchemy.dialects.postgresql.asyncpg",
+          "specifiers": [
+            "AsyncAdapt_asyncpg_dbapi"
+          ]
+        },
+        {
+          "source": "sqlalchemy.exc",
+          "specifiers": [
+            "IntegrityError"
+          ]
+        },
+        {
+          "source": "app.api._errors",
+          "specifiers": [
+            "is_unique_violation"
+          ]
+        },
+        {
+          "source": "app.api.deps",
+          "specifiers": [
+            "DbSession",
+            "require_role"
+          ]
+        },
+        {
+          "source": "app.logging_config",
+          "specifiers": [
+            "get_logger"
+          ]
+        },
+        {
+          "source": "app.models.user",
+          "specifiers": [
+            "User",
+            "UserRole"
+          ]
+        },
+        {
+          "source": "app.schemas.auth",
+          "specifiers": [
+            "StaffCreate",
+            "UserPublic"
+          ]
+        },
+        {
+          "source": "app.security.passwords",
+          "specifiers": [
+            "hash_password"
+          ]
+        }
+      ],
+      "exports": [
+        "create_staff",
+        "list_staff"
+      ],
+      "totalLines": 122,
+      "hasStructuralAnalysis": true
+    },
+    "app/api/users.py": {
+      "filePath": "app/api/users.py",
+      "contentHash": "a154a126b2176d13b8b43b402e4b5795999f2db1ff359dd4f2a65423a04d1f42",
+      "functions": [
+        {
+          "name": "me",
+          "params": [
+            "user"
+          ],
+          "returnType": "UserPublic",
+          "exported": true,
+          "lineCount": 2
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "fastapi",
+          "specifiers": [
+            "APIRouter"
+          ]
+        },
+        {
+          "source": "app.api.deps",
+          "specifiers": [
+            "CurrentUser"
+          ]
+        },
+        {
+          "source": "app.schemas.auth",
+          "specifiers": [
+            "UserPublic"
+          ]
+        }
+      ],
+      "exports": [
+        "me"
+      ],
+      "totalLines": 19,
+      "hasStructuralAnalysis": true
+    },
+    "app/api/voids.py": {
+      "filePath": "app/api/voids.py",
+      "contentHash": "bdb9f84201212f58a550a986f62ec1706b0279019332b603f88c5e425db4d99f",
+      "functions": [
+        {
+          "name": "_error_to_http",
+          "params": [
+            "exc"
+          ],
+          "returnType": "HTTPException",
+          "exported": true,
+          "lineCount": 7
+        },
+        {
+          "name": "request_void",
+          "params": [
+            "invoice_id",
+            "db",
+            "_user",
+            "reason"
+          ],
+          "returnType": "InvoicePublic",
+          "exported": true,
+          "lineCount": 60
+        },
+        {
+          "name": "approve_void",
+          "params": [
+            "invoice_id",
+            "db",
+            "_user",
+            "reason"
+          ],
+          "returnType": "InvoicePublic",
+          "exported": true,
+          "lineCount": 44
+        },
+        {
+          "name": "reject_void",
+          "params": [
+            "invoice_id",
+            "db",
+            "_user",
+            "reason"
+          ],
+          "returnType": "InvoicePublic",
+          "exported": true,
+          "lineCount": 42
+        },
+        {
+          "name": "_load_invoice",
+          "params": [
+            "db",
+            "invoice_id",
+            "shop_id"
+          ],
+          "returnType": "Invoice",
+          "exported": true,
+          "lineCount": 12
+        },
+        {
+          "name": "_not_found",
+          "params": [],
+          "returnType": "Invoice",
+          "exported": true,
+          "lineCount": 4
+        },
+        {
+          "name": "_write_void_log",
+          "params": [
+            "db",
+            "actor_id",
+            "shop_id",
+            "invoice",
+            "event_type",
+            "from_status",
+            "to_status",
+            "reason",
+            "extra"
+          ],
+          "returnType": "None",
+          "exported": true,
+          "lineCount": 29
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "fastapi",
+          "specifiers": [
+            "APIRouter",
+            "Depends",
+            "HTTPException",
+            "status"
+          ]
+        },
+        {
+          "source": "sqlalchemy.ext.asyncio",
+          "specifiers": [
+            "AsyncSession"
+          ]
+        },
+        {
+          "source": "app.api.deps",
+          "specifiers": [
+            "DbSession",
+            "require_role"
+          ]
+        },
+        {
+          "source": "app.logging_config",
+          "specifiers": [
+            "get_logger"
+          ]
+        },
+        {
+          "source": "app.models.invoice",
+          "specifiers": [
+            "Invoice",
+            "InvoiceStatus"
+          ]
+        },
+        {
+          "source": "app.models.log",
+          "specifiers": [
+            "InvoicingLog"
+          ]
+        },
+        {
+          "source": "app.models.user",
+          "specifiers": [
+            "User",
+            "UserRole"
+          ]
+        },
+        {
+          "source": "app.schemas.checkout",
+          "specifiers": [
+            "InvoicePublic"
+          ]
+        },
+        {
+          "source": "app.services.voids",
+          "specifiers": [
+            "VoidError",
+            "approve_post_eod_void",
+            "direct_void",
+            "reject_post_eod_void",
+            "request_post_eod_void"
+          ]
+        }
+      ],
+      "exports": [
+        "_error_to_http",
+        "request_void",
+        "approve_void",
+        "reject_void",
+        "_load_invoice",
+        "_not_found",
+        "_write_void_log"
+      ],
+      "totalLines": 286,
+      "hasStructuralAnalysis": true
+    },
+    "app/cli.py": {
+      "filePath": "app/cli.py",
+      "contentHash": "de6a45e8839131676e234da34c62926f552d272880d315fbb50ceb7510e991d9",
+      "functions": [
+        {
+          "name": "_print",
+          "params": [],
+          "returnType": "None",
+          "exported": true,
+          "lineCount": 2
+        },
+        {
+          "name": "_createsuperadmin",
+          "params": [
+            "username",
+            "password"
+          ],
+          "returnType": "None",
+          "exported": true,
+          "lineCount": 34
+        },
+        {
+          "name": "_createshop",
+          "params": [
+            "code",
+            "name",
+            "owner_username",
+            "owner_password"
+          ],
+          "returnType": "None",
+          "exported": true,
+          "lineCount": 50
+        },
+        {
+          "name": "main",
+          "params": [
+            "argv"
+          ],
+          "returnType": "None",
+          "exported": true,
+          "lineCount": 64
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "asyncio",
+          "specifiers": [
+            "asyncio"
+          ]
+        },
+        {
+          "source": "sys",
+          "specifiers": [
+            "sys"
+          ]
+        },
+        {
+          "source": "getpass",
+          "specifiers": [
+            "getpass"
+          ]
+        },
+        {
+          "source": "sqlalchemy",
+          "specifiers": [
+            "select"
+          ]
+        },
+        {
+          "source": "sqlalchemy.exc",
+          "specifiers": [
+            "IntegrityError"
+          ]
+        },
+        {
+          "source": "app.config",
+          "specifiers": [
+            "get_settings"
+          ]
+        },
+        {
+          "source": "app.db",
+          "specifiers": [
+            "get_sessionmaker",
+            "init_db"
+          ]
+        },
+        {
+          "source": "app.logging_config",
+          "specifiers": [
+            "configure_logging",
+            "get_logger"
+          ]
+        },
+        {
+          "source": "app.models.shop",
+          "specifiers": [
+            "Shop"
+          ]
+        },
+        {
+          "source": "app.models.user",
+          "specifiers": [
+            "User",
+            "UserRole"
+          ]
+        },
+        {
+          "source": "app.security.passwords",
+          "specifiers": [
+            "hash_password"
+          ]
+        }
+      ],
+      "exports": [
+        "_print",
+        "_createsuperadmin",
+        "_createshop",
+        "main"
+      ],
+      "totalLines": 187,
+      "hasStructuralAnalysis": true
+    },
+    "app/config.py": {
+      "filePath": "app/config.py",
+      "contentHash": "01cb3e9c0c99c0e287d624873b275a1cf8bef7810ebd066ef1d4217295d342d2",
+      "functions": [
+        {
+          "name": "get_settings",
+          "params": [],
+          "returnType": "Settings",
+          "exported": true,
+          "lineCount": 2
+        }
+      ],
+      "classes": [
+        {
+          "name": "Settings",
+          "methods": [],
+          "properties": [
+            "app_env",
+            "app_name",
+            "app_version",
+            "log_level",
+            "secret_key",
+            "jwt_algorithm",
+            "jwt_access_ttl_min",
+            "bcrypt_rounds",
+            "database_url",
+            "cors_allow_origins",
+            "low_stock_interval_min"
+          ],
+          "exported": true,
+          "lineCount": 27
+        }
+      ],
+      "imports": [
+        {
+          "source": "functools",
+          "specifiers": [
+            "lru_cache"
+          ]
+        },
+        {
+          "source": "typing",
+          "specifiers": [
+            "Literal"
+          ]
+        },
+        {
+          "source": "pydantic",
+          "specifiers": [
+            "Field"
+          ]
+        },
+        {
+          "source": "pydantic_settings",
+          "specifiers": [
+            "BaseSettings",
+            "SettingsConfigDict"
+          ]
+        }
+      ],
+      "exports": [
+        "Settings",
+        "get_settings"
+      ],
+      "totalLines": 43,
+      "hasStructuralAnalysis": true
+    },
+    "app/db.py": {
+      "filePath": "app/db.py",
+      "contentHash": "059cae5bbb385e79d7b2fd0d874a9d85249c8e7d268c21906aacc0cf7e9e5674",
+      "functions": [
+        {
+          "name": "get_engine",
+          "params": [],
+          "returnType": "AsyncEngine",
+          "exported": true,
+          "lineCount": 22
+        },
+        {
+          "name": "get_sessionmaker",
+          "params": [],
+          "returnType": "async_sessionmaker[AsyncSession]",
+          "exported": true,
+          "lineCount": 9
+        },
+        {
+          "name": "reset_engine",
+          "params": [],
+          "returnType": "None",
+          "exported": true,
+          "lineCount": 11
+        },
+        {
+          "name": "get_db",
+          "params": [],
+          "returnType": "AsyncIterator[AsyncSession]",
+          "exported": true,
+          "lineCount": 32
+        },
+        {
+          "name": "init_db",
+          "params": [],
+          "returnType": "None",
+          "exported": true,
+          "lineCount": 8
+        }
+      ],
+      "classes": [
+        {
+          "name": "Base",
+          "methods": [],
+          "properties": [],
+          "exported": true,
+          "lineCount": 2
+        }
+      ],
+      "imports": [
+        {
+          "source": "collections.abc",
+          "specifiers": [
+            "AsyncIterator"
+          ]
+        },
+        {
+          "source": "typing",
+          "specifiers": [
+            "Any"
+          ]
+        },
+        {
+          "source": "sqlalchemy.ext.asyncio",
+          "specifiers": [
+            "AsyncEngine",
+            "AsyncSession",
+            "async_sessionmaker",
+            "create_async_engine"
+          ]
+        },
+        {
+          "source": "sqlalchemy.orm",
+          "specifiers": [
+            "DeclarativeBase"
+          ]
+        },
+        {
+          "source": "app.config",
+          "specifiers": [
+            "get_settings"
+          ]
+        }
+      ],
+      "exports": [
+        "Base",
+        "get_engine",
+        "get_sessionmaker",
+        "reset_engine",
+        "get_db",
+        "init_db"
+      ],
+      "totalLines": 137,
+      "hasStructuralAnalysis": true
+    },
+    "app/logging_config.py": {
+      "filePath": "app/logging_config.py",
+      "contentHash": "4fcac56a3f5402f7d2ee2c10f5b0b033cbd7a1fe880db1d0801f854fbfa5177f",
+      "functions": [
+        {
+          "name": "configure_logging",
+          "params": [
+            "level"
+          ],
+          "returnType": "None",
+          "exported": true,
+          "lineCount": 46
+        },
+        {
+          "name": "get_logger",
+          "params": [
+            "name"
+          ],
+          "returnType": "structlog.stdlib.BoundLogger",
+          "exported": true,
+          "lineCount": 2
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "logging",
+          "specifiers": [
+            "logging"
+          ]
+        },
+        {
+          "source": "sys",
+          "specifiers": [
+            "sys"
+          ]
+        },
+        {
+          "source": "typing",
+          "specifiers": [
+            "Any"
+          ]
+        },
+        {
+          "source": "structlog",
+          "specifiers": [
+            "structlog"
+          ]
+        }
+      ],
+      "exports": [
+        "configure_logging",
+        "get_logger"
+      ],
+      "totalLines": 70,
+      "hasStructuralAnalysis": true
+    },
+    "app/main.py": {
+      "filePath": "app/main.py",
+      "contentHash": "7e03d30b7a2f92b29d3b65c95580aa70aa53e0977d12aa73a75aadc3253206cc",
+      "functions": [
+        {
+          "name": "lifespan",
+          "params": [
+            "_"
+          ],
+          "returnType": "AsyncIterator[None]",
+          "exported": true,
+          "lineCount": 30
+        },
+        {
+          "name": "_low_stock_loop",
+          "params": [],
+          "returnType": "None",
+          "exported": true,
+          "lineCount": 44
+        },
+        {
+          "name": "create_app",
+          "params": [],
+          "returnType": "FastAPI",
+          "exported": true,
+          "lineCount": 37
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "asyncio",
+          "specifiers": [
+            "asyncio"
+          ]
+        },
+        {
+          "source": "contextlib",
+          "specifiers": [
+            "contextlib"
+          ]
+        },
+        {
+          "source": "collections.abc",
+          "specifiers": [
+            "AsyncIterator"
+          ]
+        },
+        {
+          "source": "contextlib",
+          "specifiers": [
+            "asynccontextmanager"
+          ]
+        },
+        {
+          "source": "fastapi",
+          "specifiers": [
+            "FastAPI"
+          ]
+        },
+        {
+          "source": "fastapi.middleware.cors",
+          "specifiers": [
+            "CORSMiddleware"
+          ]
+        },
+        {
+          "source": "sqlalchemy",
+          "specifiers": [
+            "select"
+          ]
+        },
+        {
+          "source": "app.api",
+          "specifiers": [
+            "_test_only",
+            "auth",
+            "checkout",
+            "dashboard",
+            "health",
+            "lots",
+            "products",
+            "shops",
+            "staff",
+            "users",
+            "voids"
+          ]
+        },
+        {
+          "source": "app.config",
+          "specifiers": [
+            "get_settings"
+          ]
+        },
+        {
+          "source": "app.db",
+          "specifiers": [
+            "get_engine"
+          ]
+        },
+        {
+          "source": "app.logging_config",
+          "specifiers": [
+            "configure_logging",
+            "get_logger"
+          ]
+        }
+      ],
+      "exports": [
+        "lifespan",
+        "_low_stock_loop",
+        "create_app"
+      ],
+      "totalLines": 150,
+      "hasStructuralAnalysis": true
+    },
+    "app/models/__init__.py": {
+      "filePath": "app/models/__init__.py",
+      "contentHash": "5cf6b3af5a434222b381781891b508b39a3940f92a1dd0fcdbf2783bf80522b1",
+      "functions": [],
+      "classes": [],
+      "imports": [
+        {
+          "source": "app.models.invoice",
+          "specifiers": [
+            "STATUSES_COUNTING_AS_SOLD",
+            "EodSignOff",
+            "IdempotencyKey",
+            "Invoice",
+            "InvoiceLine",
+            "InvoiceStatus",
+            "Payment",
+            "PaymentMode"
+          ]
+        },
+        {
+          "source": "app.models.log",
+          "specifiers": [
+            "AdminLog",
+            "InvoicingLog",
+            "StockinLog"
+          ]
+        },
+        {
+          "source": "app.models.lot",
+          "specifiers": [
+            "Lot",
+            "LotLine"
+          ]
+        },
+        {
+          "source": "app.models.product",
+          "specifiers": [
+            "Product"
+          ]
+        },
+        {
+          "source": "app.models.shop",
+          "specifiers": [
+            "Shop"
+          ]
+        },
+        {
+          "source": "app.models.user",
+          "specifiers": [
+            "User",
+            "UserRole"
+          ]
+        }
+      ],
+      "exports": [],
+      "totalLines": 44,
+      "hasStructuralAnalysis": true
+    },
+    "app/models/invoice.py": {
+      "filePath": "app/models/invoice.py",
+      "contentHash": "2ec9eef77d24844ea1e60cd09eb9ef568c582b00355b8d1a54758cf6d84c1474",
+      "functions": [],
+      "classes": [
+        {
+          "name": "InvoiceStatus",
+          "methods": [],
+          "properties": [],
+          "exported": true,
+          "lineCount": 5
+        },
+        {
+          "name": "PaymentMode",
+          "methods": [],
+          "properties": [],
+          "exported": true,
+          "lineCount": 4
+        },
+        {
+          "name": "Invoice",
+          "methods": [],
+          "properties": [
+            "id",
+            "shop_id",
+            "cashier_user_id",
+            "invoice_number",
+            "status",
+            "total_amount",
+            "finalized_at",
+            "eod_signed_off",
+            "eod_signed_off_at",
+            "eod_signed_off_by_user_id",
+            "note",
+            "reverses_invoice_id",
+            "void_requested_by_user_id",
+            "void_requested_at",
+            "lines",
+            "payments"
+          ],
+          "exported": true,
+          "lineCount": 71
+        },
+        {
+          "name": "InvoiceLine",
+          "methods": [],
+          "properties": [
+            "id",
+            "invoice_id",
+            "product_id",
+            "quantity",
+            "unit_price",
+            "line_total",
+            "invoice",
+            "product"
+          ],
+          "exported": true,
+          "lineCount": 35
+        },
+        {
+          "name": "Payment",
+          "methods": [],
+          "properties": [
+            "id",
+            "invoice_id",
+            "mode",
+            "amount",
+            "invoice"
+          ],
+          "exported": true,
+          "lineCount": 25
+        },
+        {
+          "name": "EodSignOff",
+          "methods": [],
+          "properties": [
+            "id",
+            "shop_id",
+            "business_date",
+            "signed_off_by_user_id",
+            "signed_off_at",
+            "invoices_signed_off",
+            "notes"
+          ],
+          "exported": true,
+          "lineCount": 39
+        },
+        {
+          "name": "IdempotencyKey",
+          "methods": [],
+          "properties": [
+            "id",
+            "shop_id",
+            "key",
+            "invoice_id",
+            "created_at"
+          ],
+          "exported": true,
+          "lineCount": 31
+        }
+      ],
+      "imports": [
+        {
+          "source": "enum",
+          "specifiers": [
+            "enum"
+          ]
+        },
+        {
+          "source": "datetime",
+          "specifiers": [
+            "date_cls"
+          ]
+        },
+        {
+          "source": "datetime",
+          "specifiers": [
+            "datetime"
+          ]
+        },
+        {
+          "source": "decimal",
+          "specifiers": [
+            "Decimal"
+          ]
+        },
+        {
+          "source": "typing",
+          "specifiers": [
+            "TYPE_CHECKING"
+          ]
+        },
+        {
+          "source": "sqlalchemy",
+          "specifiers": [
+            "Date",
+            "DateTime",
+            "Enum",
+            "ForeignKey",
+            "Index",
+            "Integer",
+            "Numeric",
+            "String",
+            "UniqueConstraint",
+            "func"
+          ]
+        },
+        {
+          "source": "sqlalchemy.orm",
+          "specifiers": [
+            "Mapped",
+            "mapped_column",
+            "relationship"
+          ]
+        },
+        {
+          "source": "app.db",
+          "specifiers": [
+            "Base"
+          ]
+        }
+      ],
+      "exports": [
+        "InvoiceStatus",
+        "PaymentMode",
+        "Invoice",
+        "InvoiceLine",
+        "Payment",
+        "EodSignOff",
+        "IdempotencyKey"
+      ],
+      "totalLines": 285,
+      "hasStructuralAnalysis": true
+    },
+    "app/models/log.py": {
+      "filePath": "app/models/log.py",
+      "contentHash": "8cebc3e9d63f5d76169c44703ead22f48186ff2974fe6307eebef8dc6d9eb130",
+      "functions": [],
+      "classes": [
+        {
+          "name": "_BaseLog",
+          "methods": [],
+          "properties": [
+            "id",
+            "shop_id",
+            "actor_user_id",
+            "event_type",
+            "payload",
+            "created_at"
+          ],
+          "exported": true,
+          "lineCount": 21
+        },
+        {
+          "name": "InvoicingLog",
+          "methods": [],
+          "properties": [
+            "shop",
+            "actor_user"
+          ],
+          "exported": true,
+          "lineCount": 8
+        },
+        {
+          "name": "StockinLog",
+          "methods": [],
+          "properties": [
+            "shop",
+            "actor_user"
+          ],
+          "exported": true,
+          "lineCount": 8
+        },
+        {
+          "name": "AdminLog",
+          "methods": [],
+          "properties": [
+            "shop",
+            "actor_user"
+          ],
+          "exported": true,
+          "lineCount": 8
+        }
+      ],
+      "imports": [
+        {
+          "source": "datetime",
+          "specifiers": [
+            "datetime"
+          ]
+        },
+        {
+          "source": "typing",
+          "specifiers": [
+            "TYPE_CHECKING"
+          ]
+        },
+        {
+          "source": "sqlalchemy",
+          "specifiers": [
+            "JSON",
+            "DateTime",
+            "ForeignKey",
+            "Index",
+            "String",
+            "func"
+          ]
+        },
+        {
+          "source": "sqlalchemy.orm",
+          "specifiers": [
+            "Mapped",
+            "mapped_column",
+            "relationship"
+          ]
+        },
+        {
+          "source": "app.db",
+          "specifiers": [
+            "Base"
+          ]
+        }
+      ],
+      "exports": [
+        "_BaseLog",
+        "InvoicingLog",
+        "StockinLog",
+        "AdminLog"
+      ],
+      "totalLines": 91,
+      "hasStructuralAnalysis": true
+    },
+    "app/models/lot.py": {
+      "filePath": "app/models/lot.py",
+      "contentHash": "4960d8e1790d7afd2217c230175ef21488d25136a4595f2291826a7a972ea67c",
+      "functions": [],
+      "classes": [
+        {
+          "name": "Lot",
+          "methods": [],
+          "properties": [
+            "id",
+            "shop_id",
+            "received_by_user_id",
+            "reference",
+            "notes",
+            "received_at",
+            "created_at",
+            "lines",
+            "received_by",
+            "shop"
+          ],
+          "exported": true,
+          "lineCount": 36
+        },
+        {
+          "name": "LotLine",
+          "methods": [],
+          "properties": [
+            "id",
+            "lot_id",
+            "product_id",
+            "quantity",
+            "lot",
+            "product"
+          ],
+          "exported": true,
+          "lineCount": 24
+        }
+      ],
+      "imports": [
+        {
+          "source": "datetime",
+          "specifiers": [
+            "datetime"
+          ]
+        },
+        {
+          "source": "typing",
+          "specifiers": [
+            "TYPE_CHECKING"
+          ]
+        },
+        {
+          "source": "sqlalchemy",
+          "specifiers": [
+            "DateTime",
+            "ForeignKey",
+            "Index",
+            "Integer",
+            "String",
+            "func"
+          ]
+        },
+        {
+          "source": "sqlalchemy.orm",
+          "specifiers": [
+            "Mapped",
+            "mapped_column",
+            "relationship"
+          ]
+        },
+        {
+          "source": "app.db",
+          "specifiers": [
+            "Base"
+          ]
+        }
+      ],
+      "exports": [
+        "Lot",
+        "LotLine"
+      ],
+      "totalLines": 89,
+      "hasStructuralAnalysis": true
+    },
+    "app/models/product.py": {
+      "filePath": "app/models/product.py",
+      "contentHash": "cc878ee7d6d78bc3d397f18e24525d7b6bb0a77685746f257e2bcb00fc8caf67",
+      "functions": [],
+      "classes": [
+        {
+          "name": "Product",
+          "methods": [],
+          "properties": [
+            "id",
+            "shop_id",
+            "barcode",
+            "brand",
+            "size_label",
+            "price",
+            "low_stock_threshold",
+            "is_active",
+            "created_at",
+            "updated_at",
+            "shop"
+          ],
+          "exported": true,
+          "lineCount": 36
+        }
+      ],
+      "imports": [
+        {
+          "source": "datetime",
+          "specifiers": [
+            "datetime"
+          ]
+        },
+        {
+          "source": "decimal",
+          "specifiers": [
+            "Decimal"
+          ]
+        },
+        {
+          "source": "typing",
+          "specifiers": [
+            "TYPE_CHECKING"
+          ]
+        },
+        {
+          "source": "sqlalchemy",
+          "specifiers": [
+            "Boolean",
+            "DateTime",
+            "ForeignKey",
+            "Index",
+            "Numeric",
+            "String",
+            "func"
+          ]
+        },
+        {
+          "source": "sqlalchemy.orm",
+          "specifiers": [
+            "Mapped",
+            "mapped_column",
+            "relationship"
+          ]
+        },
+        {
+          "source": "app.db",
+          "specifiers": [
+            "Base"
+          ]
+        }
+      ],
+      "exports": [
+        "Product"
+      ],
+      "totalLines": 73,
+      "hasStructuralAnalysis": true
+    },
+    "app/models/shop.py": {
+      "filePath": "app/models/shop.py",
+      "contentHash": "ecb9a9daba64409cb0d02697f9630f29d5ac20b29f4febaad18f40cf2c1aaf45",
+      "functions": [],
+      "classes": [
+        {
+          "name": "Shop",
+          "methods": [],
+          "properties": [
+            "id",
+            "name",
+            "code",
+            "low_stock_threshold_default",
+            "last_invoice_number",
+            "gstin",
+            "excise_duty_rate",
+            "created_at",
+            "updated_at",
+            "users"
+          ],
+          "exported": true,
+          "lineCount": 44
+        }
+      ],
+      "imports": [
+        {
+          "source": "datetime",
+          "specifiers": [
+            "datetime"
+          ]
+        },
+        {
+          "source": "decimal",
+          "specifiers": [
+            "Decimal"
+          ]
+        },
+        {
+          "source": "typing",
+          "specifiers": [
+            "TYPE_CHECKING"
+          ]
+        },
+        {
+          "source": "sqlalchemy",
+          "specifiers": [
+            "DateTime",
+            "Numeric",
+            "String",
+            "func"
+          ]
+        },
+        {
+          "source": "sqlalchemy.orm",
+          "specifiers": [
+            "Mapped",
+            "mapped_column",
+            "relationship"
+          ]
+        },
+        {
+          "source": "app.db",
+          "specifiers": [
+            "Base"
+          ]
+        }
+      ],
+      "exports": [
+        "Shop"
+      ],
+      "totalLines": 66,
+      "hasStructuralAnalysis": true
+    },
+    "app/models/user.py": {
+      "filePath": "app/models/user.py",
+      "contentHash": "c11bb40ecdea0140bbcf7831e9b7cd3053522331b4b77ea3e387c1e24f3b446f",
+      "functions": [],
+      "classes": [
+        {
+          "name": "UserRole",
+          "methods": [],
+          "properties": [],
+          "exported": true,
+          "lineCount": 5
+        },
+        {
+          "name": "User",
+          "methods": [],
+          "properties": [
+            "id",
+            "shop_id",
+            "role",
+            "username",
+            "full_name",
+            "phone",
+            "password_hash",
+            "is_active",
+            "created_at",
+            "updated_at",
+            "shop"
+          ],
+          "exported": true,
+          "lineCount": 37
+        }
+      ],
+      "imports": [
+        {
+          "source": "enum",
+          "specifiers": [
+            "enum"
+          ]
+        },
+        {
+          "source": "datetime",
+          "specifiers": [
+            "datetime"
+          ]
+        },
+        {
+          "source": "typing",
+          "specifiers": [
+            "TYPE_CHECKING"
+          ]
+        },
+        {
+          "source": "sqlalchemy",
+          "specifiers": [
+            "Boolean",
+            "DateTime",
+            "Enum",
+            "ForeignKey",
+            "String",
+            "UniqueConstraint",
+            "func"
+          ]
+        },
+        {
+          "source": "sqlalchemy.orm",
+          "specifiers": [
+            "Mapped",
+            "mapped_column",
+            "relationship"
+          ]
+        },
+        {
+          "source": "app.db",
+          "specifiers": [
+            "Base"
+          ]
+        }
+      ],
+      "exports": [
+        "UserRole",
+        "User"
+      ],
+      "totalLines": 85,
+      "hasStructuralAnalysis": true
+    },
+    "app/schemas/__init__.py": {
+      "filePath": "app/schemas/__init__.py",
+      "contentHash": "7aa5a16a2087ce8c4b57f4c1f1a817fb7d9c0f558d5ae5fead2048917ccbf12b",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 2,
+      "hasStructuralAnalysis": true
+    },
+    "app/schemas/auth.py": {
+      "filePath": "app/schemas/auth.py",
+      "contentHash": "90508e0d985bf70a65db45bf967d71a6aa5b5776e3bfb0ef3af22aa2b698e3c5",
+      "functions": [],
+      "classes": [
+        {
+          "name": "LoginRequest",
+          "methods": [
+            "_phone_format"
+          ],
+          "properties": [
+            "username",
+            "phone",
+            "password"
+          ],
+          "exported": true,
+          "lineCount": 16
+        },
+        {
+          "name": "TokenResponse",
+          "methods": [],
+          "properties": [
+            "access_token",
+            "token_type",
+            "expires_in",
+            "user"
+          ],
+          "exported": true,
+          "lineCount": 5
+        },
+        {
+          "name": "UserPublic",
+          "methods": [],
+          "properties": [
+            "id",
+            "shop_id",
+            "role",
+            "username",
+            "full_name",
+            "phone",
+            "is_active",
+            "created_at"
+          ],
+          "exported": true,
+          "lineCount": 11
+        },
+        {
+          "name": "StaffCreate",
+          "methods": [
+            "_only_staff_roles",
+            "_phone_format"
+          ],
+          "properties": [
+            "role",
+            "username",
+            "full_name",
+            "phone",
+            "password"
+          ],
+          "exported": true,
+          "lineCount": 26
+        },
+        {
+          "name": "SuperAdminCreate",
+          "methods": [],
+          "properties": [
+            "username",
+            "password"
+          ],
+          "exported": true,
+          "lineCount": 5
+        }
+      ],
+      "imports": [
+        {
+          "source": "re",
+          "specifiers": [
+            "re"
+          ]
+        },
+        {
+          "source": "datetime",
+          "specifiers": [
+            "datetime"
+          ]
+        },
+        {
+          "source": "pydantic",
+          "specifiers": [
+            "BaseModel",
+            "ConfigDict",
+            "Field",
+            "field_validator"
+          ]
+        },
+        {
+          "source": "app.models.user",
+          "specifiers": [
+            "UserRole"
+          ]
+        }
+      ],
+      "exports": [
+        "LoginRequest",
+        "TokenResponse",
+        "UserPublic",
+        "StaffCreate",
+        "SuperAdminCreate"
+      ],
+      "totalLines": 88,
+      "hasStructuralAnalysis": true
+    },
+    "app/schemas/checkout.py": {
+      "filePath": "app/schemas/checkout.py",
+      "contentHash": "5d48f557e98a50ff046ca3cd5c13f041a26c5b17256160bbe8ed7f238f493430",
+      "functions": [],
+      "classes": [
+        {
+          "name": "CheckoutLine",
+          "methods": [],
+          "properties": [
+            "barcode",
+            "quantity"
+          ],
+          "exported": true,
+          "lineCount": 8
+        },
+        {
+          "name": "PaymentInput",
+          "methods": [],
+          "properties": [
+            "mode",
+            "amount"
+          ],
+          "exported": true,
+          "lineCount": 7
+        },
+        {
+          "name": "CheckoutFinalizeRequest",
+          "methods": [
+            "_payments_nonempty_amount"
+          ],
+          "properties": [
+            "lines",
+            "payments",
+            "note"
+          ],
+          "exported": true,
+          "lineCount": 19
+        },
+        {
+          "name": "InvoiceLinePublic",
+          "methods": [],
+          "properties": [
+            "id",
+            "product_id",
+            "quantity",
+            "unit_price",
+            "line_total"
+          ],
+          "exported": true,
+          "lineCount": 8
+        },
+        {
+          "name": "PaymentPublic",
+          "methods": [],
+          "properties": [
+            "id",
+            "mode",
+            "amount"
+          ],
+          "exported": true,
+          "lineCount": 6
+        },
+        {
+          "name": "InvoicePublic",
+          "methods": [],
+          "properties": [
+            "id",
+            "shop_id",
+            "cashier_user_id",
+            "invoice_number",
+            "status",
+            "total_amount",
+            "note",
+            "finalized_at",
+            "eod_signed_off",
+            "lines",
+            "payments"
+          ],
+          "exported": true,
+          "lineCount": 14
+        },
+        {
+          "name": "CheckoutFinalizeResponse",
+          "methods": [],
+          "properties": [
+            "invoice",
+            "is_replay"
+          ],
+          "exported": true,
+          "lineCount": 3
+        }
+      ],
+      "imports": [
+        {
+          "source": "datetime",
+          "specifiers": [
+            "datetime"
+          ]
+        },
+        {
+          "source": "decimal",
+          "specifiers": [
+            "Decimal"
+          ]
+        },
+        {
+          "source": "pydantic",
+          "specifiers": [
+            "BaseModel",
+            "ConfigDict",
+            "Field",
+            "model_validator"
+          ]
+        },
+        {
+          "source": "app.models.invoice",
+          "specifiers": [
+            "Invoice",
+            "InvoiceLine",
+            "InvoiceStatus",
+            "Payment",
+            "PaymentMode"
+          ]
+        }
+      ],
+      "exports": [
+        "CheckoutLine",
+        "PaymentInput",
+        "CheckoutFinalizeRequest",
+        "InvoiceLinePublic",
+        "PaymentPublic",
+        "InvoicePublic",
+        "CheckoutFinalizeResponse"
+      ],
+      "totalLines": 112,
+      "hasStructuralAnalysis": true
+    },
+    "app/schemas/eod.py": {
+      "filePath": "app/schemas/eod.py",
+      "contentHash": "36bc7d07fa3b2bc7c0a3e1b8a628e17334e40cd302d0b0cea08fb3d393cff44c",
+      "functions": [],
+      "classes": [
+        {
+          "name": "SignOffRequest",
+          "methods": [
+            "_not_far_past"
+          ],
+          "properties": [
+            "business_date",
+            "notes"
+          ],
+          "exported": true,
+          "lineCount": 10
+        },
+        {
+          "name": "SignOffResponse",
+          "methods": [],
+          "properties": [
+            "business_date",
+            "signed_off_at",
+            "signed_off_by_user_id",
+            "invoices_signed_off"
+          ],
+          "exported": true,
+          "lineCount": 5
+        },
+        {
+          "name": "PaymentModeTotal",
+          "methods": [],
+          "properties": [
+            "mode",
+            "amount"
+          ],
+          "exported": true,
+          "lineCount": 3
+        },
+        {
+          "name": "EodTotalsResponse",
+          "methods": [],
+          "properties": [
+            "business_date",
+            "signed_off",
+            "invoice_count",
+            "revenue",
+            "voided_count",
+            "reversal_count",
+            "payments_by_mode"
+          ],
+          "exported": true,
+          "lineCount": 8
+        },
+        {
+          "name": "SignOffHistoryResponse",
+          "methods": [],
+          "properties": [
+            "signoffs"
+          ],
+          "exported": true,
+          "lineCount": 2
+        },
+        {
+          "name": "PendingVoidResponse",
+          "methods": [],
+          "properties": [
+            "invoices"
+          ],
+          "exported": true,
+          "lineCount": 2
+        },
+        {
+          "name": "LowStockItem",
+          "methods": [],
+          "properties": [
+            "product_id",
+            "barcode",
+            "brand",
+            "size_label",
+            "current_stock",
+            "effective_threshold"
+          ],
+          "exported": true,
+          "lineCount": 7
+        },
+        {
+          "name": "LowStockResponse",
+          "methods": [],
+          "properties": [
+            "items",
+            "evaluated_at"
+          ],
+          "exported": true,
+          "lineCount": 5
+        }
+      ],
+      "imports": [
+        {
+          "source": "datetime",
+          "specifiers": [
+            "date",
+            "datetime"
+          ]
+        },
+        {
+          "source": "decimal",
+          "specifiers": [
+            "Decimal"
+          ]
+        },
+        {
+          "source": "pydantic",
+          "specifiers": [
+            "BaseModel",
+            "ConfigDict",
+            "Field",
+            "field_validator"
+          ]
+        },
+        {
+          "source": "app.schemas.checkout",
+          "specifiers": [
+            "InvoicePublic"
+          ]
+        }
+      ],
+      "exports": [
+        "SignOffRequest",
+        "SignOffResponse",
+        "PaymentModeTotal",
+        "EodTotalsResponse",
+        "SignOffHistoryResponse",
+        "PendingVoidResponse",
+        "LowStockItem",
+        "LowStockResponse"
+      ],
+      "totalLines": 79,
+      "hasStructuralAnalysis": true
+    },
+    "app/schemas/lot.py": {
+      "filePath": "app/schemas/lot.py",
+      "contentHash": "d0f6f46a9230f568a7019856a72d79968d8572cb69f97890222a5b4a34763860",
+      "functions": [],
+      "classes": [
+        {
+          "name": "LotLineCreate",
+          "methods": [],
+          "properties": [
+            "barcode",
+            "quantity"
+          ],
+          "exported": true,
+          "lineCount": 7
+        },
+        {
+          "name": "LotLinePublic",
+          "methods": [],
+          "properties": [
+            "id",
+            "product_id",
+            "quantity"
+          ],
+          "exported": true,
+          "lineCount": 6
+        },
+        {
+          "name": "LotCreate",
+          "methods": [
+            "_unique_barcodes"
+          ],
+          "properties": [
+            "reference",
+            "notes",
+            "lines"
+          ],
+          "exported": true,
+          "lineCount": 21
+        },
+        {
+          "name": "LotPublic",
+          "methods": [],
+          "properties": [
+            "id",
+            "shop_id",
+            "received_by_user_id",
+            "reference",
+            "notes",
+            "received_at",
+            "created_at",
+            "lines"
+          ],
+          "exported": true,
+          "lineCount": 11
+        },
+        {
+          "name": "LotListResponse",
+          "methods": [],
+          "properties": [
+            "lots"
+          ],
+          "exported": true,
+          "lineCount": 2
+        }
+      ],
+      "imports": [
+        {
+          "source": "datetime",
+          "specifiers": [
+            "datetime"
+          ]
+        },
+        {
+          "source": "pydantic",
+          "specifiers": [
+            "BaseModel",
+            "ConfigDict",
+            "Field",
+            "model_validator"
+          ]
+        },
+        {
+          "source": "app.models.lot",
+          "specifiers": [
+            "Lot",
+            "LotLine"
+          ]
+        }
+      ],
+      "exports": [
+        "LotLineCreate",
+        "LotLinePublic",
+        "LotCreate",
+        "LotPublic",
+        "LotListResponse"
+      ],
+      "totalLines": 78,
+      "hasStructuralAnalysis": true
+    },
+    "app/schemas/product.py": {
+      "filePath": "app/schemas/product.py",
+      "contentHash": "2e5e74d895e2d8cc4d88ee9e058596756c34f0e15038021d6d690f80d06b7044",
+      "functions": [],
+      "classes": [
+        {
+          "name": "ProductCreate",
+          "methods": [
+            "_barcode_no_ws",
+            "_size_label_shape"
+          ],
+          "properties": [
+            "barcode",
+            "brand",
+            "size_label",
+            "price",
+            "low_stock_threshold"
+          ],
+          "exported": true,
+          "lineCount": 24
+        },
+        {
+          "name": "ProductUpdate",
+          "methods": [],
+          "properties": [
+            "brand",
+            "size_label",
+            "price",
+            "low_stock_threshold",
+            "is_active"
+          ],
+          "exported": true,
+          "lineCount": 10
+        },
+        {
+          "name": "ProductPublic",
+          "methods": [],
+          "properties": [
+            "id",
+            "shop_id",
+            "barcode",
+            "brand",
+            "size_label",
+            "price",
+            "low_stock_threshold",
+            "is_active",
+            "created_at",
+            "updated_at"
+          ],
+          "exported": true,
+          "lineCount": 13
+        },
+        {
+          "name": "ProductImportRow",
+          "methods": [
+            "_barcode_no_ws"
+          ],
+          "properties": [
+            "row",
+            "barcode",
+            "brand",
+            "size_label",
+            "price",
+            "low_stock_threshold"
+          ],
+          "exported": true,
+          "lineCount": 16
+        },
+        {
+          "name": "ProductImportError",
+          "methods": [],
+          "properties": [
+            "row",
+            "barcode",
+            "error"
+          ],
+          "exported": true,
+          "lineCount": 4
+        },
+        {
+          "name": "ProductImportResponse",
+          "methods": [],
+          "properties": [
+            "created",
+            "failed",
+            "errors"
+          ],
+          "exported": true,
+          "lineCount": 4
+        }
+      ],
+      "imports": [
+        {
+          "source": "re",
+          "specifiers": [
+            "re"
+          ]
+        },
+        {
+          "source": "datetime",
+          "specifiers": [
+            "datetime"
+          ]
+        },
+        {
+          "source": "decimal",
+          "specifiers": [
+            "Decimal"
+          ]
+        },
+        {
+          "source": "pydantic",
+          "specifiers": [
+            "BaseModel",
+            "ConfigDict",
+            "Field",
+            "field_validator"
+          ]
+        },
+        {
+          "source": "app.models.product",
+          "specifiers": [
+            "Product"
+          ]
+        }
+      ],
+      "exports": [
+        "ProductCreate",
+        "ProductUpdate",
+        "ProductPublic",
+        "ProductImportRow",
+        "ProductImportError",
+        "ProductImportResponse"
+      ],
+      "totalLines": 115,
+      "hasStructuralAnalysis": true
+    },
+    "app/schemas/shop.py": {
+      "filePath": "app/schemas/shop.py",
+      "contentHash": "56b380f2644c3bcf819a0b01b8d750f547d9242faffb72c6d4da87cb3481ee9e",
+      "functions": [],
+      "classes": [
+        {
+          "name": "ShopPublic",
+          "methods": [],
+          "properties": [
+            "id",
+            "name",
+            "code",
+            "gstin",
+            "excise_duty_rate",
+            "low_stock_threshold_default"
+          ],
+          "exported": true,
+          "lineCount": 11
+        },
+        {
+          "name": "ShopUpdate",
+          "methods": [
+            "_gstin_shape"
+          ],
+          "properties": [
+            "name",
+            "gstin",
+            "excise_duty_rate",
+            "low_stock_threshold_default"
+          ],
+          "exported": true,
+          "lineCount": 31
+        }
+      ],
+      "imports": [
+        {
+          "source": "re",
+          "specifiers": [
+            "re"
+          ]
+        },
+        {
+          "source": "decimal",
+          "specifiers": [
+            "Decimal"
+          ]
+        },
+        {
+          "source": "pydantic",
+          "specifiers": [
+            "BaseModel",
+            "ConfigDict",
+            "Field",
+            "field_validator"
+          ]
+        }
+      ],
+      "exports": [
+        "ShopPublic",
+        "ShopUpdate"
+      ],
+      "totalLines": 56,
+      "hasStructuralAnalysis": true
+    },
+    "app/security/__init__.py": {
+      "filePath": "app/security/__init__.py",
+      "contentHash": "da6d80ff9fc916dc0aeed5fdaa94c2958e481525e475103c35af3d82b632f18d",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 2,
+      "hasStructuralAnalysis": true
+    },
+    "app/security/jwt.py": {
+      "filePath": "app/security/jwt.py",
+      "contentHash": "934f74cb2a306346dcdecb062971480bd693fa049a535f9f834edad22cbe4fd7",
+      "functions": [
+        {
+          "name": "create_access_token",
+          "params": [
+            "sub",
+            "shop_id",
+            "role",
+            "extra",
+            "ttl_minutes"
+          ],
+          "returnType": "str",
+          "exported": true,
+          "lineCount": 21
+        },
+        {
+          "name": "decode_access_token",
+          "params": [
+            "token"
+          ],
+          "returnType": "dict[str, Any]",
+          "exported": true,
+          "lineCount": 6
+        }
+      ],
+      "classes": [
+        {
+          "name": "TokenError",
+          "methods": [],
+          "properties": [],
+          "exported": true,
+          "lineCount": 2
+        }
+      ],
+      "imports": [
+        {
+          "source": "datetime",
+          "specifiers": [
+            "UTC",
+            "datetime",
+            "timedelta"
+          ]
+        },
+        {
+          "source": "typing",
+          "specifiers": [
+            "Any"
+          ]
+        },
+        {
+          "source": "jose",
+          "specifiers": [
+            "JWTError",
+            "jwt"
+          ]
+        },
+        {
+          "source": "app.config",
+          "specifiers": [
+            "get_settings"
+          ]
+        }
+      ],
+      "exports": [
+        "TokenError",
+        "create_access_token",
+        "decode_access_token"
+      ],
+      "totalLines": 45,
+      "hasStructuralAnalysis": true
+    },
+    "app/security/passwords.py": {
+      "filePath": "app/security/passwords.py",
+      "contentHash": "187cc53c7d0d4c55749b3868872f970180bd2b5781047132563bfee8698747ba",
+      "functions": [
+        {
+          "name": "hash_password",
+          "params": [
+            "plain"
+          ],
+          "returnType": "str",
+          "exported": true,
+          "lineCount": 6
+        },
+        {
+          "name": "verify_password",
+          "params": [
+            "plain",
+            "hashed"
+          ],
+          "returnType": "bool",
+          "exported": true,
+          "lineCount": 5
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "bcrypt",
+          "specifiers": [
+            "bcrypt"
+          ]
+        },
+        {
+          "source": "app.config",
+          "specifiers": [
+            "get_settings"
+          ]
+        }
+      ],
+      "exports": [
+        "hash_password",
+        "verify_password"
+      ],
+      "totalLines": 24,
+      "hasStructuralAnalysis": true
+    },
+    "app/services/__init__.py": {
+      "filePath": "app/services/__init__.py",
+      "contentHash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 1,
+      "hasStructuralAnalysis": true
+    },
+    "app/services/checkout.py": {
+      "filePath": "app/services/checkout.py",
+      "contentHash": "2c96dc29a0cfd96087df84f55e889c2f1b4c2f5fc728c19f88196e96b711e7fc",
+      "functions": [
+        {
+          "name": "_check_idempotency_key_present",
+          "params": [
+            "key"
+          ],
+          "returnType": "str",
+          "exported": true,
+          "lineCount": 10
+        },
+        {
+          "name": "_is_today_signed_off",
+          "params": [
+            "db",
+            "shop_id"
+          ],
+          "returnType": "bool",
+          "exported": true,
+          "lineCount": 13
+        },
+        {
+          "name": "_resolve_products_for_cart",
+          "params": [
+            "db",
+            "shop_id",
+            "lines"
+          ],
+          "returnType": "dict[str, Product]",
+          "exported": true,
+          "lineCount": 25
+        },
+        {
+          "name": "_current_stock_for",
+          "params": [
+            "db",
+            "product_ids"
+          ],
+          "returnType": "dict[int, int]",
+          "exported": true,
+          "lineCount": 85
+        },
+        {
+          "name": "finalize_checkout",
+          "params": [
+            "db",
+            "shop_id",
+            "cashier_user_id",
+            "cart",
+            "payments",
+            "idempotency_key",
+            "note"
+          ],
+          "returnType": "FinalizeResult",
+          "exported": true,
+          "lineCount": 173
+        }
+      ],
+      "classes": [
+        {
+          "name": "CheckoutError",
+          "methods": [
+            "__init__"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 11
+        },
+        {
+          "name": "CartLine",
+          "methods": [],
+          "properties": [
+            "barcode",
+            "quantity"
+          ],
+          "exported": true,
+          "lineCount": 5
+        },
+        {
+          "name": "PaymentLine",
+          "methods": [],
+          "properties": [
+            "mode",
+            "amount"
+          ],
+          "exported": true,
+          "lineCount": 5
+        },
+        {
+          "name": "FinalizeResult",
+          "methods": [],
+          "properties": [
+            "invoice",
+            "is_replay"
+          ],
+          "exported": true,
+          "lineCount": 3
+        }
+      ],
+      "imports": [
+        {
+          "source": "collections.abc",
+          "specifiers": [
+            "Iterable"
+          ]
+        },
+        {
+          "source": "dataclasses",
+          "specifiers": [
+            "dataclass"
+          ]
+        },
+        {
+          "source": "datetime",
+          "specifiers": [
+            "UTC",
+            "datetime"
+          ]
+        },
+        {
+          "source": "decimal",
+          "specifiers": [
+            "Decimal"
+          ]
+        },
+        {
+          "source": "typing",
+          "specifiers": [
+            "NamedTuple"
+          ]
+        },
+        {
+          "source": "sqlalchemy",
+          "specifiers": [
+            "func",
+            "literal",
+            "select"
+          ]
+        },
+        {
+          "source": "sqlalchemy.ext.asyncio",
+          "specifiers": [
+            "AsyncSession"
+          ]
+        },
+        {
+          "source": "app.models.invoice",
+          "specifiers": [
+            "STATUSES_COUNTING_AS_SOLD",
+            "IdempotencyKey",
+            "Invoice",
+            "InvoiceLine",
+            "InvoiceStatus",
+            "Payment",
+            "PaymentMode"
+          ]
+        },
+        {
+          "source": "app.models.lot",
+          "specifiers": [
+            "LotLine"
+          ]
+        },
+        {
+          "source": "app.models.product",
+          "specifiers": [
+            "Product"
+          ]
+        },
+        {
+          "source": "app.models.shop",
+          "specifiers": [
+            "Shop"
+          ]
+        }
+      ],
+      "exports": [
+        "CheckoutError",
+        "CartLine",
+        "PaymentLine",
+        "FinalizeResult",
+        "_check_idempotency_key_present",
+        "_is_today_signed_off",
+        "_resolve_products_for_cart",
+        "_current_stock_for",
+        "finalize_checkout"
+      ],
+      "totalLines": 411,
+      "hasStructuralAnalysis": true
+    },
+    "app/services/eod.py": {
+      "filePath": "app/services/eod.py",
+      "contentHash": "a2667c060632e9f3dbea29a34afc7dd176b9c771cdaef9f730445c07e6b684d7",
+      "functions": [
+        {
+          "name": "_day_bounds",
+          "params": [
+            "business_date"
+          ],
+          "returnType": "tuple[datetime, datetime]",
+          "exported": true,
+          "lineCount": 5
+        },
+        {
+          "name": "sign_off_day",
+          "params": [
+            "db",
+            "shop_id",
+            "business_date",
+            "signed_off_by_user_id",
+            "notes"
+          ],
+          "returnType": "SignOffResult",
+          "exported": true,
+          "lineCount": 67
+        },
+        {
+          "name": "get_day_totals",
+          "params": [
+            "db",
+            "shop_id",
+            "business_date"
+          ],
+          "returnType": "EodTotals",
+          "exported": true,
+          "lineCount": 61
+        },
+        {
+          "name": "list_signoff_history",
+          "params": [
+            "db",
+            "shop_id",
+            "from_date",
+            "to_date",
+            "limit"
+          ],
+          "returnType": "list[EodSignOff]",
+          "exported": true,
+          "lineCount": 18
+        },
+        {
+          "name": "list_pending_voids",
+          "params": [
+            "db",
+            "shop_id",
+            "limit"
+          ],
+          "returnType": "list[Invoice]",
+          "exported": true,
+          "lineCount": 18
+        }
+      ],
+      "classes": [
+        {
+          "name": "EodError",
+          "methods": [
+            "__init__"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 5
+        },
+        {
+          "name": "SignOffResult",
+          "methods": [],
+          "properties": [
+            "sign_off",
+            "invoices_signed_off"
+          ],
+          "exported": true,
+          "lineCount": 3
+        },
+        {
+          "name": "EodTotals",
+          "methods": [],
+          "properties": [
+            "business_date",
+            "signed_off",
+            "invoice_count",
+            "revenue",
+            "voided_count",
+            "reversal_count",
+            "payments_by_mode"
+          ],
+          "exported": true,
+          "lineCount": 8
+        }
+      ],
+      "imports": [
+        {
+          "source": "collections",
+          "specifiers": [
+            "defaultdict"
+          ]
+        },
+        {
+          "source": "dataclasses",
+          "specifiers": [
+            "dataclass"
+          ]
+        },
+        {
+          "source": "datetime",
+          "specifiers": [
+            "UTC",
+            "date",
+            "datetime",
+            "time",
+            "timedelta"
+          ]
+        },
+        {
+          "source": "decimal",
+          "specifiers": [
+            "Decimal"
+          ]
+        },
+        {
+          "source": "sqlalchemy",
+          "specifiers": [
+            "select"
+          ]
+        },
+        {
+          "source": "sqlalchemy.ext.asyncio",
+          "specifiers": [
+            "AsyncSession"
+          ]
+        },
+        {
+          "source": "app.models.invoice",
+          "specifiers": [
+            "STATUSES_COUNTING_AS_SOLD",
+            "EodSignOff",
+            "Invoice",
+            "InvoiceStatus",
+            "Payment"
+          ]
+        }
+      ],
+      "exports": [
+        "EodError",
+        "SignOffResult",
+        "EodTotals",
+        "_day_bounds",
+        "sign_off_day",
+        "get_day_totals",
+        "list_signoff_history",
+        "list_pending_voids"
+      ],
+      "totalLines": 254,
+      "hasStructuralAnalysis": true
+    },
+    "app/services/invoice_pdf.py": {
+      "filePath": "app/services/invoice_pdf.py",
+      "contentHash": "61a4ec8cba7f2116a7f163965a9dcf0293df97ff23681487ea1031387badb192",
+      "functions": [
+        {
+          "name": "render_invoice_pdf",
+          "params": [
+            "invoice",
+            "shop_name",
+            "shop_gstin",
+            "shop_excise_duty_rate"
+          ],
+          "returnType": "bytes",
+          "exported": true,
+          "lineCount": 132
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "decimal",
+          "specifiers": [
+            "Decimal"
+          ]
+        },
+        {
+          "source": "io",
+          "specifiers": [
+            "BytesIO"
+          ]
+        },
+        {
+          "source": "reportlab.lib",
+          "specifiers": [
+            "colors"
+          ]
+        },
+        {
+          "source": "reportlab.lib.pagesizes",
+          "specifiers": [
+            "A4"
+          ]
+        },
+        {
+          "source": "reportlab.lib.styles",
+          "specifiers": [
+            "getSampleStyleSheet"
+          ]
+        },
+        {
+          "source": "reportlab.lib.units",
+          "specifiers": [
+            "mm"
+          ]
+        },
+        {
+          "source": "reportlab.platypus",
+          "specifiers": [
+            "Paragraph",
+            "SimpleDocTemplate",
+            "Spacer",
+            "Table",
+            "TableStyle"
+          ]
+        },
+        {
+          "source": "app.models.invoice",
+          "specifiers": [
+            "Invoice"
+          ]
+        }
+      ],
+      "exports": [
+        "render_invoice_pdf"
+      ],
+      "totalLines": 161,
+      "hasStructuralAnalysis": true
+    },
+    "app/services/low_stock.py": {
+      "filePath": "app/services/low_stock.py",
+      "contentHash": "2f698f09226ee215bbb8734dea700e0e15d85a9abaec4a1e4e92f9301c73d3c8",
+      "functions": [
+        {
+          "name": "_stock_per_product",
+          "params": [
+            "db",
+            "shop_id"
+          ],
+          "returnType": "dict[int, int]",
+          "exported": true,
+          "lineCount": 72
+        },
+        {
+          "name": "compute_low_stock",
+          "params": [
+            "db",
+            "shop_id"
+          ],
+          "returnType": "list[LowStockRow]",
+          "exported": true,
+          "lineCount": 50
+        }
+      ],
+      "classes": [
+        {
+          "name": "LowStockRow",
+          "methods": [],
+          "properties": [
+            "product",
+            "current_stock",
+            "effective_threshold"
+          ],
+          "exported": true,
+          "lineCount": 4
+        }
+      ],
+      "imports": [
+        {
+          "source": "dataclasses",
+          "specifiers": [
+            "dataclass"
+          ]
+        },
+        {
+          "source": "typing",
+          "specifiers": [
+            "TYPE_CHECKING"
+          ]
+        },
+        {
+          "source": "sqlalchemy",
+          "specifiers": [
+            "func",
+            "literal",
+            "select"
+          ]
+        },
+        {
+          "source": "sqlalchemy.ext.asyncio",
+          "specifiers": [
+            "AsyncSession"
+          ]
+        },
+        {
+          "source": "app.models.invoice",
+          "specifiers": [
+            "STATUSES_COUNTING_AS_SOLD",
+            "Invoice",
+            "InvoiceLine"
+          ]
+        },
+        {
+          "source": "app.models.lot",
+          "specifiers": [
+            "LotLine"
+          ]
+        },
+        {
+          "source": "app.models.product",
+          "specifiers": [
+            "Product"
+          ]
+        }
+      ],
+      "exports": [
+        "LowStockRow",
+        "_stock_per_product",
+        "compute_low_stock"
+      ],
+      "totalLines": 174,
+      "hasStructuralAnalysis": true
+    },
+    "app/services/voids.py": {
+      "filePath": "app/services/voids.py",
+      "contentHash": "1e803ae4100996248ecb573e13f0a275f21c0877c610367c313f80df95d273c1",
+      "functions": [
+        {
+          "name": "_load_invoice_for_void",
+          "params": [
+            "db",
+            "invoice_id",
+            "shop_id"
+          ],
+          "returnType": "Invoice",
+          "exported": true,
+          "lineCount": 14
+        },
+        {
+          "name": "direct_void",
+          "params": [
+            "db",
+            "invoice_id",
+            "shop_id",
+            "actor_user_id",
+            "reason"
+          ],
+          "returnType": "Invoice",
+          "exported": true,
+          "lineCount": 39
+        },
+        {
+          "name": "request_post_eod_void",
+          "params": [
+            "db",
+            "invoice_id",
+            "shop_id",
+            "actor_user_id",
+            "reason"
+          ],
+          "returnType": "Invoice",
+          "exported": true,
+          "lineCount": 35
+        },
+        {
+          "name": "approve_post_eod_void",
+          "params": [
+            "db",
+            "invoice_id",
+            "shop_id",
+            "owner_user_id",
+            "reason"
+          ],
+          "returnType": "VoidResult",
+          "exported": true,
+          "lineCount": 82
+        },
+        {
+          "name": "reject_post_eod_void",
+          "params": [
+            "db",
+            "invoice_id",
+            "shop_id",
+            "owner_user_id",
+            "reason"
+          ],
+          "returnType": "Invoice",
+          "exported": true,
+          "lineCount": 30
+        }
+      ],
+      "classes": [
+        {
+          "name": "VoidError",
+          "methods": [
+            "__init__"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 5
+        },
+        {
+          "name": "VoidResult",
+          "methods": [],
+          "properties": [
+            "invoice",
+            "reversal"
+          ],
+          "exported": true,
+          "lineCount": 3
+        }
+      ],
+      "imports": [
+        {
+          "source": "dataclasses",
+          "specifiers": [
+            "dataclass"
+          ]
+        },
+        {
+          "source": "datetime",
+          "specifiers": [
+            "UTC",
+            "datetime"
+          ]
+        },
+        {
+          "source": "sqlalchemy",
+          "specifiers": [
+            "select"
+          ]
+        },
+        {
+          "source": "sqlalchemy.ext.asyncio",
+          "specifiers": [
+            "AsyncSession"
+          ]
+        },
+        {
+          "source": "app.models.invoice",
+          "specifiers": [
+            "Invoice",
+            "InvoiceLine",
+            "InvoiceStatus",
+            "Payment"
+          ]
+        },
+        {
+          "source": "app.models.shop",
+          "specifiers": [
+            "Shop"
+          ]
+        }
+      ],
+      "exports": [
+        "VoidError",
+        "VoidResult",
+        "_load_invoice_for_void",
+        "direct_void",
+        "request_post_eod_void",
+        "approve_post_eod_void",
+        "reject_post_eod_void"
+      ],
+      "totalLines": 273,
+      "hasStructuralAnalysis": true
+    },
+    "docker-compose.yml": {
+      "filePath": "docker-compose.yml",
+      "contentHash": "7d33423a3faea4a7f1beb1bef8bf8807c770fc18dca7a2104bed410073943292",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 23,
+      "hasStructuralAnalysis": true
+    },
+    "harness/00-intake.md": {
+      "filePath": "harness/00-intake.md",
+      "contentHash": "82611aeda5fd6b93aa1655c433de9e2ce0668251e725edf1f39b0d001b36a155",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 70,
+      "hasStructuralAnalysis": true
+    },
+    "harness/01-branch-map.md": {
+      "filePath": "harness/01-branch-map.md",
+      "contentHash": "b99c5d2b815dad8099d75af8347e6ab6c9934f6770139518965e6508b16c3f05",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 159,
+      "hasStructuralAnalysis": true
+    },
+    "harness/02-ledger.md": {
+      "filePath": "harness/02-ledger.md",
+      "contentHash": "7283f815c5a0f836113bdfa338519e2381036bd825ac086b3abdb0aa479cc8b4",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 150,
+      "hasStructuralAnalysis": true
+    },
+    "harness/03-prd.md": {
+      "filePath": "harness/03-prd.md",
+      "contentHash": "da6ffac835c3dfbe6e5cf01d57d44470b939cb58d62217a2efa8ba2f3b7cb23f",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 285,
+      "hasStructuralAnalysis": true
+    },
+    "harness/04-absences.md": {
+      "filePath": "harness/04-absences.md",
+      "contentHash": "0183a966fa1e0e20a03c35a4eb1612c36aecd8ef46e44da70b12e4ef825fb37c",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 27,
+      "hasStructuralAnalysis": true
+    },
+    "harness/05-issues/README.md": {
+      "filePath": "harness/05-issues/README.md",
+      "contentHash": "3e1a5bc4ef92b9dd4e8e59e2d0bfcec5ea55e5c12cd62df9fcdfc17682dfa582",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 26,
+      "hasStructuralAnalysis": true
+    },
+    "pyproject.toml": {
+      "filePath": "pyproject.toml",
+      "contentHash": "25556b55f498de595a90f9e50bde6c451e1ebd54834b3ad8763eca22f8ea54d8",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 110,
+      "hasStructuralAnalysis": true
+    },
+    "README.md": {
+      "filePath": "README.md",
+      "contentHash": "a8c1e7f6190459cee4de6c3d096f4ee2f947e00cfc9d6452ea69847b8b3e5943",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 67,
+      "hasStructuralAnalysis": true
+    },
+    "tests/conftest.py": {
+      "filePath": "tests/conftest.py",
+      "contentHash": "082993d8e2461b1e6093151f24740eb67ff2d0522cf04ec43d3f583616e7c0b3",
+      "functions": [
+        {
+          "name": "_make_test_dsn",
+          "params": [],
+          "returnType": "str",
+          "exported": true,
+          "lineCount": 3
+        },
+        {
+          "name": "test_db_dsn",
+          "params": [],
+          "returnType": "AsyncIterator[str]",
+          "exported": true,
+          "lineCount": 64
+        },
+        {
+          "name": "_truncate_tables",
+          "params": [
+            "test_db_dsn"
+          ],
+          "returnType": "AsyncIterator[None]",
+          "exported": true,
+          "lineCount": 15
+        },
+        {
+          "name": "db_session",
+          "params": [
+            "test_db_dsn"
+          ],
+          "returnType": "AsyncIterator[AsyncSession]",
+          "exported": true,
+          "lineCount": 14
+        },
+        {
+          "name": "client",
+          "params": [
+            "test_db_dsn"
+          ],
+          "returnType": "AsyncIterator[AsyncClient]",
+          "exported": true,
+          "lineCount": 18
+        },
+        {
+          "name": "_make_shop",
+          "params": [
+            "session",
+            "code",
+            "name"
+          ],
+          "returnType": "Shop",
+          "exported": true,
+          "lineCount": 8
+        },
+        {
+          "name": "_make_user",
+          "params": [
+            "session",
+            "shop_id",
+            "role",
+            "username",
+            "phone",
+            "password",
+            "full_name"
+          ],
+          "returnType": "User",
+          "exported": true,
+          "lineCount": 23
+        },
+        {
+          "name": "shop",
+          "params": [
+            "db_session"
+          ],
+          "returnType": "Shop",
+          "exported": true,
+          "lineCount": 2
+        },
+        {
+          "name": "owner",
+          "params": [
+            "db_session",
+            "shop"
+          ],
+          "returnType": "User",
+          "exported": true,
+          "lineCount": 10
+        },
+        {
+          "name": "receiver",
+          "params": [
+            "db_session",
+            "shop"
+          ],
+          "returnType": "User",
+          "exported": true,
+          "lineCount": 10
+        },
+        {
+          "name": "cashier",
+          "params": [
+            "db_session",
+            "shop"
+          ],
+          "returnType": "User",
+          "exported": true,
+          "lineCount": 10
+        },
+        {
+          "name": "superadmin",
+          "params": [
+            "db_session"
+          ],
+          "returnType": "User",
+          "exported": true,
+          "lineCount": 10
+        },
+        {
+          "name": "_make_logged_in_client",
+          "params": [
+            "app",
+            "path",
+            "payload"
+          ],
+          "returnType": "AsyncClient",
+          "exported": true,
+          "lineCount": 15
+        },
+        {
+          "name": "owner_client",
+          "params": [
+            "owner"
+          ],
+          "returnType": "AsyncClient",
+          "exported": true,
+          "lineCount": 8
+        },
+        {
+          "name": "receiver_client",
+          "params": [
+            "receiver"
+          ],
+          "returnType": "AsyncClient",
+          "exported": true,
+          "lineCount": 8
+        },
+        {
+          "name": "cashier_client",
+          "params": [
+            "cashier"
+          ],
+          "returnType": "AsyncClient",
+          "exported": true,
+          "lineCount": 8
+        },
+        {
+          "name": "superadmin_client",
+          "params": [
+            "superadmin"
+          ],
+          "returnType": "AsyncClient",
+          "exported": true,
+          "lineCount": 8
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "asyncio",
+          "specifiers": [
+            "asyncio"
+          ]
+        },
+        {
+          "source": "os",
+          "specifiers": [
+            "os"
+          ]
+        },
+        {
+          "source": "sys",
+          "specifiers": [
+            "sys"
+          ]
+        },
+        {
+          "source": "uuid",
+          "specifiers": [
+            "uuid"
+          ]
+        },
+        {
+          "source": "collections.abc",
+          "specifiers": [
+            "AsyncIterator"
+          ]
+        },
+        {
+          "source": "pathlib",
+          "specifiers": [
+            "Path"
+          ]
+        },
+        {
+          "source": "pytest_asyncio",
+          "specifiers": [
+            "pytest_asyncio"
+          ]
+        },
+        {
+          "source": "httpx",
+          "specifiers": [
+            "ASGITransport",
+            "AsyncClient"
+          ]
+        },
+        {
+          "source": "sqlalchemy",
+          "specifiers": [
+            "text"
+          ]
+        },
+        {
+          "source": "sqlalchemy.ext.asyncio",
+          "specifiers": [
+            "AsyncSession"
+          ]
+        },
+        {
+          "source": "app.models.shop",
+          "specifiers": [
+            "Shop"
+          ]
+        },
+        {
+          "source": "app.models.user",
+          "specifiers": [
+            "User",
+            "UserRole"
+          ]
+        },
+        {
+          "source": "app.security.passwords",
+          "specifiers": [
+            "hash_password"
+          ]
+        }
+      ],
+      "exports": [
+        "_make_test_dsn",
+        "test_db_dsn",
+        "_truncate_tables",
+        "db_session",
+        "client",
+        "_make_shop",
+        "_make_user",
+        "shop",
+        "owner",
+        "receiver",
+        "cashier",
+        "superadmin",
+        "_make_logged_in_client",
+        "owner_client",
+        "receiver_client",
+        "cashier_client",
+        "superadmin_client"
+      ],
+      "totalLines": 329,
+      "hasStructuralAnalysis": true
+    },
+    "tests/test_auth.py": {
+      "filePath": "tests/test_auth.py",
+      "contentHash": "bcb1f9e0f88fc80243df09bcbd33eee3077a8a7bd28a9b788970a0cbb4a2c8cf",
+      "functions": [
+        {
+          "name": "test_superadmin_login_returns_token",
+          "params": [
+            "superadmin_client"
+          ],
+          "returnType": "None",
+          "exported": true,
+          "lineCount": 6
+        },
+        {
+          "name": "test_owner_login_with_phone_returns_token",
+          "params": [
+            "owner_client"
+          ],
+          "returnType": "None",
+          "exported": true,
+          "lineCount": 5
+        },
+        {
+          "name": "test_receiver_login_with_phone_returns_token",
+          "params": [
+            "receiver_client"
+          ],
+          "returnType": "None",
+          "exported": true,
+          "lineCount": 4
+        },
+        {
+          "name": "test_cashier_login_with_phone_returns_token",
+          "params": [
+            "cashier_client"
+          ],
+          "returnType": "None",
+          "exported": true,
+          "lineCount": 4
+        },
+        {
+          "name": "test_shop_login_with_wrong_password",
+          "params": [
+            "client",
+            "owner"
+          ],
+          "returnType": "None",
+          "exported": true,
+          "lineCount": 5
+        },
+        {
+          "name": "test_superadmin_login_with_wrong_password",
+          "params": [
+            "client",
+            "superadmin"
+          ],
+          "returnType": "None",
+          "exported": true,
+          "lineCount": 8
+        },
+        {
+          "name": "test_missing_token_returns_401",
+          "params": [
+            "client"
+          ],
+          "returnType": "None",
+          "exported": true,
+          "lineCount": 4
+        },
+        {
+          "name": "test_invalid_token_returns_401",
+          "params": [
+            "client"
+          ],
+          "returnType": "None",
+          "exported": true,
+          "lineCount": 4
+        },
+        {
+          "name": "test_superadmin_token_cannot_be_used_for_shop_login",
+          "params": [
+            "client",
+            "superadmin"
+          ],
+          "returnType": "None",
+          "exported": true,
+          "lineCount": 8
+        },
+        {
+          "name": "test_shop_login_requires_phone_and_password",
+          "params": [
+            "client"
+          ],
+          "returnType": "None",
+          "exported": true,
+          "lineCount": 3
+        },
+        {
+          "name": "test_superadmin_login_requires_username_and_password",
+          "params": [
+            "client"
+          ],
+          "returnType": "None",
+          "exported": true,
+          "lineCount": 3
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "pytest",
+          "specifiers": [
+            "pytest"
+          ]
+        },
+        {
+          "source": "httpx",
+          "specifiers": [
+            "AsyncClient"
+          ]
+        }
+      ],
+      "exports": [
+        "test_superadmin_login_returns_token",
+        "test_owner_login_with_phone_returns_token",
+        "test_receiver_login_with_phone_returns_token",
+        "test_cashier_login_with_phone_returns_token",
+        "test_shop_login_with_wrong_password",
+        "test_superadmin_login_with_wrong_password",
+        "test_missing_token_returns_401",
+        "test_invalid_token_returns_401",
+        "test_superadmin_token_cannot_be_used_for_shop_login",
+        "test_shop_login_requires_phone_and_password",
+        "test_superadmin_login_requires_username_and_password"
+      ],
+      "totalLines": 86,
+      "hasStructuralAnalysis": true
+    },
+    "tests/test_authorization.py": {
+      "filePath": "tests/test_authorization.py",
+      "contentHash": "21946ef791177c4191ca93869918c0434fb59457da6c1f32c3f4292c5a99afca",
+      "functions": [
+        {
+          "name": "test_receiver_gets_403_on_owner_only_staff_endpoint",
+          "params": [
+            "receiver_client"
+          ],
+          "returnType": "None",
+          "exported": true,
+          "lineCount": 6
+        },
+        {
+          "name": "test_cashier_gets_403_on_owner_only_staff_endpoint",
+          "params": [
+            "cashier_client"
+          ],
+          "returnType": "None",
+          "exported": true,
+          "lineCount": 5
+        },
+        {
+          "name": "test_superadmin_can_list_all_staff",
+          "params": [
+            "superadmin_client"
+          ],
+          "returnType": "None",
+          "exported": true,
+          "lineCount": 7
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "pytest",
+          "specifiers": [
+            "pytest"
+          ]
+        },
+        {
+          "source": "httpx",
+          "specifiers": [
+            "AsyncClient"
+          ]
+        }
+      ],
+      "exports": [
+        "test_receiver_gets_403_on_owner_only_staff_endpoint",
+        "test_cashier_gets_403_on_owner_only_staff_endpoint",
+        "test_superadmin_can_list_all_staff"
+      ],
+      "totalLines": 54,
+      "hasStructuralAnalysis": true
+    },
+    "tests/test_checkout.py": {
+      "filePath": "tests/test_checkout.py",
+      "contentHash": "7a2b66316379f5cbf39fe27308c40717ff4195fe5647ed2b2cda13c68d055987",
+      "functions": [
+        {
+          "name": "_seed_product",
+          "params": [
+            "client",
+            "barcode",
+            "price",
+            "brand"
+          ],
+          "returnType": "dict",
+          "exported": true,
+          "lineCount": 9
+        },
+        {
+          "name": "_seed_lot",
+          "params": [
+            "receiver_client",
+            "items"
+          ],
+          "returnType": "None",
+          "exported": true,
+          "lineCount": 8
+        },
+        {
+          "name": "_idem_key",
+          "params": [],
+          "returnType": "str",
+          "exported": true,
+          "lineCount": 2
+        },
+        {
+          "name": "test_cashier_finalizes_a_one_line_invoice",
+          "params": [
+            "cashier_client",
+            "owner_client",
+            "receiver_client"
+          ],
+          "returnType": "None",
+          "exported": true,
+          "lineCount": 27
+        },
+        {
+          "name": "test_cashier_finalizes_multi_line_invoice",
+          "params": [
+            "cashier_client",
+            "owner_client",
+            "receiver_client"
+          ],
+          "returnType": "None",
+          "exported": true,
+          "lineCount": 25
+        },
+        {
+          "name": "test_payment_split_across_modes",
+          "params": [
+            "cashier_client",
+            "owner_client",
+            "receiver_client"
+          ],
+          "returnType": "None",
+          "exported": true,
+          "lineCount": 22
+        },
+        {
+          "name": "test_payment_mismatch_is_rejected_with_400",
+          "params": [
+            "cashier_client",
+            "owner_client",
+            "receiver_client"
+          ],
+          "returnType": "None",
+          "exported": true,
+          "lineCount": 16
+        },
+        {
+          "name": "test_quantity_exceeding_stock_is_rejected",
+          "params": [
+            "cashier_client",
+            "owner_client",
+            "receiver_client"
+          ],
+          "returnType": "None",
+          "exported": true,
+          "lineCount": 16
+        },
+        {
+          "name": "test_unknown_barcode_is_rejected_with_404",
+          "params": [
+            "cashier_client",
+            "owner_client",
+            "receiver_client"
+          ],
+          "returnType": "None",
+          "exported": true,
+          "lineCount": 16
+        },
+        {
+          "name": "test_idempotency_key_replay_returns_same_invoice",
+          "params": [
+            "cashier_client",
+            "owner_client",
+            "receiver_client"
+          ],
+          "returnType": "None",
+          "exported": true,
+          "lineCount": 23
+        },
+        {
+          "name": "test_missing_idempotency_key_is_400",
+          "params": [
+            "cashier_client",
+            "owner_client",
+            "receiver_client"
+          ],
+          "returnType": "None",
+          "exported": true,
+          "lineCount": 15
+        },
+        {
+          "name": "test_two_concurrent_finalizes_for_last_unit_only_one_wins",
+          "params": [
+            "owner_client",
+            "receiver_client"
+          ],
+          "returnType": "None",
+          "exported": true,
+          "lineCount": 58
+        },
+        {
+          "name": "test_receiver_cannot_finalize_checkout",
+          "params": [
+            "receiver_client"
+          ],
+          "returnType": "None",
+          "exported": true,
+          "lineCount": 10
+        },
+        {
+          "name": "test_owner_can_finalize_checkout",
+          "params": [
+            "owner_client",
+            "receiver_client"
+          ],
+          "returnType": "None",
+          "exported": true,
+          "lineCount": 15
+        },
+        {
+          "name": "test_finalized_invoice_lines_are_immutable",
+          "params": [
+            "cashier_client",
+            "owner_client",
+            "receiver_client"
+          ],
+          "returnType": "None",
+          "exported": true,
+          "lineCount": 27
+        },
+        {
+          "name": "test_finalize_writes_an_invoicing_log",
+          "params": [
+            "cashier_client",
+            "owner_client",
+            "receiver_client",
+            "db_session"
+          ],
+          "returnType": "None",
+          "exported": true,
+          "lineCount": 22
+        },
+        {
+          "name": "test_invoice_pdf_is_a_real_pdf",
+          "params": [
+            "cashier_client",
+            "owner_client",
+            "receiver_client"
+          ],
+          "returnType": "None",
+          "exported": true,
+          "lineCount": 21
+        },
+        {
+          "name": "test_invoice_pdf_is_403_for_receiver",
+          "params": [
+            "receiver_client",
+            "owner_client"
+          ],
+          "returnType": "None",
+          "exported": true,
+          "lineCount": 8
+        },
+        {
+          "name": "test_empty_cart_rejected",
+          "params": [
+            "cashier_client"
+          ],
+          "returnType": "None",
+          "exported": true,
+          "lineCount": 10
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "asyncio",
+          "specifiers": [
+            "asyncio"
+          ]
+        },
+        {
+          "source": "uuid",
+          "specifiers": [
+            "uuid"
+          ]
+        },
+        {
+          "source": "pytest",
+          "specifiers": [
+            "pytest"
+          ]
+        },
+        {
+          "source": "httpx",
+          "specifiers": [
+            "AsyncClient"
+          ]
+        },
+        {
+          "source": "sqlalchemy",
+          "specifiers": [
+            "select"
+          ]
+        },
+        {
+          "source": "app.models.invoice",
+          "specifiers": [
+            "Invoice"
+          ]
+        },
+        {
+          "source": "app.models.log",
+          "specifiers": [
+            "InvoicingLog"
+          ]
+        },
+        {
+          "source": "app.models.lot",
+          "specifiers": [
+            "LotLine"
+          ]
+        }
+      ],
+      "exports": [
+        "_seed_product",
+        "_seed_lot",
+        "_idem_key",
+        "test_cashier_finalizes_a_one_line_invoice",
+        "test_cashier_finalizes_multi_line_invoice",
+        "test_payment_split_across_modes",
+        "test_payment_mismatch_is_rejected_with_400",
+        "test_quantity_exceeding_stock_is_rejected",
+        "test_unknown_barcode_is_rejected_with_404",
+        "test_idempotency_key_replay_returns_same_invoice",
+        "test_missing_idempotency_key_is_400",
+        "test_two_concurrent_finalizes_for_last_unit_only_one_wins",
+        "test_receiver_cannot_finalize_checkout",
+        "test_owner_can_finalize_checkout",
+        "test_finalized_invoice_lines_are_immutable",
+        "test_finalize_writes_an_invoicing_log",
+        "test_invoice_pdf_is_a_real_pdf",
+        "test_invoice_pdf_is_403_for_receiver",
+        "test_empty_cart_rejected"
+      ],
+      "totalLines": 452,
+      "hasStructuralAnalysis": true
+    },
+    "tests/test_eod.py": {
+      "filePath": "tests/test_eod.py",
+      "contentHash": "38586d78d4fddcf0dc761222ef0853149f9d38424b0c9e2a2209b56f75b06095",
+      "functions": [
+        {
+          "name": "_seed_product",
+          "params": [
+            "client",
+            "barcode"
+          ],
+          "returnType": "None",
+          "exported": true,
+          "lineCount": 6
+        },
+        {
+          "name": "_seed_lot",
+          "params": [
+            "receiver_client",
+            "items"
+          ],
+          "returnType": "None",
+          "exported": true,
+          "lineCount": 8
+        },
+        {
+          "name": "_finalize",
+          "params": [
+            "cashier_client",
+            "barcode",
+            "quantity",
+            "amount",
+            "mode"
+          ],
+          "returnType": "dict",
+          "exported": true,
+          "lineCount": 18
+        },
+        {
+          "name": "test_owner_signs_off_today",
+          "params": [
+            "owner_client",
+            "receiver_client",
+            "cashier_client"
+          ],
+          "returnType": "None",
+          "exported": true,
+          "lineCount": 19
+        },
+        {
+          "name": "test_double_sign_off_returns_409",
+          "params": [
+            "owner_client",
+            "receiver_client",
+            "cashier_client"
+          ],
+          "returnType": "None",
+          "exported": true,
+          "lineCount": 19
+        },
+        {
+          "name": "test_future_date_rejected",
+          "params": [
+            "owner_client"
+          ],
+          "returnType": "None",
+          "exported": true,
+          "lineCount": 9
+        },
+        {
+          "name": "test_cashier_cannot_sign_off",
+          "params": [
+            "cashier_client"
+          ],
+          "returnType": "None",
+          "exported": true,
+          "lineCount": 6
+        },
+        {
+          "name": "test_checkout_rejected_after_eod_sign_off",
+          "params": [
+            "owner_client",
+            "receiver_client",
+            "cashier_client"
+          ],
+          "returnType": "None",
+          "exported": true,
+          "lineCount": 25
+        },
+        {
+          "name": "test_eod_totals_for_signed_off_day",
+          "params": [
+            "owner_client",
+            "receiver_client",
+            "cashier_client"
+          ],
+          "returnType": "None",
+          "exported": true,
+          "lineCount": 26
+        },
+        {
+          "name": "test_eod_totals_for_unsigned_day_returns_zero_signed_off_false",
+          "params": [
+            "owner_client",
+            "receiver_client",
+            "cashier_client"
+          ],
+          "returnType": "None",
+          "exported": true,
+          "lineCount": 19
+        },
+        {
+          "name": "test_eod_totals_excludes_voided_and_reversal_from_revenue",
+          "params": [
+            "owner_client",
+            "receiver_client",
+            "cashier_client",
+            "db_session"
+          ],
+          "returnType": "None",
+          "exported": true,
+          "lineCount": 29
+        },
+        {
+          "name": "test_eod_history_lists_signoffs_in_descending_order",
+          "params": [
+            "owner_client",
+            "receiver_client",
+            "cashier_client"
+          ],
+          "returnType": "None",
+          "exported": true,
+          "lineCount": 25
+        },
+        {
+          "name": "test_eod_history_filters_by_date_range",
+          "params": [
+            "owner_client",
+            "receiver_client",
+            "cashier_client"
+          ],
+          "returnType": "None",
+          "exported": true,
+          "lineCount": 31
+        },
+        {
+          "name": "test_void_queue_lists_pending_invoices",
+          "params": [
+            "cashier_client",
+            "owner_client",
+            "receiver_client",
+            "db_session"
+          ],
+          "returnType": "None",
+          "exported": true,
+          "lineCount": 23
+        },
+        {
+          "name": "test_void_queue_excludes_resolved_voids",
+          "params": [
+            "cashier_client",
+            "owner_client",
+            "receiver_client",
+            "db_session"
+          ],
+          "returnType": "None",
+          "exported": true,
+          "lineCount": 20
+        },
+        {
+          "name": "test_eod_signoff_record_persists",
+          "params": [
+            "owner_client",
+            "receiver_client",
+            "cashier_client",
+            "db_session"
+          ],
+          "returnType": "None",
+          "exported": true,
+          "lineCount": 15
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "uuid",
+          "specifiers": [
+            "uuid"
+          ]
+        },
+        {
+          "source": "datetime",
+          "specifiers": [
+            "date",
+            "timedelta"
+          ]
+        },
+        {
+          "source": "pytest",
+          "specifiers": [
+            "pytest"
+          ]
+        },
+        {
+          "source": "httpx",
+          "specifiers": [
+            "AsyncClient"
+          ]
+        },
+        {
+          "source": "sqlalchemy",
+          "specifiers": [
+            "select"
+          ]
+        },
+        {
+          "source": "app.models.invoice",
+          "specifiers": [
+            "EodSignOff",
+            "Invoice"
+          ]
+        }
+      ],
+      "exports": [
+        "_seed_product",
+        "_seed_lot",
+        "_finalize",
+        "test_owner_signs_off_today",
+        "test_double_sign_off_returns_409",
+        "test_future_date_rejected",
+        "test_cashier_cannot_sign_off",
+        "test_checkout_rejected_after_eod_sign_off",
+        "test_eod_totals_for_signed_off_day",
+        "test_eod_totals_for_unsigned_day_returns_zero_signed_off_false",
+        "test_eod_totals_excludes_voided_and_reversal_from_revenue",
+        "test_eod_history_lists_signoffs_in_descending_order",
+        "test_eod_history_filters_by_date_range",
+        "test_void_queue_lists_pending_invoices",
+        "test_void_queue_excludes_resolved_voids",
+        "test_eod_signoff_record_persists"
+      ],
+      "totalLines": 375,
+      "hasStructuralAnalysis": true
+    },
+    "tests/test_health.py": {
+      "filePath": "tests/test_health.py",
+      "contentHash": "de4ac2aadf2419b8967ec273f1f123a5d32899fef39a39279327c8445d11653b",
+      "functions": [
+        {
+          "name": "test_liveness_ok",
+          "params": [
+            "client"
+          ],
+          "returnType": "None",
+          "exported": true,
+          "lineCount": 4
+        },
+        {
+          "name": "test_readiness_queries_db",
+          "params": [
+            "client"
+          ],
+          "returnType": "None",
+          "exported": true,
+          "lineCount": 4
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "httpx",
+          "specifiers": [
+            "AsyncClient"
+          ]
+        }
+      ],
+      "exports": [
+        "test_liveness_ok",
+        "test_readiness_queries_db"
+      ],
+      "totalLines": 17,
+      "hasStructuralAnalysis": true
+    },
+    "tests/test_log_tables.py": {
+      "filePath": "tests/test_log_tables.py",
+      "contentHash": "20420c341d0d596025696b0de6a8d69a7160601854366c27044f4dfbb5180dd9",
+      "functions": [
+        {
+          "name": "test_three_log_tables_exist",
+          "params": [
+            "db_session"
+          ],
+          "returnType": "None",
+          "exported": true,
+          "lineCount": 11
+        },
+        {
+          "name": "test_log_tables_have_required_columns",
+          "params": [
+            "db_session"
+          ],
+          "returnType": "None",
+          "exported": true,
+          "lineCount": 15
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "sqlalchemy",
+          "specifiers": [
+            "text"
+          ]
+        },
+        {
+          "source": "sqlalchemy.ext.asyncio",
+          "specifiers": [
+            "AsyncSession"
+          ]
+        }
+      ],
+      "exports": [
+        "test_three_log_tables_exist",
+        "test_log_tables_have_required_columns"
+      ],
+      "totalLines": 36,
+      "hasStructuralAnalysis": true
+    },
+    "tests/test_lots.py": {
+      "filePath": "tests/test_lots.py",
+      "contentHash": "c6868f457c40659b69c30e987df50dd3c7382d156a247ab16924be3b5c1975d1",
+      "functions": [
+        {
+          "name": "_create_product",
+          "params": [
+            "client",
+            "barcode",
+            "brand"
+          ],
+          "returnType": "dict",
+          "exported": true,
+          "lineCount": 7
+        },
+        {
+          "name": "test_receiver_creates_lot_with_one_line",
+          "params": [
+            "receiver_client",
+            "owner_client"
+          ],
+          "returnType": "None",
+          "exported": true,
+          "lineCount": 22
+        },
+        {
+          "name": "test_receiver_creates_lot_with_many_lines",
+          "params": [
+            "receiver_client",
+            "owner_client"
+          ],
+          "returnType": "None",
+          "exported": true,
+          "lineCount": 24
+        },
+        {
+          "name": "test_cashier_cannot_create_lot",
+          "params": [
+            "cashier_client"
+          ],
+          "returnType": "None",
+          "exported": true,
+          "lineCount": 6
+        },
+        {
+          "name": "test_owner_can_also_create_lot",
+          "params": [
+            "owner_client"
+          ],
+          "returnType": "None",
+          "exported": true,
+          "lineCount": 9
+        },
+        {
+          "name": "test_unknown_barcode_in_lot_returns_404",
+          "params": [
+            "receiver_client",
+            "owner_client"
+          ],
+          "returnType": "None",
+          "exported": true,
+          "lineCount": 10
+        },
+        {
+          "name": "test_barcode_must_exist_in_receiver_shop_only",
+          "params": [
+            "receiver_client"
+          ],
+          "returnType": "None",
+          "exported": true,
+          "lineCount": 13
+        },
+        {
+          "name": "test_empty_lot_rejected",
+          "params": [
+            "receiver_client"
+          ],
+          "returnType": "None",
+          "exported": true,
+          "lineCount": 3
+        },
+        {
+          "name": "test_duplicate_barcode_in_lot_rejected",
+          "params": [
+            "receiver_client",
+            "owner_client"
+          ],
+          "returnType": "None",
+          "exported": true,
+          "lineCount": 15
+        },
+        {
+          "name": "test_receiving_writes_a_stockin_log",
+          "params": [
+            "receiver_client",
+            "owner_client",
+            "db_session"
+          ],
+          "returnType": "None",
+          "exported": true,
+          "lineCount": 18
+        },
+        {
+          "name": "test_receiving_increases_derivable_stock",
+          "params": [
+            "receiver_client",
+            "owner_client",
+            "db_session"
+          ],
+          "returnType": "None",
+          "exported": true,
+          "lineCount": 40
+        },
+        {
+          "name": "test_lot_listing_is_shop_scoped",
+          "params": [
+            "receiver_client",
+            "owner_client"
+          ],
+          "returnType": "None",
+          "exported": true,
+          "lineCount": 26
+        },
+        {
+          "name": "test_get_lot_by_id",
+          "params": [
+            "receiver_client",
+            "owner_client"
+          ],
+          "returnType": "None",
+          "exported": true,
+          "lineCount": 13
+        },
+        {
+          "name": "test_cashier_cannot_list_lots",
+          "params": [
+            "cashier_client"
+          ],
+          "returnType": "None",
+          "exported": true,
+          "lineCount": 3
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "pytest",
+          "specifiers": [
+            "pytest"
+          ]
+        },
+        {
+          "source": "httpx",
+          "specifiers": [
+            "AsyncClient"
+          ]
+        },
+        {
+          "source": "sqlalchemy",
+          "specifiers": [
+            "select"
+          ]
+        },
+        {
+          "source": "app.models.log",
+          "specifiers": [
+            "StockinLog"
+          ]
+        },
+        {
+          "source": "app.models.lot",
+          "specifiers": [
+            "LotLine"
+          ]
+        },
+        {
+          "source": "app.models.product",
+          "specifiers": [
+            "Product"
+          ]
+        }
+      ],
+      "exports": [
+        "_create_product",
+        "test_receiver_creates_lot_with_one_line",
+        "test_receiver_creates_lot_with_many_lines",
+        "test_cashier_cannot_create_lot",
+        "test_owner_can_also_create_lot",
+        "test_unknown_barcode_in_lot_returns_404",
+        "test_barcode_must_exist_in_receiver_shop_only",
+        "test_empty_lot_rejected",
+        "test_duplicate_barcode_in_lot_rejected",
+        "test_receiving_writes_a_stockin_log",
+        "test_receiving_increases_derivable_stock",
+        "test_lot_listing_is_shop_scoped",
+        "test_get_lot_by_id",
+        "test_cashier_cannot_list_lots"
+      ],
+      "totalLines": 261,
+      "hasStructuralAnalysis": true
+    },
+    "tests/test_low_stock.py": {
+      "filePath": "tests/test_low_stock.py",
+      "contentHash": "5654bba1982133718e33211c81d0b4f544a01da91598a4e509b379e6a68bfcb1",
+      "functions": [
+        {
+          "name": "_seed_product",
+          "params": [
+            "client",
+            "barcode",
+            "price",
+            "brand"
+          ],
+          "returnType": "dict",
+          "exported": true,
+          "lineCount": 9
+        },
+        {
+          "name": "_seed_lot",
+          "params": [
+            "receiver_client",
+            "items"
+          ],
+          "returnType": "None",
+          "exported": true,
+          "lineCount": 8
+        },
+        {
+          "name": "_finalize",
+          "params": [
+            "cashier_client",
+            "barcode",
+            "quantity",
+            "amount"
+          ],
+          "returnType": "None",
+          "exported": true,
+          "lineCount": 18
+        },
+        {
+          "name": "test_no_default_no_overrides_returns_empty",
+          "params": [
+            "owner_client",
+            "receiver_client"
+          ],
+          "returnType": "None",
+          "exported": true,
+          "lineCount": 11
+        },
+        {
+          "name": "test_per_product_override_triggers_alert",
+          "params": [
+            "owner_client",
+            "receiver_client"
+          ],
+          "returnType": "None",
+          "exported": true,
+          "lineCount": 20
+        },
+        {
+          "name": "test_product_above_threshold_not_in_list",
+          "params": [
+            "owner_client",
+            "receiver_client",
+            "db_session"
+          ],
+          "returnType": "None",
+          "exported": true,
+          "lineCount": 15
+        },
+        {
+          "name": "test_product_at_threshold_appears",
+          "params": [
+            "owner_client",
+            "receiver_client",
+            "db_session"
+          ],
+          "returnType": "None",
+          "exported": true,
+          "lineCount": 18
+        },
+        {
+          "name": "test_sale_brings_product_below_threshold",
+          "params": [
+            "owner_client",
+            "receiver_client",
+            "cashier_client",
+            "db_session"
+          ],
+          "returnType": "None",
+          "exported": true,
+          "lineCount": 24
+        },
+        {
+          "name": "test_per_product_override_beats_shop_default",
+          "params": [
+            "owner_client",
+            "receiver_client",
+            "db_session"
+          ],
+          "returnType": "None",
+          "exported": true,
+          "lineCount": 34
+        },
+        {
+          "name": "test_list_sorted_most_urgent_first",
+          "params": [
+            "owner_client",
+            "receiver_client",
+            "db_session"
+          ],
+          "returnType": "None",
+          "exported": true,
+          "lineCount": 18
+        },
+        {
+          "name": "test_receiver_can_view_low_stock",
+          "params": [
+            "owner_client",
+            "receiver_client",
+            "db_session"
+          ],
+          "returnType": "None",
+          "exported": true,
+          "lineCount": 14
+        },
+        {
+          "name": "test_low_stock_inactive_products_excluded",
+          "params": [
+            "owner_client",
+            "receiver_client",
+            "db_session"
+          ],
+          "returnType": "None",
+          "exported": true,
+          "lineCount": 20
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "pytest",
+          "specifiers": [
+            "pytest"
+          ]
+        },
+        {
+          "source": "httpx",
+          "specifiers": [
+            "AsyncClient"
+          ]
+        },
+        {
+          "source": "sqlalchemy",
+          "specifiers": [
+            "select",
+            "update"
+          ]
+        },
+        {
+          "source": "app.models.product",
+          "specifiers": [
+            "Product"
+          ]
+        },
+        {
+          "source": "app.models.shop",
+          "specifiers": [
+            "Shop"
+          ]
+        }
+      ],
+      "exports": [
+        "_seed_product",
+        "_seed_lot",
+        "_finalize",
+        "test_no_default_no_overrides_returns_empty",
+        "test_per_product_override_triggers_alert",
+        "test_product_above_threshold_not_in_list",
+        "test_product_at_threshold_appears",
+        "test_sale_brings_product_below_threshold",
+        "test_per_product_override_beats_shop_default",
+        "test_list_sorted_most_urgent_first",
+        "test_receiver_can_view_low_stock",
+        "test_low_stock_inactive_products_excluded"
+      ],
+      "totalLines": 257,
+      "hasStructuralAnalysis": true
+    },
+    "tests/test_products.py": {
+      "filePath": "tests/test_products.py",
+      "contentHash": "07a0891fa8cb64e1eac7836b3b5128dbf6fb998c8205abcb253bdf0dd04b6b28",
+      "functions": [
+        {
+          "name": "test_owner_creates_product",
+          "params": [
+            "owner_client"
+          ],
+          "returnType": "None",
+          "exported": true,
+          "lineCount": 10
+        },
+        {
+          "name": "test_receiver_cannot_create_product",
+          "params": [
+            "receiver_client"
+          ],
+          "returnType": "None",
+          "exported": true,
+          "lineCount": 3
+        },
+        {
+          "name": "test_cashier_cannot_create_product",
+          "params": [
+            "cashier_client"
+          ],
+          "returnType": "None",
+          "exported": true,
+          "lineCount": 3
+        },
+        {
+          "name": "test_duplicate_barcode_rejected_with_409",
+          "params": [
+            "owner_client",
+            "owner"
+          ],
+          "returnType": "None",
+          "exported": true,
+          "lineCount": 10
+        },
+        {
+          "name": "test_each_bottle_size_is_a_separate_product",
+          "params": [
+            "owner_client"
+          ],
+          "returnType": "None",
+          "exported": true,
+          "lineCount": 11
+        },
+        {
+          "name": "test_lookup_by_barcode_succeeds_for_cashier",
+          "params": [
+            "cashier_client",
+            "owner_client"
+          ],
+          "returnType": "None",
+          "exported": true,
+          "lineCount": 15
+        },
+        {
+          "name": "test_lookup_returns_404_for_unknown_barcode",
+          "params": [
+            "cashier_client"
+          ],
+          "returnType": "None",
+          "exported": true,
+          "lineCount": 3
+        },
+        {
+          "name": "test_manual_barcode_entry_falls_back_through_lookup",
+          "params": [
+            "cashier_client",
+            "owner_client"
+          ],
+          "returnType": "None",
+          "exported": true,
+          "lineCount": 10
+        },
+        {
+          "name": "test_list_filters_to_own_shop",
+          "params": [
+            "owner_client",
+            "superadmin_client"
+          ],
+          "returnType": "None",
+          "exported": true,
+          "lineCount": 9
+        },
+        {
+          "name": "test_owner_updates_price_and_threshold",
+          "params": [
+            "owner_client"
+          ],
+          "returnType": "None",
+          "exported": true,
+          "lineCount": 11
+        },
+        {
+          "name": "test_csv_import_happy_path",
+          "params": [
+            "owner_client"
+          ],
+          "returnType": "None",
+          "exported": true,
+          "lineCount": 15
+        },
+        {
+          "name": "test_csv_import_per_row_errors_are_surfaced",
+          "params": [
+            "owner_client"
+          ],
+          "returnType": "None",
+          "exported": true,
+          "lineCount": 24
+        },
+        {
+          "name": "test_csv_import_with_low_stock_threshold_column",
+          "params": [
+            "owner_client"
+          ],
+          "returnType": "None",
+          "exported": true,
+          "lineCount": 18
+        },
+        {
+          "name": "test_csv_import_rejects_missing_columns",
+          "params": [
+            "owner_client"
+          ],
+          "returnType": "None",
+          "exported": true,
+          "lineCount": 8
+        },
+        {
+          "name": "test_csv_import_rejects_cashier",
+          "params": [
+            "cashier_client"
+          ],
+          "returnType": "None",
+          "exported": true,
+          "lineCount": 7
+        },
+        {
+          "name": "test_csv_import_handles_utf8_bom",
+          "params": [
+            "owner_client"
+          ],
+          "returnType": "None",
+          "exported": true,
+          "lineCount": 12
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "pytest",
+          "specifiers": [
+            "pytest"
+          ]
+        },
+        {
+          "source": "httpx",
+          "specifiers": [
+            "AsyncClient"
+          ]
+        }
+      ],
+      "exports": [
+        "test_owner_creates_product",
+        "test_receiver_cannot_create_product",
+        "test_cashier_cannot_create_product",
+        "test_duplicate_barcode_rejected_with_409",
+        "test_each_bottle_size_is_a_separate_product",
+        "test_lookup_by_barcode_succeeds_for_cashier",
+        "test_lookup_returns_404_for_unknown_barcode",
+        "test_manual_barcode_entry_falls_back_through_lookup",
+        "test_list_filters_to_own_shop",
+        "test_owner_updates_price_and_threshold",
+        "test_csv_import_happy_path",
+        "test_csv_import_per_row_errors_are_surfaced",
+        "test_csv_import_with_low_stock_threshold_column",
+        "test_csv_import_rejects_missing_columns",
+        "test_csv_import_rejects_cashier",
+        "test_csv_import_handles_utf8_bom"
+      ],
+      "totalLines": 233,
+      "hasStructuralAnalysis": true
+    },
+    "tests/test_shops.py": {
+      "filePath": "tests/test_shops.py",
+      "contentHash": "06714e8eaee0cc3cbb2404bc8605ddb3d657f4ffd9a215f8cbd7152ecba58e7f",
+      "functions": [
+        {
+          "name": "_seed_product",
+          "params": [
+            "client",
+            "barcode"
+          ],
+          "returnType": "None",
+          "exported": true,
+          "lineCount": 6
+        },
+        {
+          "name": "_seed_lot",
+          "params": [
+            "receiver_client",
+            "bc",
+            "qty"
+          ],
+          "returnType": "None",
+          "exported": true,
+          "lineCount": 5
+        },
+        {
+          "name": "_finalize",
+          "params": [
+            "cashier_client",
+            "bc",
+            "qty",
+            "amount"
+          ],
+          "returnType": "dict",
+          "exported": true,
+          "lineCount": 13
+        },
+        {
+          "name": "test_get_shop_returns_defaults",
+          "params": [
+            "owner_client",
+            "db_session"
+          ],
+          "returnType": "None",
+          "exported": true,
+          "lineCount": 13
+        },
+        {
+          "name": "test_owner_updates_gstin_and_duty_rate",
+          "params": [
+            "owner_client",
+            "db_session"
+          ],
+          "returnType": "None",
+          "exported": true,
+          "lineCount": 16
+        },
+        {
+          "name": "test_cashier_cannot_update_shop",
+          "params": [
+            "cashier_client"
+          ],
+          "returnType": "None",
+          "exported": true,
+          "lineCount": 6
+        },
+        {
+          "name": "test_invalid_gstin_rejected",
+          "params": [
+            "owner_client"
+          ],
+          "returnType": "None",
+          "exported": true,
+          "lineCount": 7
+        },
+        {
+          "name": "test_duty_rate_must_be_0_to_100",
+          "params": [
+            "owner_client"
+          ],
+          "returnType": "None",
+          "exported": true,
+          "lineCount": 6
+        },
+        {
+          "name": "test_pdf_includes_configured_gstin",
+          "params": [
+            "owner_client",
+            "receiver_client",
+            "cashier_client"
+          ],
+          "returnType": "None",
+          "exported": true,
+          "lineCount": 19
+        },
+        {
+          "name": "test_pdf_includes_configured_duty_rate",
+          "params": [
+            "owner_client",
+            "receiver_client",
+            "cashier_client"
+          ],
+          "returnType": "None",
+          "exported": true,
+          "lineCount": 18
+        },
+        {
+          "name": "test_pdf_includes_placeholder_disclaimer",
+          "params": [
+            "owner_client",
+            "receiver_client",
+            "cashier_client"
+          ],
+          "returnType": "None",
+          "exported": true,
+          "lineCount": 15
+        },
+        {
+          "name": "test_pdf_does_not_hardcode_cgst_or_sgst",
+          "params": [
+            "owner_client",
+            "receiver_client",
+            "cashier_client"
+          ],
+          "returnType": "None",
+          "exported": true,
+          "lineCount": 21
+        },
+        {
+          "name": "test_shop_name_appears_on_invoice",
+          "params": [
+            "owner_client",
+            "receiver_client",
+            "cashier_client",
+            "db_session"
+          ],
+          "returnType": "None",
+          "exported": true,
+          "lineCount": 18
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "re",
+          "specifiers": [
+            "re"
+          ]
+        },
+        {
+          "source": "uuid",
+          "specifiers": [
+            "uuid"
+          ]
+        },
+        {
+          "source": "pytest",
+          "specifiers": [
+            "pytest"
+          ]
+        },
+        {
+          "source": "httpx",
+          "specifiers": [
+            "AsyncClient"
+          ]
+        },
+        {
+          "source": "sqlalchemy",
+          "specifiers": [
+            "select"
+          ]
+        },
+        {
+          "source": "app.models.shop",
+          "specifiers": [
+            "Shop"
+          ]
+        }
+      ],
+      "exports": [
+        "_seed_product",
+        "_seed_lot",
+        "_finalize",
+        "test_get_shop_returns_defaults",
+        "test_owner_updates_gstin_and_duty_rate",
+        "test_cashier_cannot_update_shop",
+        "test_invalid_gstin_rejected",
+        "test_duty_rate_must_be_0_to_100",
+        "test_pdf_includes_configured_gstin",
+        "test_pdf_includes_configured_duty_rate",
+        "test_pdf_includes_placeholder_disclaimer",
+        "test_pdf_does_not_hardcode_cgst_or_sgst",
+        "test_shop_name_appears_on_invoice"
+      ],
+      "totalLines": 227,
+      "hasStructuralAnalysis": true
+    },
+    "tests/test_staff.py": {
+      "filePath": "tests/test_staff.py",
+      "contentHash": "724099ae7b8e9aef5f8505f904bd3b8e9a46099f26b1f1435ddb1ea84859f15d",
+      "functions": [
+        {
+          "name": "test_owner_creates_receiver_user",
+          "params": [
+            "owner_client"
+          ],
+          "returnType": "None",
+          "exported": true,
+          "lineCount": 16
+        },
+        {
+          "name": "test_owner_creates_cashier_user",
+          "params": [
+            "owner_client"
+          ],
+          "returnType": "None",
+          "exported": true,
+          "lineCount": 14
+        },
+        {
+          "name": "test_owner_cannot_create_another_owner",
+          "params": [
+            "owner_client"
+          ],
+          "returnType": "None",
+          "exported": true,
+          "lineCount": 12
+        },
+        {
+          "name": "test_owner_cannot_create_superadmin",
+          "params": [
+            "owner_client"
+          ],
+          "returnType": "None",
+          "exported": true,
+          "lineCount": 12
+        },
+        {
+          "name": "test_duplicate_username_rejected_with_409",
+          "params": [
+            "owner_client",
+            "receiver"
+          ],
+          "returnType": "None",
+          "exported": true,
+          "lineCount": 15
+        },
+        {
+          "name": "test_duplicate_phone_rejected_with_409",
+          "params": [
+            "owner_client",
+            "receiver"
+          ],
+          "returnType": "None",
+          "exported": true,
+          "lineCount": 15
+        },
+        {
+          "name": "test_owner_lists_only_their_shop_staff",
+          "params": [
+            "owner_client",
+            "shop"
+          ],
+          "returnType": "None",
+          "exported": true,
+          "lineCount": 9
+        },
+        {
+          "name": "test_receiver_cannot_create_staff",
+          "params": [
+            "receiver_client"
+          ],
+          "returnType": "None",
+          "exported": true,
+          "lineCount": 12
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "pytest",
+          "specifiers": [
+            "pytest"
+          ]
+        },
+        {
+          "source": "httpx",
+          "specifiers": [
+            "AsyncClient"
+          ]
+        }
+      ],
+      "exports": [
+        "test_owner_creates_receiver_user",
+        "test_owner_creates_cashier_user",
+        "test_owner_cannot_create_another_owner",
+        "test_owner_cannot_create_superadmin",
+        "test_duplicate_username_rejected_with_409",
+        "test_duplicate_phone_rejected_with_409",
+        "test_owner_lists_only_their_shop_staff",
+        "test_receiver_cannot_create_staff"
+      ],
+      "totalLines": 137,
+      "hasStructuralAnalysis": true
+    },
+    "tests/test_voids.py": {
+      "filePath": "tests/test_voids.py",
+      "contentHash": "385a3d24710adf9324a33659a1cbe207cf85f8de24d8c2cf866d435d043f1472",
+      "functions": [
+        {
+          "name": "_seed_product",
+          "params": [
+            "client",
+            "barcode",
+            "price"
+          ],
+          "returnType": "dict",
+          "exported": true,
+          "lineCount": 9
+        },
+        {
+          "name": "_seed_lot",
+          "params": [
+            "receiver_client",
+            "items"
+          ],
+          "returnType": "None",
+          "exported": true,
+          "lineCount": 8
+        },
+        {
+          "name": "_finalize",
+          "params": [
+            "cashier_client",
+            "barcode",
+            "quantity",
+            "amount"
+          ],
+          "returnType": "dict",
+          "exported": true,
+          "lineCount": 17
+        },
+        {
+          "name": "test_cashier_can_directly_void_a_pre_eod_invoice",
+          "params": [
+            "cashier_client",
+            "owner_client",
+            "receiver_client"
+          ],
+          "returnType": "None",
+          "exported": true,
+          "lineCount": 13
+        },
+        {
+          "name": "test_pre_eod_void_restores_stock",
+          "params": [
+            "cashier_client",
+            "owner_client",
+            "receiver_client",
+            "db_session"
+          ],
+          "returnType": "None",
+          "exported": true,
+          "lineCount": 34
+        },
+        {
+          "name": "test_voiding_a_voided_invoice_returns_409",
+          "params": [
+            "cashier_client",
+            "owner_client",
+            "receiver_client"
+          ],
+          "returnType": "None",
+          "exported": true,
+          "lineCount": 13
+        },
+        {
+          "name": "test_pre_eod_void_writes_invoicing_log",
+          "params": [
+            "cashier_client",
+            "owner_client",
+            "receiver_client",
+            "db_session"
+          ],
+          "returnType": "None",
+          "exported": true,
+          "lineCount": 21
+        },
+        {
+          "name": "_mark_signed_off",
+          "params": [
+            "db_session",
+            "invoice_id"
+          ],
+          "returnType": "None",
+          "exported": true,
+          "lineCount": 8
+        },
+        {
+          "name": "test_cashier_can_request_void_on_signed_off_invoice",
+          "params": [
+            "cashier_client",
+            "owner_client",
+            "receiver_client",
+            "db_session"
+          ],
+          "returnType": "None",
+          "exported": true,
+          "lineCount": 13
+        },
+        {
+          "name": "test_cashier_cannot_approve_pending_void",
+          "params": [
+            "cashier_client",
+            "owner_client",
+            "receiver_client",
+            "db_session"
+          ],
+          "returnType": "None",
+          "exported": true,
+          "lineCount": 13
+        },
+        {
+          "name": "test_owner_approving_pending_void_creates_reversal",
+          "params": [
+            "cashier_client",
+            "owner_client",
+            "receiver_client",
+            "db_session"
+          ],
+          "returnType": "None",
+          "exported": true,
+          "lineCount": 34
+        },
+        {
+          "name": "test_owner_rejecting_pending_void_reverts_to_finalized",
+          "params": [
+            "cashier_client",
+            "owner_client",
+            "receiver_client",
+            "db_session"
+          ],
+          "returnType": "None",
+          "exported": true,
+          "lineCount": 16
+        },
+        {
+          "name": "test_approve_on_non_pending_invoice_is_409",
+          "params": [
+            "cashier_client",
+            "owner_client",
+            "receiver_client"
+          ],
+          "returnType": "None",
+          "exported": true,
+          "lineCount": 12
+        },
+        {
+          "name": "test_void_actions_write_invoicing_logs",
+          "params": [
+            "cashier_client",
+            "owner_client",
+            "receiver_client",
+            "db_session"
+          ],
+          "returnType": "None",
+          "exported": true,
+          "lineCount": 20
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "uuid",
+          "specifiers": [
+            "uuid"
+          ]
+        },
+        {
+          "source": "pytest",
+          "specifiers": [
+            "pytest"
+          ]
+        },
+        {
+          "source": "httpx",
+          "specifiers": [
+            "AsyncClient"
+          ]
+        },
+        {
+          "source": "sqlalchemy",
+          "specifiers": [
+            "select"
+          ]
+        },
+        {
+          "source": "app.models.invoice",
+          "specifiers": [
+            "Invoice",
+            "InvoiceStatus"
+          ]
+        },
+        {
+          "source": "app.models.log",
+          "specifiers": [
+            "InvoicingLog"
+          ]
+        },
+        {
+          "source": "app.models.lot",
+          "specifiers": [
+            "LotLine"
+          ]
+        },
+        {
+          "source": "app.models.product",
+          "specifiers": [
+            "Product"
+          ]
+        }
+      ],
+      "exports": [
+        "_seed_product",
+        "_seed_lot",
+        "_finalize",
+        "test_cashier_can_directly_void_a_pre_eod_invoice",
+        "test_pre_eod_void_restores_stock",
+        "test_voiding_a_voided_invoice_returns_409",
+        "test_pre_eod_void_writes_invoicing_log",
+        "_mark_signed_off",
+        "test_cashier_can_request_void_on_signed_off_invoice",
+        "test_cashier_cannot_approve_pending_void",
+        "test_owner_approving_pending_void_creates_reversal",
+        "test_owner_rejecting_pending_void_reverts_to_finalized",
+        "test_approve_on_non_pending_invoice_is_409",
+        "test_void_actions_write_invoicing_logs"
+      ],
+      "totalLines": 291,
+      "hasStructuralAnalysis": true
+    }
+  }
+}

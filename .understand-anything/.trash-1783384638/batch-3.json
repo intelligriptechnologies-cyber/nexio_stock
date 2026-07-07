@@ -1,0 +1,761 @@
+{
+  "batchIndex": 3,
+  "projectRoot": "C:\\barstock",
+  "filesAnalyzed": 11,
+  "filesSkipped": [],
+  "scriptCompleted": true,
+  "nodes": [
+    {
+      "id": "file:alembic/env.py",
+      "type": "file",
+      "path": "alembic/env.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 72,
+      "label": "env.py"
+    },
+    {
+      "id": "file:app/__init__.py",
+      "type": "file",
+      "path": "app/__init__.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 1,
+      "label": "__init__.py"
+    },
+    {
+      "id": "file:app/cli.py",
+      "type": "file",
+      "path": "app/cli.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 186,
+      "label": "cli.py"
+    },
+    {
+      "id": "file:app/config.py",
+      "type": "file",
+      "path": "app/config.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 42,
+      "label": "config.py"
+    },
+    {
+      "id": "file:app/db.py",
+      "type": "file",
+      "path": "app/db.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 136,
+      "label": "db.py"
+    },
+    {
+      "id": "file:app/models/__init__.py",
+      "type": "file",
+      "path": "app/models/__init__.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 43,
+      "label": "__init__.py"
+    },
+    {
+      "id": "file:app/models/shop.py",
+      "type": "file",
+      "path": "app/models/shop.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 65,
+      "label": "shop.py"
+    },
+    {
+      "id": "file:app/models/user.py",
+      "type": "file",
+      "path": "app/models/user.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 84,
+      "label": "user.py"
+    },
+    {
+      "id": "file:app/security/passwords.py",
+      "type": "file",
+      "path": "app/security/passwords.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 23,
+      "label": "passwords.py"
+    },
+    {
+      "id": "file:tests/conftest.py",
+      "type": "file",
+      "path": "tests/conftest.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 328,
+      "label": "conftest.py"
+    },
+    {
+      "id": "file:tests/test_shops.py",
+      "type": "file",
+      "path": "tests/test_shops.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 226,
+      "label": "test_shops.py"
+    },
+    {
+      "id": "function:alembic/env.py:run_migrations_offline",
+      "type": "function",
+      "path": "alembic/env.py",
+      "name": "run_migrations_offline",
+      "startLine": 36,
+      "endLine": 45,
+      "loc": 10,
+      "params": [],
+      "label": "run_migrations_offline"
+    },
+    {
+      "id": "function:app/cli.py:_createsuperadmin",
+      "type": "function",
+      "path": "app/cli.py",
+      "name": "_createsuperadmin",
+      "startLine": 31,
+      "endLine": 64,
+      "loc": 34,
+      "params": [
+        "username",
+        "password"
+      ],
+      "label": "_createsuperadmin"
+    },
+    {
+      "id": "function:app/cli.py:_createshop",
+      "type": "function",
+      "path": "app/cli.py",
+      "name": "_createshop",
+      "startLine": 67,
+      "endLine": 116,
+      "loc": 50,
+      "params": [
+        "code",
+        "name",
+        "owner_username",
+        "owner_password"
+      ],
+      "label": "_createshop"
+    },
+    {
+      "id": "function:app/cli.py:main",
+      "type": "function",
+      "path": "app/cli.py",
+      "name": "main",
+      "startLine": 119,
+      "endLine": 182,
+      "loc": 64,
+      "params": [
+        "argv"
+      ],
+      "label": "main"
+    },
+    {
+      "id": "class:app/config.py:Settings",
+      "type": "class",
+      "path": "app/config.py",
+      "name": "Settings",
+      "startLine": 11,
+      "endLine": 37,
+      "loc": 27,
+      "methodCount": 0,
+      "methods": [],
+      "label": "Settings"
+    },
+    {
+      "id": "function:app/db.py:get_engine",
+      "type": "function",
+      "path": "app/db.py",
+      "name": "get_engine",
+      "startLine": 32,
+      "endLine": 53,
+      "loc": 22,
+      "params": [],
+      "label": "get_engine"
+    },
+    {
+      "id": "function:app/db.py:reset_engine",
+      "type": "function",
+      "path": "app/db.py",
+      "name": "reset_engine",
+      "startLine": 67,
+      "endLine": 77,
+      "loc": 11,
+      "params": [],
+      "label": "reset_engine"
+    },
+    {
+      "id": "function:app/db.py:get_db",
+      "type": "function",
+      "path": "app/db.py",
+      "name": "get_db",
+      "startLine": 80,
+      "endLine": 111,
+      "loc": 32,
+      "params": [],
+      "label": "get_db"
+    },
+    {
+      "id": "class:app/models/shop.py:Shop",
+      "type": "class",
+      "path": "app/models/shop.py",
+      "name": "Shop",
+      "startLine": 22,
+      "endLine": 65,
+      "loc": 44,
+      "methodCount": 0,
+      "methods": [],
+      "label": "Shop"
+    },
+    {
+      "id": "class:app/models/user.py:User",
+      "type": "class",
+      "path": "app/models/user.py",
+      "name": "User",
+      "startLine": 48,
+      "endLine": 84,
+      "loc": 37,
+      "methodCount": 0,
+      "methods": [],
+      "label": "User"
+    },
+    {
+      "id": "function:tests/conftest.py:test_db_dsn",
+      "type": "function",
+      "path": "tests/conftest.py",
+      "name": "test_db_dsn",
+      "startLine": 49,
+      "endLine": 112,
+      "loc": 64,
+      "params": [],
+      "label": "test_db_dsn"
+    },
+    {
+      "id": "function:tests/conftest.py:_truncate_tables",
+      "type": "function",
+      "path": "tests/conftest.py",
+      "name": "_truncate_tables",
+      "startLine": 116,
+      "endLine": 130,
+      "loc": 15,
+      "params": [
+        "test_db_dsn"
+      ],
+      "label": "_truncate_tables"
+    },
+    {
+      "id": "function:tests/conftest.py:db_session",
+      "type": "function",
+      "path": "tests/conftest.py",
+      "name": "db_session",
+      "startLine": 134,
+      "endLine": 147,
+      "loc": 14,
+      "params": [
+        "test_db_dsn"
+      ],
+      "label": "db_session"
+    },
+    {
+      "id": "function:tests/conftest.py:client",
+      "type": "function",
+      "path": "tests/conftest.py",
+      "name": "client",
+      "startLine": 151,
+      "endLine": 168,
+      "loc": 18,
+      "params": [
+        "test_db_dsn"
+      ],
+      "label": "client"
+    },
+    {
+      "id": "function:tests/conftest.py:_make_user",
+      "type": "function",
+      "path": "tests/conftest.py",
+      "name": "_make_user",
+      "startLine": 188,
+      "endLine": 210,
+      "loc": 23,
+      "params": [
+        "session",
+        "shop_id",
+        "role",
+        "username",
+        "phone",
+        "password",
+        "full_name"
+      ],
+      "label": "_make_user"
+    },
+    {
+      "id": "function:tests/conftest.py:owner",
+      "type": "function",
+      "path": "tests/conftest.py",
+      "name": "owner",
+      "startLine": 219,
+      "endLine": 228,
+      "loc": 10,
+      "params": [
+        "db_session",
+        "shop"
+      ],
+      "label": "owner"
+    },
+    {
+      "id": "function:tests/conftest.py:receiver",
+      "type": "function",
+      "path": "tests/conftest.py",
+      "name": "receiver",
+      "startLine": 232,
+      "endLine": 241,
+      "loc": 10,
+      "params": [
+        "db_session",
+        "shop"
+      ],
+      "label": "receiver"
+    },
+    {
+      "id": "function:tests/conftest.py:cashier",
+      "type": "function",
+      "path": "tests/conftest.py",
+      "name": "cashier",
+      "startLine": 245,
+      "endLine": 254,
+      "loc": 10,
+      "params": [
+        "db_session",
+        "shop"
+      ],
+      "label": "cashier"
+    },
+    {
+      "id": "function:tests/conftest.py:superadmin",
+      "type": "function",
+      "path": "tests/conftest.py",
+      "name": "superadmin",
+      "startLine": 258,
+      "endLine": 267,
+      "loc": 10,
+      "params": [
+        "db_session"
+      ],
+      "label": "superadmin"
+    },
+    {
+      "id": "function:tests/conftest.py:_make_logged_in_client",
+      "type": "function",
+      "path": "tests/conftest.py",
+      "name": "_make_logged_in_client",
+      "startLine": 270,
+      "endLine": 284,
+      "loc": 15,
+      "params": [
+        "app",
+        "path",
+        "payload"
+      ],
+      "label": "_make_logged_in_client"
+    },
+    {
+      "id": "function:tests/test_shops.py:_finalize",
+      "type": "function",
+      "path": "tests/test_shops.py",
+      "name": "_finalize",
+      "startLine": 39,
+      "endLine": 51,
+      "loc": 13,
+      "params": [
+        "cashier_client",
+        "bc",
+        "qty",
+        "amount"
+      ],
+      "label": "_finalize"
+    },
+    {
+      "id": "function:tests/test_shops.py:test_get_shop_returns_defaults",
+      "type": "function",
+      "path": "tests/test_shops.py",
+      "name": "test_get_shop_returns_defaults",
+      "startLine": 58,
+      "endLine": 70,
+      "loc": 13,
+      "params": [
+        "owner_client",
+        "db_session"
+      ],
+      "label": "test_get_shop_returns_defaults"
+    },
+    {
+      "id": "function:tests/test_shops.py:test_owner_updates_gstin_and_duty_rate",
+      "type": "function",
+      "path": "tests/test_shops.py",
+      "name": "test_owner_updates_gstin_and_duty_rate",
+      "startLine": 74,
+      "endLine": 89,
+      "loc": 16,
+      "params": [
+        "owner_client",
+        "db_session"
+      ],
+      "label": "test_owner_updates_gstin_and_duty_rate"
+    },
+    {
+      "id": "function:tests/test_shops.py:test_pdf_includes_configured_gstin",
+      "type": "function",
+      "path": "tests/test_shops.py",
+      "name": "test_pdf_includes_configured_gstin",
+      "startLine": 124,
+      "endLine": 142,
+      "loc": 19,
+      "params": [
+        "owner_client",
+        "receiver_client",
+        "cashier_client"
+      ],
+      "label": "test_pdf_includes_configured_gstin"
+    },
+    {
+      "id": "function:tests/test_shops.py:test_pdf_includes_configured_duty_rate",
+      "type": "function",
+      "path": "tests/test_shops.py",
+      "name": "test_pdf_includes_configured_duty_rate",
+      "startLine": 146,
+      "endLine": 163,
+      "loc": 18,
+      "params": [
+        "owner_client",
+        "receiver_client",
+        "cashier_client"
+      ],
+      "label": "test_pdf_includes_configured_duty_rate"
+    },
+    {
+      "id": "function:tests/test_shops.py:test_pdf_includes_placeholder_disclaimer",
+      "type": "function",
+      "path": "tests/test_shops.py",
+      "name": "test_pdf_includes_placeholder_disclaimer",
+      "startLine": 167,
+      "endLine": 181,
+      "loc": 15,
+      "params": [
+        "owner_client",
+        "receiver_client",
+        "cashier_client"
+      ],
+      "label": "test_pdf_includes_placeholder_disclaimer"
+    },
+    {
+      "id": "function:tests/test_shops.py:test_pdf_does_not_hardcode_cgst_or_sgst",
+      "type": "function",
+      "path": "tests/test_shops.py",
+      "name": "test_pdf_does_not_hardcode_cgst_or_sgst",
+      "startLine": 185,
+      "endLine": 205,
+      "loc": 21,
+      "params": [
+        "owner_client",
+        "receiver_client",
+        "cashier_client"
+      ],
+      "label": "test_pdf_does_not_hardcode_cgst_or_sgst"
+    },
+    {
+      "id": "function:tests/test_shops.py:test_shop_name_appears_on_invoice",
+      "type": "function",
+      "path": "tests/test_shops.py",
+      "name": "test_shop_name_appears_on_invoice",
+      "startLine": 209,
+      "endLine": 226,
+      "loc": 18,
+      "params": [
+        "owner_client",
+        "receiver_client",
+        "cashier_client",
+        "db_session"
+      ],
+      "label": "test_shop_name_appears_on_invoice"
+    }
+  ],
+  "edges": [
+    {
+      "source": "file:alembic/env.py",
+      "target": "function:alembic/env.py:run_migrations_offline",
+      "relation": "contains"
+    },
+    {
+      "source": "file:app/cli.py",
+      "target": "function:app/cli.py:_createsuperadmin",
+      "relation": "contains"
+    },
+    {
+      "source": "file:app/cli.py",
+      "target": "function:app/cli.py:_createshop",
+      "relation": "contains"
+    },
+    {
+      "source": "file:app/cli.py",
+      "target": "function:app/cli.py:main",
+      "relation": "contains"
+    },
+    {
+      "source": "file:app/config.py",
+      "target": "class:app/config.py:Settings",
+      "relation": "contains"
+    },
+    {
+      "source": "file:app/db.py",
+      "target": "function:app/db.py:get_engine",
+      "relation": "contains"
+    },
+    {
+      "source": "file:app/db.py",
+      "target": "function:app/db.py:reset_engine",
+      "relation": "contains"
+    },
+    {
+      "source": "file:app/db.py",
+      "target": "function:app/db.py:get_db",
+      "relation": "contains"
+    },
+    {
+      "source": "file:app/models/shop.py",
+      "target": "class:app/models/shop.py:Shop",
+      "relation": "contains"
+    },
+    {
+      "source": "file:app/models/user.py",
+      "target": "class:app/models/user.py:User",
+      "relation": "contains"
+    },
+    {
+      "source": "file:tests/conftest.py",
+      "target": "function:tests/conftest.py:test_db_dsn",
+      "relation": "contains"
+    },
+    {
+      "source": "file:tests/conftest.py",
+      "target": "function:tests/conftest.py:_truncate_tables",
+      "relation": "contains"
+    },
+    {
+      "source": "file:tests/conftest.py",
+      "target": "function:tests/conftest.py:db_session",
+      "relation": "contains"
+    },
+    {
+      "source": "file:tests/conftest.py",
+      "target": "function:tests/conftest.py:client",
+      "relation": "contains"
+    },
+    {
+      "source": "file:tests/conftest.py",
+      "target": "function:tests/conftest.py:_make_user",
+      "relation": "contains"
+    },
+    {
+      "source": "file:tests/conftest.py",
+      "target": "function:tests/conftest.py:owner",
+      "relation": "contains"
+    },
+    {
+      "source": "file:tests/conftest.py",
+      "target": "function:tests/conftest.py:receiver",
+      "relation": "contains"
+    },
+    {
+      "source": "file:tests/conftest.py",
+      "target": "function:tests/conftest.py:cashier",
+      "relation": "contains"
+    },
+    {
+      "source": "file:tests/conftest.py",
+      "target": "function:tests/conftest.py:superadmin",
+      "relation": "contains"
+    },
+    {
+      "source": "file:tests/conftest.py",
+      "target": "function:tests/conftest.py:_make_logged_in_client",
+      "relation": "contains"
+    },
+    {
+      "source": "file:tests/test_shops.py",
+      "target": "function:tests/test_shops.py:_finalize",
+      "relation": "contains"
+    },
+    {
+      "source": "file:tests/test_shops.py",
+      "target": "function:tests/test_shops.py:test_get_shop_returns_defaults",
+      "relation": "contains"
+    },
+    {
+      "source": "file:tests/test_shops.py",
+      "target": "function:tests/test_shops.py:test_owner_updates_gstin_and_duty_rate",
+      "relation": "contains"
+    },
+    {
+      "source": "file:tests/test_shops.py",
+      "target": "function:tests/test_shops.py:test_pdf_includes_configured_gstin",
+      "relation": "contains"
+    },
+    {
+      "source": "file:tests/test_shops.py",
+      "target": "function:tests/test_shops.py:test_pdf_includes_configured_duty_rate",
+      "relation": "contains"
+    },
+    {
+      "source": "file:tests/test_shops.py",
+      "target": "function:tests/test_shops.py:test_pdf_includes_placeholder_disclaimer",
+      "relation": "contains"
+    },
+    {
+      "source": "file:tests/test_shops.py",
+      "target": "function:tests/test_shops.py:test_pdf_does_not_hardcode_cgst_or_sgst",
+      "relation": "contains"
+    },
+    {
+      "source": "file:tests/test_shops.py",
+      "target": "function:tests/test_shops.py:test_shop_name_appears_on_invoice",
+      "relation": "contains"
+    },
+    {
+      "source": "file:alembic/env.py",
+      "target": "file:app/__init__.py",
+      "relation": "imports"
+    },
+    {
+      "source": "file:alembic/env.py",
+      "target": "file:app/config.py",
+      "relation": "imports"
+    },
+    {
+      "source": "file:alembic/env.py",
+      "target": "file:app/db.py",
+      "relation": "imports"
+    },
+    {
+      "source": "file:alembic/env.py",
+      "target": "file:app/models/__init__.py",
+      "relation": "imports"
+    },
+    {
+      "source": "file:app/cli.py",
+      "target": "file:app/config.py",
+      "relation": "imports"
+    },
+    {
+      "source": "file:app/cli.py",
+      "target": "file:app/db.py",
+      "relation": "imports"
+    },
+    {
+      "source": "file:app/cli.py",
+      "target": "file:app/models/shop.py",
+      "relation": "imports"
+    },
+    {
+      "source": "file:app/cli.py",
+      "target": "file:app/models/user.py",
+      "relation": "imports"
+    },
+    {
+      "source": "file:app/cli.py",
+      "target": "file:app/security/passwords.py",
+      "relation": "imports"
+    },
+    {
+      "source": "file:app/db.py",
+      "target": "file:app/config.py",
+      "relation": "imports"
+    },
+    {
+      "source": "file:app/models/__init__.py",
+      "target": "file:app/models/shop.py",
+      "relation": "imports"
+    },
+    {
+      "source": "file:app/models/__init__.py",
+      "target": "file:app/models/user.py",
+      "relation": "imports"
+    },
+    {
+      "source": "file:app/models/shop.py",
+      "target": "file:app/db.py",
+      "relation": "imports"
+    },
+    {
+      "source": "file:app/models/user.py",
+      "target": "file:app/db.py",
+      "relation": "imports"
+    },
+    {
+      "source": "file:app/security/passwords.py",
+      "target": "file:app/config.py",
+      "relation": "imports"
+    },
+    {
+      "source": "file:tests/conftest.py",
+      "target": "file:app/models/shop.py",
+      "relation": "imports"
+    },
+    {
+      "source": "file:tests/conftest.py",
+      "target": "file:app/models/user.py",
+      "relation": "imports"
+    },
+    {
+      "source": "file:tests/conftest.py",
+      "target": "file:app/security/passwords.py",
+      "relation": "imports"
+    },
+    {
+      "source": "file:tests/test_shops.py",
+      "target": "file:app/models/shop.py",
+      "relation": "imports"
+    }
+  ],
+  "summary": {
+    "nodeCount": 39,
+    "edgeCount": 47,
+    "fileNodes": 11,
+    "functionNodes": 25,
+    "classNodes": 3,
+    "importsEdges": 19,
+    "containsEdges": 28,
+    "crossBatchDrops": 5,
+    "crossBatchDropList": [
+      {
+        "from": "app/cli.py",
+        "to": "app/logging_config.py"
+      },
+      {
+        "from": "app/models/__init__.py",
+        "to": "app/models/invoice.py"
+      },
+      {
+        "from": "app/models/__init__.py",
+        "to": "app/models/log.py"
+      },
+      {
+        "from": "app/models/__init__.py",
+        "to": "app/models/lot.py"
+      },
+      {
+        "from": "app/models/__init__.py",
+        "to": "app/models/product.py"
+      }
+    ],
+    "skippedFiles": 0,
+    "splits": []
+  }
+}

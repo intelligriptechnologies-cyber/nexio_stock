@@ -1,0 +1,1669 @@
+{
+  "scriptCompleted": true,
+  "filesAnalyzed": 14,
+  "filesSkipped": [],
+  "results": [
+    {
+      "path": "app/api/__init__.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 1,
+      "nonEmptyLines": 1,
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "app/api/_errors.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 71,
+      "nonEmptyLines": 58,
+      "functions": [
+        {
+          "name": "is_unique_violation",
+          "startLine": 26,
+          "endLine": 44,
+          "params": [
+            "exc"
+          ]
+        },
+        {
+          "name": "map_error_to_http",
+          "startLine": 47,
+          "endLine": 68,
+          "params": [
+            "exc",
+            "code_to_status",
+            "fallback_status"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "is_unique_violation",
+          "line": 26,
+          "isDefault": false
+        },
+        {
+          "name": "map_error_to_http",
+          "line": 47,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "is_unique_violation",
+          "callee": "set",
+          "lineNumber": 35
+        },
+        {
+          "caller": "is_unique_violation",
+          "callee": "id",
+          "lineNumber": 37
+        },
+        {
+          "caller": "is_unique_violation",
+          "callee": "seen.add",
+          "lineNumber": 38
+        },
+        {
+          "caller": "is_unique_violation",
+          "callee": "id",
+          "lineNumber": 38
+        },
+        {
+          "caller": "is_unique_violation",
+          "callee": "type",
+          "lineNumber": 39
+        },
+        {
+          "caller": "is_unique_violation",
+          "callee": "isinstance",
+          "lineNumber": 41
+        },
+        {
+          "caller": "map_error_to_http",
+          "callee": "getattr",
+          "lineNumber": 62
+        },
+        {
+          "caller": "map_error_to_http",
+          "callee": "type",
+          "lineNumber": 62
+        },
+        {
+          "caller": "map_error_to_http",
+          "callee": "code_to_status.get",
+          "lineNumber": 63
+        },
+        {
+          "caller": "map_error_to_http",
+          "callee": "str",
+          "lineNumber": 63
+        },
+        {
+          "caller": "map_error_to_http",
+          "callee": "getattr",
+          "lineNumber": 64
+        },
+        {
+          "caller": "map_error_to_http",
+          "callee": "str",
+          "lineNumber": 64
+        },
+        {
+          "caller": "map_error_to_http",
+          "callee": "HTTPException",
+          "lineNumber": 65
+        },
+        {
+          "caller": "map_error_to_http",
+          "callee": "str",
+          "lineNumber": 67
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 2,
+        "functionCount": 2,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "app/api/_test_only.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 16,
+      "nonEmptyLines": 11,
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "app/api/auth.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 140,
+      "nonEmptyLines": 123,
+      "functions": [
+        {
+          "name": "_authenticate",
+          "startLine": 27,
+          "endLine": 78,
+          "params": [
+            "db",
+            "shop_id",
+            "identifier_field",
+            "identifier_value",
+            "password",
+            "allowed_roles"
+          ]
+        },
+        {
+          "name": "login_superadmin",
+          "startLine": 86,
+          "endLine": 109,
+          "params": [
+            "payload",
+            "db"
+          ]
+        },
+        {
+          "name": "login_shop",
+          "startLine": 117,
+          "endLine": 140,
+          "params": [
+            "payload",
+            "db"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "_authenticate",
+          "line": 27,
+          "isDefault": false
+        },
+        {
+          "name": "login_superadmin",
+          "line": 81,
+          "isDefault": false
+        },
+        {
+          "name": "login_shop",
+          "line": 112,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "_authenticate",
+          "callee": "select(User).where",
+          "lineNumber": 42
+        },
+        {
+          "caller": "_authenticate",
+          "callee": "select",
+          "lineNumber": 42
+        },
+        {
+          "caller": "_authenticate",
+          "callee": "User.is_active.is_",
+          "lineNumber": 43
+        },
+        {
+          "caller": "_authenticate",
+          "callee": "getattr",
+          "lineNumber": 44
+        },
+        {
+          "caller": "_authenticate",
+          "callee": "stmt.where",
+          "lineNumber": 47
+        },
+        {
+          "caller": "_authenticate",
+          "callee": "(await db.execute(stmt)).scalar_one_or_none",
+          "lineNumber": 49
+        },
+        {
+          "caller": "_authenticate",
+          "callee": "db.execute",
+          "lineNumber": 49
+        },
+        {
+          "caller": "_authenticate",
+          "callee": "verify_password",
+          "lineNumber": 57
+        },
+        {
+          "caller": "_authenticate",
+          "callee": "HTTPException",
+          "lineNumber": 58
+        },
+        {
+          "caller": "_authenticate",
+          "callee": "verify_password",
+          "lineNumber": 62
+        },
+        {
+          "caller": "_authenticate",
+          "callee": "HTTPException",
+          "lineNumber": 63
+        },
+        {
+          "caller": "_authenticate",
+          "callee": "log.info",
+          "lineNumber": 68
+        },
+        {
+          "caller": "_authenticate",
+          "callee": "HTTPException",
+          "lineNumber": 74
+        },
+        {
+          "caller": "login_superadmin",
+          "callee": "HTTPException",
+          "lineNumber": 88
+        },
+        {
+          "caller": "login_superadmin",
+          "callee": "_authenticate",
+          "lineNumber": 92
+        },
+        {
+          "caller": "login_superadmin",
+          "callee": "get_settings",
+          "lineNumber": 100
+        },
+        {
+          "caller": "login_superadmin",
+          "callee": "create_access_token",
+          "lineNumber": 101
+        },
+        {
+          "caller": "login_superadmin",
+          "callee": "str",
+          "lineNumber": 102
+        },
+        {
+          "caller": "login_superadmin",
+          "callee": "log.info",
+          "lineNumber": 104
+        },
+        {
+          "caller": "login_superadmin",
+          "callee": "TokenResponse",
+          "lineNumber": 105
+        },
+        {
+          "caller": "login_superadmin",
+          "callee": "UserPublic.model_validate",
+          "lineNumber": 108
+        },
+        {
+          "caller": "login_shop",
+          "callee": "HTTPException",
+          "lineNumber": 119
+        },
+        {
+          "caller": "login_shop",
+          "callee": "_authenticate",
+          "lineNumber": 123
+        },
+        {
+          "caller": "login_shop",
+          "callee": "get_settings",
+          "lineNumber": 131
+        },
+        {
+          "caller": "login_shop",
+          "callee": "create_access_token",
+          "lineNumber": 132
+        },
+        {
+          "caller": "login_shop",
+          "callee": "str",
+          "lineNumber": 133
+        },
+        {
+          "caller": "login_shop",
+          "callee": "log.info",
+          "lineNumber": 135
+        },
+        {
+          "caller": "login_shop",
+          "callee": "TokenResponse",
+          "lineNumber": 136
+        },
+        {
+          "caller": "login_shop",
+          "callee": "UserPublic.model_validate",
+          "lineNumber": 139
+        }
+      ],
+      "metrics": {
+        "importCount": 7,
+        "exportCount": 3,
+        "functionCount": 3,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "app/api/deps.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 94,
+      "nonEmptyLines": 74,
+      "functions": [
+        {
+          "name": "db_session",
+          "startLine": 25,
+          "endLine": 27,
+          "params": []
+        },
+        {
+          "name": "get_current_user",
+          "startLine": 33,
+          "endLine": 63,
+          "params": [
+            "db",
+            "creds"
+          ]
+        },
+        {
+          "name": "require_role",
+          "startLine": 69,
+          "endLine": 84,
+          "params": []
+        },
+        {
+          "name": "require_shop_scope",
+          "startLine": 87,
+          "endLine": 94,
+          "params": [
+            "user"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "db_session",
+          "line": 25,
+          "isDefault": false
+        },
+        {
+          "name": "get_current_user",
+          "line": 33,
+          "isDefault": false
+        },
+        {
+          "name": "require_role",
+          "line": 69,
+          "isDefault": false
+        },
+        {
+          "name": "require_shop_scope",
+          "line": 87,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "db_session",
+          "callee": "get_db",
+          "lineNumber": 26
+        },
+        {
+          "caller": "get_current_user",
+          "callee": "Depends",
+          "lineNumber": 35
+        },
+        {
+          "caller": "get_current_user",
+          "callee": "HTTPException",
+          "lineNumber": 38
+        },
+        {
+          "caller": "get_current_user",
+          "callee": "decode_access_token",
+          "lineNumber": 44
+        },
+        {
+          "caller": "get_current_user",
+          "callee": "HTTPException",
+          "lineNumber": 46
+        },
+        {
+          "caller": "get_current_user",
+          "callee": "int",
+          "lineNumber": 52
+        },
+        {
+          "caller": "get_current_user",
+          "callee": "db.get",
+          "lineNumber": 53
+        },
+        {
+          "caller": "get_current_user",
+          "callee": "HTTPException",
+          "lineNumber": 55
+        },
+        {
+          "caller": "get_current_user",
+          "callee": "db.refresh",
+          "lineNumber": 62
+        },
+        {
+          "caller": "_guard",
+          "callee": "HTTPException",
+          "lineNumber": 75
+        },
+        {
+          "caller": "_guard",
+          "callee": "sorted",
+          "lineNumber": 79
+        },
+        {
+          "caller": "require_shop_scope",
+          "callee": "HTTPException",
+          "lineNumber": 91
+        }
+      ],
+      "metrics": {
+        "importCount": 3,
+        "exportCount": 4,
+        "functionCount": 4,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "app/api/health.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 20,
+      "nonEmptyLines": 13,
+      "functions": [
+        {
+          "name": "liveness",
+          "startLine": 13,
+          "endLine": 14,
+          "params": []
+        },
+        {
+          "name": "readiness",
+          "startLine": 18,
+          "endLine": 20,
+          "params": [
+            "db"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "liveness",
+          "line": 12,
+          "isDefault": false
+        },
+        {
+          "name": "readiness",
+          "line": 17,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "readiness",
+          "callee": "db.execute",
+          "lineNumber": 19
+        },
+        {
+          "caller": "readiness",
+          "callee": "text",
+          "lineNumber": 19
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 2,
+        "functionCount": 2,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "app/api/shops.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 95,
+      "nonEmptyLines": 82,
+      "functions": [
+        {
+          "name": "get_my_shop",
+          "startLine": 36,
+          "endLine": 54,
+          "params": [
+            "db",
+            "_user"
+          ]
+        },
+        {
+          "name": "update_my_shop",
+          "startLine": 62,
+          "endLine": 95,
+          "params": [
+            "payload",
+            "db",
+            "_user"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "get_my_shop",
+          "line": 31,
+          "isDefault": false
+        },
+        {
+          "name": "update_my_shop",
+          "line": 57,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "get_my_shop",
+          "callee": "Depends",
+          "lineNumber": 38
+        },
+        {
+          "caller": "get_my_shop",
+          "callee": "require_role",
+          "lineNumber": 38
+        },
+        {
+          "caller": "get_my_shop",
+          "callee": "(\n        await db.execute(select(Shop).where(Shop.id == _user.shop_id))\n    ).scalar_one_or_none",
+          "lineNumber": 40
+        },
+        {
+          "caller": "get_my_shop",
+          "callee": "db.execute",
+          "lineNumber": 41
+        },
+        {
+          "caller": "get_my_shop",
+          "callee": "select(Shop).where",
+          "lineNumber": 41
+        },
+        {
+          "caller": "get_my_shop",
+          "callee": "select",
+          "lineNumber": 41
+        },
+        {
+          "caller": "get_my_shop",
+          "callee": "ShopPublic",
+          "lineNumber": 46
+        },
+        {
+          "caller": "get_my_shop",
+          "callee": "ShopPublic.model_validate",
+          "lineNumber": 54
+        },
+        {
+          "caller": "update_my_shop",
+          "callee": "Depends",
+          "lineNumber": 65
+        },
+        {
+          "caller": "update_my_shop",
+          "callee": "require_role",
+          "lineNumber": 65
+        },
+        {
+          "caller": "update_my_shop",
+          "callee": "(\n        await db.execute(select(Shop).where(Shop.id == actor_shop_id))\n    ).scalar_one_or_none",
+          "lineNumber": 70
+        },
+        {
+          "caller": "update_my_shop",
+          "callee": "db.execute",
+          "lineNumber": 71
+        },
+        {
+          "caller": "update_my_shop",
+          "callee": "select(Shop).where",
+          "lineNumber": 71
+        },
+        {
+          "caller": "update_my_shop",
+          "callee": "select",
+          "lineNumber": 71
+        },
+        {
+          "caller": "update_my_shop",
+          "callee": "ShopPublic",
+          "lineNumber": 74
+        },
+        {
+          "caller": "update_my_shop",
+          "callee": "payload.model_dump",
+          "lineNumber": 83
+        },
+        {
+          "caller": "update_my_shop",
+          "callee": "data.items",
+          "lineNumber": 84
+        },
+        {
+          "caller": "update_my_shop",
+          "callee": "setattr",
+          "lineNumber": 85
+        },
+        {
+          "caller": "update_my_shop",
+          "callee": "db.commit",
+          "lineNumber": 86
+        },
+        {
+          "caller": "update_my_shop",
+          "callee": "db.refresh",
+          "lineNumber": 87
+        },
+        {
+          "caller": "update_my_shop",
+          "callee": "log.info",
+          "lineNumber": 89
+        },
+        {
+          "caller": "update_my_shop",
+          "callee": "sorted",
+          "lineNumber": 93
+        },
+        {
+          "caller": "update_my_shop",
+          "callee": "data.keys",
+          "lineNumber": 93
+        },
+        {
+          "caller": "update_my_shop",
+          "callee": "ShopPublic.model_validate",
+          "lineNumber": 95
+        }
+      ],
+      "metrics": {
+        "importCount": 4,
+        "exportCount": 2,
+        "functionCount": 2,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "app/api/staff.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 121,
+      "nonEmptyLines": 106,
+      "functions": [
+        {
+          "name": "create_staff",
+          "startLine": 39,
+          "endLine": 103,
+          "params": [
+            "payload",
+            "db",
+            "user"
+          ]
+        },
+        {
+          "name": "list_staff",
+          "startLine": 111,
+          "endLine": 121,
+          "params": [
+            "db",
+            "user"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "create_staff",
+          "line": 33,
+          "isDefault": false
+        },
+        {
+          "name": "list_staff",
+          "line": 106,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "create_staff",
+          "callee": "Depends",
+          "lineNumber": 42
+        },
+        {
+          "caller": "create_staff",
+          "callee": "require_role",
+          "lineNumber": 42
+        },
+        {
+          "caller": "create_staff",
+          "callee": "HTTPException",
+          "lineNumber": 46
+        },
+        {
+          "caller": "create_staff",
+          "callee": "HTTPException",
+          "lineNumber": 55
+        },
+        {
+          "caller": "create_staff",
+          "callee": "User",
+          "lineNumber": 66
+        },
+        {
+          "caller": "create_staff",
+          "callee": "hash_password",
+          "lineNumber": 72
+        },
+        {
+          "caller": "create_staff",
+          "callee": "db.add",
+          "lineNumber": 75
+        },
+        {
+          "caller": "create_staff",
+          "callee": "db.commit",
+          "lineNumber": 77
+        },
+        {
+          "caller": "create_staff",
+          "callee": "is_unique_violation",
+          "lineNumber": 81
+        },
+        {
+          "caller": "create_staff",
+          "callee": "log.info",
+          "lineNumber": 82
+        },
+        {
+          "caller": "create_staff",
+          "callee": "db.rollback",
+          "lineNumber": 88
+        },
+        {
+          "caller": "create_staff",
+          "callee": "HTTPException",
+          "lineNumber": 89
+        },
+        {
+          "caller": "create_staff",
+          "callee": "db.refresh",
+          "lineNumber": 94
+        },
+        {
+          "caller": "create_staff",
+          "callee": "log.info",
+          "lineNumber": 96
+        },
+        {
+          "caller": "create_staff",
+          "callee": "UserPublic.model_validate",
+          "lineNumber": 103
+        },
+        {
+          "caller": "list_staff",
+          "callee": "Depends",
+          "lineNumber": 113
+        },
+        {
+          "caller": "list_staff",
+          "callee": "require_role",
+          "lineNumber": 113
+        },
+        {
+          "caller": "list_staff",
+          "callee": "select(User).where",
+          "lineNumber": 116
+        },
+        {
+          "caller": "list_staff",
+          "callee": "select",
+          "lineNumber": 116
+        },
+        {
+          "caller": "list_staff",
+          "callee": "select",
+          "lineNumber": 119
+        },
+        {
+          "caller": "list_staff",
+          "callee": "(await db.execute(stmt.order_by(User.id))).scalars().all",
+          "lineNumber": 120
+        },
+        {
+          "caller": "list_staff",
+          "callee": "(await db.execute(stmt.order_by(User.id))).scalars",
+          "lineNumber": 120
+        },
+        {
+          "caller": "list_staff",
+          "callee": "db.execute",
+          "lineNumber": 120
+        },
+        {
+          "caller": "list_staff",
+          "callee": "stmt.order_by",
+          "lineNumber": 120
+        },
+        {
+          "caller": "list_staff",
+          "callee": "UserPublic.model_validate",
+          "lineNumber": 121
+        }
+      ],
+      "metrics": {
+        "importCount": 4,
+        "exportCount": 2,
+        "functionCount": 2,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "app/api/users.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 18,
+      "nonEmptyLines": 12,
+      "functions": [
+        {
+          "name": "me",
+          "startLine": 17,
+          "endLine": 18,
+          "params": [
+            "user"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "me",
+          "line": 16,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "me",
+          "callee": "UserPublic.model_validate",
+          "lineNumber": 18
+        }
+      ],
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "app/logging_config.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 69,
+      "nonEmptyLines": 55,
+      "functions": [
+        {
+          "name": "configure_logging",
+          "startLine": 20,
+          "endLine": 65,
+          "params": [
+            "level"
+          ]
+        },
+        {
+          "name": "get_logger",
+          "startLine": 68,
+          "endLine": 69,
+          "params": [
+            "name"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "configure_logging",
+          "line": 20,
+          "isDefault": false
+        },
+        {
+          "name": "get_logger",
+          "line": 68,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "configure_logging",
+          "callee": "getattr",
+          "lineNumber": 22
+        },
+        {
+          "caller": "configure_logging",
+          "callee": "level.upper",
+          "lineNumber": 22
+        },
+        {
+          "caller": "configure_logging",
+          "callee": "structlog.processors.TimeStamper",
+          "lineNumber": 29
+        },
+        {
+          "caller": "configure_logging",
+          "callee": "structlog.processors.StackInfoRenderer",
+          "lineNumber": 30
+        },
+        {
+          "caller": "configure_logging",
+          "callee": "structlog.configure",
+          "lineNumber": 34
+        },
+        {
+          "caller": "configure_logging",
+          "callee": "structlog.make_filtering_bound_logger",
+          "lineNumber": 39
+        },
+        {
+          "caller": "configure_logging",
+          "callee": "structlog.stdlib.LoggerFactory",
+          "lineNumber": 40
+        },
+        {
+          "caller": "configure_logging",
+          "callee": "structlog.stdlib.ProcessorFormatter",
+          "lineNumber": 44
+        },
+        {
+          "caller": "configure_logging",
+          "callee": "structlog.processors.JSONRenderer",
+          "lineNumber": 50
+        },
+        {
+          "caller": "configure_logging",
+          "callee": "logging.StreamHandler",
+          "lineNumber": 54
+        },
+        {
+          "caller": "configure_logging",
+          "callee": "handler.setFormatter",
+          "lineNumber": 55
+        },
+        {
+          "caller": "configure_logging",
+          "callee": "logging.getLogger",
+          "lineNumber": 57
+        },
+        {
+          "caller": "configure_logging",
+          "callee": "root.setLevel",
+          "lineNumber": 60
+        },
+        {
+          "caller": "configure_logging",
+          "callee": "logging.getLogger(noisy).setLevel",
+          "lineNumber": 65
+        },
+        {
+          "caller": "configure_logging",
+          "callee": "logging.getLogger",
+          "lineNumber": 65
+        },
+        {
+          "caller": "configure_logging",
+          "callee": "max",
+          "lineNumber": 65
+        },
+        {
+          "caller": "get_logger",
+          "callee": "structlog.get_logger",
+          "lineNumber": 69
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 2,
+        "functionCount": 2,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "app/main.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 149,
+      "nonEmptyLines": 131,
+      "functions": [
+        {
+          "name": "lifespan",
+          "startLine": 32,
+          "endLine": 61,
+          "params": [
+            "_"
+          ]
+        },
+        {
+          "name": "_low_stock_loop",
+          "startLine": 64,
+          "endLine": 107,
+          "params": []
+        },
+        {
+          "name": "create_app",
+          "startLine": 110,
+          "endLine": 146,
+          "params": []
+        }
+      ],
+      "exports": [
+        {
+          "name": "lifespan",
+          "line": 31,
+          "isDefault": false
+        },
+        {
+          "name": "_low_stock_loop",
+          "line": 64,
+          "isDefault": false
+        },
+        {
+          "name": "create_app",
+          "line": 110,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "lifespan",
+          "callee": "get_settings",
+          "lineNumber": 33
+        },
+        {
+          "caller": "lifespan",
+          "callee": "configure_logging",
+          "lineNumber": 34
+        },
+        {
+          "caller": "lifespan",
+          "callee": "get_logger",
+          "lineNumber": 35
+        },
+        {
+          "caller": "lifespan",
+          "callee": "log.info",
+          "lineNumber": 36
+        },
+        {
+          "caller": "lifespan",
+          "callee": "get_engine",
+          "lineNumber": 43
+        },
+        {
+          "caller": "lifespan",
+          "callee": "log.info",
+          "lineNumber": 44
+        },
+        {
+          "caller": "lifespan",
+          "callee": "str(engine.url).split",
+          "lineNumber": 44
+        },
+        {
+          "caller": "lifespan",
+          "callee": "str",
+          "lineNumber": 44
+        },
+        {
+          "caller": "lifespan",
+          "callee": "asyncio.create_task",
+          "lineNumber": 52
+        },
+        {
+          "caller": "lifespan",
+          "callee": "_low_stock_loop",
+          "lineNumber": 52
+        },
+        {
+          "caller": "lifespan",
+          "callee": "bg_task.cancel",
+          "lineNumber": 58
+        },
+        {
+          "caller": "lifespan",
+          "callee": "contextlib.suppress",
+          "lineNumber": 59
+        },
+        {
+          "caller": "lifespan",
+          "callee": "log.info",
+          "lineNumber": 61
+        },
+        {
+          "caller": "_low_stock_loop",
+          "callee": "get_settings",
+          "lineNumber": 72
+        },
+        {
+          "caller": "_low_stock_loop",
+          "callee": "max",
+          "lineNumber": 73
+        },
+        {
+          "caller": "_low_stock_loop",
+          "callee": "get_logger",
+          "lineNumber": 74
+        },
+        {
+          "caller": "_low_stock_loop",
+          "callee": "log.info",
+          "lineNumber": 75
+        },
+        {
+          "caller": "_low_stock_loop",
+          "callee": "asyncio.sleep",
+          "lineNumber": 79
+        },
+        {
+          "caller": "_low_stock_loop",
+          "callee": "get_sessionmaker",
+          "lineNumber": 80
+        },
+        {
+          "caller": "_low_stock_loop",
+          "callee": "session_factory",
+          "lineNumber": 81
+        },
+        {
+          "caller": "_low_stock_loop",
+          "callee": "session.begin",
+          "lineNumber": 81
+        },
+        {
+          "caller": "_low_stock_loop",
+          "callee": "(\r\n                    await session.execute(select(Shop.id))\r\n                ).scalars().all",
+          "lineNumber": 82
+        },
+        {
+          "caller": "_low_stock_loop",
+          "callee": "(\r\n                    await session.execute(select(Shop.id))\r\n                ).scalars",
+          "lineNumber": 82
+        },
+        {
+          "caller": "_low_stock_loop",
+          "callee": "session.execute",
+          "lineNumber": 83
+        },
+        {
+          "caller": "_low_stock_loop",
+          "callee": "select",
+          "lineNumber": 83
+        },
+        {
+          "caller": "_low_stock_loop",
+          "callee": "compute_low_stock",
+          "lineNumber": 87
+        },
+        {
+          "caller": "_low_stock_loop",
+          "callee": "log.info",
+          "lineNumber": 89
+        },
+        {
+          "caller": "_low_stock_loop",
+          "callee": "len",
+          "lineNumber": 92
+        },
+        {
+          "caller": "_low_stock_loop",
+          "callee": "len",
+          "lineNumber": 99
+        },
+        {
+          "caller": "_low_stock_loop",
+          "callee": "log.info",
+          "lineNumber": 101
+        },
+        {
+          "caller": "_low_stock_loop",
+          "callee": "log.error",
+          "lineNumber": 105
+        },
+        {
+          "caller": "_low_stock_loop",
+          "callee": "str",
+          "lineNumber": 105
+        },
+        {
+          "caller": "create_app",
+          "callee": "get_settings",
+          "lineNumber": 111
+        },
+        {
+          "caller": "create_app",
+          "callee": "FastAPI",
+          "lineNumber": 112
+        },
+        {
+          "caller": "create_app",
+          "callee": "app.add_middleware",
+          "lineNumber": 122
+        },
+        {
+          "caller": "create_app",
+          "callee": "app.include_router",
+          "lineNumber": 130
+        },
+        {
+          "caller": "create_app",
+          "callee": "app.include_router",
+          "lineNumber": 131
+        },
+        {
+          "caller": "create_app",
+          "callee": "app.include_router",
+          "lineNumber": 132
+        },
+        {
+          "caller": "create_app",
+          "callee": "app.include_router",
+          "lineNumber": 133
+        },
+        {
+          "caller": "create_app",
+          "callee": "app.include_router",
+          "lineNumber": 134
+        },
+        {
+          "caller": "create_app",
+          "callee": "app.include_router",
+          "lineNumber": 135
+        },
+        {
+          "caller": "create_app",
+          "callee": "app.include_router",
+          "lineNumber": 136
+        },
+        {
+          "caller": "create_app",
+          "callee": "app.include_router",
+          "lineNumber": 137
+        },
+        {
+          "caller": "create_app",
+          "callee": "app.include_router",
+          "lineNumber": 138
+        },
+        {
+          "caller": "create_app",
+          "callee": "app.include_router",
+          "lineNumber": 139
+        },
+        {
+          "caller": "create_app",
+          "callee": "app.include_router",
+          "lineNumber": 144
+        }
+      ],
+      "metrics": {
+        "importCount": 14,
+        "exportCount": 3,
+        "functionCount": 3,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "app/schemas/auth.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 87,
+      "nonEmptyLines": 64,
+      "classes": [
+        {
+          "name": "LoginRequest",
+          "startLine": 14,
+          "endLine": 29,
+          "methods": [
+            "_phone_format"
+          ],
+          "properties": [
+            "username",
+            "phone",
+            "password"
+          ]
+        },
+        {
+          "name": "TokenResponse",
+          "startLine": 32,
+          "endLine": 36,
+          "methods": [],
+          "properties": [
+            "access_token",
+            "token_type",
+            "expires_in",
+            "user"
+          ]
+        },
+        {
+          "name": "UserPublic",
+          "startLine": 39,
+          "endLine": 49,
+          "methods": [],
+          "properties": [
+            "id",
+            "shop_id",
+            "role",
+            "username",
+            "full_name",
+            "phone",
+            "is_active",
+            "created_at"
+          ]
+        },
+        {
+          "name": "StaffCreate",
+          "startLine": 52,
+          "endLine": 77,
+          "methods": [
+            "_only_staff_roles",
+            "_phone_format"
+          ],
+          "properties": [
+            "role",
+            "username",
+            "full_name",
+            "phone",
+            "password"
+          ]
+        },
+        {
+          "name": "SuperAdminCreate",
+          "startLine": 80,
+          "endLine": 84,
+          "methods": [],
+          "properties": [
+            "username",
+            "password"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "LoginRequest",
+          "line": 14,
+          "isDefault": false
+        },
+        {
+          "name": "TokenResponse",
+          "line": 32,
+          "isDefault": false
+        },
+        {
+          "name": "UserPublic",
+          "line": 39,
+          "isDefault": false
+        },
+        {
+          "name": "StaffCreate",
+          "line": 52,
+          "isDefault": false
+        },
+        {
+          "name": "SuperAdminCreate",
+          "line": 80,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "_phone_format",
+          "callee": "_PHONE_RE.match",
+          "lineNumber": 27
+        },
+        {
+          "caller": "_phone_format",
+          "callee": "ValueError",
+          "lineNumber": 28
+        },
+        {
+          "caller": "_only_staff_roles",
+          "callee": "ValueError",
+          "lineNumber": 69
+        },
+        {
+          "caller": "_phone_format",
+          "callee": "_PHONE_RE.match",
+          "lineNumber": 75
+        },
+        {
+          "caller": "_phone_format",
+          "callee": "ValueError",
+          "lineNumber": 76
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 5,
+        "functionCount": 0,
+        "classCount": 5
+      }
+    },
+    {
+      "path": "app/schemas/shop.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 55,
+      "nonEmptyLines": 43,
+      "classes": [
+        {
+          "name": "ShopPublic",
+          "startLine": 12,
+          "endLine": 22,
+          "methods": [],
+          "properties": [
+            "id",
+            "name",
+            "code",
+            "gstin",
+            "excise_duty_rate",
+            "low_stock_threshold_default"
+          ]
+        },
+        {
+          "name": "ShopUpdate",
+          "startLine": 25,
+          "endLine": 55,
+          "methods": [
+            "_gstin_shape"
+          ],
+          "properties": [
+            "name",
+            "gstin",
+            "excise_duty_rate",
+            "low_stock_threshold_default"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "ShopPublic",
+          "line": 12,
+          "isDefault": false
+        },
+        {
+          "name": "ShopUpdate",
+          "line": 25,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "_gstin_shape",
+          "callee": "v.strip",
+          "lineNumber": 52
+        },
+        {
+          "caller": "_gstin_shape",
+          "callee": "_GSTIN_RE.match",
+          "lineNumber": 53
+        },
+        {
+          "caller": "_gstin_shape",
+          "callee": "ValueError",
+          "lineNumber": 54
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 2,
+        "functionCount": 0,
+        "classCount": 2
+      }
+    },
+    {
+      "path": "app/security/jwt.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 44,
+      "nonEmptyLines": 35,
+      "functions": [
+        {
+          "name": "create_access_token",
+          "startLine": 16,
+          "endLine": 36,
+          "params": [
+            "sub",
+            "shop_id",
+            "role",
+            "extra",
+            "ttl_minutes"
+          ]
+        },
+        {
+          "name": "decode_access_token",
+          "startLine": 39,
+          "endLine": 44,
+          "params": [
+            "token"
+          ]
+        }
+      ],
+      "classes": [
+        {
+          "name": "TokenError",
+          "startLine": 12,
+          "endLine": 13,
+          "methods": [],
+          "properties": []
+        }
+      ],
+      "exports": [
+        {
+          "name": "TokenError",
+          "line": 12,
+          "isDefault": false
+        },
+        {
+          "name": "create_access_token",
+          "line": 16,
+          "isDefault": false
+        },
+        {
+          "name": "decode_access_token",
+          "line": 39,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "create_access_token",
+          "callee": "get_settings",
+          "lineNumber": 24
+        },
+        {
+          "caller": "create_access_token",
+          "callee": "datetime.now",
+          "lineNumber": 26
+        },
+        {
+          "caller": "create_access_token",
+          "callee": "int",
+          "lineNumber": 31
+        },
+        {
+          "caller": "create_access_token",
+          "callee": "now.timestamp",
+          "lineNumber": 31
+        },
+        {
+          "caller": "create_access_token",
+          "callee": "int",
+          "lineNumber": 32
+        },
+        {
+          "caller": "create_access_token",
+          "callee": "(now + timedelta(minutes=ttl)).timestamp",
+          "lineNumber": 32
+        },
+        {
+          "caller": "create_access_token",
+          "callee": "timedelta",
+          "lineNumber": 32
+        },
+        {
+          "caller": "create_access_token",
+          "callee": "payload.update",
+          "lineNumber": 35
+        },
+        {
+          "caller": "create_access_token",
+          "callee": "jwt.encode",
+          "lineNumber": 36
+        },
+        {
+          "caller": "decode_access_token",
+          "callee": "get_settings",
+          "lineNumber": 40
+        },
+        {
+          "caller": "decode_access_token",
+          "callee": "jwt.decode",
+          "lineNumber": 42
+        },
+        {
+          "caller": "decode_access_token",
+          "callee": "TokenError",
+          "lineNumber": 44
+        },
+        {
+          "caller": "decode_access_token",
+          "callee": "str",
+          "lineNumber": 44
+        }
+      ],
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 3,
+        "functionCount": 2,
+        "classCount": 1
+      }
+    }
+  ]
+}

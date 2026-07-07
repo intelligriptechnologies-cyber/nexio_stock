@@ -1,0 +1,136 @@
+{
+  "nodes": [
+    {
+      "id": "config:.env.example",
+      "type": "config",
+      "name": ".env.example",
+      "filePath": ".env.example",
+      "summary": "Template environment file listing the app, JWT/auth, database, and CORS settings a developer must copy to `.env` — includes the dev SECRET_KEY, bcrypt cost, JWT access-token TTL tuned for a single shift (12h), and the asyncpg DATABASE_URL shared by the app and Alembic.",
+      "tags": ["configuration", "environment-variables", "secrets", "database"],
+      "complexity": "simple"
+    },
+    {
+      "id": "document:README.md",
+      "type": "document",
+      "name": "README.md",
+      "filePath": "README.md",
+      "summary": "Project overview for the Barstock liquor-shop inventory/billing system: documents the FastAPI/SQLAlchemy/Postgres stack, a 5-step local quickstart (uv sync, docker compose up, env copy + migrations + superuser, run uvicorn, open /docs), the pytest/ruff test workflow, and the app/ directory layout.",
+      "tags": ["documentation", "entry-point", "quickstart", "onboarding"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "config:alembic.ini",
+      "type": "config",
+      "name": "alembic.ini",
+      "filePath": "alembic.ini",
+      "summary": "Standard Alembic migration-runner configuration pointing script_location at the alembic/ directory (relative to the ini file via %(here)s) with default logging and revision-naming settings largely unmodified from the Alembic template.",
+      "tags": ["configuration", "database", "migration", "build-system"],
+      "complexity": "simple"
+    },
+    {
+      "id": "service:docker-compose.yml",
+      "type": "service",
+      "name": "docker-compose.yml",
+      "filePath": "docker-compose.yml",
+      "summary": "Defines a single local-dev/test Postgres 16 (alpine) service named barstock-db with barstock/barstock credentials, port 5432 exposed, a named volume for data persistence, and a pg_isready healthcheck.",
+      "tags": ["orchestration", "infrastructure", "database", "containerization"],
+      "complexity": "simple"
+    },
+    {
+      "id": "config:pyproject.toml",
+      "type": "config",
+      "name": "pyproject.toml",
+      "filePath": "pyproject.toml",
+      "summary": "Project metadata and build config (hatchling) declaring FastAPI/SQLAlchemy/Alembic/Pydantic/structlog/passlib runtime dependencies plus a pytest/ruff dev extra, the `barstock` CLI entry point (app.cli:main), extensive ruff lint rule selection with justified global and per-file ignores (tests, app/cli.py, app/db.py, app/models/user.py, app/models/invoice.py, app/schemas/auth.py, alembic/), and pytest/coverage settings (asyncio auto mode, strict markers, coverage source=app excluding cli.py).",
+      "tags": ["configuration", "build-system", "linting", "testing", "dependencies"],
+      "complexity": "moderate",
+      "languageNotes": "Uses ruff's per-file-ignores table extensively with inline comments justifying each suppressed rule (e.g. StrEnum pattern for FastAPI-friendly enums, intentional broad excepts in cleanup paths) — a notable documentation-as-config pattern."
+    }
+  ],
+  "edges": [
+    {
+      "source": "config:.env.example",
+      "target": "service:docker-compose.yml",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "config:pyproject.toml",
+      "target": "file:app/cli.py",
+      "type": "configures",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "config:pyproject.toml",
+      "target": "file:app/db.py",
+      "type": "configures",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "config:pyproject.toml",
+      "target": "file:app/models/user.py",
+      "type": "configures",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "config:pyproject.toml",
+      "target": "file:app/models/invoice.py",
+      "type": "configures",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "config:pyproject.toml",
+      "target": "file:app/schemas/auth.py",
+      "type": "configures",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "config:alembic.ini",
+      "target": "file:alembic/env.py",
+      "type": "configures",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "document:README.md",
+      "target": "file:app/main.py",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:README.md",
+      "target": "config:.env.example",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:README.md",
+      "target": "config:pyproject.toml",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:README.md",
+      "target": "service:docker-compose.yml",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:README.md",
+      "target": "config:alembic.ini",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    }
+  ]
+}

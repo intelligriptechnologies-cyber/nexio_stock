@@ -1,0 +1,17 @@
+{
+  "projectRoot": "C:/barstock",
+  "batchFiles": [
+    {"path": "app/api/checkout.py", "language": "python", "sizeLines": 247, "fileCategory": "code"},
+    {"path": "app/api/dashboard.py", "language": "python", "sizeLines": 223, "fileCategory": "code"},
+    {"path": "app/api/voids.py", "language": "python", "sizeLines": 285, "fileCategory": "code"},
+    {"path": "app/models/invoice.py", "language": "python", "sizeLines": 284, "fileCategory": "code"},
+    {"path": "app/schemas/checkout.py", "language": "python", "sizeLines": 111, "fileCategory": "code"},
+    {"path": "app/schemas/eod.py", "language": "python", "sizeLines": 78, "fileCategory": "code"},
+    {"path": "app/services/checkout.py", "language": "python", "sizeLines": 410, "fileCategory": "code"},
+    {"path": "app/services/eod.py", "language": "python", "sizeLines": 253, "fileCategory": "code"},
+    {"path": "app/services/invoice_pdf.py", "language": "python", "sizeLines": 160, "fileCategory": "code"},
+    {"path": "app/services/voids.py", "language": "python", "sizeLines": 272, "fileCategory": "code"},
+    {"path": "tests/test_eod.py", "language": "python", "sizeLines": 374, "fileCategory": "code"}
+  ],
+  "batchImportData": {"app/api/checkout.py": ["app/api/deps.py", "app/logging_config.py", "app/models/invoice.py", "app/models/log.py", "app/models/user.py", "app/schemas/checkout.py", "app/services/checkout.py"], "app/api/dashboard.py": ["app/api/deps.py", "app/models/invoice.py", "app/models/user.py", "app/services/eod.py", "app/services/low_stock.py"], "app/api/voids.py": ["app/api/deps.py", "app/models/invoice.py", "app/models/user.py", "app/services/voids.py"], "app/models/invoice.py": ["app/models/product.py", "app/models/shop.py", "app/models/user.py"], "app/schemas/checkout.py": [], "app/schemas/eod.py": [], "app/services/checkout.py": ["app/models/invoice.py", "app/models/log.py", "app/models/lot.py", "app/models/product.py"], "app/services/eod.py": ["app/models/invoice.py", "app/models/log.py"], "app/services/invoice_pdf.py": ["app/models/invoice.py"], "app/services/voids.py": ["app/models/invoice.py", "app/models/log.py"], "tests/test_eod.py": []}
+}
