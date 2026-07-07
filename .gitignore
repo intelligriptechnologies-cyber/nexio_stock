@@ -249,3 +249,9 @@ __marimo__/
 
 # Serena MCP project-local state
 .serena/
+
+# Frontend generated OpenAPI snapshot — regenerate via
+# `curl http://127.0.0.1:8000/openapi.json -o openapi.json` when needed.
+# The committed version of the schema lives at frontend/src/api/schema.ts,
+# produced by `npm run gen:api` in the frontend subdir.
+openapi.json

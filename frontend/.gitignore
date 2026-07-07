@@ -1,0 +1,33 @@
+# dependencies
+node_modules/
+
+# build output
+dist/
+dist-ssr/
+*.local
+
+# editor / OS
+.vscode/
+.idea/
+.DS_Store
+
+# logs
+*.log
+npm-debug.log*
+
+# env
+.env
+.env.local
+.env.*.local
+
+# Playwright e2e artefacts
+.playwright/
+playwright-report/
+test-results/
+playwright/.cache/
+
+# Generated API schema — regenerate via `npm run gen:api`
+src/api/schema.ts
+
+# TypeScript incremental build cache
+*.tsbuildinfo
