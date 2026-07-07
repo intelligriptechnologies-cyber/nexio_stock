@@ -7,7 +7,7 @@ import { ForbiddenPage } from "./pages/ForbiddenPage";
 import { HomeRedirect } from "./pages/HomeRedirect";
 import { CheckoutPage } from "./pages/CheckoutPage";
 import { ReceivingPage } from "./pages/ReceivingPage";
-import { DashboardPlaceholder } from "./pages/DashboardPlaceholder";
+import { DashboardPage } from "./pages/DashboardPage";
 import { AdminPlaceholder } from "./pages/AdminPlaceholder";
 import { ProductsPage } from "./pages/ProductsPage";
 import { VoidApprovalsPage } from "./pages/VoidApprovalsPage";
@@ -71,7 +71,7 @@ export default function App() {
         element={
           <Protected allow={["owner"]}>
             <AuthedShell>
-              <DashboardPlaceholder />
+              <DashboardPage />
             </AuthedShell>
           </Protected>
         }
