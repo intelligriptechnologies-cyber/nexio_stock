@@ -8,6 +8,8 @@ admits a wrong-role request.
 from __future__ import annotations
 
 from collections.abc import AsyncIterator
+from datetime import UTC, datetime
+from datetime import date as date_cls
 from typing import Annotated
 
 from fastapi import Depends, HTTPException, status
@@ -151,3 +153,17 @@ def require_shop_scope(user: User) -> None:
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="shop-scoped user has no shop_id — data integrity violation",
         )
+
+
+def today_local_date(now: datetime | None = None) -> date_cls:
+    """Server-local calendar date — the "today" the shop actually closes
+    for EOD purposes (matches `sign_off_day`'s `date.today()` convention
+    and the `_day_bounds` helper which uses local midnight, D-55).
+
+    Centralised so dashboard/totals endpoints agree on the meaning of
+    "today" when a caller omits an explicit date (issue #37).
+    """
+    moment = now if now is not None else datetime.now(UTC)
+    # `.astimezone()` without a tz arg converts to the system local zone,
+    # which is what `date.today()` and `_day_bounds` both already use.
+    return moment.astimezone().date()

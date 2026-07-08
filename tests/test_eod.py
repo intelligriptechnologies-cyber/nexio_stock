@@ -372,3 +372,40 @@ async def test_eod_signoff_record_persists(
     rows = (await db_session.execute(select(EodSignOff))).scalars().all()
     assert len(rows) == 1
     assert rows[0].invoices_signed_off == 1
+
+
+# --- issue #37: eod-totals no longer 500s when business_date is omitted ---
+
+
+@pytest.mark.usefixtures("owner", "receiver", "cashier")
+async def test_eod_totals_defaults_to_today_when_business_date_omitted(
+    owner_client: AsyncClient,
+    receiver_client: AsyncClient,
+    cashier_client: AsyncClient,
+) -> None:
+    """Regression for issue #37.
+
+    The endpoint previously required `business_date` and used
+    `Query(...)` (Ellipsis) as its default. FastAPI's validation-error
+    serializer couldn't serialise the literal `...`, so a missing param
+    surfaced as an unhandled 500 (not a clean 422), and the dashboard's
+    `Promise.all` rejected the whole batch, leaving "today" null and
+    "Mark day end" stuck disabled.
+
+    With the fix in `app/api/dashboard.py` + `app/api/deps.py`, omitting
+    the param now resolves to server-local "today" and returns 200.
+    """
+    await _seed_product(owner_client, "8903000000012")
+    await _seed_lot(receiver_client, items=[("8903000000012", 5)])
+    await _finalize(
+        cashier_client, barcode="8903000000012", quantity=1, amount="100.00"
+    )
+
+    # No `business_date` query param at all.
+    resp = await owner_client.get("/dashboard/eod-totals")
+    assert resp.status_code == 200, resp.text
+    body = resp.json()
+    assert body["business_date"] == date.today().isoformat()
+    assert body["invoice_count"] == 1
+    assert body["revenue"] == "100.00"
+    assert body["signed_off"] is False

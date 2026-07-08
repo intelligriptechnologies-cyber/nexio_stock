@@ -10,8 +10,25 @@
 // require it; the EOD totals aggregate revenue + payment-mode split).
 // The frontend renders KPI cards + low-stock + EOD sign-off + history;
 // the hourly chart is intentionally omitted until the backend adds one.
+//
+// `getEodTotals`/`signOffEod` explicitly pass `today` (YYYY-MM-DD in the
+// shop's local zone, IST for v1) so the EOD panel never relies on the
+// backend's `business_date` default — see issue #37. The server-side
+// default exists as a belt-and-braces fallback, not as something this
+// client depends on.
 
 import { api, withShopId, withShopIdParams } from "./client";
+
+function todayLocalDateString(): string {
+  // Local "today" matches the server's `today_local_date()` convention
+  // (system-local timezone, IST for v1). Using UTC here would silently
+  // shift the business date around the IST-morning window.
+  const d = new Date();
+  const yyyy = d.getFullYear();
+  const mm = String(d.getMonth() + 1).padStart(2, "0");
+  const dd = String(d.getDate()).padStart(2, "0");
+  return `${yyyy}-${mm}-${dd}`;
+}
 
 export interface PaymentModeTotal {
   mode: string;
@@ -59,7 +76,11 @@ export function getEodTotals(
   shopId?: number | null
 ): Promise<EodTotalsResponse> {
   const params = withShopIdParams(new URLSearchParams(), shopId);
-  if (businessDate) params.set("business_date", businessDate);
+  // Issue #37: explicitly pass today's local date instead of relying on
+  // the server's default. The server-side default stays as a safety net,
+  // but the dashboard's "Mark day end" button must reflect the exact
+  // day the user sees on screen, with no implicit-resolution risk.
+  params.set("business_date", businessDate ?? todayLocalDateString());
   const qs = params.toString();
   return api<EodTotalsResponse>(`/dashboard/eod-totals${qs ? `?${qs}` : ""}`);
 }
@@ -68,7 +89,10 @@ export function signOffEod(
   businessDate?: string,
   shopId?: number | null
 ): Promise<SignOffResponse> {
-  const body = businessDate ? { business_date: businessDate } : {};
+  // Issue #37: explicit "today" rather than relying on the body being
+  // empty — keeps client and server in lockstep on what date gets
+  // locked.
+  const body = { business_date: businessDate ?? todayLocalDateString() };
   return api<SignOffResponse>("/dashboard/eod/sign-off", {
     method: "POST",
     json: withShopId(body, shopId),
