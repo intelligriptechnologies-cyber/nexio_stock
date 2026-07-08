@@ -121,7 +121,7 @@ export function CheckoutPage() {
   const totalCents = useMemo(
     () =>
       cart.reduce((acc, l) => {
-        const unit = parseMoney(l.product.price);
+        const unit = parseMoney(l.product.price ?? "0");
         return acc + unit * l.quantity;
       }, 0),
     [cart]
@@ -534,7 +534,7 @@ export function CheckoutPage() {
                 </button>
                 <span className="w-24 text-right font-mono text-headline-md text-on-surface">
                   ₹
-                  {moneyString(parseMoney(l.product.price) * l.quantity)}
+                  {moneyString(parseMoney(l.product.price ?? "0") * l.quantity)}
                 </span>
                 <button
                   type="button"

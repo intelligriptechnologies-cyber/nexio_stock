@@ -1,11 +1,18 @@
 import { api } from "./client";
-import type { CatalogProduct } from "./catalog";
 
-// Re-export the catalog type under the products module name for cleaner
-// page imports. (CatalogProduct is the shape returned by /products when
-// active_only=true; full ProductPublic adds fields the catalog cache
-// doesn't need.)
-export type Product = CatalogProduct;
+export interface Product {
+  id: number;
+  shop_id: number;
+  barcode: string;
+  brand: string;
+  size_label: string;
+  price: string | null;
+  low_stock_threshold: number | null;
+  is_active: boolean;
+  status: "active" | "pending";
+  created_at: string;
+  updated_at: string;
+}
 
 export interface ProductCreatePayload {
   barcode: string;
@@ -58,12 +65,23 @@ export interface ProductImportResponse {
   errors: ProductImportError[];
 }
 
-export function listProducts(opts?: { q?: string; includeInactive?: boolean }): Promise<Product[]> {
+export function listProducts(opts?: {
+  q?: string;
+  includeInactive?: boolean;
+  shopId?: number | null;
+}): Promise<Product[]> {
   const params = new URLSearchParams();
   if (opts?.includeInactive) params.set("active_only", "false");
   if (opts?.q) params.set("q", opts.q);
+  if (opts?.shopId != null) params.set("shop_id", String(opts.shopId));
   params.set("limit", "500");
   return api<Product[]>(`/products?${params.toString()}`);
+}
+
+export function lookupProduct(barcode: string, shopId?: number | null): Promise<Product> {
+  const params = new URLSearchParams({ barcode });
+  if (shopId != null) params.set("shop_id", String(shopId));
+  return api<Product>(`/products/lookup?${params.toString()}`);
 }
 
 export function createProduct(

@@ -12,7 +12,7 @@ export interface CatalogProduct {
   barcode: string;
   brand: string;
   size_label: string;
-  price: string; // Decimal serialised as string in JSON
+  price: string | null; // null while status is pending
   is_active: boolean;
   // Issue #22 — provisional product lifecycle. ``pending`` products are
   // receivable into a Lot but not sellable at checkout (D-v2-6). The
