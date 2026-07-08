@@ -27,6 +27,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps import DbSession, require_role, resolve_write_shop_id
+from app.db import unit_of_work
 from app.logging_config import get_logger
 from app.models.log import StockinLog
 from app.models.lot import Lot, LotLine
@@ -81,51 +82,51 @@ async def create_lot(
             detail=f"unknown or inactive barcodes in this shop: {missing}",
         )
 
-    lot = Lot(
-        shop_id=actor_shop_id,
-        received_by_user_id=actor_id,
-        reference=payload.reference,
-        notes=payload.notes,
-    )
-    db.add(lot)
-    await db.flush()  # need lot.id for the line rows
+    async with unit_of_work(db):
+        lot = Lot(
+            shop_id=actor_shop_id,
+            received_by_user_id=actor_id,
+            reference=payload.reference,
+            notes=payload.notes,
+        )
+        db.add(lot)
+        await db.flush()  # need lot.id for the line rows
 
-    for line in payload.lines:
-        product = by_barcode[line.barcode]
+        for line in payload.lines:
+            product = by_barcode[line.barcode]
+            db.add(
+                LotLine(
+                    lot_id=lot.id,
+                    product_id=product.id,
+                    quantity=line.quantity,
+                )
+            )
+
+        # One stockin_logs row per lot, holding the brand/qty payload for
+        # the receiving screen (R-25) and the audit trail.
+        log_payload = {
+            "lot_id": lot.id,
+            "reference": payload.reference,
+            "lines": [
+                {
+                    "barcode": line.barcode,
+                    "product_id": by_barcode[line.barcode].id,
+                    "brand": by_barcode[line.barcode].brand,
+                    "size_label": by_barcode[line.barcode].size_label,
+                    "quantity": line.quantity,
+                }
+                for line in payload.lines
+            ],
+        }
         db.add(
-            LotLine(
-                lot_id=lot.id,
-                product_id=product.id,
-                quantity=line.quantity,
+            StockinLog(
+                shop_id=actor_shop_id,
+                actor_user_id=actor_id,
+                event_type="lot.received",
+                payload=log_payload,
             )
         )
 
-    # One stockin_logs row per lot, holding the brand/qty payload for the
-    # receiving screen (R-25) and the audit trail.
-    log_payload = {
-        "lot_id": lot.id,
-        "reference": payload.reference,
-        "lines": [
-            {
-                "barcode": line.barcode,
-                "product_id": by_barcode[line.barcode].id,
-                "brand": by_barcode[line.barcode].brand,
-                "size_label": by_barcode[line.barcode].size_label,
-                "quantity": line.quantity,
-            }
-            for line in payload.lines
-        ],
-    }
-    db.add(
-        StockinLog(
-            shop_id=actor_shop_id,
-            actor_user_id=actor_id,
-            event_type="lot.received",
-            payload=log_payload,
-        )
-    )
-
-    await db.commit()
     await db.refresh(lot)
 
     log.info(

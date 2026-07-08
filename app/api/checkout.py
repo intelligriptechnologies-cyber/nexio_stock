@@ -26,6 +26,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from app.api.deps import DbSession, require_role, resolve_write_shop_id
+from app.db import unit_of_work
 from app.logging_config import get_logger
 from app.models.invoice import (
     Invoice,
@@ -112,23 +113,20 @@ async def finalize(
     payments = [PaymentLine(mode=p.mode, amount=p.amount) for p in payload.payments]
 
     try:
-        result = await finalize_checkout(
-            db,
-            shop_id=actor_shop_id,
-            cashier_user_id=actor_id,
-            cart=cart,
-            payments=payments,
-            idempotency_key=idempotency_key,
-            note=payload.note,
-        )
+        async with unit_of_work(db):
+            result = await finalize_checkout(
+                db,
+                shop_id=actor_shop_id,
+                cashier_user_id=actor_id,
+                cart=cart,
+                payments=payments,
+                idempotency_key=idempotency_key,
+                note=payload.note,
+            )
     except CheckoutError as exc:
-        # Roll back any session state the partial run may have produced.
-        await db.rollback()
         raise _error_to_http(exc) from exc
 
-    # The service made the changes via the outer transaction; commit here.
     invoice = result.invoice
-    await db.commit()
 
     # Eager-load the lines + payments for the response (relationship is
     # lazy="select" by default; touching it sync from async raises).

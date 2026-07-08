@@ -128,6 +128,35 @@ async def test_voiding_a_voided_invoice_returns_409(
 
 
 @pytest.mark.usefixtures("owner", "receiver", "cashier")
+async def test_session_usable_after_void_error_rejects_a_later_unrelated_void(
+    cashier_client: AsyncClient, owner_client: AsyncClient, receiver_client: AsyncClient
+) -> None:
+    """Issue #27: request_void's VoidError path rolls back via
+    unit_of_work before translating to HTTP. Pin that the rollback
+    leaves the session usable for a completely unrelated mutation in
+    the same test run, not just a retry of the same failing call."""
+    await _seed_product(owner_client, "8902000000010", price="100.00")
+    await _seed_lot(receiver_client, items=[("8902000000010", 10)])
+    first_inv = await _finalize(
+        cashier_client, barcode="8902000000010", quantity=1, amount="100.00"
+    )
+    already_voided = await cashier_client.post(f"/invoices/{first_inv['id']}/void")
+    assert already_voided.status_code == 200
+
+    # This second void of the SAME invoice hits the VoidError("already_voided")
+    # path and its rollback -- the failure this test is pinning.
+    failing = await cashier_client.post(f"/invoices/{first_inv['id']}/void")
+    assert failing.status_code == 409
+
+    # An unrelated invoice's direct void must still succeed afterward.
+    second_inv = await _finalize(
+        cashier_client, barcode="8902000000010", quantity=1, amount="100.00"
+    )
+    recovered = await cashier_client.post(f"/invoices/{second_inv['id']}/void")
+    assert recovered.status_code == 200
+
+
+@pytest.mark.usefixtures("owner", "receiver", "cashier")
 async def test_pre_eod_void_writes_invoicing_log(
     cashier_client: AsyncClient, owner_client: AsyncClient, receiver_client: AsyncClient, db_session
 ) -> None:

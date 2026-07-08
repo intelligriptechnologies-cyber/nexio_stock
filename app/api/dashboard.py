@@ -13,6 +13,7 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 
 from app.api.deps import DbSession, require_role, resolve_write_shop_id
+from app.db import unit_of_work
 from app.logging_config import get_logger
 from app.models.user import User, UserRole
 from app.schemas.eod import (
@@ -69,18 +70,17 @@ async def sign_off(
     actor_shop_id = await resolve_write_shop_id(db, _user, payload.shop_id)
 
     try:
-        result = await sign_off_day(
-            db,
-            shop_id=actor_shop_id,
-            business_date=payload.business_date,
-            signed_off_by_user_id=actor_id,
-            notes=payload.notes,
-        )
+        async with unit_of_work(db):
+            result = await sign_off_day(
+                db,
+                shop_id=actor_shop_id,
+                business_date=payload.business_date,
+                signed_off_by_user_id=actor_id,
+                notes=payload.notes,
+            )
     except EodError as exc:
-        await db.rollback()
         raise _error_to_http(exc) from exc
 
-    await db.commit()
     log.info(
         "eod.signed_off",
         actor_user_id=actor_id,

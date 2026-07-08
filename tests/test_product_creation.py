@@ -92,24 +92,23 @@ async def test_duplicate_barcode_raises_conflict_with_barcode_field(
 async def test_batch_path_session_usable_after_conflict(
     db_session, shop: Shop
 ) -> None:
-    """The CSV import path passes commit=False; the seam must flush
-    each row and roll back on conflict so the next row can still
-    flush. This pins the bug fix in the seam: a missing rollback
-    here used to leave the session in a PendingRollbackError state,
-    breaking every subsequent row in the batch.
+    """The CSV import path passes commit=False and flushes every row in
+    ONE transaction, committing once at the end -- it never commits
+    between rows. This pins the bug fix in the seam: a missing rollback
+    on the conflict path here used to leave the session in a
+    PendingRollbackError state, breaking every subsequent row in the
+    batch. Mirrors the real caller's shape (app/api/products.py
+    import_products_csv) rather than committing between calls.
 
-    The test uses two SEPARATE transactions (commits between calls)
-    because the SQLAlchemy async session's connection management
-    doesn't tolerate a rollback inside a single transaction followed
-    by a fresh flush without a greenlet reset; the property under
-    test is "the seam returns the session to a usable state on
-    conflict", which a per-call commit demonstrates cleanly.
+    Captures shop.id up front: the seam's rollback on conflict expires
+    every object in the session's identity map (including the `shop`
+    fixture), so re-touching `shop.id` afterward would trigger an
+    implicit lazy-load outside greenlet context.
     """
-    # First row (commit=False batch path) -> inserts and the seam
-    # does not auto-commit.
+    shop_id = shop.id
     p1 = await create_product_row(
         db_session,
-        shop_id=shop.id,
+        shop_id=shop_id,
         barcode="CRB-BATCH-1",
         brand="A",
         size_label="750ml",
@@ -119,15 +118,13 @@ async def test_batch_path_session_usable_after_conflict(
         commit=False,
     )
     assert p1.id is not None
-    await db_session.commit()
 
-    # Second row, same barcode, in a new transaction -> raises
-    # ProductConflictError. The seam's rollback brings the session
-    # back to a usable state.
+    # Same barcode -> raises ProductConflictError. The seam's rollback
+    # must bring the (still-open) transaction back to a usable state.
     with pytest.raises(ProductConflictError):
         await create_product_row(
             db_session,
-            shop_id=shop.id,
+            shop_id=shop_id,
             barcode="CRB-BATCH-1",
             brand="B",
             size_label="750ml",
@@ -137,12 +134,12 @@ async def test_batch_path_session_usable_after_conflict(
             commit=False,
         )
 
-    # Third row, new barcode, in a third transaction -> succeeds. If
-    # the seam's rollback were missing on the conflict path, this
-    # flush would fail with PendingRollbackError.
+    # New barcode, same transaction -> succeeds. If the seam's rollback
+    # were missing on the conflict path, this flush would fail with
+    # PendingRollbackError instead.
     p3 = await create_product_row(
         db_session,
-        shop_id=shop.id,
+        shop_id=shop_id,
         barcode="CRB-BATCH-2",
         brand="C",
         size_label="750ml",

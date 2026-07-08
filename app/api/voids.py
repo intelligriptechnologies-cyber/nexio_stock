@@ -22,6 +22,7 @@ from fastapi import APIRouter, Body, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps import DbSession, require_role
+from app.db import unit_of_work
 from app.logging_config import get_logger
 from app.models.invoice import Invoice, InvoiceStatus
 from app.models.log import InvoicingLog
@@ -105,29 +106,28 @@ async def request_void(
     original_status = invoice.status
 
     try:
-        if was_eod_signed_off:
-            updated = await request_post_eod_void(
-                db,
-                invoice_id=invoice_id,
-                shop_id=actor_shop_id,
-                actor_user_id=actor_id,
-                reason=reason,
-            )
-            event_type = "invoice.void_requested"
-        else:
-            updated = await direct_void(
-                db,
-                invoice_id=invoice_id,
-                shop_id=actor_shop_id,
-                actor_user_id=actor_id,
-                reason=reason,
-            )
-            event_type = "invoice.voided"
+        async with unit_of_work(db):
+            if was_eod_signed_off:
+                updated = await request_post_eod_void(
+                    db,
+                    invoice_id=invoice_id,
+                    shop_id=actor_shop_id,
+                    actor_user_id=actor_id,
+                    reason=reason,
+                )
+                event_type = "invoice.void_requested"
+            else:
+                updated = await direct_void(
+                    db,
+                    invoice_id=invoice_id,
+                    shop_id=actor_shop_id,
+                    actor_user_id=actor_id,
+                    reason=reason,
+                )
+                event_type = "invoice.voided"
     except VoidError as exc:
-        await db.rollback()
         raise _error_to_http(exc) from exc
 
-    await db.commit()
     await _write_void_log(
         db,
         actor_id=actor_id,
@@ -168,18 +168,17 @@ async def approve_void(
     actor_shop_id = await _resolve_void_shop_id(db, _user, invoice_id)
 
     try:
-        result = await approve_post_eod_void(
-            db,
-            invoice_id=invoice_id,
-            shop_id=actor_shop_id,
-            owner_user_id=actor_id,
-            reason=reason,
-        )
+        async with unit_of_work(db):
+            result = await approve_post_eod_void(
+                db,
+                invoice_id=invoice_id,
+                shop_id=actor_shop_id,
+                owner_user_id=actor_id,
+                reason=reason,
+            )
     except VoidError as exc:
-        await db.rollback()
         raise _error_to_http(exc) from exc
 
-    await db.commit()
     await _write_void_log(
         db,
         actor_id=actor_id,
@@ -219,18 +218,17 @@ async def reject_void(
     actor_shop_id = await _resolve_void_shop_id(db, _user, invoice_id)
 
     try:
-        updated = await reject_post_eod_void(
-            db,
-            invoice_id=invoice_id,
-            shop_id=actor_shop_id,
-            owner_user_id=actor_id,
-            reason=reason,
-        )
+        async with unit_of_work(db):
+            updated = await reject_post_eod_void(
+                db,
+                invoice_id=invoice_id,
+                shop_id=actor_shop_id,
+                owner_user_id=actor_id,
+                reason=reason,
+            )
     except VoidError as exc:
-        await db.rollback()
         raise _error_to_http(exc) from exc
 
-    await db.commit()
     await _write_void_log(
         db,
         actor_id=actor_id,

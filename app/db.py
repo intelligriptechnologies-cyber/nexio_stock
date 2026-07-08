@@ -8,6 +8,7 @@ stock-decrement path in #4 easy to reason about.
 from __future__ import annotations
 
 from collections.abc import AsyncIterator
+from contextlib import asynccontextmanager
 from typing import Any
 
 from sqlalchemy.ext.asyncio import (
@@ -111,6 +112,35 @@ async def get_db() -> AsyncIterator[AsyncSession]:
                 pass
 
 
+@asynccontextmanager
+async def unit_of_work(db: AsyncSession) -> AsyncIterator[None]:
+    """Commit on success, roll back before the exception propagates.
+
+    Routes that mutate via a service call and want a domain error
+    translated to HTTP wrap just that call:
+
+        try:
+            async with unit_of_work(db):
+                result = await some_service_call(db, ...)
+        except SomeDomainError as exc:
+            raise _error_to_http(exc) from exc
+
+    The rollback happens here, inside the context manager, before the
+    domain exception re-propagates to the caller's except block --
+    matching `get_db`'s note above that a route must roll back before
+    translating a SQLAlchemy-surfaced error, or the session is left in
+    an unusable state. Translation itself stays with the caller; this
+    only owns the commit/rollback boundary.
+    """
+    try:
+        yield
+    except Exception:
+        await db.rollback()
+        raise
+    else:
+        await db.commit()
+
+
 async def init_db() -> None:
     """Create all tables. Used by tests only — production uses Alembic."""
     # Import models so they register with Base.metadata.
@@ -129,6 +159,7 @@ __all__ = [
     "get_sessionmaker",
     "init_db",
     "reset_engine",
+    "unit_of_work",
 ]
 
 
