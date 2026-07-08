@@ -14,22 +14,20 @@ owner (D-v2-10). The endpoint accepts an optional ``X-Quick-Add-Origin``
 header (``receiving`` | ``checkout``) so the event can be logged to the
 right domain log table (D-v2-13); default is ``receiving`` because that's
 the only caller in #22, and ``checkout`` is added in #26.
+
+Issue #30: route handlers here own request parsing and error-to-HTTP
+translation only — the CRUD/quick-add/pending-list/activation/CSV-import
+logic lives in ``app.services.products``.
 """
 from __future__ import annotations
 
-import csv
-import io
-from datetime import datetime
-from decimal import Decimal, InvalidOperation
 from typing import Annotated, Literal
 
 from fastapi import APIRouter, Depends, File, Form, Header, HTTPException, Query, UploadFile, status
-from sqlalchemy import select
 
 from app.api.deps import DbSession, require_role, resolve_write_shop_id
 from app.logging_config import get_logger
-from app.models.log import InvoicingLog, StockinLog
-from app.models.product import Product, ProductStatus
+from app.models.product import ProductStatus
 from app.models.user import User, UserRole
 from app.schemas.product import (
     PendingProductRow,
@@ -41,14 +39,27 @@ from app.schemas.product import (
     ProductQuickAdd,
     ProductUpdate,
 )
+
+# Imported qualified (not `from ... import list_products, ...`): those
+# names collide with this router's own handler function names, and
+# FastAPI derives each route's OpenAPI operationId from the handler's
+# `__name__` — a committed openapi.json and a generated frontend client
+# key off those ids, so the handlers keep their original names.
+from app.services import products as products_svc
 from app.services.product_creation import (
     ProductConflictError,
     create_product_row,
     product_conflict_to_http,
 )
-from app.services.product_lifecycle import (
-    ProductLifecycleError,
-    apply_status_transition,
+from app.services.product_lifecycle import ProductLifecycleError
+from app.services.products import (
+    ProductError,
+    QuickAddConflictError,
+    activate_pending_product,
+    get_product_for_write,
+    lookup_product_by_barcode,
+    quick_add_log_entry,
+    update_product_fields,
 )
 
 router = APIRouter(prefix="/products", tags=["products"])
@@ -66,6 +77,33 @@ _write_roles = (UserRole.OWNER, UserRole.SUPERADMIN)
 # the owner-completion notification surface. If a future ticket needs
 # superadmin quick-add, add it then with the appropriate origin header.
 _quick_add_roles = (UserRole.OWNER, UserRole.RECEIVER_USER, UserRole.CASHIER_USER)
+_pending_roles = (UserRole.OWNER, UserRole.SUPERADMIN)
+
+_PRODUCT_ERROR_CODE_TO_STATUS: dict[str, int] = {
+    "not_found": status.HTTP_404_NOT_FOUND,
+    "shop_id_forbidden": status.HTTP_400_BAD_REQUEST,
+    "deactivated": status.HTTP_400_BAD_REQUEST,
+    "empty_csv": status.HTTP_400_BAD_REQUEST,
+    "missing_columns": status.HTTP_400_BAD_REQUEST,
+    "conflict_row_missing": status.HTTP_500_INTERNAL_SERVER_ERROR,
+}
+
+
+def _error_to_http(exc: ProductError) -> HTTPException:
+    # Plain string `detail` (not the {"code", "message"} shape used by
+    # voids/checkout) — this router's existing clients/tests expect the
+    # bare message string that was here before the service split.
+    status_code = _PRODUCT_ERROR_CODE_TO_STATUS.get(exc.code, status.HTTP_500_INTERNAL_SERVER_ERROR)
+    if status_code == status.HTTP_500_INTERNAL_SERVER_ERROR:
+        log.error("product.unmapped_error_code", code=exc.code, message=exc.message)
+    return HTTPException(status_code=status_code, detail=exc.message)
+
+
+def _lifecycle_error_to_http(exc: ProductLifecycleError) -> HTTPException:
+    return HTTPException(
+        status_code=status.HTTP_400_BAD_REQUEST,
+        detail={"code": exc.code, "message": exc.message},
+    )
 
 
 @router.post(
@@ -87,9 +125,6 @@ async def create_product(
     # name the target shop explicitly (D-64/D-65).
     actor_shop_id = await resolve_write_shop_id(db, _user, payload.shop_id)
 
-    # Architecture review Candidate B: insert + 409 lives in
-    # app.services.product_creation (one seam for all three
-    # create/quick-add/import call sites).
     try:
         product = await create_product_row(
             db,
@@ -167,39 +202,16 @@ async def quick_add_product(
     actor_shop_id = _user.shop_id
     assert actor_shop_id is not None, "shop-scoped user must have shop_id"
 
-    # Architecture review Candidate B: insert + 409 lives in
-    # app.services.product_creation. The quick-add-specific conflict
-    # path (re-fetch the existing row, log a structured event for the
-    # audit trail) stays here because it's a quick-add concern, not
-    # a generic product-insert concern.
     try:
-        product = await create_product_row(
+        product = await products_svc.quick_add_product(
             db,
             shop_id=actor_shop_id,
             barcode=payload.barcode,
             brand=payload.brand,
             size_label=payload.size_label,
-            price=None,
-            low_stock_threshold=None,
-            status_value=ProductStatus.PENDING,
         )
-    except ProductConflictError as exc:
-        # The seam has already rolled back; we can safely SELECT now.
-        existing = (
-            await db.execute(
-                select(Product).where(
-                    Product.shop_id == actor_shop_id,
-                    Product.barcode == payload.barcode,
-                )
-            )
-        ).scalar_one_or_none()
-        if existing is None:
-            # Shouldn't happen — constraint fired but no row. Treat as
-            # a server error rather than letting it cascade as a 500.
-            raise HTTPException(
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail="barcode conflict but no existing row found",
-            ) from exc
+    except QuickAddConflictError as exc:
+        existing = exc.existing
         log.info(
             "product.quick_add.conflict",
             actor_user_id=actor_id,
@@ -212,28 +224,15 @@ async def quick_add_product(
             status_code=status.HTTP_409_CONFLICT,
             detail=f"barcode '{payload.barcode}' already exists",
         ) from exc
+    except ProductError as exc:
+        raise _error_to_http(exc) from exc
     await db.refresh(product)
 
     # Audit-log to the right domain table (D-v2-13). The origin header is
     # the source of truth for which log table to write to — defaults to
     # "receiving" for the in-scope #22 caller. Checkout is added in #26.
     origin = x_quick_add_origin or "receiving"
-    log_payload = {
-        "product_id": product.id,
-        "barcode": product.barcode,
-        "brand": product.brand,
-        "size_label": product.size_label,
-        "origin": origin,
-    }
-    log_cls = StockinLog if origin == "receiving" else InvoicingLog
-    db.add(
-        log_cls(
-            shop_id=actor_shop_id,
-            actor_user_id=actor_id,
-            event_type="product.pending_created",
-            payload=log_payload,
-        )
-    )
+    db.add(quick_add_log_entry(actor_id=actor_id, shop_id=actor_shop_id, product=product, origin=origin))
     await db.commit()
 
     log.info(
@@ -277,28 +276,19 @@ async def list_products(
         Query(description="Superadmin only: scope the listing to one shop (D-66)"),
     ] = None,
 ) -> list[ProductPublic]:
-    actor_role = _user.role
-    actor_shop_id = _user.shop_id
-    stmt = select(Product)
-    if actor_role != UserRole.SUPERADMIN:
-        if shop_id is not None and shop_id != actor_shop_id:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="only superadmin may specify shop_id",
-            )
-        stmt = stmt.where(Product.shop_id == actor_shop_id)
-    elif shop_id is not None:
-        # Superadmin scoped to one shop via the acting-shop picker (D-66) —
-        # the checkout/receiving catalog cache should reflect the shop
-        # being operated on, not every shop. Omit shop_id to keep the
-        # cross-shop browse behavior the admin products list still uses.
-        stmt = stmt.where(Product.shop_id == shop_id)
-    if active_only:
-        stmt = stmt.where(Product.is_active.is_(True))
-    if q:
-        stmt = stmt.where(Product.brand.ilike(f"%{q}%"))
-    stmt = stmt.order_by(Product.brand, Product.size_label).limit(limit).offset(offset)
-    rows = (await db.execute(stmt)).scalars().all()
+    try:
+        rows = await products_svc.list_products(
+            db,
+            actor_role=_user.role,
+            actor_shop_id=_user.shop_id,
+            shop_id=shop_id,
+            active_only=active_only,
+            q=q,
+            limit=limit,
+            offset=offset,
+        )
+    except ProductError as exc:
+        raise _error_to_http(exc) from exc
     return [ProductPublic.model_validate(r) for r in rows]
 
 
@@ -326,30 +316,16 @@ async def lookup_product(
     decide whether to block the line (#26). The `is_active=False` check
     is unchanged: deactivating a product still hides it from scan.
     """
-    actor_role = _user.role
-    actor_shop_id = _user.shop_id
-    stmt = select(Product).where(Product.barcode == barcode)
-    if actor_role != UserRole.SUPERADMIN:
-        if shop_id is not None and shop_id != actor_shop_id:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="only superadmin may specify shop_id",
-            )
-        stmt = stmt.where(Product.shop_id == actor_shop_id)
-    elif shop_id is not None:
-        # Superadmin scoped to its acting shop (D-66): a scan during
-        # checkout/receiving should resolve against that shop's catalog,
-        # not browse across every shop. Barcode is globally unique (D-52)
-        # so this can't disambiguate a collision — there isn't one to
-        # disambiguate — it just matches the acting-shop-scoped model
-        # every other superadmin action uses.
-        stmt = stmt.where(Product.shop_id == shop_id)
-    product = (await db.execute(stmt)).scalar_one_or_none()
-    if product is None or not product.is_active:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"no active product with barcode '{barcode}'",
+    try:
+        product = await lookup_product_by_barcode(
+            db,
+            actor_role=_user.role,
+            actor_shop_id=_user.shop_id,
+            shop_id=shop_id,
+            barcode=barcode,
         )
+    except ProductError as exc:
+        raise _error_to_http(exc) from exc
     return ProductPublic.model_validate(product)
 
 
@@ -365,33 +341,18 @@ async def update_product(
     _user: User = Depends(require_role(*_write_roles)),
 ) -> ProductPublic:
     actor_id = _user.id
-    actor_role = _user.role
-    actor_shop_id = _user.shop_id
-    stmt = select(Product).where(Product.id == product_id)
-    if actor_role != UserRole.SUPERADMIN:
-        stmt = stmt.where(Product.shop_id == actor_shop_id)
-    product = (await db.execute(stmt)).scalar_one_or_none()
-    if product is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="product not found")
+    try:
+        product = await get_product_for_write(
+            db, product_id=product_id, actor_role=_user.role, actor_shop_id=_user.shop_id
+        )
+    except ProductError as exc:
+        raise _error_to_http(exc) from exc
 
     data = payload.model_dump(exclude_unset=True)
-    # Apply the price/status coupling FIRST so a bad PATCH on price
-    # surfaces as a 400 from the lifecycle module rather than a 500
-    # from the DB CHECK violation path (architecture review
-    # Candidate D, 2026-07-08).
-    if "price" in data:
-        try:
-            apply_status_transition(product, price=data["price"])
-        except ProductLifecycleError as exc:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail={"code": exc.code, "message": exc.message},
-            ) from exc
-        # apply_status_transition already wrote product.price; remove
-        # it from the generic setattr loop so we don't double-assign.
-        del data["price"]
-    for field_name, value in data.items():
-        setattr(product, field_name, value)
+    try:
+        update_product_fields(product, data)
+    except ProductLifecycleError as exc:
+        raise _lifecycle_error_to_http(exc) from exc
     await db.commit()
     await db.refresh(product)
     log.info(
@@ -399,7 +360,7 @@ async def update_product(
         actor_user_id=actor_id,
         shop_id=product.shop_id,
         product_id=product.id,
-        changed_fields=sorted(payload.model_dump(exclude_unset=True).keys()),
+        changed_fields=sorted(data.keys()),
     )
     return ProductPublic.model_validate(product)
 
@@ -410,8 +371,6 @@ async def update_product(
 # IS the dismissal -- there is no separate dismiss/acknowledge step. The
 # owner sets a price, the row flips from pending to active, and the
 # product drops off the pending list automatically.
-
-_pending_roles = (UserRole.OWNER, UserRole.SUPERADMIN)
 
 
 @router.get(
@@ -427,109 +386,26 @@ async def list_pending_products(
         Query(description="Superadmin only: scope the listing to one shop"),
     ] = None,
 ) -> list[PendingProductRow]:
-    # Owner / superadmin view of every product still in
-    # status='pending' (D-v2-5). The list itself is the notification
-    # surface -- there's no separate dismissible notification record
-    # (D-v2-8). Newest first.
-    #
-    # Joins the latest product.pending_created log entry per product so
-    # the owner can see who added it and whether it came from receiving
-    # or checkout (D-v2-13).
-    actor_role = _user.role
-    actor_shop_id = _user.shop_id
-
-    stmt = (
-        select(Product)
-        .where(Product.status == ProductStatus.PENDING)
-        .order_by(Product.created_at.desc())
-    )
-    if actor_role != UserRole.SUPERADMIN:
-        if shop_id is not None and shop_id != actor_shop_id:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="only superadmin may specify shop_id",
-            )
-        stmt = stmt.where(Product.shop_id == actor_shop_id)
-    elif shop_id is not None:
-        stmt = stmt.where(Product.shop_id == shop_id)
-
-    rows = (await db.execute(stmt)).scalars().all()
-    if not rows:
-        return []
-
-    # Pull the most recent pending_created event per product across both
-    # log tables (D-v2-13). The codebase's log tables store ``payload``
-    # as the generic SQLAlchemy ``JSON`` type which renders as JSONB
-    # on Postgres but doesn't expose a typed ``astext`` accessor
-    # through SQLAlchemy's generic JSON comparator. Rather than fight
-    # the type system, fetch the events and filter to the relevant
-    # product_ids in Python -- the pending list is small (N <= dozens
-    # in any realistic deployment), and the per-product scan below is
-    # O(N events) where N is bounded by total pending_created events
-    # ever logged, which is itself a low-frequency counter-staff action.
-    product_ids = {p.id for p in rows}
-
-    stockin_events = (
-        await db.execute(
-            select(StockinLog).where(StockinLog.event_type == "product.pending_created")
+    try:
+        rows = await products_svc.list_pending_products(
+            db, actor_role=_user.role, actor_shop_id=_user.shop_id, shop_id=shop_id
         )
-    ).scalars().all()
-    invoicing_events = (
-        await db.execute(
-            select(InvoicingLog).where(InvoicingLog.event_type == "product.pending_created")
+    except ProductError as exc:
+        raise _error_to_http(exc) from exc
+    return [
+        PendingProductRow(
+            id=r.product.id,
+            barcode=r.product.barcode,
+            brand=r.product.brand,
+            size_label=r.product.size_label,
+            created_at=r.product.created_at,
+            updated_at=r.product.updated_at,
+            last_event_origin=r.last_event_origin,
+            last_event_actor_id=r.last_event_actor_id,
+            last_event_actor_name=r.last_event_actor_name,
         )
-    ).scalars().all()
-
-    # Per-product: pick the most-recent event across both tables. The
-    # schema only allows one such event per product today (the
-    # create-and-activate is the resolution, not a repeat action), but
-    # the order-by keeps the code correct if that invariant loosens.
-    by_product: dict[int, tuple[str, int | None, datetime]] = {}
-    for ev in stockin_events:
-        pid = ev.payload.get("product_id")
-        if pid is None or pid not in product_ids:
-            continue
-        cur = by_product.get(pid)
-        if cur is None or ev.created_at > cur[2]:
-            by_product[pid] = ("receiving", ev.actor_user_id, ev.created_at)
-    for ev in invoicing_events:
-        pid = ev.payload.get("product_id")
-        if pid is None or pid not in product_ids:
-            continue
-        cur = by_product.get(pid)
-        if cur is None or ev.created_at > cur[2]:
-            by_product[pid] = ("checkout", ev.actor_user_id, ev.created_at)
-
-    # Resolve actor names (small N, one query).
-    actor_ids = {cur[1] for cur in by_product.values() if cur[1] is not None}
-    actor_names: dict[int, str] = {}
-    if actor_ids:
-        actor_rows = (
-            await db.execute(
-                select(User).where(User.id.in_(actor_ids))
-            )
-        ).scalars().all()
-        actor_names = {u.id: u.full_name for u in actor_rows}
-
-    out: list[PendingProductRow] = []
-    for p in rows:
-        cur = by_product.get(p.id)
-        out.append(
-            PendingProductRow(
-                id=p.id,
-                barcode=p.barcode,
-                brand=p.brand,
-                size_label=p.size_label,
-                created_at=p.created_at,
-                updated_at=p.updated_at,
-                last_event_origin=cur[0] if cur else None,
-                last_event_actor_id=cur[1] if cur else None,
-                last_event_actor_name=(
-                    actor_names.get(cur[1]) if cur and cur[1] is not None else None
-                ),
-            )
-        )
-    return out
+        for r in rows
+    ]
 
 
 @router.post(
@@ -543,36 +419,22 @@ async def activate_product(
     db: DbSession,
     _user: User = Depends(require_role(*_pending_roles)),
 ) -> ProductPublic:
-    # Activation is the resolution action for the Pending Products list
-    # (D-v2-8). The price/status coupling is delegated to
-    # apply_status_transition so the rule lives in one place
-    # (architecture review Candidate D, 2026-07-08). Activating a
-    # deactivated (is_active=False) product is a 400.
     actor_id = _user.id
-    actor_role = _user.role
-    actor_shop_id = _user.shop_id
-    stmt = select(Product).where(Product.id == product_id)
-    if actor_role != UserRole.SUPERADMIN:
-        stmt = stmt.where(Product.shop_id == actor_shop_id)
-    product = (await db.execute(stmt)).scalar_one_or_none()
-    if product is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="product not found")
-
-    if not product.is_active:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="cannot activate a deactivated product",
-        )
-
-    was_pending = product.status == ProductStatus.PENDING
     try:
-        apply_status_transition(product, price=payload.price)
+        product = await get_product_for_write(
+            db, product_id=product_id, actor_role=_user.role, actor_shop_id=_user.shop_id
+        )
+    except ProductError as exc:
+        raise _error_to_http(exc) from exc
+
+    try:
+        was_pending = activate_pending_product(
+            product, price=payload.price, low_stock_threshold=payload.low_stock_threshold
+        )
+    except ProductError as exc:
+        raise _error_to_http(exc) from exc
     except ProductLifecycleError as exc:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail={"code": exc.code, "message": exc.message},
-        ) from exc
-    product.low_stock_threshold = payload.low_stock_threshold
+        raise _lifecycle_error_to_http(exc) from exc
 
     await db.commit()
     await db.refresh(product)
@@ -587,9 +449,6 @@ async def activate_product(
 
 
 # --- CSV bulk import ---
-
-_CSV_REQUIRED_COLUMNS = ("barcode", "brand", "size_label", "price")
-_CSV_OPTIONAL_COLUMNS = ("low_stock_threshold",)
 
 
 @router.post(
@@ -619,122 +478,19 @@ async def import_products_csv(
 
     raw = await file.read()
     try:
-        text = raw.decode("utf-8-sig")  # tolerate BOM
-    except UnicodeDecodeError:
-        text = raw.decode("latin-1", errors="replace")
-
-    reader = csv.DictReader(io.StringIO(text))
-    if reader.fieldnames is None:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="empty CSV")
-    missing = [c for c in _CSV_REQUIRED_COLUMNS if c not in reader.fieldnames]
-    if missing:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"CSV missing required columns: {missing}",
-        )
-
-    created = 0
-    errors: list[ProductImportError] = []
-
-    for row_index, raw_row in enumerate(reader, start=2):  # row 1 is header
-        row_num = row_index  # already 1-based for the data rows
-        barcode = (raw_row.get("barcode") or "").strip()
-        brand = (raw_row.get("brand") or "").strip()
-        size_label = (raw_row.get("size_label") or "").strip()
-        price_raw = (raw_row.get("price") or "").strip()
-        threshold_raw = (raw_row.get("low_stock_threshold") or "").strip()
-
-        # Per-row validation
-        if not barcode or not brand or not size_label or not price_raw:
-            errors.append(
-                ProductImportError(
-                    row=row_num,
-                    barcode=barcode or None,
-                    error="barcode, brand, size_label, and price are all required",
-                )
-            )
-            continue
-        try:
-            price = Decimal(price_raw)
-        except (InvalidOperation, ValueError):
-            errors.append(
-                ProductImportError(
-                    row=row_num,
-                    barcode=barcode,
-                    error=f"price '{price_raw}' is not a valid decimal",
-                )
-            )
-            continue
-        if price <= 0:
-            errors.append(
-                ProductImportError(row=row_num, barcode=barcode, error="price must be > 0")
-            )
-            continue
-        threshold: int | None = None
-        if threshold_raw:
-            try:
-                threshold = int(threshold_raw)
-            except ValueError:
-                errors.append(
-                    ProductImportError(
-                        row=row_num,
-                        barcode=barcode,
-                        error=f"low_stock_threshold '{threshold_raw}' is not a valid integer",
-                    )
-                )
-                continue
-            if threshold < 0:
-                errors.append(
-                    ProductImportError(
-                        row=row_num,
-                        barcode=barcode,
-                        error="low_stock_threshold must be >= 0",
-                    )
-                )
-                continue
-
-        # Architecture review Candidate B: insert + 409 lives in
-        # app.services.product_creation. The CSV batch passes
-        # commit=False so we can flush per row and surface per-row
-        # 409s as ProductImportError entries (the existing
-        # per-row-validation shape).
-        try:
-            product = await create_product_row(
-                db,
-                shop_id=actor_shop_id,
-                barcode=barcode,
-                brand=brand,
-                size_label=size_label,
-                price=price,
-                low_stock_threshold=threshold,
-                status_value=ProductStatus.ACTIVE,
-                commit=False,
-            )
-        except ProductConflictError as exc:
-            errors.append(
-                ProductImportError(
-                    row=row_num,
-                    barcode=barcode,
-                    error=f"barcode '{exc.barcode}' already exists",
-                )
-            )
-            continue
-
-        created += 1
-        # Let the session forget the row so a later failure doesn't
-        # poison this row's in-memory state. Use expunge (not
-        # rollback) because the INSERT succeeded (it was flushed,
-        # not committed).
-        db.expunge(product)
-
-    if created:
-        await db.commit()
+        summary = await products_svc.import_products_csv(db, shop_id=actor_shop_id, raw=raw)
+    except ProductError as exc:
+        raise _error_to_http(exc) from exc
 
     log.info(
         "product.import_csv",
         actor_user_id=actor_id,
         shop_id=actor_shop_id,
-        created=created,
-        failed=len(errors),
+        created=summary.created,
+        failed=len(summary.errors),
     )
-    return ProductImportResponse(created=created, failed=len(errors), errors=errors)
+    return ProductImportResponse(
+        created=summary.created,
+        failed=len(summary.errors),
+        errors=[ProductImportError(row=e.row, barcode=e.barcode, error=e.error) for e in summary.errors],
+    )
