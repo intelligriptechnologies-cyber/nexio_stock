@@ -1,0 +1,293 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Architecture review — barstock (full repo)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script type="module">
+      import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs";
+      mermaid.initialize({ startOnLoad: true, theme: "neutral", securityLevel: "loose" });
+    </script>
+    <style>
+      .seam { stroke-dasharray: 4 4; }
+      .leak { stroke: #dc2626; }
+      .box { border: 1.5px solid #94a3b8; border-radius: 8px; }
+      .box-deep { border: 3px solid #0f172a; border-radius: 8px; background: #f8fafc; }
+      .label { font-size: 0.68rem; letter-spacing: 0.06em; text-transform: uppercase; color: #475569; }
+      .strong-badge { background: #d1fae5; color: #065f46; }
+      .worth-badge { background: #fef3c7; color: #92400e; }
+      .spec-badge { background: #e2e8f0; color: #334155; }
+    </style>
+  </head>
+  <body class="bg-stone-50 text-slate-900 font-sans">
+    <main class="max-w-5xl mx-auto px-6 py-12 space-y-14">
+      <header class="space-y-3 border-b border-slate-200 pb-6">
+        <h1 class="font-serif text-3xl">Architecture review — barstock</h1>
+        <p class="text-sm text-slate-500">Scope: full repo (app/, frontend/src/, tests/) · 2026-07-08 · excludes the issue #21 slice already reviewed separately</p>
+        <div class="flex flex-wrap gap-6 text-xs text-slate-600 pt-2">
+          <span class="flex items-center gap-2"><span class="inline-block w-6 h-4 box"></span>module</span>
+          <span class="flex items-center gap-2"><span class="inline-block w-8 h-0 border-t-2 border-dashed border-slate-500"></span>seam</span>
+          <span class="flex items-center gap-2"><span class="inline-block w-8 h-0 border-t-2 border-red-600"></span>leakage</span>
+          <span class="flex items-center gap-2"><span class="inline-block w-6 h-4 box-deep"></span>deep module</span>
+        </div>
+      </header>
+
+      <section id="candidates" class="space-y-14">
+
+        <!-- C: products.py split -->
+        <article id="c-products" class="space-y-4">
+          <div class="flex items-center gap-3 flex-wrap">
+            <h2 class="font-serif text-xl">Split products.py into a Products module</h2>
+            <span class="strong-badge text-xs font-medium px-2 py-0.5 rounded-full">Strong</span>
+            <span class="spec-badge text-xs font-medium px-2 py-0.5 rounded-full">in-process</span>
+          </div>
+          <p class="font-mono text-xs text-slate-600">app/api/products.py (740 lines)</p>
+
+          <div class="grid grid-cols-2 gap-4">
+            <div class="rounded-lg border border-slate-200 bg-white p-4">
+              <p class="label mb-2">Before</p>
+              <div class="mermaid">
+flowchart TD
+  R["products.py router\n(740 lines)"]
+  R --> CRUD["CRUD logic\ninline"]
+  R --> QA["quick-add logic\ninline"]
+  R --> PL["pending-list +\ntwo-table log join\ninline"]
+  R --> ACT["activation rule\ninline"]
+  R --> CSV["CSV import\nvalidation state machine\ninline"]
+  classDef leak stroke:#dc2626,stroke-width:2px;
+  class R leak
+              </div>
+            </div>
+            <div class="rounded-lg border border-slate-900 bg-slate-50 p-4">
+              <p class="label mb-2">After</p>
+              <div class="mermaid">
+flowchart TD
+  Router["products.py router\n(routes only)"] --> Svc
+  Svc["ProductsService\none interface"] -.-> CRUD2[create/update]
+  Svc -.-> QA2[quick-add]
+  Svc -.-> PL2[pending list]
+  Svc -.-> ACT2[activate]
+  Svc -.-> CSV2[csv import]
+  classDef deep fill:#0f172a,color:#fff,stroke:#0f172a;
+  class Svc deep
+              </div>
+            </div>
+          </div>
+
+          <p><span class="font-semibold">Problem:</span> five unrelated concerns (CRUD, quick-add, pending listing with a hand-rolled log join, activation, CSV import with its own validation state machine) sit directly in route handlers. Unlike checkout/voids/eod, there's no <code>app/services/products.py</code> — the router's interface is barely thinner than its implementation.</p>
+          <p><span class="font-semibold">Solution:</span> a <code>ProductsService</code> module behind the router, matching the pattern already used for checkout/voids/eod — one interface per concern, tested directly instead of only through the HTTP seam.</p>
+          <ul class="text-sm space-y-1 list-disc list-inside text-slate-700">
+            <li>Interface finally thinner than implementation</li>
+            <li>Leverage: matches the existing services pattern elsewhere in the repo</li>
+            <li>Locality: CSV-import bugs and quick-add bugs stop sharing one 740-line blast radius</li>
+          </ul>
+        </article>
+
+        <!-- B: unit of work -->
+        <article id="c-uow" class="space-y-4">
+          <div class="flex items-center gap-3 flex-wrap">
+            <h2 class="font-serif text-xl">Encode the rollback-before-translate contract once</h2>
+            <span class="strong-badge text-xs font-medium px-2 py-0.5 rounded-full">Strong</span>
+            <span class="spec-badge text-xs font-medium px-2 py-0.5 rounded-full">in-process</span>
+          </div>
+          <p class="font-mono text-xs text-slate-600">app/db.py:83-96 · app/api/checkout.py · voids.py · lots.py · dashboard.py · products.py</p>
+
+          <div class="rounded-lg border border-slate-200 bg-white p-4">
+            <div class="mermaid">
+flowchart LR
+  G["get_db()\n(no auto session.begin)"] --> R1[checkout.py]
+  G --> R2[voids.py]
+  G --> R3[lots.py]
+  G --> R4[dashboard.py]
+  G --> R5[products.py]
+  R1 -.own rollback+translate.-> DB1[(db)]
+  R2 -.own rollback+translate.-> DB1
+  R3 -.own rollback+translate.-> DB1
+  R4 -.own rollback+translate.-> DB1
+  R5 -.own rollback+translate.-> DB1
+  classDef leak stroke:#dc2626,stroke-width:2px;
+  class R1,R2,R3,R4,R5 leak
+            </div>
+          </div>
+
+          <p><span class="font-semibold">Problem:</span> <code>get_db</code> deliberately skips wrapping sessions in <code>session.begin()</code>, so every mutating route is individually responsible for commit timing and calling <code>rollback()</code> before translating a domain error to HTTP. Five routers currently do this correctly, by hand, with nothing enforcing it — and no test specifically exercises "does a failed mutation leave the session usable for the next request."</p>
+          <p><span class="font-semibold">Solution:</span> a small context manager or decorator (e.g. <code>with unit_of_work(db):</code>) that owns commit-on-success/rollback-on-domain-error, used by all five routers instead of each re-deriving the convention.</p>
+          <ul class="text-sm space-y-1 list-disc list-inside text-slate-700">
+            <li>Locality: one place a future route can't get wrong</li>
+            <li>Turns an implicit convention into an enforced interface</li>
+          </ul>
+        </article>
+
+        <!-- A: derived stock -->
+        <article id="c-stock" class="space-y-4">
+          <div class="flex items-center gap-3 flex-wrap">
+            <h2 class="font-serif text-xl">One derived-stock query, not two</h2>
+            <span class="strong-badge text-xs font-medium px-2 py-0.5 rounded-full">Strong</span>
+            <span class="spec-badge text-xs font-medium px-2 py-0.5 rounded-full">in-process</span>
+          </div>
+          <p class="font-mono text-xs text-slate-600">app/services/checkout.py:159-243 (_current_stock_for) · app/services/low_stock.py:47-118 (_stock_per_product)</p>
+
+          <div class="grid grid-cols-2 gap-4">
+            <div class="rounded-lg border border-slate-200 bg-white p-4">
+              <p class="label mb-2">Before</p>
+              <div class="mermaid">
+flowchart TD
+  A["checkout.py\n_current_stock_for"] --> Q1["SUM(lots) - SUM(sold)\nunion_all, by id list"]
+  B["low_stock.py\n_stock_per_product"] --> Q2["SUM(lots) - SUM(sold)\nunion_all, by shop+active"]
+  Q1 -.same formula.-> Q2
+              </div>
+            </div>
+            <div class="rounded-lg border border-slate-900 bg-slate-50 p-4">
+              <p class="label mb-2">After</p>
+              <div class="mermaid">
+flowchart TD
+  A[checkout.py] --> D
+  B[low_stock.py] --> D
+  D["derived_stock()\none formula, scope param"] --> DB[(lots + invoice_lines)]
+  classDef deep fill:#0f172a,color:#fff,stroke:#0f172a;
+  class D deep
+              </div>
+            </div>
+          </div>
+
+          <p><span class="font-semibold">Problem:</span> both functions implement the same "lots minus sold, via union_all" formula; each docstring even names the other as duplicating it. Only the scoping (id list vs shop+active-flag) differs.</p>
+          <p><span class="font-semibold">Solution:</span> one query-builder module, parameterized by scope, used by both callers.</p>
+          <ul class="text-sm space-y-1 list-disc list-inside text-slate-700">
+            <li>Locality: a change to <code>STATUSES_COUNTING_AS_SOLD</code> lands once</li>
+            <li>Deletes prose ("see the other file") that was standing in for a shared interface</li>
+          </ul>
+        </article>
+
+        <!-- G: token key -->
+        <article id="c-token" class="space-y-4">
+          <div class="flex items-center gap-3 flex-wrap">
+            <h2 class="font-serif text-xl">Route every request through one session-token module</h2>
+            <span class="strong-badge text-xs font-medium px-2 py-0.5 rounded-full">Strong</span>
+            <span class="spec-badge text-xs font-medium px-2 py-0.5 rounded-full">local-substitutable</span>
+          </div>
+          <p class="font-mono text-xs text-slate-600">frontend/src/api/client.ts:6,23 · auth/AuthProvider.tsx:24 · api/products.ts:137 · pages/CheckoutPage.tsx:333</p>
+
+          <div class="rounded-lg border border-slate-200 bg-white p-4">
+            <div class="mermaid">
+flowchart TD
+  C["client.ts\nTOKEN_KEY = barstock.token"]
+  A["AuthProvider.tsx\nredefines same literal"] -.leak.-> C
+  P["products.ts importProductsCsv\nsessionStorage.getItem('barstock.token')"] -.leak.-> C
+  K["CheckoutPage.tsx downloadPdf\nsame raw literal"] -.leak.-> C
+  classDef leak stroke:#dc2626,stroke-width:2px;
+  class A,P,K leak
+            </div>
+          </div>
+
+          <p><span class="font-semibold">Problem:</span> <code>client.ts</code> owns <code>TOKEN_KEY</code>, but two other files hardcode the same string literal to bypass <code>client.ts</code>'s JSON-only <code>api()</code> wrapper for multipart upload and blob download — and in doing so also reimplement its auth-header and error-detail-parsing logic from scratch. A future rename of the storage key silently breaks two of four call sites with no compiler error.</p>
+          <p><span class="font-semibold">Solution:</span> export a <code>getToken()</code> from <code>client.ts</code> (or a shared low-level <code>request()</code> that supports non-JSON bodies) so the multipart/blob call sites reuse the one seam instead of hand-rolling it.</p>
+          <ul class="text-sm space-y-1 list-disc list-inside text-slate-700">
+            <li>Removes a rename-and-silently-break trap</li>
+            <li>Leverage: one auth-header/error-parsing path, all four call sites</li>
+          </ul>
+        </article>
+
+        <!-- D: error-to-http boilerplate -->
+        <article id="c-errhttp" class="space-y-4">
+          <div class="flex items-center gap-3 flex-wrap">
+            <h2 class="font-serif text-xl">Fold the router error-logging convenience into _errors.py</h2>
+            <span class="worth-badge text-xs font-medium px-2 py-0.5 rounded-full">Worth exploring</span>
+            <span class="spec-badge text-xs font-medium px-2 py-0.5 rounded-full">in-process</span>
+          </div>
+          <p class="font-mono text-xs text-slate-600">app/api/checkout.py:55-82 · dashboard.py:42-54 · voids.py:67-86 · app/api/_errors.py</p>
+          <p><span class="font-semibold">Problem:</span> three routers each define their own <code>_CODE_TO_STATUS</code> dict and a private <code>_error_to_http</code> that calls <code>map_error_to_http</code> then logs at ERROR if the result is 500. Only the dict contents vary; the wrapping behavior is identical boilerplate three times.</p>
+          <p><span class="font-semibold">Solution:</span> <code>map_error_to_http</code> takes the code-map as a parameter and owns the "log unmapped codes" behavior itself, so routers stop re-writing the wrapper.</p>
+          <ul class="text-sm space-y-1 list-disc list-inside text-slate-700">
+            <li>Leverage: one wrapper, three routers</li>
+          </ul>
+        </article>
+
+        <!-- E: shop-scope guard backend -->
+        <article id="c-shopscope-be" class="space-y-4">
+          <div class="flex items-center gap-3 flex-wrap">
+            <h2 class="font-serif text-xl">Reuse the shop-scope rule on read paths, not just writes</h2>
+            <span class="worth-badge text-xs font-medium px-2 py-0.5 rounded-full">Worth exploring</span>
+            <span class="spec-badge text-xs font-medium px-2 py-0.5 rounded-full">in-process</span>
+          </div>
+          <p class="font-mono text-xs text-slate-600">app/api/deps.py:88-119 (resolve_write_shop_id) · products.py:283-295, 332-346, 446-454</p>
+          <p><span class="font-semibold">Problem:</span> <code>resolve_write_shop_id</code> already encodes "non-superadmin can't cross shops; superadmin must pick one" for writes. Three read endpoints in <code>products.py</code> hand-roll the identical decision instead of calling an equivalent read-side helper.</p>
+          <p><span class="font-semibold">Solution:</span> a <code>resolve_read_shop_id</code> alongside the write version, called by all three.</p>
+          <ul class="text-sm space-y-1 list-disc list-inside text-slate-700">
+            <li>Locality: one place to change the authorization rule</li>
+          </ul>
+        </article>
+
+        <!-- F: audit log -->
+        <article id="c-auditlog" class="space-y-4">
+          <div class="flex items-center gap-3 flex-wrap">
+            <h2 class="font-serif text-xl">One "write a business-event log row" module</h2>
+            <span class="worth-badge text-xs font-medium px-2 py-0.5 rounded-full">Worth exploring</span>
+            <span class="spec-badge text-xs font-medium px-2 py-0.5 rounded-full">in-process</span>
+          </div>
+          <p class="font-mono text-xs text-slate-600">app/api/checkout.py:140-161 · lots.py:103-126 · products.py:220-236 · voids.py:279-307 (_write_void_log)</p>
+          <p><span class="font-semibold">Problem:</span> every mutating endpoint that needs an audit trail hand-builds its log row inline; only <code>voids.py</code> pulled this into a private helper, and that helper isn't shared. The pattern exists in two shapes (inline vs. one router's private helper) instead of one.</p>
+          <p><span class="font-semibold">Solution:</span> promote <code>_write_void_log</code>'s shape into a shared helper parameterized by log table + event type, reused by checkout/lots/products/voids.</p>
+          <ul class="text-sm space-y-1 list-disc list-inside text-slate-700">
+            <li>Leverage: one audit-write interface, four callers</li>
+          </ul>
+        </article>
+
+        <!-- H: frontend cross-cutting convergence -->
+        <article id="c-fe-crosscut" class="space-y-4">
+          <div class="flex items-center gap-3 flex-wrap">
+            <h2 class="font-serif text-xl">Converge three per-page conventions into shared modules</h2>
+            <span class="worth-badge text-xs font-medium px-2 py-0.5 rounded-full">Worth exploring</span>
+            <span class="spec-badge text-xs font-medium px-2 py-0.5 rounded-full">local-substitutable</span>
+          </div>
+          <p class="font-mono text-xs text-slate-600">pages/DashboardPage.tsx, ProductsPage.tsx, VoidApprovalsPage.tsx, CheckoutPage.tsx · api/dashboard.ts, catalog.ts, lots.ts, shops.ts, staff.ts, products.ts, checkout.ts</p>
+
+          <div class="rounded-lg border border-slate-200 bg-white p-4">
+            <div class="mermaid">
+flowchart LR
+  subgraph Pages
+    P1[DashboardPage]
+    P2[ProductsPage]
+    P3[VoidApprovalsPage]
+    P4[CheckoutPage]
+  end
+  P1 -->|"superadmin-no-shop guard,\nerror-to-message catch"| X["reimplemented\nper page"]
+  P2 --> X
+  P3 --> X
+  P4 --> X
+  subgraph APIModules[api/*.ts]
+    M1[dashboard.ts]
+    M2[catalog.ts]
+    M3[lots.ts]
+  end
+  M1 -->|"shop_id param\nmerging"| Y["reimplemented\nper module"]
+  M2 --> Y
+  M3 --> Y
+  classDef leak stroke:#dc2626,stroke-width:2px;
+  class X,Y leak
+            </div>
+          </div>
+
+          <p><span class="font-semibold">Problem:</span> three separate conventions are each reimplemented at N call sites: the "superadmin hasn't picked a shop" bail-out (4 pages), the "append shop_id to query/body" plumbing (6 <code>api/*.ts</code> modules), and the "turn a thrown error into a user message" catch block (4 pages). Each is small individually, but together they're the same shape — a cross-cutting concern solved locally instead of once.</p>
+          <p><span class="font-semibold">Solution:</span> a <code>useShopScope()</code>-backed guard component for the first, a <code>withShopId()</code> helper in <code>client.ts</code> for the second, and a <code>toUserMessage(e, fallback)</code> helper for the third.</p>
+          <ul class="text-sm space-y-1 list-disc list-inside text-slate-700">
+            <li>Locality: three rules, three homes, not twelve</li>
+            <li>New pages get the guard/message-handling for free</li>
+          </ul>
+        </article>
+
+      </section>
+
+      <section id="top-recommendation" class="border-t border-slate-200 pt-10">
+        <div class="rounded-xl border-2 border-slate-900 bg-slate-50 p-6 space-y-2">
+          <p class="label">Top recommendation</p>
+          <h2 class="font-serif text-2xl">Split products.py into a Products module</h2>
+          <p class="text-sm text-slate-700">It's the widest blast radius: five unrelated concerns share one 740-line router, it's the only major router without a services module counterpart, and two other findings here (the shop-scope read checks, the audit-log write shape) live partly inside it. Pulling it into a <code>ProductsService</code> — matching the pattern already proven by checkout/voids/eod — gives the router an interface thinner than its implementation and unblocks the smaller fixes around it. <a href="#c-products" class="underline">Jump to card</a>.</p>
+        </div>
+        <div class="mt-4 rounded border border-amber-300 bg-amber-50 text-amber-900 text-xs px-3 py-2">
+          Two testing gaps worth flagging separately (not deepening candidates, but risk): <code>invoice_pdf.py</code>'s GSTIN/excise-duty placeholder rendering has no dedicated assertions beyond content-type/status, and no test simulates two concurrent checkout finalizes racing the last unit of stock — <code>_current_stock_for</code>'s concurrency-safety argument (checkout.py:159-172) currently rests on a comment, not an executable check.
+        </div>
+      </section>
+
+    </main>
+  </body>
+</html>

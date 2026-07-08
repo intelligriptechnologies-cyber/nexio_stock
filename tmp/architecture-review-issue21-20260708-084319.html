@@ -1,0 +1,281 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Architecture review — barstock (issue #21)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script type="module">
+      import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs";
+      mermaid.initialize({ startOnLoad: true, theme: "neutral", securityLevel: "loose" });
+    </script>
+    <style>
+      .seam { stroke-dasharray: 4 4; }
+      .leak { stroke: #dc2626; }
+      .deep { background: linear-gradient(135deg, #0f172a, #1e293b); }
+      .box { border: 1.5px solid #94a3b8; border-radius: 8px; }
+      .box-deep { border: 3px solid #0f172a; border-radius: 8px; background: #f8fafc; }
+      .label { font-size: 0.68rem; letter-spacing: 0.06em; text-transform: uppercase; color: #475569; }
+      .strong-badge { background: #d1fae5; color: #065f46; }
+      .worth-badge { background: #fef3c7; color: #92400e; }
+      .spec-badge { background: #e2e8f0; color: #334155; }
+    </style>
+  </head>
+  <body class="bg-stone-50 text-slate-900 font-sans">
+    <main class="max-w-5xl mx-auto px-6 py-12 space-y-14">
+      <header class="space-y-3 border-b border-slate-200 pb-6">
+        <h1 class="font-serif text-3xl">Architecture review — barstock</h1>
+        <p class="text-sm text-slate-500">Scope: issue #21 (quick-add, quicksearch, pending products, PIN login) and sub-issues #22–#26 · 2026-07-08</p>
+        <div class="flex flex-wrap gap-6 text-xs text-slate-600 pt-2">
+          <span class="flex items-center gap-2"><span class="inline-block w-6 h-4 box"></span>module</span>
+          <span class="flex items-center gap-2"><span class="inline-block w-8 h-0 border-t-2 border-dashed border-slate-500"></span>seam</span>
+          <span class="flex items-center gap-2"><span class="inline-block w-8 h-0 border-t-2 border-red-600"></span>leakage</span>
+          <span class="flex items-center gap-2"><span class="inline-block w-6 h-4 box-deep"></span>deep module</span>
+        </div>
+      </header>
+
+      <section id="candidates" class="space-y-14">
+
+        <!-- Candidate D -->
+        <article id="c-status" class="space-y-4">
+          <div class="flex items-center gap-3 flex-wrap">
+            <h2 class="font-serif text-xl">Centralize the pending → active transition</h2>
+            <span class="strong-badge text-xs font-medium px-2 py-0.5 rounded-full">Strong</span>
+            <span class="spec-badge text-xs font-medium px-2 py-0.5 rounded-full">in-process</span>
+          </div>
+          <p class="font-mono text-xs text-slate-600">app/api/products.py · app/schemas/product.py</p>
+
+          <div class="grid grid-cols-2 gap-4">
+            <div class="rounded-lg border border-slate-200 bg-white p-4">
+              <p class="label mb-2">Before</p>
+              <div class="mermaid">
+flowchart TD
+  U["update_product\nblind setattr loop"] --> DB[(products table)]
+  A["activate_product\napplies rule correctly"] --> DB
+  V["ProductUpdate._price_consistent\n(no-op validator)"] -.-> DB
+  C["CHECK ck_products_price_iff_active"] -.leak.-> DB
+  classDef leak stroke:#dc2626,stroke-width:2px;
+  class C leak
+              </div>
+            </div>
+            <div class="rounded-lg border border-slate-900 bg-slate-50 p-4">
+              <p class="label mb-2">After</p>
+              <div class="mermaid">
+flowchart TD
+  U[update_product] --> T
+  A[activate_product] --> T
+  T["apply_status_transition()\none rule, one place"] --> DB[(products table)]
+  classDef deep fill:#0f172a,color:#fff,stroke:#0f172a;
+  class T deep
+              </div>
+            </div>
+          </div>
+
+          <p><span class="font-semibold">Problem:</span> the pending→active rule is expressed four times — an <code>activate_product</code> handler that applies it, a docstring that claims <code>update_product</code> applies it, a <code>@model_validator</code> that's a no-op, and a DB CHECK constraint that's the only thing actually enforcing it. A PATCH that sets <code>price</code> without flipping <code>status</code> passes validation and 500s at the DB.</p>
+          <p><span class="font-semibold">Solution:</span> one module owns the transition — given current status/price and a patch, it returns the next status/price or raises a domain error. <code>update_product</code> and <code>activate_product</code> both call it instead of each re-deriving the rule.</p>
+          <ul class="text-sm space-y-1 list-disc list-inside text-slate-700">
+            <li>Locality: the rule lives in one place, not four</li>
+            <li>Interface enforces what the docstring only claimed</li>
+            <li>Bad PATCH becomes a 400, not a 500</li>
+            <li>Leverage: same predicate settles the pending-check duplication in checkout.py, products.py, CheckoutPage.tsx</li>
+          </ul>
+        </article>
+
+        <!-- Candidate A -->
+        <article id="c-quickadd" class="space-y-4">
+          <div class="flex items-center gap-3 flex-wrap">
+            <h2 class="font-serif text-xl">Deepen quick-add into one module</h2>
+            <span class="strong-badge text-xs font-medium px-2 py-0.5 rounded-full">Strong</span>
+            <span class="spec-badge text-xs font-medium px-2 py-0.5 rounded-full">local-substitutable</span>
+          </div>
+          <p class="font-mono text-xs text-slate-600">frontend/src/pages/ReceivingPage.tsx · frontend/src/pages/CheckoutPage.tsx</p>
+
+          <div class="grid grid-cols-2 gap-4 items-center">
+            <div class="rounded-lg border border-slate-200 bg-white p-5 space-y-3">
+              <p class="label">Before</p>
+              <div class="relative h-56">
+                <div class="box p-3 absolute top-0 left-0 w-[46%] h-full bg-white">
+                  <p class="text-xs font-semibold">ReceivingPage</p>
+                  <p class="text-[11px] text-slate-500 mt-2">modal state<br>idempotency key<br>addByBarcode<br>addByPick<br>submitQuickAdd<br>~150 lines</p>
+                </div>
+                <div class="box p-3 absolute top-0 right-0 w-[46%] h-full bg-white">
+                  <p class="text-xs font-semibold">CheckoutPage</p>
+                  <p class="text-[11px] text-slate-500 mt-2">modal state<br>idempotency key<br>addByBarcode<br>addByPick<br>submitQuickAdd<br>~150 lines</p>
+                </div>
+                <svg class="absolute inset-0 w-full h-full pointer-events-none">
+                  <line x1="46%" y1="50%" x2="54%" y2="50%" class="seam" stroke="#dc2626" stroke-width="2"/>
+                </svg>
+              </div>
+              <p class="text-[11px] text-red-700">two near-identical implementations, hand-synced</p>
+            </div>
+            <div class="rounded-lg border border-slate-900 bg-slate-50 p-5 space-y-3">
+              <p class="label">After</p>
+              <div class="h-56 flex items-center justify-center">
+                <div class="box-deep p-4 w-full h-full flex flex-col justify-center items-center text-center">
+                  <p class="text-xs font-semibold mb-2">useQuickAdd(onResolved)</p>
+                  <p class="text-[11px] text-slate-500">state + idempotency key<br>+ addByBarcode/addByPick<br>+ race handling</p>
+                  <p class="text-[11px] text-slate-400 mt-3">one <code>onResolved(product)</code><br>callback per caller</p>
+                </div>
+              </div>
+              <p class="text-[11px] text-slate-600">Receiving passes onResolved = add-to-lot; Checkout passes onResolved = no-op (stays pending)</p>
+            </div>
+          </div>
+
+          <p><span class="font-semibold">Problem:</span> quick-add's modal, idempotency-key construction, and race handling are copy-pasted across both pages. The one real behavioral difference — receiving adds the new product to the lot, checkout deliberately doesn't — is buried inside ~150 duplicated lines per page instead of being the single explicit parameter it actually is.</p>
+          <p><span class="font-semibold">Solution:</span> one <code>useQuickAdd</code> hook holds the interface (barcode in, resolved product out); each page supplies only its one differing callback.</p>
+          <ul class="text-sm space-y-1 list-disc list-inside text-slate-700">
+            <li>Interface shrinks to one callback per caller</li>
+            <li>Locality: idempotency-key bug fixed once, fixed everywhere</li>
+            <li>The receiving/checkout divergence becomes visible, not buried</li>
+          </ul>
+          <div class="rounded border border-emerald-300 bg-emerald-50 text-emerald-900 text-xs px-3 py-2">
+            Proof this is achievable here: <code>QuickSearch</code> (frontend/src/components/QuickSearch.tsx) is already extracted this way and reused by both pages with only a prop difference — quick-add just never got the same treatment.
+          </div>
+        </article>
+
+        <!-- Candidate C -->
+        <article id="c-idem" class="space-y-4">
+          <div class="flex items-center gap-3 flex-wrap">
+            <h2 class="font-serif text-xl">Delete the phantom idempotency cache</h2>
+            <span class="strong-badge text-xs font-medium px-2 py-0.5 rounded-full">Strong</span>
+            <span class="spec-badge text-xs font-medium px-2 py-0.5 rounded-full">in-process</span>
+          </div>
+          <p class="font-mono text-xs text-slate-600">app/api/products.py:165-300</p>
+
+          <div class="rounded-lg border border-slate-200 bg-white p-4">
+            <div class="mermaid">
+sequenceDiagram
+  participant FE as frontend (fresh uid() every submit)
+  participant Cache as _quick_add_idem_cache
+  participant DB as unique constraint
+
+  FE->>Cache: key = qa-r-barcode-RANDOM
+  Cache-->>FE: miss (always — key is never repeated)
+  FE->>DB: insert
+  DB-->>FE: 409 on real double-tap (constraint, not cache)
+            </div>
+          </div>
+
+          <p><span class="font-semibold">Problem:</span> the module exists to dedupe a same-key retry, but both frontend callers regenerate a random idempotency key on every submit — so the cache-hit branch is structurally unreachable through the actual UI, and no test sends the same key twice. Deletion test: remove lines 165–300, nothing observably changes.</p>
+          <p><span class="font-semibold">Solution:</span> delete the cache; the DB unique-constraint + 409 path already handles the real double-tap correctly. If key-stable retry is wanted, mirror <code>CheckoutPage.tsx</code>'s <code>idempotencyKeyRef</code> pattern (a stable ref reset only on success) instead of a server-side cache.</p>
+          <ul class="text-sm space-y-1 list-disc list-inside text-slate-700">
+            <li>Removes an abstraction that fails the deletion test</li>
+            <li>One fewer untested branch</li>
+            <li>If kept: fix at the seam that actually varies — the frontend key, not the server cache</li>
+          </ul>
+        </article>
+
+        <!-- Candidate B -->
+        <article id="c-create" class="space-y-4">
+          <div class="flex items-center gap-3 flex-wrap">
+            <h2 class="font-serif text-xl">One seam for product creation</h2>
+            <span class="worth-badge text-xs font-medium px-2 py-0.5 rounded-full">Worth exploring</span>
+            <span class="spec-badge text-xs font-medium px-2 py-0.5 rounded-full">in-process</span>
+          </div>
+          <p class="font-mono text-xs text-slate-600">app/api/products.py — create_product · quick_add_product · import_products_csv</p>
+
+          <div class="grid grid-cols-2 gap-4">
+            <div class="rounded-lg border border-slate-200 bg-white p-4">
+              <p class="label mb-2">Before</p>
+              <div class="mermaid">
+flowchart TD
+  A[create_product] --> X["try/commit/catch\nIntegrityError"]
+  B[quick_add_product] --> Y["try/commit/catch\nIntegrityError"]
+  C[import_products_csv row loop] --> Z["try/flush/catch\nIntegrityError"]
+  X --> U[is_unique_violation]
+  Y --> U
+  Z --> U
+              </div>
+            </div>
+            <div class="rounded-lg border border-slate-900 bg-slate-50 p-4">
+              <p class="label mb-2">After</p>
+              <div class="mermaid">
+flowchart TD
+  A[create_product] --> S
+  B[quick_add_product] --> S
+  C[import_products_csv row loop] --> S
+  S["create_product_row()\ncommit-or-409, batch-or-single"] --> DB[(products)]
+  classDef deep fill:#0f172a,color:#fff,stroke:#0f172a;
+  class S deep
+              </div>
+            </div>
+          </div>
+
+          <p><span class="font-semibold">Problem:</span> three call sites independently construct a <code>Product</code>, commit, and catch the same unique-violation shape, varying only in commit-vs-flush and status defaults. <code>is_unique_violation</code> is shared; the surrounding try/except is not.</p>
+          <p><span class="font-semibold">Solution:</span> one module wraps insert-or-409/flush-or-defer behind a single interface parameterized by batch mode and initial status.</p>
+          <ul class="text-sm space-y-1 list-disc list-inside text-slate-700">
+            <li>Leverage: one conflict-handling path, three callers</li>
+            <li>Locality: a future error-shape change touches one function</li>
+          </ul>
+        </article>
+
+        <!-- Candidate F -->
+        <article id="c-origin" class="space-y-4">
+          <div class="flex items-center gap-3 flex-wrap">
+            <h2 class="font-serif text-xl">Stop reconstructing pending-product origin at read time</h2>
+            <span class="worth-badge text-xs font-medium px-2 py-0.5 rounded-full">Worth exploring</span>
+            <span class="spec-badge text-xs font-medium px-2 py-0.5 rounded-full">in-process</span>
+          </div>
+          <p class="font-mono text-xs text-slate-600">app/api/products.py:442-557 (list_pending_products)</p>
+
+          <div class="grid grid-cols-2 gap-4">
+            <div class="rounded-lg border border-slate-200 bg-white p-4">
+              <p class="label mb-2">Before</p>
+              <div class="mermaid">
+flowchart LR
+  L[list_pending_products] --> SL["scan ALL StockinLog\nrows"]
+  L --> IL["scan ALL InvoicingLog\nrows"]
+  SL --> J["python-side join\npick latest per product"]
+  IL --> J
+  classDef leak stroke:#dc2626,stroke-width:2px;
+  class SL,IL leak
+              </div>
+            </div>
+            <div class="rounded-lg border border-slate-900 bg-slate-50 p-4">
+              <p class="label mb-2">After</p>
+              <div class="mermaid">
+flowchart LR
+  W["quick_add_product\nwrite time"] --> O["Product.origin\n(written once)"]
+  L[list_pending_products] --> O
+  classDef deep fill:#0f172a,color:#fff,stroke:#0f172a;
+  class O deep
+              </div>
+            </div>
+          </div>
+
+          <p><span class="font-semibold">Problem:</span> the origin (receiving vs checkout) is decided once, at write time, via the <code>X-Quick-Add-Origin</code> header — then has to be un-made at read time by scanning both log tables and picking the latest match. The handler's own comment flags this as a scaling risk deferred, not solved. Deletion test: removing the scan doesn't remove the need to know origin — it reappears as "which log table has this product" scattered wherever origin is needed next.</p>
+          <p><span class="font-semibold">Solution:</span> record origin directly on the row (or a dedicated column) at the same write that already knows it, instead of re-deriving it from two audit tables on every list call.</p>
+          <ul class="text-sm space-y-1 list-disc list-inside text-slate-700">
+            <li>Locality: origin decided once, read once</li>
+            <li>Removes an unindexed full-table scan on a read path</li>
+          </ul>
+        </article>
+
+        <!-- Candidate G -->
+        <article id="c-login" class="space-y-4">
+          <div class="flex items-center gap-3 flex-wrap">
+            <h2 class="font-serif text-xl">Split the picker/phone login request shapes</h2>
+            <span class="spec-badge text-xs font-medium px-2 py-0.5 rounded-full">Speculative</span>
+            <span class="spec-badge text-xs font-medium px-2 py-0.5 rounded-full">in-process</span>
+          </div>
+          <p class="font-mono text-xs text-slate-600">app/schemas/auth.py · app/api/auth.py:126-174</p>
+          <p><span class="font-semibold">Problem:</span> <code>LoginRequest</code> carries <code>staff_id</code> and <code>phone</code> as optional siblings; "pick exactly one" is enforced imperatively inside <code>login_shop</code>, not by the schema. The frontend already fully committed to the picker (no leftover phone UI) — only the backend schema still models both forms as one type.</p>
+          <p><span class="font-semibold">Solution:</span> two request shapes routed to the shared <code>_authenticate</code> helper, or a discriminated union, so "exactly one identifier" is a type-level fact.</p>
+          <ul class="text-sm space-y-1 list-disc list-inside text-slate-700">
+            <li>Interface states the invariant instead of hiding it in a branch</li>
+          </ul>
+          <p class="text-xs text-slate-500">Low urgency: <code>_authenticate</code> itself is already a clean, reused seam — this only tidies the request shape above it.</p>
+        </article>
+
+      </section>
+
+      <section id="top-recommendation" class="border-t border-slate-200 pt-10">
+        <div class="rounded-xl border-2 border-slate-900 bg-slate-50 p-6 space-y-2">
+          <p class="label">Top recommendation</p>
+          <h2 class="font-serif text-2xl">Centralize the pending → active transition</h2>
+          <p class="text-sm text-slate-700">Of the six candidates, this is the only one where the current shallowness has an observable failure mode today: <code>update_product</code> can produce a 500 instead of a 400 because the transition rule lives in a docstring and a no-op validator instead of one interface. It also directly resolves the five-way duplicated pending/active status check (finding 5), so fixing it pays down two friction points at once. Start here — <a href="#c-status" class="underline">jump to card</a>.</p>
+        </div>
+      </section>
+
+    </main>
+  </body>
+</html>

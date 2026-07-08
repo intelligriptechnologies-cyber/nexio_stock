@@ -255,3 +255,6 @@ __marimo__/
 # The committed version of the schema lives at frontend/src/api/schema.ts,
 # produced by `npm run gen:api` in the frontend subdir.
 openapi.json
+
+# Scratch outputs (architecture reviews, ad hoc reports) - not part of the app.
+/tmp/
