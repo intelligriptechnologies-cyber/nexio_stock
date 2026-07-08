@@ -26,6 +26,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.api._logs import write_business_log
 from app.api.deps import DbSession, require_role, resolve_write_shop_id
 from app.db import unit_of_work
 from app.logging_config import get_logger
@@ -118,13 +119,13 @@ async def create_lot(
                 for line in payload.lines
             ],
         }
-        db.add(
-            StockinLog(
-                shop_id=actor_shop_id,
-                actor_user_id=actor_id,
-                event_type="lot.received",
-                payload=log_payload,
-            )
+        write_business_log(
+            db,
+            StockinLog,
+            event_type="lot.received",
+            actor_id=actor_id,
+            shop_id=actor_shop_id,
+            payload=log_payload,
         )
 
     await db.refresh(lot)

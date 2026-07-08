@@ -236,7 +236,7 @@ async def quick_add_product(
 
     # Audit-log to the right domain table (D-v2-13): receiving ->
     # stockin_logs, checkout -> invoicing_logs.
-    db.add(quick_add_log_entry(actor_id=actor_id, shop_id=actor_shop_id, product=product, origin=origin))
+    quick_add_log_entry(db, actor_id=actor_id, shop_id=actor_shop_id, product=product, origin=origin)
     await db.commit()
 
     log.info(

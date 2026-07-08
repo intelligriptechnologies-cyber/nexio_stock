@@ -22,6 +22,7 @@ from fastapi import APIRouter, Body, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api._errors import map_error_to_http
+from app.api._logs import write_business_log
 from app.api.deps import DbSession, require_role
 from app.db import unit_of_work
 from app.logging_config import get_logger
@@ -299,11 +300,11 @@ async def _write_void_log(
     }
     if extra:
         payload.update(extra)
-    db.add(
-        InvoicingLog(
-            shop_id=shop_id,
-            actor_user_id=actor_id,
-            event_type=event_type,
-            payload=payload,
-        )
+    write_business_log(
+        db,
+        InvoicingLog,
+        event_type=event_type,
+        actor_id=actor_id,
+        shop_id=shop_id,
+        payload=payload,
     )

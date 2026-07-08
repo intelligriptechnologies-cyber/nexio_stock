@@ -24,6 +24,7 @@ from decimal import Decimal, InvalidOperation
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.api._logs import write_business_log
 from app.models.log import InvoicingLog, StockinLog
 from app.models.product import Product, ProductStatus
 from app.models.user import User, UserRole
@@ -196,9 +197,9 @@ async def quick_add_product(
 
 
 def quick_add_log_entry(
-    *, actor_id: int, shop_id: int, product: Product, origin: str
+    db: AsyncSession, *, actor_id: int, shop_id: int, product: Product, origin: str
 ) -> StockinLog | InvoicingLog:
-    """Build the audit-log row for a successful quick-add (D-v2-13):
+    """Write the audit-log row for a successful quick-add (D-v2-13):
     receiving origin -> stockin_logs, checkout origin -> invoicing_logs."""
     payload = {
         "product_id": product.id,
@@ -208,10 +209,12 @@ def quick_add_log_entry(
         "origin": origin,
     }
     log_cls = StockinLog if origin == "receiving" else InvoicingLog
-    return log_cls(
-        shop_id=shop_id,
-        actor_user_id=actor_id,
+    return write_business_log(
+        db,
+        log_cls,
         event_type="product.pending_created",
+        actor_id=actor_id,
+        shop_id=shop_id,
         payload=payload,
     )
 

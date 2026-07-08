@@ -26,6 +26,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from app.api._errors import map_error_to_http
+from app.api._logs import write_business_log
 from app.api.deps import DbSession, require_role, resolve_write_shop_id
 from app.db import unit_of_work
 from app.logging_config import get_logger
@@ -131,27 +132,27 @@ async def finalize(
     # Write the invoicing_logs row for this finalize (R-37, D-47). One
     # log entry per finalized invoice; the payload is rich enough to
     # rebuild the cart from the log without joining invoice_lines.
-    db.add(
-        InvoicingLog(
-            shop_id=actor_shop_id,
-            actor_user_id=actor_id,
-            event_type="invoice.finalized",
-            payload={
-                "invoice_id": invoice.id,
-                "invoice_number": invoice.invoice_number,
-                "total_amount": str(invoice.total_amount),
-                "payments": [{"mode": p.mode.value, "amount": str(p.amount)} for p in invoice.payments],
-                "lines": [
-                    {
-                        "product_id": line.product_id,
-                        "quantity": line.quantity,
-                        "unit_price": str(line.unit_price),
-                        "line_total": str(line.line_total),
-                    }
-                    for line in invoice.lines
-                ],
-            },
-        )
+    write_business_log(
+        db,
+        InvoicingLog,
+        event_type="invoice.finalized",
+        actor_id=actor_id,
+        shop_id=actor_shop_id,
+        payload={
+            "invoice_id": invoice.id,
+            "invoice_number": invoice.invoice_number,
+            "total_amount": str(invoice.total_amount),
+            "payments": [{"mode": p.mode.value, "amount": str(p.amount)} for p in invoice.payments],
+            "lines": [
+                {
+                    "product_id": line.product_id,
+                    "quantity": line.quantity,
+                    "unit_price": str(line.unit_price),
+                    "line_total": str(line.line_total),
+                }
+                for line in invoice.lines
+            ],
+        },
     )
     await db.commit()
 
