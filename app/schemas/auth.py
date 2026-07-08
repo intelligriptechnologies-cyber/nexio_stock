@@ -11,29 +11,48 @@ from app.models.user import UserRole
 _PHONE_RE = re.compile(r"^\+?[0-9]{7,15}$")
 
 
-class LoginRequest(BaseModel):
-    # Login identifier — superadmin uses username; shop users use phone
-    # (R-22) OR, in the post-#24 picker flow, ``staff_id`` (the
-    # ``id`` field returned by ``GET /auth/shop-staff``). The login
-    # route dispatches on whichever is provided; ``phone`` is the
-    # legacy path retained for clients that haven't migrated yet.
-    # The client just sends whichever credential the role expects.
-    username: str | None = Field(default=None, min_length=1, max_length=64)
-    phone: str | None = Field(default=None, min_length=7, max_length=20)
-    # Issue #24 — picker-based login. Exactly one of {phone, staff_id}
-    # is required for shop login; both omitted falls through to the
-    # "missing identifier" branch in the route handler.
-    staff_id: int | None = Field(default=None, ge=1)
+class SuperAdminLoginRequest(BaseModel):
+    """Superadmin login shape — username + password, no shop (cross-shop)."""
+
+    username: str = Field(min_length=1, max_length=64)
+    password: str = Field(min_length=4, max_length=128)
+
+
+class ShopLoginByPhone(BaseModel):
+    """Shop login via phone (R-22) — the legacy path, still used by any
+    client that hasn't migrated to the issue #24 picker flow."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    phone: str = Field(min_length=7, max_length=20)
     password: str = Field(min_length=4, max_length=128)
 
     @field_validator("phone")
     @classmethod
-    def _phone_format(cls, v: str | None) -> str | None:
-        if v is None:
-            return v
+    def _phone_format(cls, v: str) -> str:
         if not _PHONE_RE.match(v):
             raise ValueError("phone must be 7-15 digits, optional leading +")
         return v
+
+
+class ShopLoginByStaffId(BaseModel):
+    """Shop login via the picker flow (issue #24) — the ``id`` field
+    returned by ``GET /auth/shop-staff``. The picker deliberately
+    doesn't return phone (D-v2-16), so the PIN-pad stage authenticates
+    with this instead."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    staff_id: int = Field(ge=1)
+    password: str = Field(min_length=4, max_length=128)
+
+
+# Issue #36 — each shape's own required field makes "exactly one
+# identifier" a type-level fact (and `extra="forbid"` means a body
+# carrying fields from the other shape fails that shape's own
+# validation) instead of two optional sibling fields juggled by hand
+# in the route.
+ShopLoginRequest = ShopLoginByPhone | ShopLoginByStaffId
 
 
 class TokenResponse(BaseModel):

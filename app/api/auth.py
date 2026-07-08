@@ -17,7 +17,9 @@ passes the picked staff member's phone through to it exactly as before.
 """
 from __future__ import annotations
 
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, Body, HTTPException, status
+from fastapi.exceptions import RequestValidationError
+from pydantic import ValidationError
 from sqlalchemy import select
 
 from app.api.deps import DbSession
@@ -26,8 +28,10 @@ from app.logging_config import get_logger
 from app.models.shop import Shop
 from app.models.user import SHOP_SCOPED_ROLES, User, UserRole
 from app.schemas.auth import (
-    LoginRequest,
+    ShopLoginByPhone,
+    ShopLoginByStaffId,
     ShopStaffMember,
+    SuperAdminLoginRequest,
     TokenResponse,
     UserPublic,
 )
@@ -97,12 +101,7 @@ async def _authenticate(
     response_model=TokenResponse,
     summary="Superadmin login (username + password, cross-shop)",
 )
-async def login_superadmin(payload: LoginRequest, db: DbSession) -> TokenResponse:
-    if not payload.username or not payload.password:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="superadmin login requires username + password",
-        )
+async def login_superadmin(payload: SuperAdminLoginRequest, db: DbSession) -> TokenResponse:
     user = await _authenticate(
         db,
         shop_id=None,
@@ -128,29 +127,48 @@ async def login_superadmin(payload: LoginRequest, db: DbSession) -> TokenRespons
     response_model=TokenResponse,
     summary="Shop login (phone + password OR staff_id + password, owner / receiver_user / cashier_user)",
 )
-async def login_shop(payload: LoginRequest, db: DbSession) -> TokenResponse:
+async def login_shop(db: DbSession, raw: dict = Body(...)) -> TokenResponse:
     # Issue #24 — support both the legacy phone-path and the new
     # picker-path (staff_id). The picker doesn't return phone by design
     # (D-v2-16), so the LoginPage's second stage sends staff_id instead
-    # of phone to authenticate. Both paths exercise the same
-    # _authenticate helper below.
-    identifier_field = "phone"
-    identifier_value: str | int | None = payload.phone
-    if payload.staff_id is not None:
-        if payload.phone is not None:
-            # Caller sent both — reject. Either path is fine, but mixing
-            # them is a sign of a confused client.
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="shop login accepts phone OR staff_id, not both",
-            )
-        identifier_field = "id"
-        identifier_value = payload.staff_id
-    if identifier_value is None or not payload.password:
+    # of phone to authenticate.
+    #
+    # Issue #36 — which of the two shapes (ShopLoginByPhone /
+    # ShopLoginByStaffId) applies is resolved here, from the raw body,
+    # since that's what picks a member out of the union of untyped
+    # JSON — it isn't itself the "juggle two optional siblings"
+    # imperative logic this issue removes. Once resolved, the shape
+    # guarantees its one identifier field non-None by construction, so
+    # nothing downstream re-checks for it, and both paths route through
+    # the same _authenticate helper below.
+    has_phone = raw.get("phone") is not None
+    has_staff_id = raw.get("staff_id") is not None
+    if has_phone and has_staff_id:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="shop login accepts phone OR staff_id, not both",
+        )
+    if not has_phone and not has_staff_id:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="shop login requires (phone or staff_id) + password",
         )
+    try:
+        if has_phone:
+            shape: ShopLoginByPhone | ShopLoginByStaffId = ShopLoginByPhone.model_validate(raw)
+            identifier_field, identifier_value = "phone", shape.phone
+        else:
+            shape = ShopLoginByStaffId.model_validate(raw)
+            identifier_field, identifier_value = "id", shape.staff_id
+    except ValidationError as exc:
+        # Field-level errors (e.g. missing password, malformed phone)
+        # surface exactly as they would have for a FastAPI-bound Body
+        # model — a 422 with the usual error-list shape — rather than
+        # collapsing into the 400s above, which are reserved for the
+        # "which shape" ambiguity that can't be expressed as a single
+        # Pydantic model.
+        raise RequestValidationError(exc.errors()) from exc
+
     user = await _authenticate(
         db,
         shop_id=None,  # phone is globally unique across all shops (UNIQUE(phone));
@@ -159,7 +177,7 @@ async def login_shop(payload: LoginRequest, db: DbSession) -> TokenResponse:
         # enforces that the user is a shop-scoped role (not superadmin).
         identifier_field=identifier_field,
         identifier_value=identifier_value,
-        password=payload.password,
+        password=shape.password,
         allowed_roles=(UserRole.OWNER, UserRole.RECEIVER_USER, UserRole.CASHIER_USER),
     )
     settings = get_settings()
