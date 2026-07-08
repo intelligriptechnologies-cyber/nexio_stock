@@ -31,6 +31,38 @@ export class ApiError extends Error {
   }
 }
 
+// Every catch block that surfaces an error to the user re-derived this
+// same instanceof chain (ApiError -> its .detail, plain Error -> its
+// .message, anything else -> a caller-supplied fallback). One helper so
+// pages don't each re-decide the precedence (issue #35).
+export function toUserMessage(e: unknown, fallback: string): string {
+  if (e instanceof ApiError) return e.detail;
+  if (e instanceof Error) return e.message;
+  return fallback;
+}
+
+// `shopId` (the superadmin's acting shop, D-66) gets merged onto a
+// request body or query params the same way at every write call site:
+// present it as `shop_id` when set, omit it otherwise. One helper for
+// each shape so `api/*.ts` modules don't each re-derive the merge
+// (issue #35).
+export function withShopId<T extends object>(
+  payload: T,
+  shopId?: number | null
+): T & { shop_id?: number } {
+  return shopId != null ? { ...payload, shop_id: shopId } : payload;
+}
+
+// URLSearchParams and FormData both expose `set(name, value)`, so one
+// helper covers query-string and multipart call sites alike.
+export function withShopIdParams<T extends { set(name: string, value: string): void }>(
+  params: T,
+  shopId?: number | null
+): T {
+  if (shopId != null) params.set("shop_id", String(shopId));
+  return params;
+}
+
 export async function api<T = unknown>(
   path: string,
   init: RequestInit & {

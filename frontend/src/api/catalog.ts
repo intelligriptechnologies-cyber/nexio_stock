@@ -5,7 +5,7 @@
 // and the resolved product is added to the cache so the next scan of the
 // same barcode is instant.
 
-import { api } from "./client";
+import { api, withShopIdParams } from "./client";
 
 export interface CatalogProduct {
   id: number;
@@ -42,9 +42,9 @@ export async function prefetchCatalog(
 ): Promise<Map<string, CatalogProduct>> {
   if (cache && cacheShopId === (shopId ?? null)) return cache;
   if (inflight && cacheShopId === (shopId ?? null)) return inflight;
-  const qs = shopId != null ? `&shop_id=${shopId}` : "";
+  const params = withShopIdParams(new URLSearchParams({ active_only: "true", limit: "500" }), shopId);
   inflight = (async () => {
-    const items = await api<CatalogProduct[]>(`/products?active_only=true&limit=500${qs}`);
+    const items = await api<CatalogProduct[]>(`/products?${params.toString()}`);
     const m = new Map<string, CatalogProduct>();
     for (const p of items) m.set(p.barcode, p);
     cache = m;
@@ -66,10 +66,8 @@ export async function resolveBarcode(
   if (!cache || cacheShopId !== (shopId ?? null)) await prefetchCatalog(shopId);
   const hit = cache!.get(barcode);
   if (hit) return hit;
-  const qs = shopId != null ? `&shop_id=${shopId}` : "";
-  const fetched = await api<CatalogProduct>(
-    `/products/lookup?barcode=${encodeURIComponent(barcode)}${qs}`
-  );
+  const params = withShopIdParams(new URLSearchParams({ barcode }), shopId);
+  const fetched = await api<CatalogProduct>(`/products/lookup?${params.toString()}`);
   cache!.set(fetched.barcode, fetched);
   // Keep the parallel search array in sync so quicksearch finds a
   // cold-cache-miss product the next time the user types its name.

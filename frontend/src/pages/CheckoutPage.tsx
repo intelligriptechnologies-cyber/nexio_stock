@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState, useCallback, useRef } from "react";
-import { ApiError } from "../api/client";
+import { ApiError, toUserMessage, withShopId } from "../api/client";
 import {
   prefetchCatalog,
   resolveBarcode,
@@ -115,7 +115,7 @@ export function CheckoutPage() {
     setCatalogReady(false);
     prefetchCatalog(actingShopId)
       .then(() => setCatalogReady(true))
-      .catch((e) => setError(`Catalog load failed: ${e instanceof Error ? e.message : e}`));
+      .catch((e) => setError(`Catalog load failed: ${toUserMessage(e, "unknown error")}`));
   }, [actingShopId]);
 
   const totalCents = useMemo(
@@ -291,7 +291,7 @@ export function CheckoutPage() {
         if (e.status === 0 || e.status === 408 || e.status === 429) {
           enqueueFinalize({
             idempotencyKey: idemKey,
-            body: actingShopId != null ? { ...body, shop_id: actingShopId } : body,
+            body: withShopId(body, actingShopId),
           });
           setCart([]);
           setPayments([{ mode: "cash", amount: "0.00" }]);
@@ -338,7 +338,7 @@ export function CheckoutPage() {
       a.click();
       URL.revokeObjectURL(url);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "PDF download failed.");
+      setError(toUserMessage(e, "PDF download failed."));
     }
   };
 

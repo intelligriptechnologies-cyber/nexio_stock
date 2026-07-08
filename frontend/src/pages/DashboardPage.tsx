@@ -9,18 +9,17 @@ import {
   type LowStockResponse,
   type SignOffResponse,
 } from "../api/dashboard";
-import { ApiError } from "../api/client";
+import { toUserMessage } from "../api/client";
 import { listPendingProducts } from "../api/products";
-import { useAuth } from "../auth/AuthProvider";
-import { useShopScope } from "../auth/ShopScopeProvider";
+import { useShopScope, useShopScopeGuard } from "../auth/ShopScopeProvider";
 
 function moneyFmt(s: string): string {
   return `₹${Number(s).toLocaleString("en-IN", { maximumFractionDigits: 2 })}`;
 }
 
 export function DashboardPage() {
-  const { user } = useAuth();
   const { actingShopId } = useShopScope();
+  const shopScopeGuard = useShopScopeGuard();
   const [today, setToday] = useState<EodTotalsResponse | null>(null);
   const [lowStock, setLowStock] = useState<LowStockResponse | null>(null);
   const [history, setHistory] = useState<SignOffResponse[] | null>(null);
@@ -30,7 +29,7 @@ export function DashboardPage() {
   const [busy, setBusy] = useState(false);
 
   const reload = async () => {
-    if (user?.role === "superadmin" && actingShopId === null) {
+    if (shopScopeGuard.blocked) {
       setToday(null);
       setLowStock(null);
       setHistory(null);
@@ -54,7 +53,7 @@ export function DashboardPage() {
       setHistory(h.signoffs);
       setPendingCount(p.length);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Load failed.");
+      setError(toUserMessage(e, "Load failed."));
     }
   };
 
@@ -73,8 +72,7 @@ export function DashboardPage() {
       setInfo(`Signed off ${res.business_date} — ${res.invoices_signed_off} invoices locked.`);
       await reload();
     } catch (e) {
-      if (e instanceof ApiError) setError(`EOD sign-off failed: ${e.detail}`);
-      else setError(e instanceof Error ? e.message : "EOD sign-off failed.");
+      setError(`EOD sign-off failed: ${toUserMessage(e, "unknown error")}`);
     } finally {
       setBusy(false);
     }
@@ -93,9 +91,9 @@ export function DashboardPage() {
         </button>
       </header>
 
-      {user?.role === "superadmin" && actingShopId === null && (
+      {shopScopeGuard.blocked && (
         <div className="rounded-md bg-surface-container p-stack-gap text-on-surface-variant">
-          Pick a shop first (top of the sidebar).
+          {shopScopeGuard.message}
         </div>
       )}
       {error && (

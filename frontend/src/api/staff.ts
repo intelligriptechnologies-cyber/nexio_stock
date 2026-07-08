@@ -4,7 +4,7 @@
 //   POST  /staff                  create a new staff account (owner only)
 //   PATCH /staff/{id}/password    reset a staff member's password/PIN (owner or superadmin)
 
-import { api } from "./client";
+import { api, withShopId } from "./client";
 
 export type StaffRole = "receiver_user" | "cashier_user";
 
@@ -35,8 +35,7 @@ export function createStaff(
   payload: StaffCreatePayload,
   shopId?: number | null
 ): Promise<StaffMember> {
-  const json = shopId != null ? { ...payload, shop_id: shopId } : payload;
-  return api<StaffMember>("/staff", { method: "POST", json });
+  return api<StaffMember>("/staff", { method: "POST", json: withShopId(payload, shopId) });
 }
 
 export function resetStaffPassword(userId: number, password: string): Promise<StaffMember> {

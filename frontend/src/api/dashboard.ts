@@ -11,7 +11,7 @@
 // The frontend renders KPI cards + low-stock + EOD sign-off + history;
 // the hourly chart is intentionally omitted until the backend adds one.
 
-import { api } from "./client";
+import { api, withShopId, withShopIdParams } from "./client";
 
 export interface PaymentModeTotal {
   mode: string;
@@ -54,39 +54,33 @@ export interface LowStockResponse {
   evaluated_at: string;
 }
 
-function shopQuery(shopId?: number | null): string {
-  return shopId != null ? `shop_id=${shopId}` : "";
-}
-
 export function getEodTotals(
   businessDate?: string,
   shopId?: number | null
 ): Promise<EodTotalsResponse> {
-  const parts = [
-    businessDate ? `business_date=${encodeURIComponent(businessDate)}` : "",
-    shopQuery(shopId),
-  ].filter(Boolean);
-  return api<EodTotalsResponse>(`/dashboard/eod-totals${parts.length ? `?${parts.join("&")}` : ""}`);
+  const params = withShopIdParams(new URLSearchParams(), shopId);
+  if (businessDate) params.set("business_date", businessDate);
+  const qs = params.toString();
+  return api<EodTotalsResponse>(`/dashboard/eod-totals${qs ? `?${qs}` : ""}`);
 }
 
 export function signOffEod(
   businessDate?: string,
   shopId?: number | null
 ): Promise<SignOffResponse> {
-  const body: Record<string, unknown> = businessDate ? { business_date: businessDate } : {};
-  if (shopId != null) body.shop_id = shopId;
+  const body = businessDate ? { business_date: businessDate } : {};
   return api<SignOffResponse>("/dashboard/eod/sign-off", {
     method: "POST",
-    json: body,
+    json: withShopId(body, shopId),
   });
 }
 
 export function getEodHistory(limit = 30, shopId?: number | null): Promise<SignOffHistoryResponse> {
-  const parts = [`limit=${limit}`, shopQuery(shopId)].filter(Boolean);
-  return api<SignOffHistoryResponse>(`/dashboard/eod-history?${parts.join("&")}`);
+  const params = withShopIdParams(new URLSearchParams({ limit: String(limit) }), shopId);
+  return api<SignOffHistoryResponse>(`/dashboard/eod-history?${params.toString()}`);
 }
 
 export function getLowStock(limit = 50, shopId?: number | null): Promise<LowStockResponse> {
-  const parts = [`limit=${limit}`, shopQuery(shopId)].filter(Boolean);
-  return api<LowStockResponse>(`/dashboard/low-stock?${parts.join("&")}`);
+  const params = withShopIdParams(new URLSearchParams({ limit: String(limit) }), shopId);
+  return api<LowStockResponse>(`/dashboard/low-stock?${params.toString()}`);
 }

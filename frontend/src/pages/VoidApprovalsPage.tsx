@@ -1,24 +1,23 @@
 import { useEffect, useState } from "react";
-import { ApiError } from "../api/client";
+import { toUserMessage } from "../api/client";
 import { getInvoice, type InvoicePublic } from "../api/checkout";
 import { approveVoid, listPendingVoids, rejectVoid } from "../api/voids";
-import { useAuth } from "../auth/AuthProvider";
-import { useShopScope } from "../auth/ShopScopeProvider";
+import { useShopScope, useShopScopeGuard } from "../auth/ShopScopeProvider";
 
 function moneyFmt(s: string): string {
   return `₹${s}`;
 }
 
 export function VoidApprovalsPage() {
-  const { user } = useAuth();
   const { actingShopId } = useShopScope();
+  const shopScopeGuard = useShopScopeGuard();
   const [items, setItems] = useState<InvoicePublic[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [busyId, setBusyId] = useState<number | null>(null);
   const [info, setInfo] = useState<string | null>(null);
 
   const reload = async () => {
-    if (user?.role === "superadmin" && actingShopId === null) {
+    if (shopScopeGuard.blocked) {
       setItems(null);
       return;
     }
@@ -27,7 +26,7 @@ export function VoidApprovalsPage() {
       const res = await listPendingVoids(actingShopId);
       setItems(res.invoices);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Load failed.");
+      setError(toUserMessage(e, "Load failed."));
     }
   };
 
@@ -44,8 +43,7 @@ export function VoidApprovalsPage() {
       setInfo(`${label} on invoice #${id} succeeded.`);
       await reload();
     } catch (e) {
-      if (e instanceof ApiError) setError(`${label} failed: ${e.detail}`);
-      else setError(e instanceof Error ? e.message : `${label} failed.`);
+      setError(`${label} failed: ${toUserMessage(e, "unknown error")}`);
     } finally {
       setBusyId(null);
     }

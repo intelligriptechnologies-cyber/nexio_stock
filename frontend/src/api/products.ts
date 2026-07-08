@@ -1,4 +1,4 @@
-import { api } from "./client";
+import { api, withShopId, withShopIdParams } from "./client";
 import type { CatalogProduct } from "./catalog";
 
 // Re-export the catalog type under the products module name for cleaner
@@ -70,8 +70,7 @@ export function createProduct(
   payload: ProductCreatePayload,
   shopId?: number | null
 ): Promise<Product> {
-  const json = shopId != null ? { ...payload, shop_id: shopId } : payload;
-  return api<Product>("/products", { method: "POST", json });
+  return api<Product>("/products", { method: "POST", json: withShopId(payload, shopId) });
 }
 
 /**
@@ -103,8 +102,7 @@ export function quickAddProduct(
 // Activation sets a price and flips status to 'active'; the row drops
 // off the pending list automatically.
 export function listPendingProducts(shopId?: number | null): Promise<PendingProductRow[]> {
-  const params = new URLSearchParams();
-  if (shopId != null) params.set("shop_id", String(shopId));
+  const params = withShopIdParams(new URLSearchParams(), shopId);
   const qs = params.toString();
   return api<PendingProductRow[]>(`/products/pending${qs ? "?" + qs : ""}`);
 }
@@ -126,7 +124,7 @@ export async function importProductsCsv(
 ): Promise<ProductImportResponse> {
   const fd = new FormData();
   fd.append("file", file);
-  if (shopId != null) fd.append("shop_id", String(shopId));
+  withShopIdParams(fd, shopId);
   // No Content-Type header — passing FormData as the body leaves it
   // unset so the browser adds the multipart boundary; `api()` only
   // forces application/json when called with the `json` option.

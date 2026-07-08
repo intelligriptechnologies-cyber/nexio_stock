@@ -2,7 +2,7 @@
 // stay separate. The page component owns the cart; these helpers just hit
 // the backend.
 
-import { api } from "./client";
+import { api, withShopId } from "./client";
 
 export type PaymentMode = "cash" | "upi" | "card" | "credit";
 
@@ -54,10 +54,9 @@ export function finalizeCheckout(
   idempotencyKey: string,
   shopId?: number | null
 ): Promise<CheckoutFinalizeResponse> {
-  const json = shopId != null ? { ...payload, shop_id: shopId } : payload;
   return api<CheckoutFinalizeResponse>("/checkout/finalize", {
     method: "POST",
-    json,
+    json: withShopId(payload, shopId),
     idempotencyKey,
   });
 }

@@ -1,4 +1,4 @@
-import { ApiError, api } from "./client";
+import { ApiError, api, withShopId } from "./client";
 import { resolveBarcode, type CatalogProduct } from "./catalog";
 
 export interface LotLineCreate {
@@ -30,10 +30,9 @@ export interface LotPublic {
 }
 
 export function createLot(payload: LotCreate, shopId?: number | null): Promise<LotPublic> {
-  const json = shopId != null ? { ...payload, shop_id: shopId } : payload;
   return api<LotPublic>("/lots", {
     method: "POST",
-    json,
+    json: withShopId(payload, shopId),
   });
 }
 

@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import { toUserMessage } from "../api/client";
 import {
   createProduct,
   importProductsCsv,
@@ -10,8 +11,7 @@ import {
   type ProductUpdatePayload,
 } from "../api/products";
 import { invalidateCache } from "../api/catalog";
-import { useAuth } from "../auth/AuthProvider";
-import { useShopScope } from "../auth/ShopScopeProvider";
+import { useShopScope, useShopScopeGuard } from "../auth/ShopScopeProvider";
 
 type Tab = "list" | "create" | "import";
 
@@ -58,7 +58,7 @@ function ListTab() {
         if (!cancelled) setItems(rows);
       })
       .catch((e) => {
-        if (!cancelled) setError(e instanceof Error ? e.message : "Load failed.");
+        if (!cancelled) setError(toUserMessage(e, "Load failed."));
       });
     return () => {
       cancelled = true;
@@ -199,7 +199,7 @@ function EditRow({
       invalidateCache();
       onDone();
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Save failed.");
+      setError(toUserMessage(e, "Save failed."));
     } finally {
       setBusy(false);
     }
@@ -278,8 +278,8 @@ function EditRow({
 }
 
 function CreateTab({ onCreated }: { onCreated: () => void }) {
-  const { user } = useAuth();
   const { actingShopId } = useShopScope();
+  const shopScopeGuard = useShopScopeGuard();
   const [barcode, setBarcode] = useState("");
   const [brand, setBrand] = useState("");
   const [sizeLabel, setSizeLabel] = useState("");
@@ -291,8 +291,8 @@ function CreateTab({ onCreated }: { onCreated: () => void }) {
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (user?.role === "superadmin" && actingShopId === null) {
-      setError("Pick a shop first (top of the sidebar).");
+    if (shopScopeGuard.blocked) {
+      setError(shopScopeGuard.message);
       return;
     }
     setBusy(true);
@@ -321,7 +321,7 @@ function CreateTab({ onCreated }: { onCreated: () => void }) {
       setThreshold("");
       onCreated();
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Create failed.");
+      setError(toUserMessage(e, "Create failed."));
     } finally {
       setBusy(false);
     }
@@ -399,8 +399,8 @@ function Field({
 }
 
 function ImportTab() {
-  const { user } = useAuth();
   const { actingShopId } = useShopScope();
+  const shopScopeGuard = useShopScopeGuard();
   const [file, setFile] = useState<File | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -411,8 +411,8 @@ function ImportTab() {
       setError("Pick a CSV file first.");
       return;
     }
-    if (user?.role === "superadmin" && actingShopId === null) {
-      setError("Pick a shop first (top of the sidebar).");
+    if (shopScopeGuard.blocked) {
+      setError(shopScopeGuard.message);
       return;
     }
     setBusy(true);
@@ -423,7 +423,7 @@ function ImportTab() {
       setResult(res);
       invalidateCache();
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Import failed.");
+      setError(toUserMessage(e, "Import failed."));
     } finally {
       setBusy(false);
     }

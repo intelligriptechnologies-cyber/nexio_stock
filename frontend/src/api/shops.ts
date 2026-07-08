@@ -1,4 +1,4 @@
-import { api } from "./client";
+import { api, withShopId, withShopIdParams } from "./client";
 
 export interface ShopPublic {
   id: number;
@@ -28,14 +28,14 @@ export function listShops(): Promise<ShopSummary[]> {
 }
 
 export function getMyShop(shopId?: number | null): Promise<ShopPublic> {
-  const qs = shopId != null ? `?shop_id=${shopId}` : "";
-  return api<ShopPublic>(`/shops/me${qs}`);
+  const params = withShopIdParams(new URLSearchParams(), shopId);
+  const qs = params.toString();
+  return api<ShopPublic>(`/shops/me${qs ? `?${qs}` : ""}`);
 }
 
 export function updateMyShop(
   payload: ShopUpdatePayload,
   shopId?: number | null
 ): Promise<ShopPublic> {
-  const json = shopId != null ? { ...payload, shop_id: shopId } : payload;
-  return api<ShopPublic>("/shops/me", { method: "PATCH", json });
+  return api<ShopPublic>("/shops/me", { method: "PATCH", json: withShopId(payload, shopId) });
 }

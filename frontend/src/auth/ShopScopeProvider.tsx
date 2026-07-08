@@ -1,5 +1,6 @@
 import { createContext, useCallback, useContext, useMemo, useState } from "react";
 import type { ReactNode } from "react";
+import { useAuth } from "./AuthProvider";
 
 // Superadmin has no shop_id of its own (D-3), so every shop-scoped write
 // or read it makes needs an explicit target shop (D-64/D-65). Rather than
@@ -40,4 +41,16 @@ export function useShopScope(): ShopScopeValue {
   const ctx = useContext(Ctx);
   if (!ctx) throw new Error("useShopScope must be used within a ShopScopeProvider");
   return ctx;
+}
+
+// The "superadmin hasn't picked a shop yet" bail-out repeated the same
+// `user?.role === "superadmin" && actingShopId === null` check at every
+// shop-scoped read/write call site. One hook so pages don't each
+// re-derive it (issue #35).
+export const SHOP_SCOPE_MESSAGE = "Pick a shop first (top of the sidebar).";
+
+export function useShopScopeGuard(): { blocked: boolean; message: string } {
+  const { user } = useAuth();
+  const { actingShopId } = useShopScope();
+  return { blocked: user?.role === "superadmin" && actingShopId === null, message: SHOP_SCOPE_MESSAGE };
 }
