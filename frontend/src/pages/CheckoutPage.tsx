@@ -14,6 +14,7 @@ import {
   type InvoicePublic,
 } from "../api/checkout";
 import { enqueueFinalize, listQueued, clearQueued } from "../api/finalize-queue";
+import { quickAddProduct } from "../api/products";
 import { QuickSearch } from "../components/QuickSearch";
 import { useOnlineStatus } from "../hooks/useOnlineStatus";
 import { useRetryQueue } from "../hooks/useRetryQueue";
@@ -73,6 +74,14 @@ export function CheckoutPage() {
   const [busy, setBusy] = useState(false);
   const [catalogReady, setCatalogReady] = useState(false);
   const [lastInvoice, setLastInvoice] = useState<InvoicePublic | null>(null);
+  // Quick-add modal state (issue #26). When a scan misses, the cashier
+  // gets the same one-shot form the receiver sees (D-v2-1, story #3
+  // and #4 — the unified "on the spot" path).
+  const [quickAdd, setQuickAdd] = useState<{ barcode: string } | null>(null);
+  const [quickAddBusy, setQuickAddBusy] = useState(false);
+  const [quickAddError, setQuickAddError] = useState<string | null>(null);
+  const [quickAddBrand, setQuickAddBrand] = useState("");
+  const [quickAddSize, setQuickAddSize] = useState("");
   const idempotencyKeyRef = useRef<string>(uid());
   const [queuedSnapshot, setQueuedSnapshot] = useState(() => listQueued());
 
@@ -120,6 +129,19 @@ export function CheckoutPage() {
       setInfo(null);
       try {
         const product = await resolveBarcode(code, actingShopId);
+        // Issue #26 (D-v2-7): a pending product is unsellable. The
+        // cashier UI must NOT add it to the cart -- the user sees
+        // the same "Pending — no price yet, contact admin" message
+        // and continues with the rest of the cart. The backend
+        // finalize path also rejects pending lines (see
+        // app/services/checkout.py), so this is a UX defense, not
+        // the sole guard.
+        if (product.status === "pending") {
+          setError(
+            `Pending — no price yet, contact admin: ${product.brand} ${product.size_label}`
+          );
+          return;
+        }
         setCart((prev) => {
           const existing = prev.find((l) => l.product.barcode === code);
           if (existing) {
@@ -132,8 +154,18 @@ export function CheckoutPage() {
         setInfo(`Added: ${product.brand} ${product.size_label}`);
       } catch (e) {
         if (e instanceof ApiError) {
-          if (e.status === 404) setError(`Barcode not found in catalog: ${code}`);
-          else if (e.status === 0) setError("Network error — catalog lookup failed.");
+          if (e.status === 404) {
+            // Issue #26: same as the receiving flow, a missing barcode
+            // at checkout opens the quick-add modal so the cashier
+            // can register the brand-new product on the spot.
+            setQuickAdd({ barcode: code });
+            setQuickAddBrand("");
+            setQuickAddSize("");
+            setQuickAddError(null);
+            setError(
+              `Barcode not found in catalog: ${code}. Quick-add it?`
+            );
+          } else if (e.status === 0) setError("Network error — catalog lookup failed.");
           else setError(e.detail);
         } else {
           setError("Unknown error resolving barcode.");
@@ -146,11 +178,18 @@ export function CheckoutPage() {
   // Quicksearch (issue #23) — taps on a search-result dropdown add the
   // product to the cart exactly like a scan would. The catalog is
   // already prefetched client-side, so no network round-trip is
-  // involved. Pending products are still passed through; #26 adds the
-  // "Pending — no price yet, contact admin" block at the cart-line level.
+  // involved. Pending products are still passed through; the same
+  // "Pending — no price yet, contact admin" check as addByBarcode
+  // blocks them from the cart (issue #26).
   const addByPick = useCallback((product: CatalogProduct) => {
     setError(null);
     setInfo(null);
+    if (product.status === "pending") {
+      setError(
+        `Pending — no price yet, contact admin: ${product.brand} ${product.size_label}`
+      );
+      return;
+    }
     setCart((prev) => {
       const existing = prev.find((l) => l.product.barcode === product.barcode);
       if (existing) {
@@ -161,6 +200,71 @@ export function CheckoutPage() {
       return [...prev, { lineId: uid(), product, quantity: 1 }];
     });
     setInfo(`Added: ${product.brand} ${product.size_label}`);
+  }, []);
+
+  // Issue #26 — quick-add submit. Mirrors the receiving flow exactly
+  // except the origin header is 'checkout' so the audit-log entry
+  // lands on invoicing_logs (D-v2-13). The newly created product
+  // starts as 'pending' with no price, so the success path does NOT
+  // add it to the cart — instead the cashier sees the
+  // "Pending — no price yet" message and can either skip the line or
+  // (in a future flow) re-scan after the owner activates it.
+  const submitQuickAdd = useCallback(
+    async (e: React.FormEvent) => {
+      e.preventDefault();
+      if (!quickAdd) return;
+      if (!quickAddBrand.trim() || !quickAddSize.trim()) {
+        setQuickAddError("Brand and size are both required.");
+        return;
+      }
+      setQuickAddBusy(true);
+      setQuickAddError(null);
+      try {
+        const idemKey = `qa-c-${quickAdd.barcode}-${uid()}`;
+        await quickAddProduct(
+          {
+            barcode: quickAdd.barcode,
+            brand: quickAddBrand.trim(),
+            size_label: quickAddSize.trim(),
+          },
+          { idempotencyKey: idemKey, origin: "checkout" }
+        );
+        // Refresh catalog so a subsequent resolveBarcode for the
+        // same barcode (or a quicksearch) sees the new row.
+        invalidateCache();
+        await prefetchCatalog(actingShopId);
+        setCatalogReady(true);
+        setInfo(
+          `Quick-added (pending — owner needs to set the price): ${quickAddBrand.trim()} ${quickAddSize.trim()}. ` +
+            `Cannot be sold until priced + stock received.`
+        );
+        setQuickAdd(null);
+      } catch (e) {
+        if (e instanceof ApiError) {
+          if (e.status === 409) {
+            setQuickAddError("Someone already added this — refreshing.");
+            setQuickAdd(null);
+            void addByBarcode(quickAdd.barcode);
+          } else if (e.status === 0) {
+            setQuickAddError("Network error — quick-add failed. Try again.");
+          } else {
+            setQuickAddError(e.detail);
+          }
+        } else {
+          setQuickAddError("Unknown error during quick-add.");
+        }
+      } finally {
+        setQuickAddBusy(false);
+      }
+    },
+    [quickAdd, quickAddBrand, quickAddSize, actingShopId, addByBarcode]
+  );
+
+  const cancelQuickAdd = useCallback(() => {
+    setQuickAdd(null);
+    setQuickAddError(null);
+    setQuickAddBrand("");
+    setQuickAddSize("");
   }, []);
 
   const removeLine = (lineId: string) => {
@@ -374,6 +478,104 @@ export function CheckoutPage() {
           </div>
         )}
       </div>
+
+      {/* Quick-add modal (issue #26). Same UI as the receiving flow,
+          opened when a scan misses the catalog at checkout. The newly
+          created product starts as 'pending' with no price, so the
+          success path doesn't add it to the cart -- the cashier sees
+          the "Pending — no price yet" message and continues with the
+          rest of the sale. */}
+      {quickAdd && (
+        <div
+          className="fixed inset-0 z-30 flex items-center justify-center bg-black/50 p-stack-gap"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="checkout-quick-add-title"
+        >
+          <form
+            onSubmit={submitQuickAdd}
+            className="flex w-full max-w-md flex-col gap-stack-gap rounded-lg bg-surface-container p-gutter"
+          >
+            <header className="flex items-start justify-between">
+              <div>
+                <h2 id="checkout-quick-add-title" className="text-headline-md text-primary">
+                  Quick-add new product
+                </h2>
+                <p className="mt-1 text-label-md text-on-surface-variant">
+                  This barcode isn't in the catalog. Register it as
+                  <strong> pending</strong> — the owner will set the price
+                  later. The new product can't be sold until priced and
+                  stock-received.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={cancelQuickAdd}
+                className="h-12 w-12 rounded-md bg-error text-display-lg text-on-error"
+                aria-label="Cancel quick-add"
+              >
+                ×
+              </button>
+            </header>
+
+            <div className="rounded-md bg-surface p-stack-gap text-label-md">
+              <span className="text-on-surface-variant">Barcode</span>
+              <div className="font-mono text-body-md">{quickAdd.barcode}</div>
+            </div>
+
+            <label className="flex flex-col gap-1 text-label-md">
+              Brand
+              <input
+                type="text"
+                value={quickAddBrand}
+                onChange={(e) => setQuickAddBrand(e.target.value)}
+                placeholder="e.g. Royal Stag"
+                maxLength={200}
+                autoFocus
+                className="min-h-touchTarget-sm rounded-md border border-outline bg-surface px-stack-gap text-body-md"
+              />
+            </label>
+
+            <label className="flex flex-col gap-1 text-label-md">
+              Size
+              <input
+                type="text"
+                value={quickAddSize}
+                onChange={(e) => setQuickAddSize(e.target.value)}
+                placeholder="e.g. 750ml"
+                maxLength={64}
+                className="min-h-touchTarget-sm rounded-md border border-outline bg-surface px-stack-gap text-body-md"
+              />
+            </label>
+
+            {quickAddError && (
+              <div
+                role="alert"
+                className="rounded-md bg-error px-stack-gap py-3 text-on-error"
+              >
+                {quickAddError}
+              </div>
+            )}
+
+            <div className="flex gap-stack-gap">
+              <button
+                type="button"
+                onClick={cancelQuickAdd}
+                className="min-h-touchTarget flex-1 rounded-md bg-surface-container-high text-label-xl text-on-surface"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={quickAddBusy}
+                className="min-h-touchTarget flex-1 rounded-md bg-accent text-display-lg text-on-accent disabled:opacity-50"
+              >
+                {quickAddBusy ? "ADDING…" : "ADD"}
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
 
       <div className="grid gap-gutter lg:grid-cols-[2fr_1fr]">
       {/* LEFT — cart */}

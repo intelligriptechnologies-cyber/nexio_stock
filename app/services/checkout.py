@@ -134,6 +134,25 @@ async def _resolve_products_for_cart(
             "unknown_barcode",
             f"unknown or inactive barcodes in cart: {missing}",
         )
+
+    # Issue #26 (D-v2-7): a cart line that resolves to a ``pending``
+    # product (status='pending') cannot be finalized. Pending products
+    # have no price, and the cashier UI is supposed to skip them
+    # with the "Pending — no price yet, contact admin" message. This
+    # is the backend safety net for that rule: even if a buggy or
+    # malicious client submits a pending barcode, the finalize
+    # transaction rejects the whole cart with a specific error
+    # code so the UI can show the message and let the cashier retry
+    # without the offending line.
+    pending_barcodes = sorted(
+        b for b, p in by_barcode.items() if p.status.value == "pending"
+    )
+    if pending_barcodes:
+        raise CheckoutError(
+            "pending_product_in_cart",
+            f"cannot finalize cart with pending product(s): {pending_barcodes}; "
+            f"remove the line and try again",
+        )
     return by_barcode
 
 

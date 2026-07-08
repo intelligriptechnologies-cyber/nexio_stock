@@ -65,6 +65,11 @@ _CHECKOUT_CODE_TO_STATUS: dict[str, int] = {
     "no_payments": status.HTTP_400_BAD_REQUEST,
     "zero_payment": status.HTTP_400_BAD_REQUEST,
     "payment_mismatch": status.HTTP_400_BAD_REQUEST,
+    # Issue #26: a pending product in the cart is the cashier's
+    # "Pending — no price yet, contact admin" case. 400 because the
+    # request is malformed from the cart's perspective; the cashier
+    # is expected to remove the line and retry.
+    "pending_product_in_cart": status.HTTP_400_BAD_REQUEST,
 }
 
 
