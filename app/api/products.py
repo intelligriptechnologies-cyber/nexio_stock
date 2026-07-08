@@ -47,7 +47,6 @@ from app.schemas.product import (
 # `__name__` — a committed openapi.json and a generated frontend client
 # key off those ids, so the handlers keep their original names.
 from app.services import products as products_svc
-from app.services._catalog_stock import stock_counts_for
 from app.services.product_creation import (
     ProductConflictError,
     create_product_row,
@@ -63,6 +62,7 @@ from app.services.products import (
     quick_add_log_entry,
     update_product_fields,
 )
+from app.services.stock import compute_derived_stock
 
 router = APIRouter(prefix="/products", tags=["products"])
 log = get_logger(__name__)
@@ -118,7 +118,10 @@ async def _public_with_stock(
     checkout's oversell check (#4/#28) use. The catalog value will
     never drift from either of those.
     """
-    stock = await stock_counts_for(db, rows)
+    # One round-trip for the whole batch; no extra wrapper module —
+    # the call site is small enough that an indirection would add
+    # noise without value. (Architecture-pass review, 2026-07-08.)
+    stock = await compute_derived_stock(db, product_ids=[r.id for r in rows])
     out: list[ProductPublic] = []
     for r in rows:
         # model_validate picks up the schema-default current_stock=0;
