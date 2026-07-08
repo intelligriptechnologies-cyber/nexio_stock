@@ -1,4 +1,9 @@
 import { test, expect, type Page } from "@playwright/test";
+import { loginAsCashier as _loginAsCashier, loginAsOwner as _loginAsOwner, loginAsReceiver as _loginAsReceiver } from "./helpers/login";
+const _login = { loginAsCashier: _loginAsCashier, loginAsOwner: _loginAsOwner, loginAsReceiver: _loginAsReceiver };
+async function loginAsCashier(page: Page) {
+  return _login.loginAsCashier(page);
+}
 
 // Offline-queue / retry smoke tests for issue #12. They exercise the
 // localStorage queue and the auto-flush path WITHOUT requiring a real
@@ -16,19 +21,6 @@ import { test, expect, type Page } from "@playwright/test";
 // useRetryQueue unit logic in the source; an end-to-end browser-online
 // toggle test is environment-dependent (Chromium honours navigator.onLine
 // but the platform must dispatch the event).
-
-async function loginAsCashier(page: Page) {
-  await page.goto("/login");
-  for (const d of "9999900001") {
-    await page.getByRole("button", { name: `Digit ${d}` }).click();
-  }
-  await page.getByRole("button", { name: "NEXT" }).click();
-  for (const d of "1111") {
-    await page.getByRole("button", { name: `Digit ${d}` }).click();
-  }
-  await page.getByRole("button", { name: "LOGIN" }).click();
-  await expect(page).toHaveURL(/\/checkout$/);
-}
 
 test.describe("checkout resilience — offline queue", () => {
   test("a queued finalize that fails an invariant surfaces a specific error", async ({

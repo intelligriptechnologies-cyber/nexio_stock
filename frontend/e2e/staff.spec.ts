@@ -1,29 +1,11 @@
 import { test, expect, type Page } from "@playwright/test";
-
+import { loginAsCashier as _loginAsCashier, loginAsOwner as _loginAsOwner, loginAsReceiver as _loginAsReceiver } from "./helpers/login";
+const _login = { loginAsCashier: _loginAsCashier, loginAsOwner: _loginAsOwner, loginAsReceiver: _loginAsReceiver };
 async function loginAsOwner(page: Page) {
-  await page.goto("/login");
-  for (const d of "9999900003") {
-    await page.getByRole("button", { name: `Digit ${d}` }).click();
-  }
-  await page.getByRole("button", { name: "NEXT" }).click();
-  for (const d of "3333") {
-    await page.getByRole("button", { name: `Digit ${d}` }).click();
-  }
-  await page.getByRole("button", { name: "LOGIN" }).click();
-  await expect(page).toHaveURL(/\/dashboard$/);
+  return _login.loginAsOwner(page);
 }
-
 async function loginAsCashier(page: Page) {
-  await page.goto("/login");
-  for (const d of "9999900001") {
-    await page.getByRole("button", { name: `Digit ${d}` }).click();
-  }
-  await page.getByRole("button", { name: "NEXT" }).click();
-  for (const d of "1111") {
-    await page.getByRole("button", { name: `Digit ${d}` }).click();
-  }
-  await page.getByRole("button", { name: "LOGIN" }).click();
-  await expect(page).toHaveURL(/\/checkout$/);
+  return _login.loginAsCashier(page);
 }
 
 test.describe("staff management", () => {

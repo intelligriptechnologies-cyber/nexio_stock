@@ -1,11 +1,18 @@
 import { test, expect, type Page } from "@playwright/test";
 
+// Issue #24 — login flow is now PICKER + PIN. The loginAsReceiver
+// helper picks the receiver from the staff picker, then enters the PIN.
 async function loginAsReceiver(page: Page) {
   await page.goto("/login");
-  for (const d of "9999900002") {
-    await page.getByRole("button", { name: `Digit ${d}` }).click();
-  }
-  await page.getByRole("button", { name: "NEXT" }).click();
+  await expect(page.getByText("Tap your name to sign in")).toBeVisible({
+    timeout: 5000,
+  });
+  const row = page.locator(
+    '[data-testid="staff-row"][data-staff-role="receiver_user"]'
+  );
+  await expect(row).toBeVisible({ timeout: 5000 });
+  await row.click();
+  await expect(page.getByText("Enter your PIN")).toBeVisible();
   for (const d of "2222") {
     await page.getByRole("button", { name: `Digit ${d}` }).click();
   }

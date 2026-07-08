@@ -12,11 +12,18 @@ _PHONE_RE = re.compile(r"^\+?[0-9]{7,15}$")
 
 
 class LoginRequest(BaseModel):
-    # Login identifier — superadmin uses username; shop users use phone (R-22).
-    # The login route dispatches on the target role, so the client just sends
-    # whichever credential the role expects.
+    # Login identifier — superadmin uses username; shop users use phone
+    # (R-22) OR, in the post-#24 picker flow, ``staff_id`` (the
+    # ``id`` field returned by ``GET /auth/shop-staff``). The login
+    # route dispatches on whichever is provided; ``phone`` is the
+    # legacy path retained for clients that haven't migrated yet.
+    # The client just sends whichever credential the role expects.
     username: str | None = Field(default=None, min_length=1, max_length=64)
     phone: str | None = Field(default=None, min_length=7, max_length=20)
+    # Issue #24 — picker-based login. Exactly one of {phone, staff_id}
+    # is required for shop login; both omitted falls through to the
+    # "missing identifier" branch in the route handler.
+    staff_id: int | None = Field(default=None, ge=1)
     password: str = Field(min_length=4, max_length=128)
 
     @field_validator("phone")
@@ -47,6 +54,22 @@ class UserPublic(BaseModel):
     phone: str
     is_active: bool
     created_at: datetime
+
+
+class ShopStaffMember(BaseModel):
+    """Public, pre-auth staff picker row (issue #24, D-v2-16).
+
+    Returned by ``GET /auth/shop-staff`` so the login screen can render
+    a tap-list of names before any credential is entered. Excludes
+    phone + password_hash — staff-name secrecy is not the security
+    boundary; PIN secrecy is (D-v2-16). Scoped to the one existing
+    shop's active shop-scoped users; a multi-shop picker is explicitly
+    out of scope until shop #2 is provisioned (D-v2-17).
+    """
+
+    id: int
+    full_name: str
+    role: UserRole
 
 
 class StaffCreate(BaseModel):

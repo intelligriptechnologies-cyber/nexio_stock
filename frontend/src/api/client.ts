@@ -63,10 +63,19 @@ export const Api = {
       "/auth/login/superadmin",
       { method: "POST", json: { username, password } }
     ),
-  loginShop: (phone: string, password: string) =>
+  loginShop: (identifier: { phone: string } | { staff_id: number }, password: string) =>
     api<{ access_token: string; token_type: string; expires_in: number; user: unknown }>(
       "/auth/login",
-      { method: "POST", json: { phone, password } }
+      { method: "POST", json: { ...identifier, password } }
+    ),
+  // Public pre-auth staff picker (issue #24, D-v2-16). Returns
+  // {id, full_name, role} for the one existing shop's active
+  // shop-scoped users. No phone, no password hash — the LoginPage
+  // keeps the picked row's phone in component state for the second
+  // stage (PIN pad) since the picker intentionally doesn't return it.
+  listShopStaff: () =>
+    api<Array<{ id: number; full_name: string; role: string }>>(
+      "/auth/shop-staff"
     ),
   me: () => api("/users/me"),
   logout: () => sessionStorage.clear(),

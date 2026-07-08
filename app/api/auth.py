@@ -6,6 +6,14 @@ Login differs by role:
 
 Returns a JWT access token + the public user record. The token carries
 { sub, shop_id, role, exp } and is verified by `app.api.deps.get_current_user`.
+
+The staff-picker endpoint (``GET /auth/shop-staff``, issue #24, D-v2-16)
+sits in this router because it's a public, pre-auth read endpoint. It
+returns the one existing shop's active shop-scoped users as
+``{id, full_name, role}`` only — no phone, no password hash. The
+``LoginPage`` uses it to render a tap-list before the PIN pad. The
+underlying ``/auth/login`` endpoint stays unchanged; the frontend
+passes the picked staff member's phone through to it exactly as before.
 """
 from __future__ import annotations
 
@@ -15,8 +23,14 @@ from sqlalchemy import select
 from app.api.deps import DbSession
 from app.config import get_settings
 from app.logging_config import get_logger
-from app.models.user import User, UserRole
-from app.schemas.auth import LoginRequest, TokenResponse, UserPublic
+from app.models.shop import Shop
+from app.models.user import SHOP_SCOPED_ROLES, User, UserRole
+from app.schemas.auth import (
+    LoginRequest,
+    ShopStaffMember,
+    TokenResponse,
+    UserPublic,
+)
 from app.security.jwt import create_access_token
 from app.security.passwords import verify_password
 
@@ -29,7 +43,7 @@ async def _authenticate(
     *,
     shop_id: int | None,
     identifier_field: str,
-    identifier_value: str,
+    identifier_value: str | int,
     password: str,
     allowed_roles: tuple[UserRole, ...],
 ) -> User:
@@ -112,19 +126,39 @@ async def login_superadmin(payload: LoginRequest, db: DbSession) -> TokenRespons
 @router.post(
     "/login",
     response_model=TokenResponse,
-    summary="Shop login (phone + password, owner / receiver_user / cashier_user)",
+    summary="Shop login (phone + password OR staff_id + password, owner / receiver_user / cashier_user)",
 )
 async def login_shop(payload: LoginRequest, db: DbSession) -> TokenResponse:
-    if not payload.phone or not payload.password:
+    # Issue #24 — support both the legacy phone-path and the new
+    # picker-path (staff_id). The picker doesn't return phone by design
+    # (D-v2-16), so the LoginPage's second stage sends staff_id instead
+    # of phone to authenticate. Both paths exercise the same
+    # _authenticate helper below.
+    identifier_field = "phone"
+    identifier_value: str | int | None = payload.phone
+    if payload.staff_id is not None:
+        if payload.phone is not None:
+            # Caller sent both — reject. Either path is fine, but mixing
+            # them is a sign of a confused client.
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="shop login accepts phone OR staff_id, not both",
+            )
+        identifier_field = "id"
+        identifier_value = payload.staff_id
+    if identifier_value is None or not payload.password:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="shop login requires phone + password",
+            detail="shop login requires (phone or staff_id) + password",
         )
     user = await _authenticate(
         db,
-        shop_id=None,  # phone is globally unique across all shops (UNIQUE(phone))
-        identifier_field="phone",
-        identifier_value=payload.phone,
+        shop_id=None,  # phone is globally unique across all shops (UNIQUE(phone));
+        # staff_id is globally unique by primary key — both lookups are
+        # unambiguous without scoping to a shop. The role gate below
+        # enforces that the user is a shop-scoped role (not superadmin).
+        identifier_field=identifier_field,
+        identifier_value=identifier_value,
         password=payload.password,
         allowed_roles=(UserRole.OWNER, UserRole.RECEIVER_USER, UserRole.CASHIER_USER),
     )
@@ -138,3 +172,48 @@ async def login_shop(payload: LoginRequest, db: DbSession) -> TokenResponse:
         expires_in=settings.jwt_access_ttl_min * 60,
         user=UserPublic.model_validate(user),
     )
+
+
+@router.get(
+    "/shop-staff",
+    response_model=list[ShopStaffMember],
+    summary="Public pre-auth staff picker (issue #24, D-v2-16)",
+)
+async def list_shop_staff(db: DbSession) -> list[ShopStaffMember]:
+    """Return the one existing shop's active shop-scoped users as
+    ``{id, full_name, role}`` so the ``LoginPage`` can render a tap-list
+    before any credential is entered.
+
+    No phone, no password hash — staff-name secrecy is not the security
+    boundary; PIN secrecy is (D-v2-16). Scoped to today's single shop;
+    a multi-shop picker is explicitly out of scope until shop #2 is
+    provisioned (D-v2-17).
+
+    If zero shops exist, returns an empty list (the picker renders an
+    empty-state rather than crashing on a fresh deployment). If multiple
+    shops exist (a future ticket's setup), this endpoint picks the first
+    shop by primary key — the multi-shop picker is the explicit out-of-
+    scope item, so the path forward is to add a shop-selection step
+    rather than overload this endpoint.
+    """
+    # Pick the one shop. Today there is exactly one shop (D-3); the
+    # ordering by id keeps the choice stable across deployments.
+    shop = (
+        await db.execute(select(Shop).order_by(Shop.id.asc()).limit(1))
+    ).scalar_one_or_none()
+    if shop is None:
+        return []
+    stmt = (
+        select(User)
+        .where(
+            User.shop_id == shop.id,
+            User.role.in_(tuple(SHOP_SCOPED_ROLES)),
+            User.is_active.is_(True),
+        )
+        .order_by(User.full_name.asc())
+    )
+    users = (await db.execute(stmt)).scalars().all()
+    return [
+        ShopStaffMember(id=u.id, full_name=u.full_name, role=u.role)
+        for u in users
+    ]
