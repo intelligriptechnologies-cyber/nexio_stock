@@ -1,53 +1,78 @@
-import { useCallback, useEffect, useState } from "react";
-import { toUserMessage } from "../api/client";
+// Merged Catalog + New Product page (issue #45, R-v3-11, R-v3-12,
+// R-v3-13, R-v3-17, D-v3-10, D-v3-11, D-v3-12, D-v3-17).
+//
+// Owner-only (the route is /admin/products, gated to owner+superadmin;
+// superadmin is the operator's superset per D-64, so owner-only access
+// is preserved). The page is one screen with three modes that share
+// state:
+//
+//   - Idle: dense catalog table with edit-in-place.
+//   - Scan: an always-listening scan input at the top. A recognized
+//     barcode scrolls/selects the matching row; an unrecognized
+//     barcode opens the QuickAddModal with the barcode prefilled.
+//   - Edit: clicking Edit on a row swaps it for an inline form.
+//     If a scan arrives while an edit is unsaved, the UI shows a
+//     discard-confirmation dialog before switching (D-v3-11).
+import { useCallback, useEffect, useRef, useState } from "react";
+import { toUserMessage, ApiError } from "../api/client";
 import {
-  createProduct,
   importProductsCsv,
   listProducts,
+  quickAddProduct,
   updateProduct,
   type Product,
   type ProductImportResponse,
-  type ProductCreatePayload,
   type ProductUpdatePayload,
 } from "../api/products";
-import { invalidateCache } from "../api/catalog";
+import { resolveBarcode, invalidateCache } from "../api/catalog";
 import { useShopScope, useShopScopeGuard } from "../auth/ShopScopeProvider";
+import { QuickAddModal } from "../components/QuickAddModal";
 
-type Tab = "list" | "create" | "import";
-
-export function ProductsPage() {
-  const [tab, setTab] = useState<Tab>("list");
-  return (
-    <div className="flex flex-col gap-stack-gap">
-      <h1 className="text-headline-lg text-primary">Products</h1>
-      <nav className="flex gap-stack-gap" aria-label="Product sections">
-        {(["list", "create", "import"] as const).map((t) => (
-          <button
-            key={t}
-            type="button"
-            onClick={() => setTab(t)}
-            className={`min-h-touchTarget-sm rounded-md px-stack-gap text-label-md ${
-              tab === t ? "bg-primary text-on-primary" : "bg-surface-container-high text-on-surface-variant"
-            }`}
-          >
-            {t === "list" ? "Catalog" : t === "create" ? "New product" : "Bulk import"}
-          </button>
-        ))}
-      </nav>
-      {tab === "list" && <ListTab />}
-      {tab === "create" && <CreateTab onCreated={() => setTab("list")} />}
-      {tab === "import" && <ImportTab />}
-    </div>
-  );
+interface ScanState {
+  barcode: string;
+  busy: boolean;
+  error: string | null;
+  // null = idle, "found" = row matched and selected, "new" = QuickAddModal open
+  result: "found" | "new" | null;
+  // For "found" — the product that matched.
+  matchedProduct?: Product;
 }
 
-function ListTab() {
+interface EditState {
+  productId: number;
+  brand: string;
+  sizeLabel: string;
+  price: string;
+  threshold: string;
+  active: boolean;
+  busy: boolean;
+  error: string | null;
+}
+
+export function ProductsPage() {
+  const { actingShopId } = useShopScope();
+  const shopScopeGuard = useShopScopeGuard();
   const [items, setItems] = useState<Product[] | null>(null);
   const [q, setQ] = useState("");
   const [includeInactive, setIncludeInactive] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [editingId, setEditingId] = useState<number | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);
+  const [scan, setScan] = useState<ScanState>({
+    barcode: "",
+    busy: false,
+    error: null,
+    result: null,
+  });
+  const [editing, setEditing] = useState<EditState | null>(null);
+  const [pendingScanDuringEdit, setPendingScanDuringEdit] = useState<
+    string | null
+  >(null);
+  const [importBusy, setImportBusy] = useState(false);
+  const [importMsg, setImportMsg] = useState<string | null>(null);
+  const [importOpen, setImportOpen] = useState(false);
+  const scanInputRef = useRef<HTMLInputElement | null>(null);
+
+  const reload = useCallback(() => setRefreshKey((k) => k + 1), []);
 
   useEffect(() => {
     let cancelled = false;
@@ -65,16 +90,270 @@ function ListTab() {
     };
   }, [q, includeInactive, refreshKey]);
 
-  const reload = useCallback(() => setRefreshKey((k) => k + 1), []);
+  // Always-listening scan: handlers attach via DOM events so even if
+  // focus drifts to the search input, the scan input still picks up
+  // global scans (mirrors the existing checkout/receiving pages).
+  useEffect(() => {
+    const el = scanInputRef.current;
+    if (!el) return;
+    const handler = () => {
+      // refocus the scan input on any global click that wasn't on
+      // a form control — this matches the checkout/receiving pattern
+      // where the scan field is always one click away.
+      const tag = (document.activeElement?.tagName ?? "").toLowerCase();
+      if (["input", "textarea", "select", "button"].includes(tag)) return;
+      el.focus();
+    };
+    document.addEventListener("click", handler);
+    return () => document.removeEventListener("click", handler);
+  }, []);
+
+  const performScan = useCallback(
+    async (barcode: string) => {
+      // D-v3-11 — if an edit is unsaved, queue the scan and ask before
+      // discarding.
+      if (editing) {
+        setPendingScanDuringEdit(barcode);
+        return;
+      }
+      setScan({ barcode, busy: true, error: null, result: null });
+      try {
+        const product = await resolveBarcode(barcode, actingShopId);
+        setScan({
+          barcode,
+          busy: false,
+          error: null,
+          result: "found",
+          matchedProduct: product,
+        });
+        // Scroll the matching row into view + flash-highlight via a
+        // one-shot className — simplest possible affordance.
+        const rowEl = document.getElementById(`product-row-${product.id}`);
+        rowEl?.scrollIntoView({ block: "center" });
+        rowEl?.classList.add("ring-2", "ring-accent");
+        setTimeout(() => rowEl?.classList.remove("ring-2", "ring-accent"), 1500);
+      } catch (e) {
+        if (e instanceof ApiError && e.status === 404) {
+          // D-v3-10 — unrecognized barcode → QuickAdd modal with the
+          // barcode prefilled.
+          setScan({
+            barcode,
+            busy: false,
+            error: null,
+            result: "new",
+          });
+        } else {
+          // D-v3-14 — lookup failure (network blip / timeout). Show a
+          // clear error and let the user retry.
+          setScan({
+            barcode,
+            busy: false,
+            error: toUserMessage(e, "Lookup failed — please retry."),
+            result: null,
+          });
+        }
+      }
+    },
+    [actingShopId, editing],
+  );
+
+  const onScanSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const bc = scan.barcode.trim();
+    if (bc.length === 0) return;
+    void performScan(bc);
+  };
+
+  const onConfirmDiscardEdit = () => {
+    setEditing(null);
+    const pending = pendingScanDuringEdit;
+    setPendingScanDuringEdit(null);
+    if (pending) void performScan(pending);
+  };
+
+  const onCancelDiscardEdit = () => {
+    setPendingScanDuringEdit(null);
+  };
+
+  const onQuickAddSubmit = async (values: { brand: string; size: string }) => {
+    setScan((s) => ({ ...s, busy: true, error: null }));
+    try {
+      const product = await quickAddProduct(
+        {
+          barcode: scan.barcode,
+          brand: values.brand,
+          size_label: values.size,
+        },
+        {
+          idempotencyKey: `qa-catalog-${Date.now()}-${Math.random().toString(36).slice(2)}`,
+          origin: "receiving",
+        },
+      );
+      setScan({
+        barcode: scan.barcode,
+        busy: false,
+        error: null,
+        result: null,
+        matchedProduct: product,
+      });
+      invalidateCache();
+      reload();
+    } catch (e) {
+      setScan((s) => ({
+        ...s,
+        busy: false,
+        error: toUserMessage(e, "Quick-add failed — please retry."),
+      }));
+    }
+  };
+
+  const startEdit = (p: Product) => {
+    setEditing({
+      productId: p.id,
+      brand: p.brand,
+      sizeLabel: p.size_label,
+      price: p.price,
+      threshold: "",
+      active: p.is_active,
+      busy: false,
+      error: null,
+    });
+  };
+
+  const saveEdit = async () => {
+    if (!editing) return;
+    setEditing((e) => (e ? { ...e, busy: true, error: null } : e));
+    try {
+      const payload: ProductUpdatePayload = {
+        brand: editing.brand,
+        size_label: editing.sizeLabel,
+        price: editing.price,
+        is_active: editing.active,
+      };
+      if (editing.threshold !== "") {
+        payload.low_stock_threshold = Number(editing.threshold);
+      }
+      await updateProduct(editing.productId, payload);
+      setEditing(null);
+      invalidateCache();
+      reload();
+    } catch (e) {
+      setEditing((ed) =>
+        ed ? { ...ed, busy: false, error: toUserMessage(e, "Update failed.") } : ed,
+      );
+    }
+  };
+
+  const onImportCsv = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const fd = new FormData(e.currentTarget);
+    const file = fd.get("file");
+    if (!(file instanceof File) || file.size === 0) {
+      setImportMsg("Choose a CSV file first.");
+      return;
+    }
+    setImportBusy(true);
+    setImportMsg(null);
+    try {
+      const res: ProductImportResponse = await importProductsCsv(file, actingShopId);
+      setImportMsg(
+        `Imported ${res.created} rows, ${res.failed} failed.${res.errors.length ? " See console for details." : ""}`,
+      );
+      if (res.errors.length) console.warn("CSV import errors:", res.errors);
+      reload();
+    } catch (e) {
+      setImportMsg(`Import failed: ${toUserMessage(e, "unknown error")}`);
+    } finally {
+      setImportBusy(false);
+    }
+  };
 
   return (
-    <div className="flex flex-col gap-stack-gap">
+    <div className="flex flex-col gap-gutter">
+      <header className="flex flex-wrap items-end justify-between gap-stack-gap">
+        <div>
+          <h1 className="text-headline-lg text-primary">Catalog</h1>
+          <p className="text-label-md text-on-surface-variant">
+            Scan, search, or edit products. New barcodes open a quick-add
+            dialog with the barcode prefilled.
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={() => setImportOpen((v) => !v)}
+          className="min-h-touchTarget-sm rounded-md bg-surface-container-high px-stack-gap text-label-md"
+        >
+          {importOpen ? "Hide bulk import" : "Bulk import (CSV)"}
+        </button>
+      </header>
+
+      {shopScopeGuard.blocked && (
+        <div role="alert" className="rounded-md bg-warning px-stack-gap py-3 text-on-accent">
+          {shopScopeGuard.message}
+        </div>
+      )}
+
+      {error && (
+        <div role="alert" className="rounded-md bg-error px-stack-gap py-3 text-on-error">
+          {error}
+        </div>
+      )}
+
+      {/* Always-listening scan input. */}
+      <form onSubmit={onScanSubmit} className="flex gap-stack-gap">
+        <input
+          ref={scanInputRef}
+          type="text"
+          inputMode="numeric"
+          autoFocus
+          placeholder="Scan a barcode or type one here"
+          value={scan.barcode}
+          onChange={(e) => setScan((s) => ({ ...s, barcode: e.target.value }))}
+          aria-label="Scan a barcode"
+          className="min-h-touchTarget flex-1 rounded-md border border-outline bg-surface px-stack-gap text-body-lg font-mono"
+        />
+        <button
+          type="submit"
+          disabled={scan.busy || scan.barcode.trim().length === 0}
+          className="min-h-touchTarget rounded-md bg-primary px-gutter text-label-xl text-on-primary disabled:opacity-50"
+        >
+          {scan.busy ? "Looking up…" : "SCAN"}
+        </button>
+      </form>
+
+      {scan.error && (
+        <div
+          role="alert"
+          className="flex items-center justify-between gap-stack-gap rounded-md bg-error px-stack-gap py-3 text-on-error"
+        >
+          <span>{scan.error}</span>
+          <button
+            type="button"
+            onClick={() => {
+              const bc = scan.barcode;
+              setScan({
+                barcode: "",
+                busy: false,
+                error: null,
+                result: null,
+              });
+              if (bc) void performScan(bc);
+            }}
+            className="min-h-touchTarget-sm rounded-md bg-on-error/20 px-stack-gap text-label-md text-on-error"
+          >
+            Retry
+          </button>
+        </div>
+      )}
+
+      {/* Filter bar */}
       <div className="flex flex-wrap items-center gap-stack-gap">
         <input
           type="search"
           value={q}
           onChange={(e) => setQ(e.target.value)}
           placeholder="Search by brand"
+          aria-label="Search catalog by brand"
           className="min-h-touchTarget-sm flex-1 rounded-md border border-outline bg-surface px-stack-gap text-body-md"
         />
         <label className="flex items-center gap-stack-gap text-label-md">
@@ -83,61 +362,82 @@ function ListTab() {
             checked={includeInactive}
             onChange={(e) => setIncludeInactive(e.target.checked)}
           />
-          Include inactive
+          Include deactivated
         </label>
-        <button
-          type="button"
-          onClick={reload}
-          className="min-h-touchTarget-sm rounded-md bg-surface-container-high px-stack-gap text-label-md"
-        >
-          Refresh
-        </button>
       </div>
 
-      {error && (
-        <div role="alert" className="rounded-md bg-error px-stack-gap py-3 text-on-error">
-          {error}
-        </div>
+      {importOpen && (
+        <form
+          onSubmit={onImportCsv}
+          className="rounded-lg bg-surface-container p-gutter"
+        >
+          <h2 className="mb-stack-gap text-headline-md text-primary">Bulk import</h2>
+          <div className="flex flex-wrap items-center gap-stack-gap">
+            <input
+              type="file"
+              name="file"
+              accept=".csv,text/csv"
+              required
+              className="min-h-touchTarget-sm flex-1 rounded-md border border-outline bg-surface px-stack-gap text-body-md"
+            />
+            <button
+              type="submit"
+              disabled={importBusy}
+              className="min-h-touchTarget rounded-md bg-primary px-gutter text-label-xl text-on-primary disabled:opacity-50"
+            >
+              {importBusy ? "Importing…" : "IMPORT"}
+            </button>
+          </div>
+          {importMsg && (
+            <p className="mt-stack-gap text-label-md">{importMsg}</p>
+          )}
+        </form>
       )}
 
-      {items === null ? (
-        <div className="text-on-surface-variant">Loading…</div>
-      ) : items.length === 0 ? (
-        <div className="rounded-md bg-surface-container p-stack-gap text-on-surface-variant">
-          No products match the current filter.
-        </div>
-      ) : (
-        <div className="overflow-x-auto rounded-md bg-surface-container">
-          <table className="w-full border-collapse">
-            <thead>
-              <tr className="border-b border-outline text-label-md text-on-surface-variant">
-                <th className="px-stack-gap py-2 text-left">Brand</th>
-                <th className="px-stack-gap py-2 text-left">Size</th>
-                <th className="px-stack-gap py-2 text-left">Barcode</th>
-                <th className="px-stack-gap py-2 text-right">Price</th>
-                {/* Issue #40 — show current derived stock per product. Same
-                    value the dashboard's low-stock list uses (single source
-                    of truth = compute_derived_stock). */}
-                <th className="px-stack-gap py-2 text-right">Stock</th>
-                <th className="px-stack-gap py-2 text-right">Low-stock</th>
-                <th className="px-stack-gap py-2 text-left">Active</th>
-                <th className="px-stack-gap py-2 text-right">Actions</th>
+      {/* Catalog table. */}
+      <div className="overflow-x-auto rounded-md bg-surface-container">
+        <table className="w-full border-collapse">
+          <thead>
+            <tr className="border-b border-outline text-label-md text-on-surface-variant">
+              <th className="px-stack-gap py-2 text-left">Brand</th>
+              <th className="px-stack-gap py-2 text-left">Size</th>
+              <th className="px-stack-gap py-2 text-left">Barcode</th>
+              <th className="px-stack-gap py-2 text-right">Price</th>
+              <th className="px-stack-gap py-2 text-right">Stock</th>
+              <th className="px-stack-gap py-2 text-right">Low-stock</th>
+              <th className="px-stack-gap py-2 text-left">Active</th>
+              <th className="px-stack-gap py-2 text-right">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {items === null ? (
+              <tr>
+                <td colSpan={8} className="px-stack-gap py-3 text-center text-on-surface-variant">
+                  Loading…
+                </td>
               </tr>
-            </thead>
-            <tbody>
-              {items.map((p) =>
-                editingId === p.id ? (
+            ) : items.length === 0 ? (
+              <tr>
+                <td colSpan={8} className="px-stack-gap py-3 text-center text-on-surface-variant">
+                  No products match the current filter.
+                </td>
+              </tr>
+            ) : (
+              items.map((p) =>
+                editing && editing.productId === p.id ? (
                   <EditRow
                     key={p.id}
-                    product={p}
-                    onDone={() => {
-                      setEditingId(null);
-                      reload();
-                    }}
-                    onCancel={() => setEditingId(null)}
+                    editing={editing}
+                    onChange={setEditing}
+                    onSave={() => void saveEdit()}
+                    onCancel={() => setEditing(null)}
                   />
                 ) : (
-                  <tr key={p.id} className="border-b border-outline/40">
+                  <tr
+                    id={`product-row-${p.id}`}
+                    key={p.id}
+                    className="border-b border-outline/40 transition"
+                  >
                     <td className="px-stack-gap py-2">{p.brand}</td>
                     <td className="px-stack-gap py-2">{p.size_label}</td>
                     <td className="px-stack-gap py-2 font-mono text-label-md">{p.barcode}</td>
@@ -150,345 +450,168 @@ function ListTab() {
                     <td className="px-stack-gap py-2 text-right">
                       <button
                         type="button"
-                        onClick={() => setEditingId(p.id)}
+                        onClick={() => startEdit(p)}
                         className="rounded-md bg-primary px-stack-gap py-1 text-label-md text-on-primary"
                       >
                         Edit
                       </button>
                     </td>
                   </tr>
-                )
-              )}
-            </tbody>
-          </table>
+                ),
+              )
+            )}
+          </tbody>
+        </table>
+      </div>
+
+      {/* D-v3-11 — discard-confirmation dialog when a scan arrives
+          while an edit is unsaved. */}
+      {pendingScanDuringEdit !== null && (
+        <div
+          role="alertdialog"
+          aria-modal="true"
+          aria-labelledby="discard-title"
+          className="fixed inset-0 z-40 flex items-center justify-center bg-black/40"
+        >
+          <div className="flex w-full max-w-md flex-col gap-stack-gap rounded-lg bg-surface-container p-gutter">
+            <h2 id="discard-title" className="text-headline-md text-primary">
+              Discard unsaved changes?
+            </h2>
+            <p className="text-body-md">
+              You have unsaved edits on this product. Scanning{" "}
+              <span className="font-mono">{pendingScanDuringEdit}</span> will
+              discard them.
+            </p>
+            <div className="flex justify-end gap-stack-gap">
+              <button
+                type="button"
+                onClick={onCancelDiscardEdit}
+                className="min-h-touchTarget-sm rounded-md bg-surface-container-high px-gutter text-label-md"
+              >
+                Keep editing
+              </button>
+              <button
+                type="button"
+                onClick={onConfirmDiscardEdit}
+                className="min-h-touchTarget-sm rounded-md bg-error px-gutter text-label-md text-on-error"
+              >
+                Discard & continue
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* D-v3-10 — QuickAdd modal for unrecognized barcodes. */}
+      {scan.result === "new" && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          className="fixed inset-0 z-40 flex items-center justify-center bg-black/40"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              setScan({ barcode: "", busy: false, error: null, result: null });
+            }
+          }}
+        >
+          <QuickAddModal
+            barcode={scan.barcode}
+            busy={scan.busy}
+            error={scan.error}
+            onCancel={() =>
+              setScan({ barcode: "", busy: false, error: null, result: null })
+            }
+            onSubmit={(values) => void onQuickAddSubmit(values)}
+          />
         </div>
       )}
     </div>
   );
 }
 
-function EditRow({
-  product,
-  onDone,
-  onCancel,
-}: {
-  product: Product;
-  onDone: () => void;
+interface EditRowProps {
+  editing: EditState;
+  onChange: (next: EditState) => void;
+  onSave: () => void;
   onCancel: () => void;
-}) {
-  const [brand, setBrand] = useState(product.brand);
-  const [sizeLabel, setSizeLabel] = useState(product.size_label);
-  const [price, setPrice] = useState(product.price);
-  const [threshold, setThreshold] = useState<string>("");
-  const [active, setActive] = useState(product.is_active);
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+}
 
-  const save = async () => {
-    setBusy(true);
-    setError(null);
-    try {
-      const payload: ProductUpdatePayload = {
-        brand,
-        size_label: sizeLabel,
-        price,
-        is_active: active,
-      };
-      const t = threshold.trim();
-      if (t) {
-        const n = Number(t);
-        if (!Number.isInteger(n) || n < 0) throw new Error("Threshold must be a non-negative integer.");
-        payload.low_stock_threshold = n;
-      } else {
-        payload.low_stock_threshold = null;
-      }
-      await updateProduct(product.id, payload);
-      invalidateCache();
-      onDone();
-    } catch (e) {
-      setError(toUserMessage(e, "Save failed."));
-    } finally {
-      setBusy(false);
-    }
-  };
-
+function EditRow({ editing, onChange, onSave, onCancel }: EditRowProps) {
   return (
-    <tr className="border-b border-outline/40 bg-surface-container-high">
+    <tr className="border-b border-outline bg-primary-container/20">
       <td className="px-stack-gap py-2">
         <input
-          value={brand}
-          onChange={(e) => setBrand(e.target.value)}
-          className="w-full rounded-md border border-outline bg-surface px-2 py-1 text-body-md"
+          type="text"
+          value={editing.brand}
+          onChange={(e) =>
+            onChange({ ...editing, brand: e.target.value })
+          }
+          className="min-h-touchTarget-sm w-full rounded-md border border-outline bg-surface px-stack-gap text-body-md"
         />
       </td>
       <td className="px-stack-gap py-2">
         <input
-          value={sizeLabel}
-          onChange={(e) => setSizeLabel(e.target.value)}
-          className="w-full rounded-md border border-outline bg-surface px-2 py-1 text-body-md"
+          type="text"
+          value={editing.sizeLabel}
+          onChange={(e) =>
+            onChange({ ...editing, sizeLabel: e.target.value })
+          }
+          className="min-h-touchTarget-sm w-full rounded-md border border-outline bg-surface px-stack-gap text-body-md"
         />
       </td>
-      <td className="px-stack-gap py-2 font-mono text-label-md">{product.barcode}</td>
+      <td className="px-stack-gap py-2 font-mono text-label-md text-on-surface-variant">
+        (immutable)
+      </td>
+      <td className="px-stack-gap py-2">
+        <input
+          type="text"
+          inputMode="decimal"
+          value={editing.price}
+          onChange={(e) =>
+            onChange({ ...editing, price: e.target.value })
+          }
+          className="min-h-touchTarget-sm w-24 rounded-md border border-outline bg-surface px-stack-gap text-right font-mono text-body-md"
+        />
+      </td>
+      <td className="px-stack-gap py-2 text-on-surface-variant">—</td>
       <td className="px-stack-gap py-2">
         <input
           type="number"
-          step="0.01"
-          min="0"
-          value={price}
-          onChange={(e) => setPrice(e.target.value)}
-          className="w-24 rounded-md border border-outline bg-surface px-2 py-1 text-right font-mono text-body-md"
-        />
-      </td>
-      <td className="px-stack-gap py-2">
-        <input
-          type="number"
-          min="0"
-          value={threshold}
-          placeholder="—"
-          onChange={(e) => setThreshold(e.target.value)}
-          className="w-20 rounded-md border border-outline bg-surface px-2 py-1 text-right font-mono text-body-md"
+          min={0}
+          value={editing.threshold}
+          placeholder="(unchanged)"
+          onChange={(e) =>
+            onChange({ ...editing, threshold: e.target.value })
+          }
+          className="min-h-touchTarget-sm w-24 rounded-md border border-outline bg-surface px-stack-gap text-right font-mono text-body-md"
         />
       </td>
       <td className="px-stack-gap py-2">
         <input
           type="checkbox"
-          checked={active}
-          onChange={(e) => setActive(e.target.checked)}
+          checked={editing.active}
+          onChange={(e) =>
+            onChange({ ...editing, active: e.target.checked })
+          }
         />
       </td>
       <td className="px-stack-gap py-2 text-right">
-        <div className="flex justify-end gap-stack-gap">
-          <button
-            type="button"
-            onClick={onCancel}
-            className="rounded-md bg-surface-container px-stack-gap py-1 text-label-md"
-          >
-            Cancel
-          </button>
-          <button
-            type="button"
-            onClick={save}
-            disabled={busy}
-            className="rounded-md bg-accent px-stack-gap py-1 text-label-md text-on-accent disabled:opacity-50"
-          >
-            {busy ? "Saving…" : "Save"}
-          </button>
-        </div>
-        {error && (
-          <div role="alert" className="mt-1 text-right text-label-md text-error">
-            {error}
-          </div>
-        )}
+        <button
+          type="button"
+          onClick={onSave}
+          disabled={editing.busy}
+          className="min-h-touchTarget-sm rounded-md bg-primary px-stack-gap py-1 text-label-md text-on-primary disabled:opacity-50"
+        >
+          {editing.busy ? "Saving…" : "Save"}
+        </button>
+        <button
+          type="button"
+          onClick={onCancel}
+          className="ml-stack-gap min-h-touchTarget-sm rounded-md bg-surface-container-high px-stack-gap py-1 text-label-md"
+        >
+          Cancel
+        </button>
       </td>
     </tr>
-  );
-}
-
-function CreateTab({ onCreated }: { onCreated: () => void }) {
-  const { actingShopId } = useShopScope();
-  const shopScopeGuard = useShopScopeGuard();
-  const [barcode, setBarcode] = useState("");
-  const [brand, setBrand] = useState("");
-  const [sizeLabel, setSizeLabel] = useState("");
-  const [price, setPrice] = useState("");
-  const [threshold, setThreshold] = useState("");
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [info, setInfo] = useState<string | null>(null);
-
-  const submit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (shopScopeGuard.blocked) {
-      setError(shopScopeGuard.message);
-      return;
-    }
-    setBusy(true);
-    setError(null);
-    setInfo(null);
-    try {
-      const payload: ProductCreatePayload = {
-        barcode: barcode.trim(),
-        brand: brand.trim(),
-        size_label: sizeLabel.trim(),
-        price,
-      };
-      const t = threshold.trim();
-      if (t) {
-        const n = Number(t);
-        if (!Number.isInteger(n) || n < 0) throw new Error("Threshold must be a non-negative integer.");
-        payload.low_stock_threshold = n;
-      }
-      const created = await createProduct(payload, actingShopId);
-      invalidateCache();
-      setInfo(`Created ${created.brand} ${created.size_label} (${created.barcode}).`);
-      setBarcode("");
-      setBrand("");
-      setSizeLabel("");
-      setPrice("");
-      setThreshold("");
-      onCreated();
-    } catch (e) {
-      setError(toUserMessage(e, "Create failed."));
-    } finally {
-      setBusy(false);
-    }
-  };
-
-  return (
-    <form
-      onSubmit={submit}
-      className="flex max-w-xl flex-col gap-stack-gap rounded-lg bg-surface-container p-gutter"
-    >
-      <h2 className="text-headline-md text-primary">New product</h2>
-      <Field label="Barcode" value={barcode} onChange={setBarcode} required />
-      <Field label="Brand" value={brand} onChange={setBrand} required />
-      <Field label="Size label" value={sizeLabel} onChange={setSizeLabel} required />
-      <Field label="Price" value={price} onChange={setPrice} required type="number" step="0.01" min="0" />
-      <Field
-        label="Low-stock threshold (optional)"
-        value={threshold}
-        onChange={setThreshold}
-        type="number"
-        min="0"
-      />
-      <button
-        type="submit"
-        disabled={busy}
-        className="min-h-touchTarget rounded-md bg-accent text-label-xl text-on-accent disabled:opacity-50"
-      >
-        {busy ? "Creating…" : "Create product"}
-      </button>
-      {error && (
-        <div role="alert" className="rounded-md bg-error px-stack-gap py-3 text-on-error">
-          {error}
-        </div>
-      )}
-      {info && (
-        <div role="status" className="rounded-md bg-success px-stack-gap py-3 text-on-secondary">
-          {info}
-        </div>
-      )}
-    </form>
-  );
-}
-
-function Field({
-  label,
-  value,
-  onChange,
-  type = "text",
-  required = false,
-  step,
-  min,
-}: {
-  label: string;
-  value: string;
-  onChange: (v: string) => void;
-  type?: string;
-  required?: boolean;
-  step?: string;
-  min?: string;
-}) {
-  return (
-    <label className="flex flex-col gap-1 text-label-md">
-      {label}
-      <input
-        type={type}
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        required={required}
-        step={step}
-        min={min}
-        className="min-h-touchTarget-sm rounded-md border border-outline bg-surface px-stack-gap text-body-md"
-      />
-    </label>
-  );
-}
-
-function ImportTab() {
-  const { actingShopId } = useShopScope();
-  const shopScopeGuard = useShopScopeGuard();
-  const [file, setFile] = useState<File | null>(null);
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [result, setResult] = useState<ProductImportResponse | null>(null);
-
-  const submit = async () => {
-    if (!file) {
-      setError("Pick a CSV file first.");
-      return;
-    }
-    if (shopScopeGuard.blocked) {
-      setError(shopScopeGuard.message);
-      return;
-    }
-    setBusy(true);
-    setError(null);
-    setResult(null);
-    try {
-      const res = await importProductsCsv(file, actingShopId);
-      setResult(res);
-      invalidateCache();
-    } catch (e) {
-      setError(toUserMessage(e, "Import failed."));
-    } finally {
-      setBusy(false);
-    }
-  };
-
-  return (
-    <div className="flex flex-col gap-stack-gap rounded-lg bg-surface-container p-gutter">
-      <h2 className="text-headline-md text-primary">Bulk CSV import</h2>
-      <p className="text-label-md text-on-surface-variant">
-        CSV columns: <code>barcode,brand,size_label,price[,low_stock_threshold]</code>. One row per
-        product. The backend reports per-row errors so you can fix only the bad rows.
-      </p>
-      <input
-        type="file"
-        accept=".csv,text/csv"
-        onChange={(e) => setFile(e.target.files?.[0] ?? null)}
-        className="min-h-touchTarget-sm rounded-md border border-outline bg-surface px-stack-gap py-2 text-body-md"
-      />
-      <button
-        type="button"
-        onClick={submit}
-        disabled={!file || busy}
-        className="min-h-touchTarget rounded-md bg-accent text-label-xl text-on-accent disabled:opacity-50"
-      >
-        {busy ? "Importing…" : "Upload CSV"}
-      </button>
-      {error && (
-        <div role="alert" className="rounded-md bg-error px-stack-gap py-3 text-on-error">
-          {error}
-        </div>
-      )}
-      {result && (
-        <div className="flex flex-col gap-stack-gap rounded-md bg-surface p-stack-gap">
-          <div className="text-label-xl text-primary">
-            {result.created} created, {result.failed} failed
-          </div>
-          {result.errors.length > 0 && (
-            <table className="w-full border-collapse">
-              <thead>
-                <tr className="border-b border-outline text-label-md text-on-surface-variant">
-                  <th className="px-stack-gap py-2 text-left">Row</th>
-                  <th className="px-stack-gap py-2 text-left">Barcode</th>
-                  <th className="px-stack-gap py-2 text-left">Error</th>
-                </tr>
-              </thead>
-              <tbody>
-                {result.errors.map((e) => (
-                  <tr key={`${e.row}-${e.barcode}`} className="border-b border-outline/40">
-                    <td className="px-stack-gap py-2 font-mono">{e.row}</td>
-                    <td className="px-stack-gap py-2 font-mono">{e.barcode ?? "—"}</td>
-                    <td className="px-stack-gap py-2 text-error">{e.error}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          )}
-        </div>
-      )}
-    </div>
   );
 }
