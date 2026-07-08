@@ -1,0 +1,313 @@
+{
+  "nodes": [
+    {
+      "id": "file:app/logging_config.py",
+      "type": "file",
+      "name": "logging_config.py",
+      "filePath": "app/logging_config.py",
+      "summary": "Configures structlog-based structured JSON logging for the application, integrating with the stdlib logging module and quieting noisy third-party loggers.",
+      "tags": ["logging", "configuration", "utility"],
+      "complexity": "moderate",
+      "languageNotes": "Bridges structlog processors into a stdlib ProcessorFormatter so both structlog and stdlib log records render as consistent JSON."
+    },
+    {
+      "id": "file:app/main.py",
+      "type": "file",
+      "name": "main.py",
+      "filePath": "app/main.py",
+      "summary": "Application entry point that builds the FastAPI app: manages startup/shutdown lifespan (DB engine, background low-stock polling task), configures CORS middleware, and mounts all API routers.",
+      "tags": ["entry-point", "fastapi", "lifespan", "background-task"],
+      "complexity": "complex",
+      "languageNotes": "Uses an async context-manager lifespan handler to start/cancel a background asyncio task that periodically emits low-stock alerts per shop."
+    },
+    {
+      "id": "file:app/schemas/eod.py",
+      "type": "file",
+      "name": "eod.py",
+      "filePath": "app/schemas/eod.py",
+      "summary": "Pydantic schemas for the EOD (end-of-day) dashboard API: sign-off requests/responses, totals breakdowns by payment mode, sign-off history, pending voids, and low-stock reporting.",
+      "tags": ["schema", "validation", "data-model", "eod"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:app/schemas/shop.py",
+      "type": "file",
+      "name": "shop.py",
+      "filePath": "app/schemas/shop.py",
+      "summary": "Pydantic schemas for shop resources, including public and summary shop views and a shop-update payload with GSTIN format validation.",
+      "tags": ["schema", "validation", "data-model", "shop-management"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:app/services/eod.py",
+      "type": "file",
+      "name": "eod.py",
+      "filePath": "app/services/eod.py",
+      "summary": "Service layer implementing end-of-day business logic: signing off a business day's invoices, computing revenue/payment totals, listing sign-off history, and listing invoices pending void approval.",
+      "tags": ["service", "business-logic", "eod", "domain-model"],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:app/logging_config.py:configure_logging",
+      "type": "function",
+      "name": "configure_logging",
+      "filePath": "app/logging_config.py",
+      "lineRange": [20, 65],
+      "summary": "Sets up structlog processors, a JSON stdlib formatter, and root logger configuration, quieting known noisy third-party loggers.",
+      "tags": ["logging", "configuration"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:app/logging_config.py:get_logger",
+      "type": "function",
+      "name": "get_logger",
+      "filePath": "app/logging_config.py",
+      "lineRange": [68, 69],
+      "summary": "Thin wrapper returning a structlog logger bound to the given name.",
+      "tags": ["logging", "utility"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:app/main.py:lifespan",
+      "type": "function",
+      "name": "lifespan",
+      "filePath": "app/main.py",
+      "lineRange": [32, 61],
+      "summary": "Async context-manager lifespan hook that configures logging, initializes the DB engine, starts the background low-stock polling task, and tears both down on shutdown.",
+      "tags": ["lifespan", "startup", "background-task"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:app/main.py:_low_stock_loop",
+      "type": "function",
+      "name": "_low_stock_loop",
+      "filePath": "app/main.py",
+      "lineRange": [64, 107],
+      "summary": "Background asyncio loop that periodically queries all shops and computes/logs low-stock alerts for each, sleeping between iterations based on configured interval.",
+      "tags": ["background-task", "inventory", "polling"],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:app/main.py:create_app",
+      "type": "function",
+      "name": "create_app",
+      "filePath": "app/main.py",
+      "lineRange": [110, 146],
+      "summary": "Factory function constructing the FastAPI application instance, wiring up CORS middleware and mounting all feature routers (auth, checkout, dashboard, health, lots, products, shops, staff, users, voids, and test-only routes).",
+      "tags": ["entry-point", "factory", "fastapi"],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:app/services/eod.py:_day_bounds",
+      "type": "function",
+      "name": "_day_bounds",
+      "filePath": "app/services/eod.py",
+      "lineRange": [66, 70],
+      "summary": "Helper computing the start/end datetime bounds for a given business date.",
+      "tags": ["utility", "date", "helper"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:app/services/eod.py:sign_off_day",
+      "type": "function",
+      "name": "sign_off_day",
+      "filePath": "app/services/eod.py",
+      "lineRange": [73, 139],
+      "summary": "Signs off all unsigned invoices finalized on a business date for a shop, raising EodError for future dates or duplicate sign-offs, and records an EodSignOff entry.",
+      "tags": ["business-logic", "eod", "transaction"],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:app/services/eod.py:get_day_totals",
+      "type": "function",
+      "name": "get_day_totals",
+      "filePath": "app/services/eod.py",
+      "lineRange": [142, 202],
+      "summary": "Computes revenue, invoice/void/reversal counts, and payment totals broken down by payment mode for a shop's business date, including sign-off status.",
+      "tags": ["business-logic", "eod", "reporting"],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:app/services/eod.py:list_signoff_history",
+      "type": "function",
+      "name": "list_signoff_history",
+      "filePath": "app/services/eod.py",
+      "lineRange": [205, 222],
+      "summary": "Queries EOD sign-off records for a shop within an optional date range, ordered most recent first and limited.",
+      "tags": ["business-logic", "eod", "reporting"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:app/services/eod.py:list_pending_voids",
+      "type": "function",
+      "name": "list_pending_voids",
+      "filePath": "app/services/eod.py",
+      "lineRange": [225, 242],
+      "summary": "Queries invoices in PENDING_VOID status for a shop, ordered by void request time.",
+      "tags": ["business-logic", "void", "reporting"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:app/schemas/eod.py:SignOffRequest",
+      "type": "class",
+      "name": "SignOffRequest",
+      "filePath": "app/schemas/eod.py",
+      "lineRange": [12, 23],
+      "summary": "Request schema for EOD sign-off with a validator rejecting business dates too far in the past.",
+      "tags": ["schema", "validation", "eod"],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:app/schemas/eod.py:SignOffResponse",
+      "type": "class",
+      "name": "SignOffResponse",
+      "filePath": "app/schemas/eod.py",
+      "lineRange": [26, 30],
+      "summary": "Response schema describing a completed EOD sign-off result.",
+      "tags": ["schema", "eod"],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:app/schemas/eod.py:EodTotalsResponse",
+      "type": "class",
+      "name": "EodTotalsResponse",
+      "filePath": "app/schemas/eod.py",
+      "lineRange": [38, 45],
+      "summary": "Response schema for EOD totals including revenue, invoice/void/reversal counts, and per-payment-mode breakdown.",
+      "tags": ["schema", "eod", "reporting"],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:app/schemas/eod.py:LowStockResponse",
+      "type": "class",
+      "name": "LowStockResponse",
+      "filePath": "app/schemas/eod.py",
+      "lineRange": [64, 68],
+      "summary": "Response schema wrapping the list of low-stock items and the evaluation timestamp.",
+      "tags": ["schema", "inventory"],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:app/schemas/shop.py:ShopPublic",
+      "type": "class",
+      "name": "ShopPublic",
+      "filePath": "app/schemas/shop.py",
+      "lineRange": [12, 22],
+      "summary": "Public representation of a shop including GSTIN, excise duty rate, and low-stock threshold default.",
+      "tags": ["schema", "shop-management"],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:app/schemas/shop.py:ShopUpdate",
+      "type": "class",
+      "name": "ShopUpdate",
+      "filePath": "app/schemas/shop.py",
+      "lineRange": [35, 67],
+      "summary": "Update payload schema for shop settings, validating GSTIN format via a field validator.",
+      "tags": ["schema", "shop-management", "validation"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:app/services/eod.py:EodError",
+      "type": "class",
+      "name": "EodError",
+      "filePath": "app/services/eod.py",
+      "lineRange": [42, 46],
+      "summary": "Domain exception raised by the EOD service for invalid sign-off operations (e.g., future dates, duplicate sign-offs).",
+      "tags": ["exception", "eod", "domain-model"],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:app/services/eod.py:EodTotals",
+      "type": "class",
+      "name": "EodTotals",
+      "filePath": "app/services/eod.py",
+      "lineRange": [56, 63],
+      "summary": "Internal dataclass-like model representing computed EOD totals returned by get_day_totals.",
+      "tags": ["data-model", "eod"],
+      "complexity": "simple"
+    }
+  ],
+  "edges": [
+    { "source": "file:app/main.py", "target": "file:app/api/__init__.py", "type": "imports", "direction": "forward", "weight": 0.7 },
+    { "source": "file:app/main.py", "target": "file:app/api/_test_only.py", "type": "imports", "direction": "forward", "weight": 0.7 },
+    { "source": "file:app/main.py", "target": "file:app/api/auth.py", "type": "imports", "direction": "forward", "weight": 0.7 },
+    { "source": "file:app/main.py", "target": "file:app/api/checkout.py", "type": "imports", "direction": "forward", "weight": 0.7 },
+    { "source": "file:app/main.py", "target": "file:app/api/dashboard.py", "type": "imports", "direction": "forward", "weight": 0.7 },
+    { "source": "file:app/main.py", "target": "file:app/api/health.py", "type": "imports", "direction": "forward", "weight": 0.7 },
+    { "source": "file:app/main.py", "target": "file:app/api/lots.py", "type": "imports", "direction": "forward", "weight": 0.7 },
+    { "source": "file:app/main.py", "target": "file:app/api/products.py", "type": "imports", "direction": "forward", "weight": 0.7 },
+    { "source": "file:app/main.py", "target": "file:app/api/shops.py", "type": "imports", "direction": "forward", "weight": 0.7 },
+    { "source": "file:app/main.py", "target": "file:app/api/staff.py", "type": "imports", "direction": "forward", "weight": 0.7 },
+    { "source": "file:app/main.py", "target": "file:app/api/users.py", "type": "imports", "direction": "forward", "weight": 0.7 },
+    { "source": "file:app/main.py", "target": "file:app/api/voids.py", "type": "imports", "direction": "forward", "weight": 0.7 },
+    { "source": "file:app/main.py", "target": "file:app/config.py", "type": "imports", "direction": "forward", "weight": 0.7 },
+    { "source": "file:app/main.py", "target": "file:app/db.py", "type": "imports", "direction": "forward", "weight": 0.7 },
+    { "source": "file:app/main.py", "target": "file:app/logging_config.py", "type": "imports", "direction": "forward", "weight": 0.7 },
+    { "source": "file:app/schemas/eod.py", "target": "file:app/schemas/checkout.py", "type": "imports", "direction": "forward", "weight": 0.7 },
+    { "source": "file:app/services/eod.py", "target": "file:app/models/invoice.py", "type": "imports", "direction": "forward", "weight": 0.7 },
+
+    { "source": "file:app/logging_config.py", "target": "function:app/logging_config.py:configure_logging", "type": "contains", "direction": "forward", "weight": 1.0 },
+    { "source": "file:app/logging_config.py", "target": "function:app/logging_config.py:get_logger", "type": "contains", "direction": "forward", "weight": 1.0 },
+    { "source": "file:app/logging_config.py", "target": "function:app/logging_config.py:configure_logging", "type": "exports", "direction": "forward", "weight": 0.8 },
+    { "source": "file:app/logging_config.py", "target": "function:app/logging_config.py:get_logger", "type": "exports", "direction": "forward", "weight": 0.8 },
+
+    { "source": "file:app/main.py", "target": "function:app/main.py:lifespan", "type": "contains", "direction": "forward", "weight": 1.0 },
+    { "source": "file:app/main.py", "target": "function:app/main.py:_low_stock_loop", "type": "contains", "direction": "forward", "weight": 1.0 },
+    { "source": "file:app/main.py", "target": "function:app/main.py:create_app", "type": "contains", "direction": "forward", "weight": 1.0 },
+    { "source": "file:app/main.py", "target": "function:app/main.py:create_app", "type": "exports", "direction": "forward", "weight": 0.8 },
+
+    { "source": "file:app/schemas/eod.py", "target": "class:app/schemas/eod.py:SignOffRequest", "type": "contains", "direction": "forward", "weight": 1.0 },
+    { "source": "file:app/schemas/eod.py", "target": "class:app/schemas/eod.py:SignOffResponse", "type": "contains", "direction": "forward", "weight": 1.0 },
+    { "source": "file:app/schemas/eod.py", "target": "class:app/schemas/eod.py:EodTotalsResponse", "type": "contains", "direction": "forward", "weight": 1.0 },
+    { "source": "file:app/schemas/eod.py", "target": "class:app/schemas/eod.py:LowStockResponse", "type": "contains", "direction": "forward", "weight": 1.0 },
+    { "source": "file:app/schemas/eod.py", "target": "class:app/schemas/eod.py:SignOffRequest", "type": "exports", "direction": "forward", "weight": 0.8 },
+    { "source": "file:app/schemas/eod.py", "target": "class:app/schemas/eod.py:SignOffResponse", "type": "exports", "direction": "forward", "weight": 0.8 },
+    { "source": "file:app/schemas/eod.py", "target": "class:app/schemas/eod.py:EodTotalsResponse", "type": "exports", "direction": "forward", "weight": 0.8 },
+    { "source": "file:app/schemas/eod.py", "target": "class:app/schemas/eod.py:LowStockResponse", "type": "exports", "direction": "forward", "weight": 0.8 },
+
+    { "source": "file:app/schemas/shop.py", "target": "class:app/schemas/shop.py:ShopPublic", "type": "contains", "direction": "forward", "weight": 1.0 },
+    { "source": "file:app/schemas/shop.py", "target": "class:app/schemas/shop.py:ShopUpdate", "type": "contains", "direction": "forward", "weight": 1.0 },
+    { "source": "file:app/schemas/shop.py", "target": "class:app/schemas/shop.py:ShopPublic", "type": "exports", "direction": "forward", "weight": 0.8 },
+    { "source": "file:app/schemas/shop.py", "target": "class:app/schemas/shop.py:ShopUpdate", "type": "exports", "direction": "forward", "weight": 0.8 },
+
+    { "source": "file:app/services/eod.py", "target": "function:app/services/eod.py:_day_bounds", "type": "contains", "direction": "forward", "weight": 1.0 },
+    { "source": "file:app/services/eod.py", "target": "function:app/services/eod.py:sign_off_day", "type": "contains", "direction": "forward", "weight": 1.0 },
+    { "source": "file:app/services/eod.py", "target": "function:app/services/eod.py:get_day_totals", "type": "contains", "direction": "forward", "weight": 1.0 },
+    { "source": "file:app/services/eod.py", "target": "function:app/services/eod.py:list_signoff_history", "type": "contains", "direction": "forward", "weight": 1.0 },
+    { "source": "file:app/services/eod.py", "target": "function:app/services/eod.py:list_pending_voids", "type": "contains", "direction": "forward", "weight": 1.0 },
+    { "source": "file:app/services/eod.py", "target": "class:app/services/eod.py:EodError", "type": "contains", "direction": "forward", "weight": 1.0 },
+    { "source": "file:app/services/eod.py", "target": "class:app/services/eod.py:EodTotals", "type": "contains", "direction": "forward", "weight": 1.0 },
+    { "source": "file:app/services/eod.py", "target": "function:app/services/eod.py:sign_off_day", "type": "exports", "direction": "forward", "weight": 0.8 },
+    { "source": "file:app/services/eod.py", "target": "function:app/services/eod.py:get_day_totals", "type": "exports", "direction": "forward", "weight": 0.8 },
+    { "source": "file:app/services/eod.py", "target": "function:app/services/eod.py:list_signoff_history", "type": "exports", "direction": "forward", "weight": 0.8 },
+    { "source": "file:app/services/eod.py", "target": "function:app/services/eod.py:list_pending_voids", "type": "exports", "direction": "forward", "weight": 0.8 },
+    { "source": "file:app/services/eod.py", "target": "class:app/services/eod.py:EodError", "type": "exports", "direction": "forward", "weight": 0.8 },
+    { "source": "file:app/services/eod.py", "target": "class:app/services/eod.py:EodTotals", "type": "exports", "direction": "forward", "weight": 0.8 },
+
+    { "source": "function:app/main.py:lifespan", "target": "function:app/config.py:get_settings", "type": "calls", "direction": "forward", "weight": 0.8 },
+    { "source": "function:app/main.py:lifespan", "target": "function:app/logging_config.py:configure_logging", "type": "calls", "direction": "forward", "weight": 0.8 },
+    { "source": "function:app/main.py:lifespan", "target": "function:app/logging_config.py:get_logger", "type": "calls", "direction": "forward", "weight": 0.8 },
+    { "source": "function:app/main.py:lifespan", "target": "function:app/db.py:get_engine", "type": "calls", "direction": "forward", "weight": 0.8 },
+    { "source": "function:app/main.py:lifespan", "target": "function:app/main.py:_low_stock_loop", "type": "calls", "direction": "forward", "weight": 0.8 },
+    { "source": "function:app/main.py:_low_stock_loop", "target": "function:app/config.py:get_settings", "type": "calls", "direction": "forward", "weight": 0.8 },
+    { "source": "function:app/main.py:_low_stock_loop", "target": "function:app/logging_config.py:get_logger", "type": "calls", "direction": "forward", "weight": 0.8 },
+    { "source": "function:app/main.py:_low_stock_loop", "target": "function:app/db.py:get_sessionmaker", "type": "calls", "direction": "forward", "weight": 0.8 },
+    { "source": "function:app/main.py:create_app", "target": "function:app/config.py:get_settings", "type": "calls", "direction": "forward", "weight": 0.8 },
+    { "source": "function:app/main.py:create_app", "target": "function:app/api/auth.py:login_superadmin", "type": "related", "direction": "forward", "weight": 0.5 },
+    { "source": "function:app/main.py:create_app", "target": "function:app/api/checkout.py:finalize", "type": "related", "direction": "forward", "weight": 0.5 },
+    { "source": "function:app/main.py:create_app", "target": "function:app/api/lots.py:create_lot", "type": "related", "direction": "forward", "weight": 0.5 },
+    { "source": "function:app/main.py:create_app", "target": "function:app/api/products.py:list_products", "type": "related", "direction": "forward", "weight": 0.5 },
+    { "source": "function:app/main.py:create_app", "target": "function:app/api/staff.py:list_staff", "type": "related", "direction": "forward", "weight": 0.5 },
+    { "source": "function:app/main.py:create_app", "target": "function:app/api/users.py:me", "type": "related", "direction": "forward", "weight": 0.5 },
+    { "source": "function:app/main.py:create_app", "target": "function:app/api/voids.py:request_void", "type": "related", "direction": "forward", "weight": 0.5 },
+
+    { "source": "function:app/services/eod.py:sign_off_day", "target": "class:app/services/eod.py:EodError", "type": "related", "direction": "forward", "weight": 0.5 },
+    { "source": "function:app/services/eod.py:sign_off_day", "target": "function:app/services/eod.py:_day_bounds", "type": "calls", "direction": "forward", "weight": 0.8 },
+    { "source": "function:app/services/eod.py:get_day_totals", "target": "function:app/services/eod.py:_day_bounds", "type": "calls", "direction": "forward", "weight": 0.8 },
+    { "source": "class:app/services/eod.py:EodError", "target": "class:app/models/invoice.py:InvoiceStatus", "type": "related", "direction": "forward", "weight": 0.5 },
+    { "source": "function:app/services/eod.py:list_pending_voids", "target": "class:app/models/invoice.py:InvoiceStatus", "type": "related", "direction": "forward", "weight": 0.5 },
+
+    { "source": "class:app/schemas/eod.py:SignOffRequest", "target": "class:app/schemas/checkout.py:CheckoutFinalizeRequest", "type": "related", "direction": "forward", "weight": 0.5 }
+  ]
+}

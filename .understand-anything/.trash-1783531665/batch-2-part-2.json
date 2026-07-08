@@ -1,0 +1,341 @@
+{
+  "nodes": [
+    {
+      "id": "file:app/db.py",
+      "type": "file",
+      "name": "db.py",
+      "filePath": "app/db.py",
+      "summary": "Database engine and session management module: builds the async SQLAlchemy engine and sessionmaker from settings, exposes the get_db FastAPI dependency, a unit_of_work context manager, the declarative Base, and init_db for schema bootstrap.",
+      "tags": ["database", "orm", "session-management", "singleton"],
+      "complexity": "complex"
+    },
+    {
+      "id": "class:app/db.py:Base",
+      "type": "class",
+      "name": "Base",
+      "filePath": "app/db.py",
+      "lineRange": [25, 26],
+      "summary": "SQLAlchemy declarative base class that all ORM models in the project inherit from.",
+      "tags": ["orm", "data-model", "base-class"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:app/db.py:get_engine",
+      "type": "function",
+      "name": "get_engine",
+      "filePath": "app/db.py",
+      "lineRange": [33, 54],
+      "summary": "Lazily creates and caches the async SQLAlchemy engine using the configured database URL, applying pool settings appropriate for the deployment environment.",
+      "tags": ["database", "singleton", "async"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:app/db.py:get_sessionmaker",
+      "type": "function",
+      "name": "get_sessionmaker",
+      "filePath": "app/db.py",
+      "lineRange": [57, 65],
+      "summary": "Returns a cached async sessionmaker bound to the shared engine.",
+      "tags": ["database", "singleton", "async"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:app/db.py:reset_engine",
+      "type": "function",
+      "name": "reset_engine",
+      "filePath": "app/db.py",
+      "lineRange": [68, 78],
+      "summary": "Disposes of the cached engine and sessionmaker, used to reset database state between test runs or environment changes.",
+      "tags": ["database", "test-support", "teardown"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:app/db.py:get_db",
+      "type": "function",
+      "name": "get_db",
+      "filePath": "app/db.py",
+      "lineRange": [81, 112],
+      "summary": "FastAPI dependency yielding a scoped async DB session per request and rolling it back on error.",
+      "tags": ["dependency-injection", "database", "async"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:app/db.py:unit_of_work",
+      "type": "function",
+      "name": "unit_of_work",
+      "filePath": "app/db.py",
+      "lineRange": [116, 143],
+      "summary": "Async context manager wrapping a block of DB operations in a single commit/rollback transaction boundary.",
+      "tags": ["database", "transaction", "context-manager"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:app/db.py:init_db",
+      "type": "function",
+      "name": "init_db",
+      "filePath": "app/db.py",
+      "lineRange": [146, 153],
+      "summary": "Creates all database tables from the ORM metadata; used by CLI bootstrap flows and tests.",
+      "tags": ["database", "bootstrap", "migration"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:app/models/user.py",
+      "type": "file",
+      "name": "user.py",
+      "filePath": "app/models/user.py",
+      "summary": "SQLAlchemy model defining shop staff users, their role enum (superadmin, owner, receiver, cashier), and shop-scoping relationship.",
+      "tags": ["data-model", "orm", "authentication", "user"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:app/models/user.py:UserRole",
+      "type": "class",
+      "name": "UserRole",
+      "filePath": "app/models/user.py",
+      "lineRange": [40, 44],
+      "summary": "Enumeration of user roles (superadmin, owner, receiver, cashier) used throughout authorization checks.",
+      "tags": ["enum", "authorization", "data-model"],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:app/models/user.py:User",
+      "type": "class",
+      "name": "User",
+      "filePath": "app/models/user.py",
+      "lineRange": [58, 112],
+      "summary": "ORM model representing a shop staff account with credentials, role, active flag, and shop association, used across authentication and staff-management flows.",
+      "tags": ["data-model", "orm", "user", "authentication"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:app/schemas/auth.py",
+      "type": "file",
+      "name": "auth.py",
+      "filePath": "app/schemas/auth.py",
+      "summary": "Pydantic request/response schemas for authentication and staff management: login payload variants, token responses, public user views, staff-picker entries, and staff create/reset requests with phone/role validators.",
+      "tags": ["validation", "schema", "api-contract", "serialization"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:app/schemas/auth.py:SuperAdminLoginRequest",
+      "type": "class",
+      "name": "SuperAdminLoginRequest",
+      "filePath": "app/schemas/auth.py",
+      "lineRange": [14, 18],
+      "summary": "Request schema for superadmin username/password login.",
+      "tags": ["schema", "validation", "authentication"],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:app/schemas/auth.py:ShopLoginByPhone",
+      "type": "class",
+      "name": "ShopLoginByPhone",
+      "filePath": "app/schemas/auth.py",
+      "lineRange": [21, 35],
+      "summary": "Request schema for shop staff login via phone number, with a validator normalizing/validating phone format.",
+      "tags": ["schema", "validation", "authentication"],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:app/schemas/auth.py:ShopLoginByStaffId",
+      "type": "class",
+      "name": "ShopLoginByStaffId",
+      "filePath": "app/schemas/auth.py",
+      "lineRange": [38, 47],
+      "summary": "Request schema for shop staff login via numeric staff ID and password.",
+      "tags": ["schema", "validation", "authentication"],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:app/schemas/auth.py:TokenResponse",
+      "type": "class",
+      "name": "TokenResponse",
+      "filePath": "app/schemas/auth.py",
+      "lineRange": [58, 62],
+      "summary": "Response schema wrapping an issued JWT access token, its type/expiry, and the authenticated user's public profile.",
+      "tags": ["schema", "api-contract", "jwt"],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:app/schemas/auth.py:UserPublic",
+      "type": "class",
+      "name": "UserPublic",
+      "filePath": "app/schemas/auth.py",
+      "lineRange": [65, 75],
+      "summary": "Public-safe serialization of a User record (excludes password hash) returned by auth and profile endpoints.",
+      "tags": ["schema", "serialization", "user"],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:app/schemas/auth.py:ShopStaffMember",
+      "type": "class",
+      "name": "ShopStaffMember",
+      "filePath": "app/schemas/auth.py",
+      "lineRange": [78, 91],
+      "summary": "Minimal staff entry (id, name, role) used to populate the shop login staff-picker list.",
+      "tags": ["schema", "serialization", "login-picker"],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:app/schemas/auth.py:StaffCreate",
+      "type": "class",
+      "name": "StaffCreate",
+      "filePath": "app/schemas/auth.py",
+      "lineRange": [94, 123],
+      "summary": "Request schema for creating a new staff account, validating that the role is a shop-scoped role and normalizing the phone number.",
+      "tags": ["schema", "validation", "staff-management"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:app/schemas/auth.py:StaffPasswordReset",
+      "type": "class",
+      "name": "StaffPasswordReset",
+      "filePath": "app/schemas/auth.py",
+      "lineRange": [126, 131],
+      "summary": "Request schema carrying the new password for a staff password reset operation.",
+      "tags": ["schema", "validation", "security"],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:app/schemas/auth.py:SuperAdminCreate",
+      "type": "class",
+      "name": "SuperAdminCreate",
+      "filePath": "app/schemas/auth.py",
+      "lineRange": [134, 138],
+      "summary": "Request schema for creating a superadmin account (username/password).",
+      "tags": ["schema", "validation", "authentication"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:app/security/jwt.py",
+      "type": "file",
+      "name": "jwt.py",
+      "filePath": "app/security/jwt.py",
+      "summary": "JWT access-token creation and decoding utilities backed by application settings (secret, algorithm, TTL).",
+      "tags": ["security", "jwt", "authentication", "utility"],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:app/security/jwt.py:TokenError",
+      "type": "class",
+      "name": "TokenError",
+      "filePath": "app/security/jwt.py",
+      "lineRange": [12, 13],
+      "summary": "Exception raised when a JWT token fails to decode or validate.",
+      "tags": ["exception", "jwt", "security"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:app/security/jwt.py:create_access_token",
+      "type": "function",
+      "name": "create_access_token",
+      "filePath": "app/security/jwt.py",
+      "lineRange": [16, 36],
+      "summary": "Builds and signs a JWT access token embedding subject, shop ID, role, and optional extra claims with a configurable expiry.",
+      "tags": ["jwt", "security", "token-creation"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:app/security/jwt.py:decode_access_token",
+      "type": "function",
+      "name": "decode_access_token",
+      "filePath": "app/security/jwt.py",
+      "lineRange": [39, 44],
+      "summary": "Verifies and decodes a JWT access token, raising TokenError on failure.",
+      "tags": ["jwt", "security", "token-verification"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:app/security/passwords.py",
+      "type": "file",
+      "name": "passwords.py",
+      "filePath": "app/security/passwords.py",
+      "summary": "Bcrypt-based password hashing and verification helpers used by authentication and staff-management flows.",
+      "tags": ["security", "password", "bcrypt", "utility"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:app/security/passwords.py:hash_password",
+      "type": "function",
+      "name": "hash_password",
+      "filePath": "app/security/passwords.py",
+      "lineRange": [11, 16],
+      "summary": "Hashes a plaintext password with bcrypt using the configured cost factor.",
+      "tags": ["security", "password", "bcrypt"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:app/security/passwords.py:verify_password",
+      "type": "function",
+      "name": "verify_password",
+      "filePath": "app/security/passwords.py",
+      "lineRange": [19, 23],
+      "summary": "Verifies a plaintext password against a bcrypt hash.",
+      "tags": ["security", "password", "bcrypt"],
+      "complexity": "simple"
+    }
+  ],
+  "edges": [
+    {"source": "file:app/db.py", "target": "config:app/config.py", "type": "imports", "direction": "forward", "weight": 0.7},
+    {"source": "file:app/models/user.py", "target": "file:app/db.py", "type": "imports", "direction": "forward", "weight": 0.7},
+    {"source": "file:app/schemas/auth.py", "target": "file:app/models/user.py", "type": "imports", "direction": "forward", "weight": 0.7},
+    {"source": "file:app/security/jwt.py", "target": "config:app/config.py", "type": "imports", "direction": "forward", "weight": 0.7},
+    {"source": "file:app/security/passwords.py", "target": "config:app/config.py", "type": "imports", "direction": "forward", "weight": 0.7},
+
+    {"source": "file:app/db.py", "target": "class:app/db.py:Base", "type": "contains", "direction": "forward", "weight": 1.0},
+    {"source": "file:app/db.py", "target": "function:app/db.py:get_engine", "type": "contains", "direction": "forward", "weight": 1.0},
+    {"source": "file:app/db.py", "target": "function:app/db.py:get_sessionmaker", "type": "contains", "direction": "forward", "weight": 1.0},
+    {"source": "file:app/db.py", "target": "function:app/db.py:reset_engine", "type": "contains", "direction": "forward", "weight": 1.0},
+    {"source": "file:app/db.py", "target": "function:app/db.py:get_db", "type": "contains", "direction": "forward", "weight": 1.0},
+    {"source": "file:app/db.py", "target": "function:app/db.py:unit_of_work", "type": "contains", "direction": "forward", "weight": 1.0},
+    {"source": "file:app/db.py", "target": "function:app/db.py:init_db", "type": "contains", "direction": "forward", "weight": 1.0},
+    {"source": "file:app/models/user.py", "target": "class:app/models/user.py:UserRole", "type": "contains", "direction": "forward", "weight": 1.0},
+    {"source": "file:app/models/user.py", "target": "class:app/models/user.py:User", "type": "contains", "direction": "forward", "weight": 1.0},
+    {"source": "file:app/schemas/auth.py", "target": "class:app/schemas/auth.py:SuperAdminLoginRequest", "type": "contains", "direction": "forward", "weight": 1.0},
+    {"source": "file:app/schemas/auth.py", "target": "class:app/schemas/auth.py:ShopLoginByPhone", "type": "contains", "direction": "forward", "weight": 1.0},
+    {"source": "file:app/schemas/auth.py", "target": "class:app/schemas/auth.py:ShopLoginByStaffId", "type": "contains", "direction": "forward", "weight": 1.0},
+    {"source": "file:app/schemas/auth.py", "target": "class:app/schemas/auth.py:TokenResponse", "type": "contains", "direction": "forward", "weight": 1.0},
+    {"source": "file:app/schemas/auth.py", "target": "class:app/schemas/auth.py:UserPublic", "type": "contains", "direction": "forward", "weight": 1.0},
+    {"source": "file:app/schemas/auth.py", "target": "class:app/schemas/auth.py:ShopStaffMember", "type": "contains", "direction": "forward", "weight": 1.0},
+    {"source": "file:app/schemas/auth.py", "target": "class:app/schemas/auth.py:StaffCreate", "type": "contains", "direction": "forward", "weight": 1.0},
+    {"source": "file:app/schemas/auth.py", "target": "class:app/schemas/auth.py:StaffPasswordReset", "type": "contains", "direction": "forward", "weight": 1.0},
+    {"source": "file:app/schemas/auth.py", "target": "class:app/schemas/auth.py:SuperAdminCreate", "type": "contains", "direction": "forward", "weight": 1.0},
+    {"source": "file:app/security/jwt.py", "target": "class:app/security/jwt.py:TokenError", "type": "contains", "direction": "forward", "weight": 1.0},
+    {"source": "file:app/security/jwt.py", "target": "function:app/security/jwt.py:create_access_token", "type": "contains", "direction": "forward", "weight": 1.0},
+    {"source": "file:app/security/jwt.py", "target": "function:app/security/jwt.py:decode_access_token", "type": "contains", "direction": "forward", "weight": 1.0},
+    {"source": "file:app/security/passwords.py", "target": "function:app/security/passwords.py:hash_password", "type": "contains", "direction": "forward", "weight": 1.0},
+    {"source": "file:app/security/passwords.py", "target": "function:app/security/passwords.py:verify_password", "type": "contains", "direction": "forward", "weight": 1.0},
+
+    {"source": "file:app/db.py", "target": "class:app/db.py:Base", "type": "exports", "direction": "forward", "weight": 0.8},
+    {"source": "file:app/db.py", "target": "function:app/db.py:get_engine", "type": "exports", "direction": "forward", "weight": 0.8},
+    {"source": "file:app/db.py", "target": "function:app/db.py:get_sessionmaker", "type": "exports", "direction": "forward", "weight": 0.8},
+    {"source": "file:app/db.py", "target": "function:app/db.py:reset_engine", "type": "exports", "direction": "forward", "weight": 0.8},
+    {"source": "file:app/db.py", "target": "function:app/db.py:get_db", "type": "exports", "direction": "forward", "weight": 0.8},
+    {"source": "file:app/db.py", "target": "function:app/db.py:unit_of_work", "type": "exports", "direction": "forward", "weight": 0.8},
+    {"source": "file:app/db.py", "target": "function:app/db.py:init_db", "type": "exports", "direction": "forward", "weight": 0.8},
+    {"source": "file:app/models/user.py", "target": "class:app/models/user.py:UserRole", "type": "exports", "direction": "forward", "weight": 0.8},
+    {"source": "file:app/models/user.py", "target": "class:app/models/user.py:User", "type": "exports", "direction": "forward", "weight": 0.8},
+    {"source": "file:app/schemas/auth.py", "target": "class:app/schemas/auth.py:SuperAdminLoginRequest", "type": "exports", "direction": "forward", "weight": 0.8},
+    {"source": "file:app/schemas/auth.py", "target": "class:app/schemas/auth.py:ShopLoginByPhone", "type": "exports", "direction": "forward", "weight": 0.8},
+    {"source": "file:app/schemas/auth.py", "target": "class:app/schemas/auth.py:ShopLoginByStaffId", "type": "exports", "direction": "forward", "weight": 0.8},
+    {"source": "file:app/schemas/auth.py", "target": "class:app/schemas/auth.py:TokenResponse", "type": "exports", "direction": "forward", "weight": 0.8},
+    {"source": "file:app/schemas/auth.py", "target": "class:app/schemas/auth.py:UserPublic", "type": "exports", "direction": "forward", "weight": 0.8},
+    {"source": "file:app/schemas/auth.py", "target": "class:app/schemas/auth.py:ShopStaffMember", "type": "exports", "direction": "forward", "weight": 0.8},
+    {"source": "file:app/schemas/auth.py", "target": "class:app/schemas/auth.py:StaffCreate", "type": "exports", "direction": "forward", "weight": 0.8},
+    {"source": "file:app/schemas/auth.py", "target": "class:app/schemas/auth.py:StaffPasswordReset", "type": "exports", "direction": "forward", "weight": 0.8},
+    {"source": "file:app/schemas/auth.py", "target": "class:app/schemas/auth.py:SuperAdminCreate", "type": "exports", "direction": "forward", "weight": 0.8},
+    {"source": "file:app/security/jwt.py", "target": "class:app/security/jwt.py:TokenError", "type": "exports", "direction": "forward", "weight": 0.8},
+    {"source": "file:app/security/jwt.py", "target": "function:app/security/jwt.py:create_access_token", "type": "exports", "direction": "forward", "weight": 0.8},
+    {"source": "file:app/security/jwt.py", "target": "function:app/security/jwt.py:decode_access_token", "type": "exports", "direction": "forward", "weight": 0.8},
+    {"source": "file:app/security/passwords.py", "target": "function:app/security/passwords.py:hash_password", "type": "exports", "direction": "forward", "weight": 0.8},
+    {"source": "file:app/security/passwords.py", "target": "function:app/security/passwords.py:verify_password", "type": "exports", "direction": "forward", "weight": 0.8},
+
+    {"source": "function:app/db.py:get_engine", "target": "function:app/config.py:get_settings", "type": "calls", "direction": "forward", "weight": 0.8},
+    {"source": "function:app/security/jwt.py:create_access_token", "target": "function:app/config.py:get_settings", "type": "calls", "direction": "forward", "weight": 0.8},
+    {"source": "function:app/security/jwt.py:decode_access_token", "target": "function:app/config.py:get_settings", "type": "calls", "direction": "forward", "weight": 0.8},
+    {"source": "function:app/security/passwords.py:hash_password", "target": "function:app/config.py:get_settings", "type": "calls", "direction": "forward", "weight": 0.8},
+
+    {"source": "class:app/models/user.py:User", "target": "class:app/db.py:Base", "type": "inherits", "direction": "forward", "weight": 0.9}
+  ]
+}

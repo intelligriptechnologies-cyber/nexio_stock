@@ -1,0 +1,40 @@
+{
+  "issues": [],
+  "warnings": [
+    "Node 'file:alembic/README' has no edges (orphan)",
+    "Node 'file:app/schemas/__init__.py' has no edges (orphan)",
+    "Node 'file:app/security/__init__.py' has no edges (orphan)",
+    "Node 'file:app/services/__init__.py' has no edges (orphan)",
+    "Node 'document:harness/05-issues/README.md' has no edges (orphan)",
+    "Node 'file:tests/test_authorization.py' has no edges (orphan)",
+    "Node 'file:tests/test_health.py' has no edges (orphan)",
+    "Node 'config:frontend/eslint.config.js' has no edges (orphan)",
+    "Node 'file:frontend/src/vite-env.d.ts' has no edges (orphan)"
+  ],
+  "stats": {
+    "totalNodes": 492,
+    "totalEdges": 1114,
+    "totalLayers": 17,
+    "tourSteps": 29,
+    "nodeTypes": {
+      "file": 118,
+      "function": 278,
+      "class": 71,
+      "config": 13,
+      "document": 11,
+      "service": 1
+    },
+    "edgeTypes": {
+      "imports": 215,
+      "contains": 348,
+      "exports": 229,
+      "calls": 235,
+      "tested_by": 10,
+      "inherits": 4,
+      "related": 31,
+      "documents": 12,
+      "depends_on": 16,
+      "configures": 14
+    }
+  }
+}

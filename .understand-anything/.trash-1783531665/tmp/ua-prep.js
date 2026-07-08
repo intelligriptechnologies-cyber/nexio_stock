@@ -1,0 +1,10 @@
+const fs = require('fs');
+const nodes = JSON.parse(fs.readFileSync('C:\\barstock\\.understand-anything\\tmp\\tour-nodes.json'));
+const graph = JSON.parse(fs.readFileSync('C:\\barstock\\.understand-anything\\intermediate\\assembled-graph.json'));
+const layers = JSON.parse(fs.readFileSync('C:\\barstock\\.understand-anything\\tmp\\tour-layers-brief.json'));
+const nodeIds = new Set(nodes.map(n=>n.id));
+const edges = graph.edges.filter(e => nodeIds.has(e.source) && nodeIds.has(e.target));
+const backendLayerExcludes = ['app-shell','pages','api-client','auth-shop-scope','shared-components','hooks','e2e-tests','config'];
+const backendLayers = layers.filter(l => !backendLayerExcludes.some(x => l.id.includes(x)));
+fs.writeFileSync('C:\\barstock\\.understand-anything\\tmp\\ua-tour-input.json', JSON.stringify({nodes, edges, layers: backendLayers}));
+console.log('nodes', nodes.length, 'edges total', graph.edges.length, 'edges filtered', edges.length, 'layers', backendLayers.length);

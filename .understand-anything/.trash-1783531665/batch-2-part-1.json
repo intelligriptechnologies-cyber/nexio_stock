@@ -1,0 +1,1094 @@
+{
+  "nodes": [
+    {
+      "id": "file:app/api/auth.py",
+      "type": "file",
+      "name": "auth.py",
+      "filePath": "app/api/auth.py",
+      "summary": "Authentication router providing superadmin login, shop-scoped staff login (by phone or staff ID), and a shop-staff listing endpoint used by the login UI.",
+      "tags": [
+        "api-handler",
+        "authentication",
+        "jwt",
+        "login"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:app/api/auth.py:_authenticate",
+      "type": "function",
+      "name": "_authenticate",
+      "filePath": "app/api/auth.py",
+      "lineRange": [
+        45,
+        96
+      ],
+      "summary": "Shared credential-check helper that looks up an active user by a given identifier field/value within an optional shop scope and verifies the password against allowed roles.",
+      "tags": [
+        "authentication",
+        "helper",
+        "password-check"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:app/api/auth.py:login_superadmin",
+      "type": "function",
+      "name": "login_superadmin",
+      "filePath": "app/api/auth.py",
+      "lineRange": [
+        104,
+        122
+      ],
+      "summary": "Endpoint authenticating the platform superadmin by username/password and issuing a JWT access token.",
+      "tags": [
+        "api-handler",
+        "authentication",
+        "jwt",
+        "superadmin"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:app/api/auth.py:login_shop",
+      "type": "function",
+      "name": "login_shop",
+      "filePath": "app/api/auth.py",
+      "lineRange": [
+        130,
+        192
+      ],
+      "summary": "Endpoint authenticating shop staff via either phone+password or staff-ID+password payload shapes, validating the raw body against the matching schema and issuing a JWT.",
+      "tags": [
+        "api-handler",
+        "authentication",
+        "jwt",
+        "login"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:app/api/auth.py:list_shop_staff",
+      "type": "function",
+      "name": "list_shop_staff",
+      "filePath": "app/api/auth.py",
+      "lineRange": [
+        200,
+        237
+      ],
+      "summary": "Public endpoint listing active shop-scoped staff members (for the single-shop deployment) to populate a staff picker on the login screen.",
+      "tags": [
+        "api-handler",
+        "staff",
+        "login-picker"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:app/api/deps.py",
+      "type": "file",
+      "name": "deps.py",
+      "filePath": "app/api/deps.py",
+      "summary": "Core FastAPI dependency providers: DB session injection, current-user resolution from JWT, role-based access guards, and shop-scope resolution helpers shared by nearly every router.",
+      "tags": [
+        "middleware",
+        "dependency-injection",
+        "authorization",
+        "security"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:app/api/deps.py:db_session",
+      "type": "function",
+      "name": "db_session",
+      "filePath": "app/api/deps.py",
+      "lineRange": [
+        26,
+        28
+      ],
+      "summary": "FastAPI dependency yielding an async DB session for request handlers.",
+      "tags": [
+        "dependency-injection",
+        "database"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:app/api/deps.py:get_current_user",
+      "type": "function",
+      "name": "get_current_user",
+      "filePath": "app/api/deps.py",
+      "lineRange": [
+        34,
+        64
+      ],
+      "summary": "Decodes the bearer JWT, loads and validates the corresponding active user, and returns it as the authenticated principal for downstream handlers.",
+      "tags": [
+        "authentication",
+        "jwt",
+        "dependency-injection"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:app/api/deps.py:require_role",
+      "type": "function",
+      "name": "require_role",
+      "filePath": "app/api/deps.py",
+      "lineRange": [
+        70,
+        85
+      ],
+      "summary": "Dependency factory returning a guard that rejects requests unless the current user's role is in an allowed set.",
+      "tags": [
+        "authorization",
+        "rbac",
+        "dependency-injection"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:app/api/deps.py:resolve_write_shop_id",
+      "type": "function",
+      "name": "resolve_write_shop_id",
+      "filePath": "app/api/deps.py",
+      "lineRange": [
+        88,
+        119
+      ],
+      "summary": "Resolves and authorizes the target shop ID for write operations, ensuring shop-scoped staff cannot write outside their own shop while superadmins may specify any shop.",
+      "tags": [
+        "authorization",
+        "shop-scope",
+        "helper"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:app/api/deps.py:resolve_read_shop_id",
+      "type": "function",
+      "name": "resolve_read_shop_id",
+      "filePath": "app/api/deps.py",
+      "lineRange": [
+        122,
+        143
+      ],
+      "summary": "Resolves the effective shop ID for read operations based on the current user's scope and an optional requested shop ID.",
+      "tags": [
+        "authorization",
+        "shop-scope",
+        "helper"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:app/api/deps.py:require_shop_scope",
+      "type": "function",
+      "name": "require_shop_scope",
+      "filePath": "app/api/deps.py",
+      "lineRange": [
+        146,
+        153
+      ],
+      "summary": "Guard ensuring the current user is bound to a specific shop (rejects unscoped superadmin access where a shop context is mandatory).",
+      "tags": [
+        "authorization",
+        "shop-scope"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:app/api/staff.py",
+      "type": "file",
+      "name": "staff.py",
+      "filePath": "app/api/staff.py",
+      "summary": "API endpoints letting shop owners create staff accounts, list existing staff, and reset a staff member's password.",
+      "tags": [
+        "api-handler",
+        "staff-management",
+        "authorization"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:app/api/staff.py:create_staff",
+      "type": "function",
+      "name": "create_staff",
+      "filePath": "app/api/staff.py",
+      "lineRange": [
+        40,
+        95
+      ],
+      "summary": "Owner-only endpoint creating a new staff user scoped to the resolved shop, hashing the password and handling unique-constraint violations on username/phone.",
+      "tags": [
+        "api-handler",
+        "staff-management",
+        "validation"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:app/api/staff.py:list_staff",
+      "type": "function",
+      "name": "list_staff",
+      "filePath": "app/api/staff.py",
+      "lineRange": [
+        103,
+        113
+      ],
+      "summary": "Owner-only endpoint listing all staff users for the caller's shop.",
+      "tags": [
+        "api-handler",
+        "staff-management"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:app/api/staff.py:reset_staff_password",
+      "type": "function",
+      "name": "reset_staff_password",
+      "filePath": "app/api/staff.py",
+      "lineRange": [
+        121,
+        150
+      ],
+      "summary": "Owner-only endpoint resetting a specific staff member's password within the caller's shop scope.",
+      "tags": [
+        "api-handler",
+        "staff-management",
+        "security"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:app/api/users.py",
+      "type": "file",
+      "name": "users.py",
+      "filePath": "app/api/users.py",
+      "summary": "Small router exposing a single endpoint returning the currently authenticated user's public profile.",
+      "tags": [
+        "api-handler",
+        "user-profile",
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:app/api/users.py:me",
+      "type": "function",
+      "name": "me",
+      "filePath": "app/api/users.py",
+      "lineRange": [
+        17,
+        18
+      ],
+      "summary": "Returns the current authenticated user as a public-safe representation.",
+      "tags": [
+        "api-handler",
+        "user-profile"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:app/cli.py",
+      "type": "file",
+      "name": "cli.py",
+      "filePath": "app/cli.py",
+      "summary": "Command-line entry point for operational bootstrap tasks: creating the first superadmin account and provisioning new shops with an initial owner account.",
+      "tags": [
+        "entry-point",
+        "cli",
+        "bootstrap",
+        "admin-tool"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:app/cli.py:_createsuperadmin",
+      "type": "function",
+      "name": "_createsuperadmin",
+      "filePath": "app/cli.py",
+      "lineRange": [
+        32,
+        68
+      ],
+      "summary": "Creates the initial superadmin user in the database (idempotent if one already exists), hashing the supplied password before persisting.",
+      "tags": [
+        "cli",
+        "bootstrap",
+        "admin-tool"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:app/cli.py:_createshop",
+      "type": "function",
+      "name": "_createshop",
+      "filePath": "app/cli.py",
+      "lineRange": [
+        71,
+        125
+      ],
+      "summary": "Provisions a new shop record and its initial owner user in a single transaction, rolling back and exiting on failure.",
+      "tags": [
+        "cli",
+        "bootstrap",
+        "shop-provisioning"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:app/cli.py:main",
+      "type": "function",
+      "name": "main",
+      "filePath": "app/cli.py",
+      "lineRange": [
+        128,
+        200
+      ],
+      "summary": "CLI argument parser and dispatcher that prompts interactively for credentials and invokes the superadmin or shop-creation routines via asyncio.",
+      "tags": [
+        "cli",
+        "entry-point",
+        "argument-parsing"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:app/config.py",
+      "type": "file",
+      "name": "config.py",
+      "filePath": "app/config.py",
+      "summary": "Centralized application settings loaded from environment variables (database URL, JWT secret/algorithm/TTL, bcrypt rounds, CORS origins, low-stock check interval) via pydantic-settings.",
+      "tags": [
+        "configuration",
+        "settings",
+        "environment"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:app/config.py:Settings",
+      "type": "class",
+      "name": "Settings",
+      "filePath": "app/config.py",
+      "lineRange": [
+        11,
+        37
+      ],
+      "summary": "Pydantic settings model declaring all environment-driven configuration values for the application.",
+      "tags": [
+        "configuration",
+        "settings",
+        "data-model"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:app/config.py:get_settings",
+      "type": "function",
+      "name": "get_settings",
+      "filePath": "app/config.py",
+      "lineRange": [
+        41,
+        42
+      ],
+      "summary": "Cached factory returning the singleton Settings instance, used throughout the codebase as the single source of configuration.",
+      "tags": [
+        "configuration",
+        "singleton",
+        "cached"
+      ],
+      "complexity": "simple"
+    }
+  ],
+  "edges": [
+    {
+      "source": "file:app/api/auth.py",
+      "target": "file:app/api/deps.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:app/api/auth.py",
+      "target": "file:app/config.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:app/api/auth.py",
+      "target": "file:app/logging_config.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:app/api/auth.py",
+      "target": "file:app/models/user.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:app/api/auth.py",
+      "target": "file:app/schemas/auth.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:app/api/auth.py",
+      "target": "file:app/security/jwt.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:app/api/auth.py",
+      "target": "file:app/security/passwords.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:app/api/deps.py",
+      "target": "file:app/db.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:app/api/deps.py",
+      "target": "file:app/models/shop.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:app/api/deps.py",
+      "target": "file:app/models/user.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:app/api/deps.py",
+      "target": "file:app/security/jwt.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:app/api/staff.py",
+      "target": "file:app/api/_errors.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:app/api/staff.py",
+      "target": "file:app/api/deps.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:app/api/staff.py",
+      "target": "file:app/logging_config.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:app/api/staff.py",
+      "target": "file:app/models/user.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:app/api/staff.py",
+      "target": "file:app/schemas/auth.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:app/api/staff.py",
+      "target": "file:app/security/passwords.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:app/api/users.py",
+      "target": "file:app/api/deps.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:app/api/users.py",
+      "target": "file:app/schemas/auth.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:app/cli.py",
+      "target": "file:app/config.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:app/cli.py",
+      "target": "file:app/db.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:app/cli.py",
+      "target": "file:app/logging_config.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:app/cli.py",
+      "target": "file:app/models/shop.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:app/cli.py",
+      "target": "file:app/models/user.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:app/cli.py",
+      "target": "file:app/security/passwords.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:app/api/auth.py",
+      "target": "function:app/api/auth.py:_authenticate",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:app/api/auth.py",
+      "target": "function:app/api/auth.py:login_superadmin",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:app/api/auth.py",
+      "target": "function:app/api/auth.py:login_shop",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:app/api/auth.py",
+      "target": "function:app/api/auth.py:list_shop_staff",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:app/api/deps.py",
+      "target": "function:app/api/deps.py:db_session",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:app/api/deps.py",
+      "target": "function:app/api/deps.py:get_current_user",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:app/api/deps.py",
+      "target": "function:app/api/deps.py:require_role",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:app/api/deps.py",
+      "target": "function:app/api/deps.py:resolve_write_shop_id",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:app/api/deps.py",
+      "target": "function:app/api/deps.py:resolve_read_shop_id",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:app/api/deps.py",
+      "target": "function:app/api/deps.py:require_shop_scope",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:app/api/staff.py",
+      "target": "function:app/api/staff.py:create_staff",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:app/api/staff.py",
+      "target": "function:app/api/staff.py:list_staff",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:app/api/staff.py",
+      "target": "function:app/api/staff.py:reset_staff_password",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:app/api/users.py",
+      "target": "function:app/api/users.py:me",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:app/cli.py",
+      "target": "function:app/cli.py:_createsuperadmin",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:app/cli.py",
+      "target": "function:app/cli.py:_createshop",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:app/cli.py",
+      "target": "function:app/cli.py:main",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:app/config.py",
+      "target": "class:app/config.py:Settings",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:app/config.py",
+      "target": "function:app/config.py:get_settings",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:app/api/auth.py",
+      "target": "function:app/api/auth.py:_authenticate",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:app/api/auth.py",
+      "target": "function:app/api/auth.py:login_superadmin",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:app/api/auth.py",
+      "target": "function:app/api/auth.py:login_shop",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:app/api/auth.py",
+      "target": "function:app/api/auth.py:list_shop_staff",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:app/api/deps.py",
+      "target": "function:app/api/deps.py:db_session",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:app/api/deps.py",
+      "target": "function:app/api/deps.py:get_current_user",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:app/api/deps.py",
+      "target": "function:app/api/deps.py:require_role",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:app/api/deps.py",
+      "target": "function:app/api/deps.py:resolve_write_shop_id",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:app/api/deps.py",
+      "target": "function:app/api/deps.py:resolve_read_shop_id",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:app/api/deps.py",
+      "target": "function:app/api/deps.py:require_shop_scope",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:app/api/staff.py",
+      "target": "function:app/api/staff.py:create_staff",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:app/api/staff.py",
+      "target": "function:app/api/staff.py:list_staff",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:app/api/staff.py",
+      "target": "function:app/api/staff.py:reset_staff_password",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:app/api/users.py",
+      "target": "function:app/api/users.py:me",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:app/cli.py",
+      "target": "function:app/cli.py:_createsuperadmin",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:app/cli.py",
+      "target": "function:app/cli.py:_createshop",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:app/cli.py",
+      "target": "function:app/cli.py:main",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:app/config.py",
+      "target": "class:app/config.py:Settings",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:app/config.py",
+      "target": "function:app/config.py:get_settings",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:app/api/auth.py:login_superadmin",
+      "target": "function:app/config.py:get_settings",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:app/api/auth.py:login_superadmin",
+      "target": "function:app/security/jwt.py:create_access_token",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:app/api/auth.py:_authenticate",
+      "target": "function:app/security/passwords.py:verify_password",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:app/api/auth.py:login_shop",
+      "target": "function:app/config.py:get_settings",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:app/api/auth.py:login_shop",
+      "target": "function:app/security/jwt.py:create_access_token",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:app/api/auth.py:login_shop",
+      "target": "class:app/schemas/auth.py:ShopLoginByPhone",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:app/api/auth.py:login_shop",
+      "target": "class:app/schemas/auth.py:ShopLoginByStaffId",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:app/api/auth.py:login_superadmin",
+      "target": "class:app/schemas/auth.py:UserPublic",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:app/api/auth.py:login_shop",
+      "target": "class:app/schemas/auth.py:UserPublic",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:app/api/auth.py:list_shop_staff",
+      "target": "class:app/schemas/auth.py:ShopStaffMember",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:app/api/auth.py:login_superadmin",
+      "target": "class:app/schemas/auth.py:TokenResponse",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:app/api/auth.py:login_shop",
+      "target": "class:app/schemas/auth.py:TokenResponse",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:app/api/deps.py:get_current_user",
+      "target": "function:app/security/jwt.py:decode_access_token",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:app/api/staff.py:create_staff",
+      "target": "function:app/api/deps.py:require_role",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:app/api/staff.py:create_staff",
+      "target": "function:app/api/deps.py:resolve_write_shop_id",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:app/api/staff.py:create_staff",
+      "target": "function:app/security/passwords.py:hash_password",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:app/api/staff.py:create_staff",
+      "target": "class:app/models/user.py:User",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:app/api/staff.py:create_staff",
+      "target": "class:app/schemas/auth.py:UserPublic",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:app/api/staff.py:create_staff",
+      "target": "function:app/api/_errors.py:is_unique_violation",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:app/api/staff.py:list_staff",
+      "target": "function:app/api/deps.py:require_role",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:app/api/staff.py:list_staff",
+      "target": "class:app/schemas/auth.py:UserPublic",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:app/api/staff.py:reset_staff_password",
+      "target": "function:app/api/deps.py:require_role",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:app/api/staff.py:reset_staff_password",
+      "target": "function:app/security/passwords.py:hash_password",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:app/api/staff.py:reset_staff_password",
+      "target": "class:app/schemas/auth.py:UserPublic",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:app/api/users.py:me",
+      "target": "class:app/schemas/auth.py:UserPublic",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:app/cli.py:_createsuperadmin",
+      "target": "function:app/config.py:get_settings",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:app/cli.py:_createsuperadmin",
+      "target": "function:app/db.py:init_db",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:app/cli.py:_createsuperadmin",
+      "target": "function:app/db.py:get_sessionmaker",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:app/cli.py:_createsuperadmin",
+      "target": "function:app/security/passwords.py:hash_password",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:app/cli.py:_createsuperadmin",
+      "target": "class:app/models/user.py:User",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:app/cli.py:_createshop",
+      "target": "function:app/config.py:get_settings",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:app/cli.py:_createshop",
+      "target": "function:app/db.py:init_db",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:app/cli.py:_createshop",
+      "target": "function:app/db.py:get_sessionmaker",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:app/cli.py:_createshop",
+      "target": "class:app/models/user.py:User",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:app/cli.py:_createshop",
+      "target": "function:app/security/passwords.py:hash_password",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    }
+  ]
+}

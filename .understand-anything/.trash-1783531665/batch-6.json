@@ -1,0 +1,101 @@
+{
+  "nodes": [
+    {
+      "id": "config:.env.example",
+      "type": "config",
+      "name": ".env.example",
+      "filePath": ".env.example",
+      "summary": "Template environment file listing required runtime configuration variables (app metadata, JWT/secret settings, bcrypt rounds, database URL, and CORS origins) for the FastAPI backend.",
+      "tags": ["configuration", "environment-variables", "security", "database"],
+      "complexity": "simple"
+    },
+    {
+      "id": "document:README.md",
+      "type": "document",
+      "name": "README.md",
+      "filePath": "README.md",
+      "summary": "Project overview and setup guide for Barstock covering the tech stack, step-by-step backend/frontend installation, database migration, initial superadmin/shop creation, login, staff account creation, environment variables, testing, and project layout.",
+      "tags": ["documentation", "entry-point", "setup-guide", "onboarding"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "config:alembic.ini",
+      "type": "config",
+      "name": "alembic.ini",
+      "filePath": "alembic.ini",
+      "summary": "Alembic database migration tool configuration defining the migration scripts location, logging setup, and database connection settings for schema versioning.",
+      "tags": ["configuration", "database", "migration", "alembic"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "service:docker-compose.yml",
+      "type": "service",
+      "name": "docker-compose.yml",
+      "filePath": "docker-compose.yml",
+      "summary": "Docker Compose definition provisioning a single Postgres 16 Alpine container (barstock-db) with a health check and a persistent named volume for local development of the Barstock backend.",
+      "tags": ["containerization", "infrastructure", "database", "orchestration"],
+      "complexity": "simple",
+      "languageNotes": "Single-service compose file scoped to just the Postgres dependency; the app itself runs outside the container during development."
+    },
+    {
+      "id": "config:pyproject.toml",
+      "type": "config",
+      "name": "pyproject.toml",
+      "filePath": "pyproject.toml",
+      "summary": "Python project configuration defining package metadata, dependencies and optional dependency groups, console scripts, build system (Hatch), and tool configuration for ruff linting, pytest, and coverage.",
+      "tags": ["configuration", "build-system", "python", "dependency-management"],
+      "complexity": "moderate"
+    }
+  ],
+  "edges": [
+    {
+      "source": "config:.env.example",
+      "target": "service:docker-compose.yml",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:README.md",
+      "target": "config:.env.example",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:README.md",
+      "target": "service:docker-compose.yml",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:README.md",
+      "target": "config:pyproject.toml",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:README.md",
+      "target": "config:alembic.ini",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "config:alembic.ini",
+      "target": "config:.env.example",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "config:pyproject.toml",
+      "target": "config:.env.example",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    }
+  ]
+}

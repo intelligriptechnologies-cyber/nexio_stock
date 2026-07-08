@@ -1,0 +1,675 @@
+{
+  "nodes": [
+    {
+      "id": "file:alembic/README",
+      "type": "file",
+      "name": "README",
+      "filePath": "alembic/README",
+      "summary": "Boilerplate Alembic package marker file (standard single-line 'Generic single-database configuration' note) with no project-specific content.",
+      "tags": ["configuration", "migration", "boilerplate"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:alembic/script.py.mako",
+      "type": "file",
+      "name": "script.py.mako",
+      "filePath": "alembic/script.py.mako",
+      "summary": "Alembic revision template used to scaffold new migration script files with revision metadata and empty upgrade/downgrade stubs.",
+      "tags": ["migration", "template", "build-system"],
+      "complexity": "simple",
+      "languageNotes": "Mako template embedding Python code generation directives (${...}) inside a migration script skeleton."
+    },
+    {
+      "id": "file:alembic/versions/0243c7acf544_foundation_shops_users_log_tables.py",
+      "type": "file",
+      "name": "0243c7acf544_foundation_shops_users_log_tables.py",
+      "filePath": "alembic/versions/0243c7acf544_foundation_shops_users_log_tables.py",
+      "summary": "Foundational Alembic migration creating the shops, users, and business event log tables that anchor the multi-tenant schema.",
+      "tags": ["database", "migration", "schema-definition"],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:alembic/versions/0243c7acf544_foundation_shops_users_log_tables.py:upgrade",
+      "type": "function",
+      "name": "upgrade",
+      "filePath": "alembic/versions/0243c7acf544_foundation_shops_users_log_tables.py",
+      "lineRange": [22, 99],
+      "summary": "Creates the foundational shops, users, and log-related tables with columns, foreign keys, and indexes via SQLAlchemy Core/Alembic operations.",
+      "tags": ["database", "migration", "schema-definition"],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:alembic/versions/0243c7acf544_foundation_shops_users_log_tables.py:downgrade",
+      "type": "function",
+      "name": "downgrade",
+      "filePath": "alembic/versions/0243c7acf544_foundation_shops_users_log_tables.py",
+      "lineRange": [102, 126],
+      "summary": "Reverses the foundational migration by dropping the indexes and tables created in upgrade, in dependency order.",
+      "tags": ["database", "migration", "rollback"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:alembic/versions/058759837183_eod_eod_signed_off_at_eod_signoffs_table.py",
+      "type": "file",
+      "name": "058759837183_eod_eod_signed_off_at_eod_signoffs_table.py",
+      "filePath": "alembic/versions/058759837183_eod_eod_signed_off_at_eod_signoffs_table.py",
+      "summary": "Migration introducing end-of-day (EOD) sign-off tracking, adding an eod_signoffs table and a signed-off timestamp/user column.",
+      "tags": ["database", "migration", "schema-definition"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:alembic/versions/058759837183_eod_eod_signed_off_at_eod_signoffs_table.py:upgrade",
+      "type": "function",
+      "name": "upgrade",
+      "filePath": "alembic/versions/058759837183_eod_eod_signed_off_at_eod_signoffs_table.py",
+      "lineRange": [22, 41],
+      "summary": "Creates the eod_signoffs table and adds signed-off tracking columns with a foreign key to the signing-off user.",
+      "tags": ["database", "migration", "schema-definition"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:alembic/versions/058759837183_eod_eod_signed_off_at_eod_signoffs_table.py:downgrade",
+      "type": "function",
+      "name": "downgrade",
+      "filePath": "alembic/versions/058759837183_eod_eod_signed_off_at_eod_signoffs_table.py",
+      "lineRange": [44, 51],
+      "summary": "Drops the added sign-off columns and the eod_signoffs table to revert the migration.",
+      "tags": ["database", "migration", "rollback"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:alembic/versions/2e68e776867b_voids_void_reversal_pending_void_status_.py",
+      "type": "file",
+      "name": "2e68e776867b_voids_void_reversal_pending_void_status_.py",
+      "filePath": "alembic/versions/2e68e776867b_voids_void_reversal_pending_void_status_.py",
+      "summary": "Migration adding void/reversal tracking columns and a pending-void status to support voiding and reversing sales transactions.",
+      "tags": ["database", "migration", "schema-definition"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:alembic/versions/2e68e776867b_voids_void_reversal_pending_void_status_.py:upgrade",
+      "type": "function",
+      "name": "upgrade",
+      "filePath": "alembic/versions/2e68e776867b_voids_void_reversal_pending_void_status_.py",
+      "lineRange": [22, 31],
+      "summary": "Adds voided/reversal columns and foreign keys enabling invoices to reference void and reversal relationships.",
+      "tags": ["database", "migration", "schema-definition"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:alembic/versions/2e68e776867b_voids_void_reversal_pending_void_status_.py:downgrade",
+      "type": "function",
+      "name": "downgrade",
+      "filePath": "alembic/versions/2e68e776867b_voids_void_reversal_pending_void_status_.py",
+      "lineRange": [34, 43],
+      "summary": "Drops the void/reversal foreign keys, index, and columns to revert the migration.",
+      "tags": ["database", "migration", "rollback"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:alembic/versions/3efd6817d954_lots_lot_lot_lines_tables.py",
+      "type": "file",
+      "name": "3efd6817d954_lots_lot_lot_lines_tables.py",
+      "filePath": "alembic/versions/3efd6817d954_lots_lot_lot_lines_tables.py",
+      "summary": "Migration creating the lots and lot_lines tables used to track stock-receiving batches and their line items.",
+      "tags": ["database", "migration", "schema-definition"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:alembic/versions/3efd6817d954_lots_lot_lot_lines_tables.py:upgrade",
+      "type": "function",
+      "name": "upgrade",
+      "filePath": "alembic/versions/3efd6817d954_lots_lot_lot_lines_tables.py",
+      "lineRange": [22, 51],
+      "summary": "Creates the lots table and the dependent lot_lines table with foreign keys and indexes for inventory receiving.",
+      "tags": ["database", "migration", "schema-definition"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:alembic/versions/3efd6817d954_lots_lot_lot_lines_tables.py:downgrade",
+      "type": "function",
+      "name": "downgrade",
+      "filePath": "alembic/versions/3efd6817d954_lots_lot_lot_lines_tables.py",
+      "lineRange": [54, 64],
+      "summary": "Drops the lot_lines and lots tables and their indexes to revert the migration.",
+      "tags": ["database", "migration", "rollback"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:alembic/versions/423948112aae_products_catalog_shop_low_stock_.py",
+      "type": "file",
+      "name": "423948112aae_products_catalog_shop_low_stock_.py",
+      "filePath": "alembic/versions/423948112aae_products_catalog_shop_low_stock_.py",
+      "summary": "Migration creating the shop-scoped product catalog table and adding a low-stock threshold column for inventory alerts.",
+      "tags": ["database", "migration", "schema-definition"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:alembic/versions/423948112aae_products_catalog_shop_low_stock_.py:upgrade",
+      "type": "function",
+      "name": "upgrade",
+      "filePath": "alembic/versions/423948112aae_products_catalog_shop_low_stock_.py",
+      "lineRange": [22, 44],
+      "summary": "Creates the products/catalog table scoped to a shop and adds a low_stock_threshold column with a unique constraint on SKU.",
+      "tags": ["database", "migration", "schema-definition"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:alembic/versions/423948112aae_products_catalog_shop_low_stock_.py:downgrade",
+      "type": "function",
+      "name": "downgrade",
+      "filePath": "alembic/versions/423948112aae_products_catalog_shop_low_stock_.py",
+      "lineRange": [47, 55],
+      "summary": "Drops the low_stock_threshold column, indexes, and the products/catalog table to revert the migration.",
+      "tags": ["database", "migration", "rollback"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:alembic/versions/af4b5e908f57_shops_gstin_excise_duty_rate_for_8_gst_.py",
+      "type": "file",
+      "name": "af4b5e908f57_shops_gstin_excise_duty_rate_for_8_gst_.py",
+      "filePath": "alembic/versions/af4b5e908f57_shops_gstin_excise_duty_rate_for_8_gst_.py",
+      "summary": "Migration adding GSTIN and excise duty rate columns to the shops table to support Indian GST/excise tax compliance.",
+      "tags": ["database", "migration", "tax-compliance"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:alembic/versions/af4b5e908f57_shops_gstin_excise_duty_rate_for_8_gst_.py:upgrade",
+      "type": "function",
+      "name": "upgrade",
+      "filePath": "alembic/versions/af4b5e908f57_shops_gstin_excise_duty_rate_for_8_gst_.py",
+      "lineRange": [22, 30],
+      "summary": "Adds gstin and excise_duty_rate columns to the shops table for GST/excise tax handling.",
+      "tags": ["database", "migration", "tax-compliance"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:alembic/versions/af4b5e908f57_shops_gstin_excise_duty_rate_for_8_gst_.py:downgrade",
+      "type": "function",
+      "name": "downgrade",
+      "filePath": "alembic/versions/af4b5e908f57_shops_gstin_excise_duty_rate_for_8_gst_.py",
+      "lineRange": [33, 36],
+      "summary": "Drops the gstin and excise_duty_rate columns to revert the migration.",
+      "tags": ["database", "migration", "rollback"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:alembic/versions/c514c436a0b1_eod_eod_signoffs_business_date_to_date.py",
+      "type": "file",
+      "name": "c514c436a0b1_eod_eod_signoffs_business_date_to_date.py",
+      "filePath": "alembic/versions/c514c436a0b1_eod_eod_signoffs_business_date_to_date.py",
+      "summary": "Migration changing the eod_signoffs.business_date column type from timestamp to plain date for correct business-day semantics.",
+      "tags": ["database", "migration", "schema-definition"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:alembic/versions/c514c436a0b1_eod_eod_signoffs_business_date_to_date.py:upgrade",
+      "type": "function",
+      "name": "upgrade",
+      "filePath": "alembic/versions/c514c436a0b1_eod_eod_signoffs_business_date_to_date.py",
+      "lineRange": [22, 29],
+      "summary": "Alters eod_signoffs.business_date from a timestamp column to a date column.",
+      "tags": ["database", "migration", "schema-definition"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:alembic/versions/c514c436a0b1_eod_eod_signoffs_business_date_to_date.py:downgrade",
+      "type": "function",
+      "name": "downgrade",
+      "filePath": "alembic/versions/c514c436a0b1_eod_eod_signoffs_business_date_to_date.py",
+      "lineRange": [32, 39],
+      "summary": "Reverts eod_signoffs.business_date back from a date column to a timestamp column.",
+      "tags": ["database", "migration", "rollback"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:alembic/versions/ea0fba754aaa_invoices_invoice_lines_payments_.py",
+      "type": "file",
+      "name": "ea0fba754aaa_invoices_invoice_lines_payments_.py",
+      "filePath": "alembic/versions/ea0fba754aaa_invoices_invoice_lines_payments_.py",
+      "summary": "Migration creating the invoices, invoice_lines, and payments tables that form the core billing/checkout data model.",
+      "tags": ["database", "migration", "schema-definition", "billing"],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:alembic/versions/ea0fba754aaa_invoices_invoice_lines_payments_.py:upgrade",
+      "type": "function",
+      "name": "upgrade",
+      "filePath": "alembic/versions/ea0fba754aaa_invoices_invoice_lines_payments_.py",
+      "lineRange": [22, 75],
+      "summary": "Creates the invoices, invoice_lines, and payments tables with foreign keys, enums, and indexes underpinning the billing flow.",
+      "tags": ["database", "migration", "schema-definition", "billing"],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:alembic/versions/ea0fba754aaa_invoices_invoice_lines_payments_.py:downgrade",
+      "type": "function",
+      "name": "downgrade",
+      "filePath": "alembic/versions/ea0fba754aaa_invoices_invoice_lines_payments_.py",
+      "lineRange": [78, 89],
+      "summary": "Drops the payments, invoice_lines, and invoices tables and their indexes to revert the migration.",
+      "tags": ["database", "migration", "rollback"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:app/schemas/__init__.py",
+      "type": "file",
+      "name": "__init__.py",
+      "filePath": "app/schemas/__init__.py",
+      "summary": "Empty package marker file for the app.schemas package containing Pydantic request/response schemas.",
+      "tags": ["entry-point", "barrel", "package-init"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:app/security/__init__.py",
+      "type": "file",
+      "name": "__init__.py",
+      "filePath": "app/security/__init__.py",
+      "summary": "Empty package marker file for the app.security package containing authentication and authorization utilities.",
+      "tags": ["entry-point", "barrel", "package-init"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:app/services/__init__.py",
+      "type": "file",
+      "name": "__init__.py",
+      "filePath": "app/services/__init__.py",
+      "summary": "Empty package marker file for the app.services package containing business-logic service modules.",
+      "tags": ["entry-point", "barrel", "package-init"],
+      "complexity": "simple"
+    },
+    {
+      "id": "document:docs/frontend_initial/barstock_design.md",
+      "type": "document",
+      "name": "barstock_design.md",
+      "filePath": "docs/frontend_initial/barstock_design.md",
+      "summary": "Design specification describing Barstock's brand identity, color palette, typography, and the four core screen mockups (login, checkout, stock receiving, owner dashboard) plus responsive strategy.",
+      "tags": ["documentation", "design-system", "ui-spec"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:docs/frontend_initial/barstock_pos_inventory/code.html",
+      "type": "file",
+      "name": "code.html",
+      "filePath": "docs/frontend_initial/barstock_pos_inventory/code.html",
+      "summary": "Static HTML mockup prototype for a POS inventory screen, part of the frontend design exploration deliverables.",
+      "tags": ["markup", "prototype", "ui-mockup"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:docs/frontend_initial/checkout_sales_counter/code.html",
+      "type": "file",
+      "name": "code.html",
+      "filePath": "docs/frontend_initial/checkout_sales_counter/code.html",
+      "summary": "Static HTML mockup prototype for the checkout/sales-counter screen where a cashier scans items and takes payment.",
+      "tags": ["markup", "prototype", "ui-mockup", "checkout"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "document:docs/frontend_initial/DESIGN.md",
+      "type": "document",
+      "name": "DESIGN.md",
+      "filePath": "docs/frontend_initial/DESIGN.md",
+      "summary": "Design system reference covering brand/style, colors, typography, layout/spacing, elevation, shapes, and reusable components (PIN pad, scanned item row, stat card, buttons, inputs).",
+      "tags": ["documentation", "design-system", "ui-spec"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "document:docs/frontend_initial/high_efficiency_retail_pos/DESIGN.md",
+      "type": "document",
+      "name": "DESIGN.md",
+      "filePath": "docs/frontend_initial/high_efficiency_retail_pos/DESIGN.md",
+      "summary": "Design system reference for the 'high efficiency retail POS' variant, mirroring the main DESIGN.md's brand, color, typography, and component specifications.",
+      "tags": ["documentation", "design-system", "ui-spec"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:docs/frontend_initial/login_pin_pad/code.html",
+      "type": "file",
+      "name": "code.html",
+      "filePath": "docs/frontend_initial/login_pin_pad/code.html",
+      "summary": "Static HTML mockup prototype for the PIN-pad login screen used to authenticate shop staff at the counter.",
+      "tags": ["markup", "prototype", "ui-mockup", "authentication"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:docs/frontend_initial/owner_dashboard_eod/code.html",
+      "type": "file",
+      "name": "code.html",
+      "filePath": "docs/frontend_initial/owner_dashboard_eod/code.html",
+      "summary": "Static HTML mockup prototype for the owner dashboard and end-of-day (EOD) sign-off screen.",
+      "tags": ["markup", "prototype", "ui-mockup", "eod"],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:docs/frontend_initial/stock_receiving_new_lot/code.html",
+      "type": "file",
+      "name": "code.html",
+      "filePath": "docs/frontend_initial/stock_receiving_new_lot/code.html",
+      "summary": "Static HTML mockup prototype for the stock-receiving screen used to record a new inventory lot.",
+      "tags": ["markup", "prototype", "ui-mockup", "inventory"],
+      "complexity": "complex"
+    },
+    {
+      "id": "document:harness/05-issues/README.md",
+      "type": "document",
+      "name": "README.md",
+      "filePath": "harness/05-issues/README.md",
+      "summary": "Process documentation for the '05-issues' harness stage describing how project issues are tracked and their current status.",
+      "tags": ["documentation", "process", "issue-tracking"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:tests/test_auth.py",
+      "type": "file",
+      "name": "test_auth.py",
+      "filePath": "tests/test_auth.py",
+      "summary": "Test suite covering login for superadmin, owner, receiver, and cashier roles, token validation, and superadmin username uniqueness constraints.",
+      "tags": ["test", "authentication", "authorization"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:tests/test_auth.py:test_superadmin_username_must_be_globally_unique",
+      "type": "function",
+      "name": "test_superadmin_username_must_be_globally_unique",
+      "filePath": "tests/test_auth.py",
+      "lineRange": [94, 114],
+      "summary": "Verifies that creating a second superadmin user with a duplicate username raises a database integrity error and requires a rollback.",
+      "tags": ["test", "authentication", "database-constraint"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:tests/test_authorization.py",
+      "type": "file",
+      "name": "test_authorization.py",
+      "filePath": "tests/test_authorization.py",
+      "summary": "Test suite verifying role-based access control, ensuring receiver/cashier roles get 403 on owner-only endpoints while superadmin can list all staff.",
+      "tags": ["test", "authorization", "rbac"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:tests/test_health.py",
+      "type": "file",
+      "name": "test_health.py",
+      "filePath": "tests/test_health.py",
+      "summary": "Test suite for the liveness and readiness health-check endpoints, including verifying the readiness probe queries the database.",
+      "tags": ["test", "health-check", "monitoring"],
+      "complexity": "simple"
+    }
+  ],
+  "edges": [
+    {
+      "source": "file:alembic/versions/0243c7acf544_foundation_shops_users_log_tables.py",
+      "target": "function:alembic/versions/0243c7acf544_foundation_shops_users_log_tables.py:upgrade",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:alembic/versions/0243c7acf544_foundation_shops_users_log_tables.py",
+      "target": "function:alembic/versions/0243c7acf544_foundation_shops_users_log_tables.py:downgrade",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:alembic/versions/0243c7acf544_foundation_shops_users_log_tables.py",
+      "target": "function:alembic/versions/0243c7acf544_foundation_shops_users_log_tables.py:upgrade",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:alembic/versions/0243c7acf544_foundation_shops_users_log_tables.py",
+      "target": "function:alembic/versions/0243c7acf544_foundation_shops_users_log_tables.py:downgrade",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:alembic/versions/058759837183_eod_eod_signed_off_at_eod_signoffs_table.py",
+      "target": "function:alembic/versions/058759837183_eod_eod_signed_off_at_eod_signoffs_table.py:upgrade",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:alembic/versions/058759837183_eod_eod_signed_off_at_eod_signoffs_table.py",
+      "target": "function:alembic/versions/058759837183_eod_eod_signed_off_at_eod_signoffs_table.py:downgrade",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:alembic/versions/058759837183_eod_eod_signed_off_at_eod_signoffs_table.py",
+      "target": "function:alembic/versions/058759837183_eod_eod_signed_off_at_eod_signoffs_table.py:upgrade",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:alembic/versions/058759837183_eod_eod_signed_off_at_eod_signoffs_table.py",
+      "target": "function:alembic/versions/058759837183_eod_eod_signed_off_at_eod_signoffs_table.py:downgrade",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:alembic/versions/2e68e776867b_voids_void_reversal_pending_void_status_.py",
+      "target": "function:alembic/versions/2e68e776867b_voids_void_reversal_pending_void_status_.py:upgrade",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:alembic/versions/2e68e776867b_voids_void_reversal_pending_void_status_.py",
+      "target": "function:alembic/versions/2e68e776867b_voids_void_reversal_pending_void_status_.py:downgrade",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:alembic/versions/2e68e776867b_voids_void_reversal_pending_void_status_.py",
+      "target": "function:alembic/versions/2e68e776867b_voids_void_reversal_pending_void_status_.py:upgrade",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:alembic/versions/2e68e776867b_voids_void_reversal_pending_void_status_.py",
+      "target": "function:alembic/versions/2e68e776867b_voids_void_reversal_pending_void_status_.py:downgrade",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:alembic/versions/3efd6817d954_lots_lot_lot_lines_tables.py",
+      "target": "function:alembic/versions/3efd6817d954_lots_lot_lot_lines_tables.py:upgrade",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:alembic/versions/3efd6817d954_lots_lot_lot_lines_tables.py",
+      "target": "function:alembic/versions/3efd6817d954_lots_lot_lot_lines_tables.py:downgrade",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:alembic/versions/3efd6817d954_lots_lot_lot_lines_tables.py",
+      "target": "function:alembic/versions/3efd6817d954_lots_lot_lot_lines_tables.py:upgrade",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:alembic/versions/3efd6817d954_lots_lot_lot_lines_tables.py",
+      "target": "function:alembic/versions/3efd6817d954_lots_lot_lot_lines_tables.py:downgrade",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:alembic/versions/423948112aae_products_catalog_shop_low_stock_.py",
+      "target": "function:alembic/versions/423948112aae_products_catalog_shop_low_stock_.py:upgrade",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:alembic/versions/423948112aae_products_catalog_shop_low_stock_.py",
+      "target": "function:alembic/versions/423948112aae_products_catalog_shop_low_stock_.py:downgrade",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:alembic/versions/423948112aae_products_catalog_shop_low_stock_.py",
+      "target": "function:alembic/versions/423948112aae_products_catalog_shop_low_stock_.py:upgrade",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:alembic/versions/423948112aae_products_catalog_shop_low_stock_.py",
+      "target": "function:alembic/versions/423948112aae_products_catalog_shop_low_stock_.py:downgrade",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:alembic/versions/af4b5e908f57_shops_gstin_excise_duty_rate_for_8_gst_.py",
+      "target": "function:alembic/versions/af4b5e908f57_shops_gstin_excise_duty_rate_for_8_gst_.py:upgrade",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:alembic/versions/af4b5e908f57_shops_gstin_excise_duty_rate_for_8_gst_.py",
+      "target": "function:alembic/versions/af4b5e908f57_shops_gstin_excise_duty_rate_for_8_gst_.py:downgrade",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:alembic/versions/af4b5e908f57_shops_gstin_excise_duty_rate_for_8_gst_.py",
+      "target": "function:alembic/versions/af4b5e908f57_shops_gstin_excise_duty_rate_for_8_gst_.py:upgrade",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:alembic/versions/af4b5e908f57_shops_gstin_excise_duty_rate_for_8_gst_.py",
+      "target": "function:alembic/versions/af4b5e908f57_shops_gstin_excise_duty_rate_for_8_gst_.py:downgrade",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:alembic/versions/c514c436a0b1_eod_eod_signoffs_business_date_to_date.py",
+      "target": "function:alembic/versions/c514c436a0b1_eod_eod_signoffs_business_date_to_date.py:upgrade",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:alembic/versions/c514c436a0b1_eod_eod_signoffs_business_date_to_date.py",
+      "target": "function:alembic/versions/c514c436a0b1_eod_eod_signoffs_business_date_to_date.py:downgrade",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:alembic/versions/c514c436a0b1_eod_eod_signoffs_business_date_to_date.py",
+      "target": "function:alembic/versions/c514c436a0b1_eod_eod_signoffs_business_date_to_date.py:upgrade",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:alembic/versions/c514c436a0b1_eod_eod_signoffs_business_date_to_date.py",
+      "target": "function:alembic/versions/c514c436a0b1_eod_eod_signoffs_business_date_to_date.py:downgrade",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:alembic/versions/ea0fba754aaa_invoices_invoice_lines_payments_.py",
+      "target": "function:alembic/versions/ea0fba754aaa_invoices_invoice_lines_payments_.py:upgrade",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:alembic/versions/ea0fba754aaa_invoices_invoice_lines_payments_.py",
+      "target": "function:alembic/versions/ea0fba754aaa_invoices_invoice_lines_payments_.py:downgrade",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:alembic/versions/ea0fba754aaa_invoices_invoice_lines_payments_.py",
+      "target": "function:alembic/versions/ea0fba754aaa_invoices_invoice_lines_payments_.py:upgrade",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:alembic/versions/ea0fba754aaa_invoices_invoice_lines_payments_.py",
+      "target": "function:alembic/versions/ea0fba754aaa_invoices_invoice_lines_payments_.py:downgrade",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_auth.py",
+      "target": "function:tests/test_auth.py:test_superadmin_username_must_be_globally_unique",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "document:docs/frontend_initial/barstock_design.md",
+      "target": "file:docs/frontend_initial/login_pin_pad/code.html",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:docs/frontend_initial/barstock_design.md",
+      "target": "file:docs/frontend_initial/checkout_sales_counter/code.html",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:docs/frontend_initial/barstock_design.md",
+      "target": "file:docs/frontend_initial/stock_receiving_new_lot/code.html",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:docs/frontend_initial/barstock_design.md",
+      "target": "file:docs/frontend_initial/owner_dashboard_eod/code.html",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:docs/frontend_initial/DESIGN.md",
+      "target": "file:docs/frontend_initial/barstock_pos_inventory/code.html",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:docs/frontend_initial/high_efficiency_retail_pos/DESIGN.md",
+      "target": "document:docs/frontend_initial/DESIGN.md",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    }
+  ]
+}

@@ -1,0 +1,1148 @@
+{
+  "scriptCompleted": true,
+  "entryPointCandidates": [
+    {
+      "id": "file:app/main.py",
+      "score": 5,
+      "name": "main.py",
+      "summary": "Application entry point that builds the FastAPI app: manages startup/shutdown lifespan (DB engine, background low-stock polling task), configures CORS middleware, and mounts all API routers."
+    },
+    {
+      "id": "document:README.md",
+      "score": 5,
+      "name": "README.md",
+      "summary": "Project overview and setup guide for Barstock covering the tech stack, step-by-step backend/frontend installation, database migration, initial superadmin/shop creation, login, staff account creation, environment variables, testing, and project layout."
+    },
+    {
+      "id": "file:app/cli.py",
+      "score": 3,
+      "name": "cli.py",
+      "summary": "Command-line entry point for operational bootstrap tasks: creating the first superadmin account and provisioning new shops with an initial owner account."
+    },
+    {
+      "id": "file:alembic/env.py",
+      "score": 2,
+      "name": "env.py",
+      "summary": "Alembic migration environment configuring offline SQL-generation mode and online async-engine mode for running database migrations."
+    },
+    {
+      "id": "file:alembic/README",
+      "score": 2,
+      "name": "README",
+      "summary": "Boilerplate Alembic package marker file (standard single-line 'Generic single-database configuration' note) with no project-specific content."
+    }
+  ],
+  "fanInRanking": [
+    {
+      "id": "file:app/models/user.py",
+      "fanIn": 13,
+      "name": "user.py"
+    },
+    {
+      "id": "file:app/models/invoice.py",
+      "fanIn": 12,
+      "name": "invoice.py"
+    },
+    {
+      "id": "file:app/models/shop.py",
+      "fanIn": 11,
+      "name": "shop.py"
+    },
+    {
+      "id": "file:app/models/product.py",
+      "fanIn": 10,
+      "name": "product.py"
+    },
+    {
+      "id": "file:app/api/deps.py",
+      "fanIn": 10,
+      "name": "deps.py"
+    },
+    {
+      "id": "file:app/db.py",
+      "fanIn": 10,
+      "name": "db.py"
+    },
+    {
+      "id": "file:app/logging_config.py",
+      "fanIn": 10,
+      "name": "logging_config.py"
+    },
+    {
+      "id": "file:app/models/lot.py",
+      "fanIn": 8,
+      "name": "lot.py"
+    },
+    {
+      "id": "file:app/models/log.py",
+      "fanIn": 7,
+      "name": "log.py"
+    },
+    {
+      "id": "file:app/config.py",
+      "fanIn": 7,
+      "name": "config.py"
+    },
+    {
+      "id": "file:app/security/passwords.py",
+      "fanIn": 4,
+      "name": "passwords.py"
+    },
+    {
+      "id": "file:docs/frontend_initial/checkout_sales_counter/code.html",
+      "fanIn": 4,
+      "name": "code.html"
+    },
+    {
+      "id": "file:app/schemas/auth.py",
+      "fanIn": 3,
+      "name": "auth.py"
+    },
+    {
+      "id": "file:app/schemas/checkout.py",
+      "fanIn": 3,
+      "name": "checkout.py"
+    },
+    {
+      "id": "file:tests/test_eod.py",
+      "fanIn": 3,
+      "name": "test_eod.py"
+    },
+    {
+      "id": "config:.env.example",
+      "fanIn": 3,
+      "name": ".env.example"
+    },
+    {
+      "id": "file:docs/frontend_initial/login_pin_pad/code.html",
+      "fanIn": 3,
+      "name": "code.html"
+    },
+    {
+      "id": "file:frontend/src/index.css",
+      "fanIn": 3,
+      "name": "index.css"
+    },
+    {
+      "id": "file:app/api/_errors.py",
+      "fanIn": 2,
+      "name": "_errors.py"
+    },
+    {
+      "id": "file:app/security/jwt.py",
+      "fanIn": 2,
+      "name": "jwt.py"
+    }
+  ],
+  "fanOutRanking": [
+    {
+      "id": "file:app/main.py",
+      "fanOut": 15,
+      "name": "main.py"
+    },
+    {
+      "id": "file:app/api/lots.py",
+      "fanOut": 8,
+      "name": "lots.py"
+    },
+    {
+      "id": "file:app/api/voids.py",
+      "fanOut": 8,
+      "name": "voids.py"
+    },
+    {
+      "id": "file:app/api/auth.py",
+      "fanOut": 7,
+      "name": "auth.py"
+    },
+    {
+      "id": "file:app/api/checkout.py",
+      "fanOut": 7,
+      "name": "checkout.py"
+    },
+    {
+      "id": "file:app/api/products.py",
+      "fanOut": 6,
+      "name": "products.py"
+    },
+    {
+      "id": "file:app/models/__init__.py",
+      "fanOut": 6,
+      "name": "__init__.py"
+    },
+    {
+      "id": "file:app/api/staff.py",
+      "fanOut": 6,
+      "name": "staff.py"
+    },
+    {
+      "id": "file:app/cli.py",
+      "fanOut": 6,
+      "name": "cli.py"
+    },
+    {
+      "id": "file:app/api/shops.py",
+      "fanOut": 6,
+      "name": "shops.py"
+    },
+    {
+      "id": "file:app/services/checkout.py",
+      "fanOut": 6,
+      "name": "checkout.py"
+    },
+    {
+      "id": "file:app/api/dashboard.py",
+      "fanOut": 5,
+      "name": "dashboard.py"
+    },
+    {
+      "id": "file:alembic/env.py",
+      "fanOut": 4,
+      "name": "env.py"
+    },
+    {
+      "id": "file:tests/test_voids.py",
+      "fanOut": 4,
+      "name": "test_voids.py"
+    },
+    {
+      "id": "file:app/api/deps.py",
+      "fanOut": 4,
+      "name": "deps.py"
+    },
+    {
+      "id": "document:README.md",
+      "fanOut": 4,
+      "name": "README.md"
+    },
+    {
+      "id": "document:docs/frontend_initial/barstock_design.md",
+      "fanOut": 4,
+      "name": "barstock_design.md"
+    },
+    {
+      "id": "document:docs/frontend_initial/DESIGN.md",
+      "fanOut": 4,
+      "name": "DESIGN.md"
+    },
+    {
+      "id": "file:app/services/low_stock.py",
+      "fanOut": 3,
+      "name": "low_stock.py"
+    },
+    {
+      "id": "file:tests/test_checkout.py",
+      "fanOut": 3,
+      "name": "test_checkout.py"
+    }
+  ],
+  "bfsTraversal": {
+    "startNode": "file:app/main.py",
+    "order": [
+      "file:app/main.py",
+      "file:app/api/__init__.py",
+      "file:app/api/_test_only.py",
+      "file:app/api/auth.py",
+      "file:app/api/checkout.py",
+      "file:app/api/dashboard.py",
+      "file:app/api/health.py",
+      "file:app/api/lots.py",
+      "file:app/api/products.py",
+      "file:app/api/shops.py",
+      "file:app/api/staff.py",
+      "file:app/api/users.py",
+      "file:app/api/voids.py",
+      "file:app/config.py",
+      "file:app/db.py",
+      "file:app/logging_config.py",
+      "file:app/api/deps.py",
+      "file:app/models/user.py",
+      "file:app/schemas/auth.py",
+      "file:app/security/jwt.py",
+      "file:app/security/passwords.py",
+      "file:app/models/invoice.py",
+      "file:app/models/log.py",
+      "file:app/schemas/checkout.py",
+      "file:app/services/checkout.py",
+      "file:app/schemas/eod.py",
+      "file:app/services/eod.py",
+      "file:app/models/lot.py",
+      "file:app/models/product.py",
+      "file:app/schemas/lot.py",
+      "file:app/api/_errors.py",
+      "file:app/schemas/product.py",
+      "file:app/models/shop.py",
+      "file:app/schemas/shop.py",
+      "file:app/services/voids.py"
+    ],
+    "depthMap": {
+      "file:app/main.py": 0,
+      "file:app/api/__init__.py": 1,
+      "file:app/api/_test_only.py": 1,
+      "file:app/api/auth.py": 1,
+      "file:app/api/checkout.py": 1,
+      "file:app/api/dashboard.py": 1,
+      "file:app/api/health.py": 1,
+      "file:app/api/lots.py": 1,
+      "file:app/api/products.py": 1,
+      "file:app/api/shops.py": 1,
+      "file:app/api/staff.py": 1,
+      "file:app/api/users.py": 1,
+      "file:app/api/voids.py": 1,
+      "file:app/config.py": 1,
+      "file:app/db.py": 1,
+      "file:app/logging_config.py": 1,
+      "file:app/api/deps.py": 2,
+      "file:app/models/user.py": 2,
+      "file:app/schemas/auth.py": 2,
+      "file:app/security/jwt.py": 2,
+      "file:app/security/passwords.py": 2,
+      "file:app/models/invoice.py": 2,
+      "file:app/models/log.py": 2,
+      "file:app/schemas/checkout.py": 2,
+      "file:app/services/checkout.py": 2,
+      "file:app/schemas/eod.py": 2,
+      "file:app/services/eod.py": 2,
+      "file:app/models/lot.py": 2,
+      "file:app/models/product.py": 2,
+      "file:app/schemas/lot.py": 2,
+      "file:app/api/_errors.py": 2,
+      "file:app/schemas/product.py": 2,
+      "file:app/models/shop.py": 2,
+      "file:app/schemas/shop.py": 2,
+      "file:app/services/voids.py": 2
+    },
+    "byDepth": {
+      "0": [
+        "file:app/main.py"
+      ],
+      "1": [
+        "file:app/api/__init__.py",
+        "file:app/api/_test_only.py",
+        "file:app/api/auth.py",
+        "file:app/api/checkout.py",
+        "file:app/api/dashboard.py",
+        "file:app/api/health.py",
+        "file:app/api/lots.py",
+        "file:app/api/products.py",
+        "file:app/api/shops.py",
+        "file:app/api/staff.py",
+        "file:app/api/users.py",
+        "file:app/api/voids.py",
+        "file:app/config.py",
+        "file:app/db.py",
+        "file:app/logging_config.py"
+      ],
+      "2": [
+        "file:app/api/deps.py",
+        "file:app/models/user.py",
+        "file:app/schemas/auth.py",
+        "file:app/security/jwt.py",
+        "file:app/security/passwords.py",
+        "file:app/models/invoice.py",
+        "file:app/models/log.py",
+        "file:app/schemas/checkout.py",
+        "file:app/services/checkout.py",
+        "file:app/schemas/eod.py",
+        "file:app/services/eod.py",
+        "file:app/models/lot.py",
+        "file:app/models/product.py",
+        "file:app/schemas/lot.py",
+        "file:app/api/_errors.py",
+        "file:app/schemas/product.py",
+        "file:app/models/shop.py",
+        "file:app/schemas/shop.py",
+        "file:app/services/voids.py"
+      ]
+    }
+  },
+  "nonCodeFiles": {
+    "documentation": [
+      {
+        "id": "document:README.md",
+        "name": "README.md",
+        "type": "document",
+        "summary": "Project overview and setup guide for Barstock covering the tech stack, step-by-step backend/frontend installation, database migration, initial superadmin/shop creation, login, staff account creation, environment variables, testing, and project layout."
+      },
+      {
+        "id": "document:docs/frontend_initial/barstock_design.md",
+        "name": "barstock_design.md",
+        "type": "document",
+        "summary": "Design specification describing Barstock's brand identity, color palette, typography, and the four core screen mockups (login, checkout, stock receiving, owner dashboard) plus responsive strategy."
+      },
+      {
+        "id": "document:docs/frontend_initial/DESIGN.md",
+        "name": "DESIGN.md",
+        "type": "document",
+        "summary": "Design system reference covering brand/style, colors, typography, layout/spacing, elevation, shapes, and reusable components (PIN pad, scanned item row, stat card, buttons, inputs)."
+      },
+      {
+        "id": "document:docs/frontend_initial/high_efficiency_retail_pos/DESIGN.md",
+        "name": "DESIGN.md",
+        "type": "document",
+        "summary": "Design system reference for the 'high efficiency retail POS' variant, mirroring the main DESIGN.md's brand, color, typography, and component specifications."
+      },
+      {
+        "id": "document:harness/05-issues/README.md",
+        "name": "README.md",
+        "type": "document",
+        "summary": "Process documentation for the '05-issues' harness stage describing how project issues are tracked and their current status."
+      },
+      {
+        "id": "document:harness/00-intake.md",
+        "name": "00-intake.md",
+        "type": "document",
+        "summary": "Initial intake notes for the Barstock project, restating the problem, listing unknowns, decomposing the raw feature wishlist, and surveying existing commercial liquor-POS market options before Phase 0 sign-off."
+      },
+      {
+        "id": "document:harness/01-branch-map.md",
+        "name": "01-branch-map.md",
+        "type": "document",
+        "summary": "Structural map of the project split into 14 branches (personas, domain model, API surface, frontend, persistence, auth, integrations, observability, failure modes, testing, performance, deployment, compliance, and docs) used to sequence the Phase 2 grilling session."
+      },
+      {
+        "id": "document:harness/02-ledger.md",
+        "name": "02-ledger.md",
+        "type": "document",
+        "summary": "Running decisions ledger capturing numbered decisions (D-#) made during Phase 0 confirmation, the Phase 2 grill, a follow-up logging brainstorm, and the Phase 4 absence hunt, plus a list of open threads not yet resolved."
+      },
+      {
+        "id": "document:harness/03-prd.md",
+        "name": "03-prd.md",
+        "type": "document",
+        "summary": "Frozen product requirements document for Barstock, a scan-driven counter inventory and billing system for a liquor retail shop, covering goals, non-goals, per-branch requirements, personas, deferred v1 items, and an appendix reproducing the decisions ledger verbatim."
+      },
+      {
+        "id": "document:harness/04-absences.md",
+        "name": "04-absences.md",
+        "type": "document",
+        "summary": "Absence-hunt findings document listing requirements or edge cases missing from the earlier PRD draft (feeding decisions R-40 through R-46) and their disposition before the PRD was re-frozen."
+      },
+      {
+        "id": "document:harness/prd_frontend.md",
+        "name": "prd_frontend.md",
+        "type": "document",
+        "summary": "Frontend-specific PRD for the Barstock web SPA, defining the problem statement, solution approach, user stories, implementation and testing decisions, and out-of-scope items for the client application."
+      }
+    ],
+    "infrastructure": [
+      {
+        "id": "service:docker-compose.yml",
+        "name": "docker-compose.yml",
+        "type": "service",
+        "summary": "Docker Compose definition provisioning a single Postgres 16 Alpine container (barstock-db) with a health check and a persistent named volume for local development of the Barstock backend."
+      }
+    ],
+    "data": [],
+    "config": [
+      {
+        "id": "config:.env.example",
+        "name": ".env.example",
+        "type": "config",
+        "summary": "Template environment file listing required runtime configuration variables (app metadata, JWT/secret settings, bcrypt rounds, database URL, and CORS origins) for the FastAPI backend."
+      },
+      {
+        "id": "config:alembic.ini",
+        "name": "alembic.ini",
+        "type": "config",
+        "summary": "Alembic database migration tool configuration defining the migration scripts location, logging setup, and database connection settings for schema versioning."
+      },
+      {
+        "id": "config:pyproject.toml",
+        "name": "pyproject.toml",
+        "type": "config",
+        "summary": "Python project configuration defining package metadata, dependencies and optional dependency groups, console scripts, build system (Hatch), and tool configuration for ruff linting, pytest, and coverage."
+      },
+      {
+        "id": "config:frontend/package.json",
+        "name": "package.json",
+        "type": "config",
+        "summary": "Root project manifest for the barstock-frontend React/TypeScript SPA, declaring dependencies (React Router, React DOM), dev tooling (Vite, ESLint, Tailwind, Playwright, openapi-typescript) and scripts for dev, build, lint, API type generation, and e2e testing."
+      },
+      {
+        "id": "config:frontend/tsconfig.app.json",
+        "name": "tsconfig.app.json",
+        "type": "config",
+        "summary": "TypeScript project-reference configuration for the application source code (compiler options plus include/exclude paths), separate from node tooling and e2e test configs."
+      },
+      {
+        "id": "config:frontend/tsconfig.e2e.json",
+        "name": "tsconfig.e2e.json",
+        "type": "config",
+        "summary": "TypeScript project-reference configuration scoped to Playwright end-to-end test files, with its own compiler options and include paths."
+      },
+      {
+        "id": "config:frontend/tsconfig.json",
+        "name": "tsconfig.json",
+        "type": "config",
+        "summary": "Root TypeScript solution file that references the app, node, and e2e project configs via TypeScript's project-references mechanism, enabling the composite build (tsc -b) used in the build script."
+      },
+      {
+        "id": "config:frontend/tsconfig.node.json",
+        "name": "tsconfig.node.json",
+        "type": "config",
+        "summary": "TypeScript project-reference configuration for Node-side tooling (e.g. Vite config file), with its own compiler options and include paths distinct from the app and e2e configs."
+      },
+      {
+        "id": "config:frontend/eslint.config.js",
+        "name": "eslint.config.js",
+        "type": "config",
+        "summary": "Flat ESLint configuration for the React/TypeScript frontend, wiring up TypeScript, React hooks, and React Refresh linting rules across the project."
+      },
+      {
+        "id": "config:frontend/playwright.config.ts",
+        "name": "playwright.config.ts",
+        "type": "config",
+        "summary": "Playwright test runner configuration pointing at the e2e/ test directory, defining the base URL, Chromium project, retry/trace policy, and a webServer block that boots the built frontend against the FastAPI backend for CI."
+      },
+      {
+        "id": "config:frontend/postcss.config.cjs",
+        "name": "postcss.config.cjs",
+        "type": "config",
+        "summary": "PostCSS configuration enabling the Tailwind CSS and Autoprefixer plugins for the build pipeline."
+      },
+      {
+        "id": "config:frontend/tailwind.config.ts",
+        "name": "tailwind.config.ts",
+        "type": "config",
+        "summary": "Tailwind CSS configuration that extends the default theme using the shared design tokens module and sets the content paths for class scanning."
+      },
+      {
+        "id": "config:frontend/vite.config.ts",
+        "name": "vite.config.ts",
+        "type": "config",
+        "summary": "Vite build configuration wiring up the React plugin and dev server settings for the frontend application."
+      }
+    ]
+  },
+  "clusters": [],
+  "layers": {
+    "count": 9,
+    "list": [
+      {
+        "id": "layer:api",
+        "name": "API Layer",
+        "description": "FastAPI routers, request-scoped dependencies, and error translation that expose auth, checkout, voids, lots, products, staff, shops, dashboard, users, and health endpoints."
+      },
+      {
+        "id": "layer:service",
+        "name": "Service Layer",
+        "description": "Core business logic modules that enforce checkout, voiding, end-of-day, low-stock, and invoice-PDF rules independently of HTTP concerns."
+      },
+      {
+        "id": "layer:data",
+        "name": "Data & Persistence Layer",
+        "description": "SQLAlchemy ORM models, the async DB engine/session bootstrap, and the Alembic migration chain that together define and evolve the Postgres schema for shops, users, products, lots, invoices, and audit logs."
+      },
+      {
+        "id": "layer:types",
+        "name": "Schemas & Types",
+        "description": "Pydantic request/response schemas that validate and serialize data crossing the API boundary for auth, products, lots, checkout, EOD, and shop endpoints."
+      },
+      {
+        "id": "layer:security",
+        "name": "Security",
+        "description": "JWT issuance/verification and bcrypt password hashing helpers used to authenticate users and protect credentials across the API."
+      },
+      {
+        "id": "layer:core",
+        "name": "Application Core & Bootstrap",
+        "description": "The app factory, CLI provisioning tool, environment-driven settings, and structured logging setup that wire the FastAPI application together."
+      },
+      {
+        "id": "layer:test",
+        "name": "Test Suite",
+        "description": "Pytest integration tests (with shared fixtures) mirroring the app package, covering auth, RBAC, checkout, voids, EOD, staff, products, low-stock, and health endpoints."
+      },
+      {
+        "id": "layer:infrastructure",
+        "name": "Infrastructure & Project Config",
+        "description": "Local Postgres containerization, Alembic tooling config, environment variable template, and the Python project manifest that support running and building the system."
+      },
+      {
+        "id": "layer:documentation",
+        "name": "Documentation & Planning",
+        "description": "Project README, the harness planning trail (intake, branch map, decision ledger, PRDs, absence hunt), and the early frontend design mockups that predate the real frontend app."
+      }
+    ]
+  },
+  "nodeSummaryIndex": {
+    "file:alembic/env.py": {
+      "name": "env.py",
+      "type": "file",
+      "summary": "Alembic migration environment configuring offline SQL-generation mode and online async-engine mode for running database migrations."
+    },
+    "file:app/__init__.py": {
+      "name": "__init__.py",
+      "type": "file",
+      "summary": "Empty package marker file establishing app as a Python package."
+    },
+    "file:app/api/_errors.py": {
+      "name": "_errors.py",
+      "type": "file",
+      "summary": "Shared helpers for detecting database constraint violations and mapping domain/database errors to HTTP responses, reused across API routers."
+    },
+    "file:app/api/lots.py": {
+      "name": "lots.py",
+      "type": "file",
+      "summary": "FastAPI router for stock lot receiving: creating lots with line items, listing lots, and fetching lot detail, enforcing shop-scoped and role-based access."
+    },
+    "file:app/api/products.py": {
+      "name": "products.py",
+      "type": "file",
+      "summary": "FastAPI router for product catalog management: creation, quick-add during checkout, listing, barcode lookup, updates, pending-product activation, and CSV bulk import."
+    },
+    "file:app/models/__init__.py": {
+      "name": "__init__.py",
+      "type": "file",
+      "summary": "Barrel module re-exporting all SQLAlchemy ORM model classes (invoice, log, lot, product, shop, user) for convenient importing elsewhere in the app."
+    },
+    "file:app/models/log.py": {
+      "name": "log.py",
+      "type": "file",
+      "summary": "SQLAlchemy models for the append-only business event log, with joined-table-inheritance subclasses per log category (invoicing, stock-in, admin)."
+    },
+    "file:app/models/lot.py": {
+      "name": "lot.py",
+      "type": "file",
+      "summary": "SQLAlchemy models for received stock lots and their individual product line items."
+    },
+    "file:app/models/product.py": {
+      "name": "product.py",
+      "type": "file",
+      "summary": "SQLAlchemy model and status enum for products (bottles) sold in the shop, including pending-approval lifecycle fields."
+    },
+    "file:app/schemas/lot.py": {
+      "name": "lot.py",
+      "type": "file",
+      "summary": "Pydantic schemas for lot receiving requests and responses, including validation that a lot's barcodes are not duplicated."
+    },
+    "file:app/schemas/product.py": {
+      "name": "product.py",
+      "type": "file",
+      "summary": "Pydantic schemas covering product creation, quick-add, updates, public responses, CSV import rows/results, and pending-product activation, with barcode and size-label validation."
+    },
+    "file:app/services/low_stock.py": {
+      "name": "low_stock.py",
+      "type": "file",
+      "summary": "Computes which active products in a shop have fallen at or below their low-stock threshold, using derived stock levels from lot receipts and invoice lines."
+    },
+    "file:tests/test_checkout.py": {
+      "name": "test_checkout.py",
+      "type": "file",
+      "summary": "Integration tests for the checkout/finalize flow: multi-line invoices, split payments, idempotency-key replay, concurrent finalizes, role permissions, invoice immutability, business logging, and PDF invoice generation."
+    },
+    "file:tests/test_lots.py": {
+      "name": "test_lots.py",
+      "type": "file",
+      "summary": "Integration tests for lot receiving: creation with single/multiple lines, role permissions, shop scoping, unknown-barcode rejection, stock-in logging, and derived stock updates."
+    },
+    "file:tests/test_voids.py": {
+      "name": "test_voids.py",
+      "type": "file",
+      "summary": "Integration tests for invoice void, void-request, approve, and reject flows, covering pre- and post-EOD sign-off scenarios, stock restoration, and business event logging."
+    },
+    "file:app/api/auth.py": {
+      "name": "auth.py",
+      "type": "file",
+      "summary": "Authentication router providing superadmin login, shop-scoped staff login (by phone or staff ID), and a shop-staff listing endpoint used by the login UI."
+    },
+    "file:app/api/deps.py": {
+      "name": "deps.py",
+      "type": "file",
+      "summary": "Core FastAPI dependency providers: DB session injection, current-user resolution from JWT, role-based access guards, and shop-scope resolution helpers shared by nearly every router."
+    },
+    "file:app/api/staff.py": {
+      "name": "staff.py",
+      "type": "file",
+      "summary": "API endpoints letting shop owners create staff accounts, list existing staff, and reset a staff member's password."
+    },
+    "file:app/api/users.py": {
+      "name": "users.py",
+      "type": "file",
+      "summary": "Small router exposing a single endpoint returning the currently authenticated user's public profile."
+    },
+    "file:app/cli.py": {
+      "name": "cli.py",
+      "type": "file",
+      "summary": "Command-line entry point for operational bootstrap tasks: creating the first superadmin account and provisioning new shops with an initial owner account."
+    },
+    "file:app/config.py": {
+      "name": "config.py",
+      "type": "file",
+      "summary": "Centralized application settings loaded from environment variables (database URL, JWT secret/algorithm/TTL, bcrypt rounds, CORS origins, low-stock check interval) via pydantic-settings."
+    },
+    "file:app/db.py": {
+      "name": "db.py",
+      "type": "file",
+      "summary": "Database engine and session management module: builds the async SQLAlchemy engine and sessionmaker from settings, exposes the get_db FastAPI dependency, a unit_of_work context manager, the declarative Base, and init_db for schema bootstrap."
+    },
+    "file:app/models/user.py": {
+      "name": "user.py",
+      "type": "file",
+      "summary": "SQLAlchemy model defining shop staff users, their role enum (superadmin, owner, receiver, cashier), and shop-scoping relationship."
+    },
+    "file:app/schemas/auth.py": {
+      "name": "auth.py",
+      "type": "file",
+      "summary": "Pydantic request/response schemas for authentication and staff management: login payload variants, token responses, public user views, staff-picker entries, and staff create/reset requests with phone/role validators."
+    },
+    "file:app/security/jwt.py": {
+      "name": "jwt.py",
+      "type": "file",
+      "summary": "JWT access-token creation and decoding utilities backed by application settings (secret, algorithm, TTL)."
+    },
+    "file:app/security/passwords.py": {
+      "name": "passwords.py",
+      "type": "file",
+      "summary": "Bcrypt-based password hashing and verification helpers used by authentication and staff-management flows."
+    },
+    "file:app/api/__init__.py": {
+      "name": "__init__.py",
+      "type": "file",
+      "summary": "Empty package marker file for the app.api package, making the api directory importable as a Python package."
+    },
+    "file:app/api/_test_only.py": {
+      "name": "_test_only.py",
+      "type": "file",
+      "summary": "Empty placeholder router mounted only under test app_env, kept so leftover test references to test-only endpoints still compile now that the real role-gated endpoints exist."
+    },
+    "file:app/api/dashboard.py": {
+      "name": "dashboard.py",
+      "type": "file",
+      "summary": "FastAPI router exposing shop dashboard endpoints for EOD sign-off, EOD totals, sign-off history, pending void queue, and low-stock reporting, all scoped by shop and role."
+    },
+    "file:app/api/health.py": {
+      "name": "health.py",
+      "type": "file",
+      "summary": "FastAPI router providing liveness and readiness health-check endpoints, with readiness verifying database connectivity via a trivial query."
+    },
+    "file:app/api/shops.py": {
+      "name": "shops.py",
+      "type": "file",
+      "summary": "FastAPI router for shop management: listing all shops (superadmin), fetching the caller's own shop, and updating shop settings like GSTIN and excise duty rate."
+    },
+    "file:app/logging_config.py": {
+      "name": "logging_config.py",
+      "type": "file",
+      "summary": "Configures structlog-based structured JSON logging for the application, integrating with the stdlib logging module and quieting noisy third-party loggers."
+    },
+    "file:app/main.py": {
+      "name": "main.py",
+      "type": "file",
+      "summary": "Application entry point that builds the FastAPI app: manages startup/shutdown lifespan (DB engine, background low-stock polling task), configures CORS middleware, and mounts all API routers."
+    },
+    "file:app/schemas/eod.py": {
+      "name": "eod.py",
+      "type": "file",
+      "summary": "Pydantic schemas for the EOD (end-of-day) dashboard API: sign-off requests/responses, totals breakdowns by payment mode, sign-off history, pending voids, and low-stock reporting."
+    },
+    "file:app/schemas/shop.py": {
+      "name": "shop.py",
+      "type": "file",
+      "summary": "Pydantic schemas for shop resources, including public and summary shop views and a shop-update payload with GSTIN format validation."
+    },
+    "file:app/services/eod.py": {
+      "name": "eod.py",
+      "type": "file",
+      "summary": "Service layer implementing end-of-day business logic: signing off a business day's invoices, computing revenue/payment totals, listing sign-off history, and listing invoices pending void approval."
+    },
+    "file:app/api/checkout.py": {
+      "name": "checkout.py",
+      "type": "file",
+      "summary": "FastAPI router exposing checkout endpoints: finalize a cart into an invoice, fetch invoice details, and download the invoice PDF, enforcing role and shop-scope checks."
+    },
+    "file:app/api/voids.py": {
+      "name": "voids.py",
+      "type": "file",
+      "summary": "FastAPI router handling invoice void workflows: direct pre-EOD voids and the request/approve/reject flow for post-EOD voids, with business logging for each action."
+    },
+    "file:app/models/invoice.py": {
+      "name": "invoice.py",
+      "type": "file",
+      "summary": "SQLAlchemy ORM models for invoices, invoice lines, payments, end-of-day sign-offs, and idempotency keys underpinning the billing domain."
+    },
+    "file:app/schemas/checkout.py": {
+      "name": "checkout.py",
+      "type": "file",
+      "summary": "Pydantic request/response schemas for the checkout API: cart lines, payment inputs, and public invoice/payment representations."
+    },
+    "file:app/services/checkout.py": {
+      "name": "checkout.py",
+      "type": "file",
+      "summary": "Core checkout business logic: validates idempotency keys, resolves cart barcodes to products, locks and decrements stock, and creates the invoice, lines, and payments transactionally."
+    },
+    "file:app/services/invoice_pdf.py": {
+      "name": "invoice_pdf.py",
+      "type": "file",
+      "summary": "Renders a finalized invoice as a printable PDF receipt using ReportLab, including line items, payment breakdown, and shop details."
+    },
+    "file:app/services/voids.py": {
+      "name": "voids.py",
+      "type": "file",
+      "summary": "Business logic for voiding invoices: direct pre-EOD voids that restore stock, and the post-EOD request/approve/reject workflow that creates reversal invoices."
+    },
+    "file:tests/test_eod.py": {
+      "name": "test_eod.py",
+      "type": "file",
+      "summary": "Integration tests for end-of-day sign-off, EOD totals reporting, sign-off history, and the void request queue, covering role restrictions and revenue exclusions for voided/reversal invoices."
+    },
+    "config:.env.example": {
+      "name": ".env.example",
+      "type": "config",
+      "summary": "Template environment file listing required runtime configuration variables (app metadata, JWT/secret settings, bcrypt rounds, database URL, and CORS origins) for the FastAPI backend."
+    },
+    "document:README.md": {
+      "name": "README.md",
+      "type": "document",
+      "summary": "Project overview and setup guide for Barstock covering the tech stack, step-by-step backend/frontend installation, database migration, initial superadmin/shop creation, login, staff account creation, environment variables, testing, and project layout."
+    },
+    "config:alembic.ini": {
+      "name": "alembic.ini",
+      "type": "config",
+      "summary": "Alembic database migration tool configuration defining the migration scripts location, logging setup, and database connection settings for schema versioning."
+    },
+    "service:docker-compose.yml": {
+      "name": "docker-compose.yml",
+      "type": "service",
+      "summary": "Docker Compose definition provisioning a single Postgres 16 Alpine container (barstock-db) with a health check and a persistent named volume for local development of the Barstock backend."
+    },
+    "config:pyproject.toml": {
+      "name": "pyproject.toml",
+      "type": "config",
+      "summary": "Python project configuration defining package metadata, dependencies and optional dependency groups, console scripts, build system (Hatch), and tool configuration for ruff linting, pytest, and coverage."
+    },
+    "file:alembic/README": {
+      "name": "README",
+      "type": "file",
+      "summary": "Boilerplate Alembic package marker file (standard single-line 'Generic single-database configuration' note) with no project-specific content."
+    },
+    "file:alembic/script.py.mako": {
+      "name": "script.py.mako",
+      "type": "file",
+      "summary": "Alembic revision template used to scaffold new migration script files with revision metadata and empty upgrade/downgrade stubs."
+    },
+    "file:alembic/versions/0243c7acf544_foundation_shops_users_log_tables.py": {
+      "name": "0243c7acf544_foundation_shops_users_log_tables.py",
+      "type": "file",
+      "summary": "Foundational Alembic migration creating the shops, users, and business event log tables that anchor the multi-tenant schema."
+    },
+    "file:alembic/versions/058759837183_eod_eod_signed_off_at_eod_signoffs_table.py": {
+      "name": "058759837183_eod_eod_signed_off_at_eod_signoffs_table.py",
+      "type": "file",
+      "summary": "Migration introducing end-of-day (EOD) sign-off tracking, adding an eod_signoffs table and a signed-off timestamp/user column."
+    },
+    "file:alembic/versions/2e68e776867b_voids_void_reversal_pending_void_status_.py": {
+      "name": "2e68e776867b_voids_void_reversal_pending_void_status_.py",
+      "type": "file",
+      "summary": "Migration adding void/reversal tracking columns and a pending-void status to support voiding and reversing sales transactions."
+    },
+    "file:alembic/versions/3efd6817d954_lots_lot_lot_lines_tables.py": {
+      "name": "3efd6817d954_lots_lot_lot_lines_tables.py",
+      "type": "file",
+      "summary": "Migration creating the lots and lot_lines tables used to track stock-receiving batches and their line items."
+    },
+    "file:alembic/versions/423948112aae_products_catalog_shop_low_stock_.py": {
+      "name": "423948112aae_products_catalog_shop_low_stock_.py",
+      "type": "file",
+      "summary": "Migration creating the shop-scoped product catalog table and adding a low-stock threshold column for inventory alerts."
+    },
+    "file:alembic/versions/af4b5e908f57_shops_gstin_excise_duty_rate_for_8_gst_.py": {
+      "name": "af4b5e908f57_shops_gstin_excise_duty_rate_for_8_gst_.py",
+      "type": "file",
+      "summary": "Migration adding GSTIN and excise duty rate columns to the shops table to support Indian GST/excise tax compliance."
+    },
+    "file:alembic/versions/c514c436a0b1_eod_eod_signoffs_business_date_to_date.py": {
+      "name": "c514c436a0b1_eod_eod_signoffs_business_date_to_date.py",
+      "type": "file",
+      "summary": "Migration changing the eod_signoffs.business_date column type from timestamp to plain date for correct business-day semantics."
+    },
+    "file:alembic/versions/ea0fba754aaa_invoices_invoice_lines_payments_.py": {
+      "name": "ea0fba754aaa_invoices_invoice_lines_payments_.py",
+      "type": "file",
+      "summary": "Migration creating the invoices, invoice_lines, and payments tables that form the core billing/checkout data model."
+    },
+    "file:app/schemas/__init__.py": {
+      "name": "__init__.py",
+      "type": "file",
+      "summary": "Empty package marker file for the app.schemas package containing Pydantic request/response schemas."
+    },
+    "file:app/security/__init__.py": {
+      "name": "__init__.py",
+      "type": "file",
+      "summary": "Empty package marker file for the app.security package containing authentication and authorization utilities."
+    },
+    "file:app/services/__init__.py": {
+      "name": "__init__.py",
+      "type": "file",
+      "summary": "Empty package marker file for the app.services package containing business-logic service modules."
+    },
+    "document:docs/frontend_initial/barstock_design.md": {
+      "name": "barstock_design.md",
+      "type": "document",
+      "summary": "Design specification describing Barstock's brand identity, color palette, typography, and the four core screen mockups (login, checkout, stock receiving, owner dashboard) plus responsive strategy."
+    },
+    "file:docs/frontend_initial/barstock_pos_inventory/code.html": {
+      "name": "code.html",
+      "type": "file",
+      "summary": "Static HTML mockup prototype for a POS inventory screen, part of the frontend design exploration deliverables."
+    },
+    "file:docs/frontend_initial/checkout_sales_counter/code.html": {
+      "name": "code.html",
+      "type": "file",
+      "summary": "Static HTML mockup prototype for the checkout/sales-counter screen where a cashier scans items and takes payment."
+    },
+    "document:docs/frontend_initial/DESIGN.md": {
+      "name": "DESIGN.md",
+      "type": "document",
+      "summary": "Design system reference covering brand/style, colors, typography, layout/spacing, elevation, shapes, and reusable components (PIN pad, scanned item row, stat card, buttons, inputs)."
+    },
+    "document:docs/frontend_initial/high_efficiency_retail_pos/DESIGN.md": {
+      "name": "DESIGN.md",
+      "type": "document",
+      "summary": "Design system reference for the 'high efficiency retail POS' variant, mirroring the main DESIGN.md's brand, color, typography, and component specifications."
+    },
+    "file:docs/frontend_initial/login_pin_pad/code.html": {
+      "name": "code.html",
+      "type": "file",
+      "summary": "Static HTML mockup prototype for the PIN-pad login screen used to authenticate shop staff at the counter."
+    },
+    "file:docs/frontend_initial/owner_dashboard_eod/code.html": {
+      "name": "code.html",
+      "type": "file",
+      "summary": "Static HTML mockup prototype for the owner dashboard and end-of-day (EOD) sign-off screen."
+    },
+    "file:docs/frontend_initial/stock_receiving_new_lot/code.html": {
+      "name": "code.html",
+      "type": "file",
+      "summary": "Static HTML mockup prototype for the stock-receiving screen used to record a new inventory lot."
+    },
+    "document:harness/05-issues/README.md": {
+      "name": "README.md",
+      "type": "document",
+      "summary": "Process documentation for the '05-issues' harness stage describing how project issues are tracked and their current status."
+    },
+    "file:tests/test_auth.py": {
+      "name": "test_auth.py",
+      "type": "file",
+      "summary": "Test suite covering login for superadmin, owner, receiver, and cashier roles, token validation, and superadmin username uniqueness constraints."
+    },
+    "file:tests/test_authorization.py": {
+      "name": "test_authorization.py",
+      "type": "file",
+      "summary": "Test suite verifying role-based access control, ensuring receiver/cashier roles get 403 on owner-only endpoints while superadmin can list all staff."
+    },
+    "file:tests/test_health.py": {
+      "name": "test_health.py",
+      "type": "file",
+      "summary": "Test suite for the liveness and readiness health-check endpoints, including verifying the readiness probe queries the database."
+    },
+    "file:tests/test_log_tables.py": {
+      "name": "test_log_tables.py",
+      "type": "file",
+      "summary": "Integration tests verifying that the invoicing_logs, stockin_logs, and admin_logs audit tables exist in the database and expose their required columns."
+    },
+    "file:tests/test_staff.py": {
+      "name": "test_staff.py",
+      "type": "file",
+      "summary": "Integration test suite covering staff-management endpoints: owner-created receiver/cashier accounts, role restrictions, duplicate username/phone conflict handling across and within shops, shop-scoped staff listing, and staff password reset authorization rules across owner, receiver, and superadmin roles."
+    },
+    "file:app/models/shop.py": {
+      "name": "shop.py",
+      "type": "file",
+      "summary": "SQLAlchemy ORM model defining the Shop entity, the tenant/store record holding shop code, GST and excise settings, invoice numbering state, and low-stock defaults for the single-counter liquor billing system."
+    },
+    "file:tests/conftest.py": {
+      "name": "conftest.py",
+      "type": "file",
+      "summary": "Pytest fixture module that provisions an isolated per-test Postgres database (via Alembic migrations and asyncpg), an async HTTP test client wired to the FastAPI app, and role-scoped user/client fixtures (owner, receiver, cashier, superadmin) shared across the test suite."
+    },
+    "file:tests/test_low_stock.py": {
+      "name": "test_low_stock.py",
+      "type": "file",
+      "summary": "Integration tests for the low-stock alert list endpoint, covering shop-level default thresholds, per-product threshold overrides, stock depletion via sales, RBAC visibility for owner/receiver roles, urgency sorting, and exclusion of inactive products."
+    },
+    "file:tests/test_products.py": {
+      "name": "test_products.py",
+      "type": "file",
+      "summary": "Integration tests for the product catalog API covering RBAC-gated creation, duplicate-barcode conflict handling, barcode lookup, shop-scoped listing (including superadmin cross-shop access), price/threshold updates, and CSV bulk import (happy path, per-row errors, missing columns, UTF-8 BOM handling)."
+    },
+    "file:tests/test_shops.py": {
+      "name": "test_shops.py",
+      "type": "file",
+      "summary": "Integration tests for shop configuration (GSTIN, excise duty rate) and invoice PDF generation, verifying RBAC restrictions, input validation, and that shop-specific tax settings and disclaimers render correctly on generated invoices rather than being hardcoded."
+    },
+    "document:harness/00-intake.md": {
+      "name": "00-intake.md",
+      "type": "document",
+      "summary": "Initial intake notes for the Barstock project, restating the problem, listing unknowns, decomposing the raw feature wishlist, and surveying existing commercial liquor-POS market options before Phase 0 sign-off."
+    },
+    "document:harness/01-branch-map.md": {
+      "name": "01-branch-map.md",
+      "type": "document",
+      "summary": "Structural map of the project split into 14 branches (personas, domain model, API surface, frontend, persistence, auth, integrations, observability, failure modes, testing, performance, deployment, compliance, and docs) used to sequence the Phase 2 grilling session."
+    },
+    "document:harness/02-ledger.md": {
+      "name": "02-ledger.md",
+      "type": "document",
+      "summary": "Running decisions ledger capturing numbered decisions (D-#) made during Phase 0 confirmation, the Phase 2 grill, a follow-up logging brainstorm, and the Phase 4 absence hunt, plus a list of open threads not yet resolved."
+    },
+    "document:harness/03-prd.md": {
+      "name": "03-prd.md",
+      "type": "document",
+      "summary": "Frozen product requirements document for Barstock, a scan-driven counter inventory and billing system for a liquor retail shop, covering goals, non-goals, per-branch requirements, personas, deferred v1 items, and an appendix reproducing the decisions ledger verbatim."
+    },
+    "document:harness/04-absences.md": {
+      "name": "04-absences.md",
+      "type": "document",
+      "summary": "Absence-hunt findings document listing requirements or edge cases missing from the earlier PRD draft (feeding decisions R-40 through R-46) and their disposition before the PRD was re-frozen."
+    },
+    "document:harness/prd_frontend.md": {
+      "name": "prd_frontend.md",
+      "type": "document",
+      "summary": "Frontend-specific PRD for the Barstock web SPA, defining the problem statement, solution approach, user stories, implementation and testing decisions, and out-of-scope items for the client application."
+    },
+    "file:frontend/src/auth/jwt.ts": {
+      "name": "jwt.ts",
+      "type": "file",
+      "summary": "Client-side JWT helper providing base64url payload decoding and expiry checking without any external dependency."
+    },
+    "file:frontend/src/components/PinPad.tsx": {
+      "name": "PinPad.tsx",
+      "type": "file",
+      "summary": "Reusable numeric keypad component used for PIN/phone/password entry with digit, backspace, clear, and submit callbacks plus keyboard support."
+    },
+    "file:frontend/src/main.tsx": {
+      "name": "main.tsx",
+      "type": "file",
+      "summary": "Application bootstrap entry point that mounts the React tree, wiring AuthProvider and ShopScopeProvider around the App component and importing global styles."
+    },
+    "file:frontend/src/pages/AdminPlaceholder.tsx": {
+      "name": "AdminPlaceholder.tsx",
+      "type": "file",
+      "summary": "Placeholder page shown for admin routes not yet implemented, displaying the current path for context."
+    },
+    "file:frontend/src/pages/ForbiddenPage.tsx": {
+      "name": "ForbiddenPage.tsx",
+      "type": "file",
+      "summary": "Error page shown when an authenticated user attempts to access a route their role does not permit."
+    },
+    "file:frontend/src/pages/HomeRedirect.tsx": {
+      "name": "HomeRedirect.tsx",
+      "type": "file",
+      "summary": "Redirect component that sends an authenticated user to the default landing page for their role."
+    },
+    "file:frontend/src/pages/SuperadminLoginPage.tsx": {
+      "name": "SuperadminLoginPage.tsx",
+      "type": "file",
+      "summary": "Login page for superadmin users using username/password fields, authenticating via the API and redirecting to the superadmin dashboard."
+    },
+    "file:frontend/src/api/voids.ts": {
+      "name": "voids.ts",
+      "type": "file",
+      "summary": "API calls to request, approve, and reject invoice voids, and list pending voids for approval."
+    },
+    "file:frontend/src/pages/InvoiceLookupPage.tsx": {
+      "name": "InvoiceLookupPage.tsx",
+      "type": "file",
+      "summary": "Page allowing staff to look up an invoice by numeric ID, view its line items and payments, and request a void."
+    },
+    "file:frontend/src/components/ShopPicker.tsx": {
+      "name": "ShopPicker.tsx",
+      "type": "file",
+      "summary": "Dropdown component shown to superadmins that lists all shops and lets them switch their 'acting shop' scope, persisted via ShopScopeProvider."
+    },
+    "file:frontend/src/pages/ShopConfigPage.tsx": {
+      "name": "ShopConfigPage.tsx",
+      "type": "file",
+      "summary": "Owner/superadmin settings page for viewing and editing shop configuration (GSTIN, excise duty rate, low-stock threshold), with load/save state handling and shop-scope awareness."
+    },
+    "file:frontend/src/api/finalize-queue.ts": {
+      "name": "finalize-queue.ts",
+      "type": "file",
+      "summary": "Implements a localStorage-backed offline queue for checkout finalize requests, letting sales be recorded locally and later flushed to the API when connectivity returns."
+    },
+    "file:frontend/src/hooks/useOnlineStatus.ts": {
+      "name": "useOnlineStatus.ts",
+      "type": "file",
+      "summary": "React hook that tracks browser online/offline connectivity by subscribing to window online and offline events."
+    },
+    "file:frontend/src/hooks/useRetryQueue.ts": {
+      "name": "useRetryQueue.ts",
+      "type": "file",
+      "summary": "React hook that combines online-status detection with the finalize queue to automatically flush pending offline checkouts when the app regains connectivity or on a polling interval."
+    },
+    "file:frontend/index.html": {
+      "name": "index.html",
+      "type": "file",
+      "summary": "Vite application HTML shell that provides the root DOM mount point and loads the TypeScript entry module for the React SPA."
+    },
+    "config:frontend/package.json": {
+      "name": "package.json",
+      "type": "config",
+      "summary": "Root project manifest for the barstock-frontend React/TypeScript SPA, declaring dependencies (React Router, React DOM), dev tooling (Vite, ESLint, Tailwind, Playwright, openapi-typescript) and scripts for dev, build, lint, API type generation, and e2e testing."
+    },
+    "config:frontend/tsconfig.app.json": {
+      "name": "tsconfig.app.json",
+      "type": "config",
+      "summary": "TypeScript project-reference configuration for the application source code (compiler options plus include/exclude paths), separate from node tooling and e2e test configs."
+    },
+    "config:frontend/tsconfig.e2e.json": {
+      "name": "tsconfig.e2e.json",
+      "type": "config",
+      "summary": "TypeScript project-reference configuration scoped to Playwright end-to-end test files, with its own compiler options and include paths."
+    },
+    "config:frontend/tsconfig.json": {
+      "name": "tsconfig.json",
+      "type": "config",
+      "summary": "Root TypeScript solution file that references the app, node, and e2e project configs via TypeScript's project-references mechanism, enabling the composite build (tsc -b) used in the build script."
+    },
+    "config:frontend/tsconfig.node.json": {
+      "name": "tsconfig.node.json",
+      "type": "config",
+      "summary": "TypeScript project-reference configuration for Node-side tooling (e.g. Vite config file), with its own compiler options and include paths distinct from the app and e2e configs."
+    },
+    "config:frontend/eslint.config.js": {
+      "name": "eslint.config.js",
+      "type": "config",
+      "summary": "Flat ESLint configuration for the React/TypeScript frontend, wiring up TypeScript, React hooks, and React Refresh linting rules across the project."
+    },
+    "config:frontend/playwright.config.ts": {
+      "name": "playwright.config.ts",
+      "type": "config",
+      "summary": "Playwright test runner configuration pointing at the e2e/ test directory, defining the base URL, Chromium project, retry/trace policy, and a webServer block that boots the built frontend against the FastAPI backend for CI."
+    },
+    "config:frontend/postcss.config.cjs": {
+      "name": "postcss.config.cjs",
+      "type": "config",
+      "summary": "PostCSS configuration enabling the Tailwind CSS and Autoprefixer plugins for the build pipeline."
+    },
+    "file:frontend/src/index.css": {
+      "name": "index.css",
+      "type": "file",
+      "summary": "Global stylesheet that loads Tailwind's base, components, and utilities layers and defines a few root-level style resets for the application."
+    },
+    "file:frontend/src/theme/tokens.ts": {
+      "name": "tokens.ts",
+      "type": "file",
+      "summary": "Design token module exporting a shared `tokens` object (colors, spacing, and related design constants) consumed by the Tailwind configuration to keep styling consistent across the app."
+    },
+    "file:frontend/src/vite-env.d.ts": {
+      "name": "vite-env.d.ts",
+      "type": "file",
+      "summary": "Vite-generated ambient type declaration file that pulls in Vite's client types for the TypeScript compiler."
+    },
+    "config:frontend/tailwind.config.ts": {
+      "name": "tailwind.config.ts",
+      "type": "config",
+      "summary": "Tailwind CSS configuration that extends the default theme using the shared design tokens module and sets the content paths for class scanning."
+    },
+    "config:frontend/vite.config.ts": {
+      "name": "vite.config.ts",
+      "type": "config",
+      "summary": "Vite build configuration wiring up the React plugin and dev server settings for the frontend application."
+    }
+  },
+  "totalNodes": 115,
+  "totalEdges": 183
+}

@@ -1,0 +1,1822 @@
+{
+  "scriptCompleted": true,
+  "filesAnalyzed": 10,
+  "filesSkipped": [],
+  "results": [
+    {
+      "path": "app/api/__init__.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 1,
+      "nonEmptyLines": 1,
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "app/api/_test_only.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 16,
+      "nonEmptyLines": 11,
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "app/api/dashboard.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 235,
+      "nonEmptyLines": 212,
+      "functions": [
+        {
+          "name": "sign_off",
+          "startLine": 56,
+          "endLine": 92,
+          "params": [
+            "payload",
+            "db",
+            "_user"
+          ]
+        },
+        {
+          "name": "eod_totals",
+          "startLine": 100,
+          "endLine": 126,
+          "params": [
+            "db",
+            "_user",
+            "business_date",
+            "shop_id"
+          ]
+        },
+        {
+          "name": "eod_history",
+          "startLine": 134,
+          "endLine": 162,
+          "params": [
+            "db",
+            "_user",
+            "from_date",
+            "to_date",
+            "limit",
+            "shop_id"
+          ]
+        },
+        {
+          "name": "void_queue",
+          "startLine": 170,
+          "endLine": 196,
+          "params": [
+            "db",
+            "_user",
+            "limit",
+            "shop_id"
+          ]
+        },
+        {
+          "name": "low_stock",
+          "startLine": 203,
+          "endLine": 235,
+          "params": [
+            "db",
+            "_user",
+            "shop_id"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "sign_off",
+          "line": 50,
+          "isDefault": false
+        },
+        {
+          "name": "eod_totals",
+          "line": 95,
+          "isDefault": false
+        },
+        {
+          "name": "eod_history",
+          "line": 129,
+          "isDefault": false
+        },
+        {
+          "name": "void_queue",
+          "line": 165,
+          "isDefault": false
+        },
+        {
+          "name": "low_stock",
+          "line": 198,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "sign_off",
+          "callee": "Depends",
+          "lineNumber": 59
+        },
+        {
+          "caller": "sign_off",
+          "callee": "require_role",
+          "lineNumber": 59
+        },
+        {
+          "caller": "sign_off",
+          "callee": "resolve_write_shop_id",
+          "lineNumber": 62
+        },
+        {
+          "caller": "sign_off",
+          "callee": "unit_of_work",
+          "lineNumber": 65
+        },
+        {
+          "caller": "sign_off",
+          "callee": "sign_off_day",
+          "lineNumber": 66
+        },
+        {
+          "caller": "sign_off",
+          "callee": "map_error_to_http",
+          "lineNumber": 74
+        },
+        {
+          "caller": "sign_off",
+          "callee": "log.info",
+          "lineNumber": 80
+        },
+        {
+          "caller": "sign_off",
+          "callee": "payload.business_date.isoformat",
+          "lineNumber": 84
+        },
+        {
+          "caller": "sign_off",
+          "callee": "SignOffResponse",
+          "lineNumber": 87
+        },
+        {
+          "caller": "eod_totals",
+          "callee": "Depends",
+          "lineNumber": 102
+        },
+        {
+          "caller": "eod_totals",
+          "callee": "require_role",
+          "lineNumber": 102
+        },
+        {
+          "caller": "eod_totals",
+          "callee": "Query",
+          "lineNumber": 105
+        },
+        {
+          "caller": "eod_totals",
+          "callee": "Query",
+          "lineNumber": 108
+        },
+        {
+          "caller": "eod_totals",
+          "callee": "resolve_write_shop_id",
+          "lineNumber": 111
+        },
+        {
+          "caller": "eod_totals",
+          "callee": "get_day_totals",
+          "lineNumber": 112
+        },
+        {
+          "caller": "eod_totals",
+          "callee": "EodTotalsResponse",
+          "lineNumber": 115
+        },
+        {
+          "caller": "eod_totals",
+          "callee": "PaymentModeTotal",
+          "lineNumber": 123
+        },
+        {
+          "caller": "eod_totals",
+          "callee": "sorted",
+          "lineNumber": 124
+        },
+        {
+          "caller": "eod_totals",
+          "callee": "totals.payments_by_mode.items",
+          "lineNumber": 124
+        },
+        {
+          "caller": "eod_history",
+          "callee": "Depends",
+          "lineNumber": 136
+        },
+        {
+          "caller": "eod_history",
+          "callee": "require_role",
+          "lineNumber": 136
+        },
+        {
+          "caller": "eod_history",
+          "callee": "Query",
+          "lineNumber": 137
+        },
+        {
+          "caller": "eod_history",
+          "callee": "Query",
+          "lineNumber": 138
+        },
+        {
+          "caller": "eod_history",
+          "callee": "Query",
+          "lineNumber": 139
+        },
+        {
+          "caller": "eod_history",
+          "callee": "Query",
+          "lineNumber": 141
+        },
+        {
+          "caller": "eod_history",
+          "callee": "resolve_write_shop_id",
+          "lineNumber": 144
+        },
+        {
+          "caller": "eod_history",
+          "callee": "list_signoff_history",
+          "lineNumber": 145
+        },
+        {
+          "caller": "eod_history",
+          "callee": "SignOffHistoryResponse",
+          "lineNumber": 152
+        },
+        {
+          "caller": "eod_history",
+          "callee": "SignOffResponse",
+          "lineNumber": 154
+        },
+        {
+          "caller": "void_queue",
+          "callee": "Depends",
+          "lineNumber": 172
+        },
+        {
+          "caller": "void_queue",
+          "callee": "require_role",
+          "lineNumber": 172
+        },
+        {
+          "caller": "void_queue",
+          "callee": "Query",
+          "lineNumber": 173
+        },
+        {
+          "caller": "void_queue",
+          "callee": "Query",
+          "lineNumber": 175
+        },
+        {
+          "caller": "void_queue",
+          "callee": "resolve_write_shop_id",
+          "lineNumber": 178
+        },
+        {
+          "caller": "void_queue",
+          "callee": "list_pending_voids",
+          "lineNumber": 179
+        },
+        {
+          "caller": "void_queue",
+          "callee": "db.refresh",
+          "lineNumber": 184
+        },
+        {
+          "caller": "void_queue",
+          "callee": "db.refresh",
+          "lineNumber": 188
+        },
+        {
+          "caller": "void_queue",
+          "callee": "db.refresh",
+          "lineNumber": 194
+        },
+        {
+          "caller": "void_queue",
+          "callee": "invoices.append",
+          "lineNumber": 195
+        },
+        {
+          "caller": "void_queue",
+          "callee": "InvoicePublic.model_validate",
+          "lineNumber": 195
+        },
+        {
+          "caller": "void_queue",
+          "callee": "PendingVoidResponse",
+          "lineNumber": 196
+        },
+        {
+          "caller": "low_stock",
+          "callee": "Depends",
+          "lineNumber": 205
+        },
+        {
+          "caller": "low_stock",
+          "callee": "require_role",
+          "lineNumber": 205
+        },
+        {
+          "caller": "low_stock",
+          "callee": "Query",
+          "lineNumber": 207
+        },
+        {
+          "caller": "low_stock",
+          "callee": "resolve_write_shop_id",
+          "lineNumber": 220
+        },
+        {
+          "caller": "low_stock",
+          "callee": "compute_low_stock",
+          "lineNumber": 221
+        },
+        {
+          "caller": "low_stock",
+          "callee": "LowStockResponse",
+          "lineNumber": 222
+        },
+        {
+          "caller": "low_stock",
+          "callee": "LowStockItem",
+          "lineNumber": 224
+        },
+        {
+          "caller": "low_stock",
+          "callee": "datetime.now",
+          "lineNumber": 234
+        }
+      ],
+      "metrics": {
+        "importCount": 5,
+        "exportCount": 5,
+        "functionCount": 5,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "app/api/health.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 20,
+      "nonEmptyLines": 13,
+      "functions": [
+        {
+          "name": "liveness",
+          "startLine": 13,
+          "endLine": 14,
+          "params": []
+        },
+        {
+          "name": "readiness",
+          "startLine": 18,
+          "endLine": 20,
+          "params": [
+            "db"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "liveness",
+          "line": 12,
+          "isDefault": false
+        },
+        {
+          "name": "readiness",
+          "line": 17,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "readiness",
+          "callee": "db.execute",
+          "lineNumber": 19
+        },
+        {
+          "caller": "readiness",
+          "callee": "text",
+          "lineNumber": 19
+        }
+      ],
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 2,
+        "functionCount": 2,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "app/api/shops.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 114,
+      "nonEmptyLines": 98,
+      "functions": [
+        {
+          "name": "list_shops",
+          "startLine": 38,
+          "endLine": 43,
+          "params": [
+            "db",
+            "_user"
+          ]
+        },
+        {
+          "name": "get_my_shop",
+          "startLine": 51,
+          "endLine": 73,
+          "params": [
+            "db",
+            "_user",
+            "shop_id"
+          ]
+        },
+        {
+          "name": "update_my_shop",
+          "startLine": 81,
+          "endLine": 114,
+          "params": [
+            "payload",
+            "db",
+            "_user"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "list_shops",
+          "line": 33,
+          "isDefault": false
+        },
+        {
+          "name": "get_my_shop",
+          "line": 46,
+          "isDefault": false
+        },
+        {
+          "name": "update_my_shop",
+          "line": 76,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "list_shops",
+          "callee": "Depends",
+          "lineNumber": 40
+        },
+        {
+          "caller": "list_shops",
+          "callee": "require_role",
+          "lineNumber": 40
+        },
+        {
+          "caller": "list_shops",
+          "callee": "(await db.execute(select(Shop).order_by(Shop.name))).scalars().all",
+          "lineNumber": 42
+        },
+        {
+          "caller": "list_shops",
+          "callee": "(await db.execute(select(Shop).order_by(Shop.name))).scalars",
+          "lineNumber": 42
+        },
+        {
+          "caller": "list_shops",
+          "callee": "db.execute",
+          "lineNumber": 42
+        },
+        {
+          "caller": "list_shops",
+          "callee": "select(Shop).order_by",
+          "lineNumber": 42
+        },
+        {
+          "caller": "list_shops",
+          "callee": "select",
+          "lineNumber": 42
+        },
+        {
+          "caller": "list_shops",
+          "callee": "ShopSummary.model_validate",
+          "lineNumber": 43
+        },
+        {
+          "caller": "get_my_shop",
+          "callee": "Depends",
+          "lineNumber": 53
+        },
+        {
+          "caller": "get_my_shop",
+          "callee": "require_role",
+          "lineNumber": 53
+        },
+        {
+          "caller": "get_my_shop",
+          "callee": "Query",
+          "lineNumber": 55
+        },
+        {
+          "caller": "get_my_shop",
+          "callee": "resolve_write_shop_id",
+          "lineNumber": 58
+        },
+        {
+          "caller": "get_my_shop",
+          "callee": "(\r\n        await db.execute(select(Shop).where(Shop.id == actor_shop_id))\r\n    ).scalar_one_or_none",
+          "lineNumber": 59
+        },
+        {
+          "caller": "get_my_shop",
+          "callee": "db.execute",
+          "lineNumber": 60
+        },
+        {
+          "caller": "get_my_shop",
+          "callee": "select(Shop).where",
+          "lineNumber": 60
+        },
+        {
+          "caller": "get_my_shop",
+          "callee": "select",
+          "lineNumber": 60
+        },
+        {
+          "caller": "get_my_shop",
+          "callee": "ShopPublic",
+          "lineNumber": 65
+        },
+        {
+          "caller": "get_my_shop",
+          "callee": "ShopPublic.model_validate",
+          "lineNumber": 73
+        },
+        {
+          "caller": "update_my_shop",
+          "callee": "Depends",
+          "lineNumber": 84
+        },
+        {
+          "caller": "update_my_shop",
+          "callee": "require_role",
+          "lineNumber": 84
+        },
+        {
+          "caller": "update_my_shop",
+          "callee": "resolve_write_shop_id",
+          "lineNumber": 87
+        },
+        {
+          "caller": "update_my_shop",
+          "callee": "(\r\n        await db.execute(select(Shop).where(Shop.id == actor_shop_id))\r\n    ).scalar_one_or_none",
+          "lineNumber": 89
+        },
+        {
+          "caller": "update_my_shop",
+          "callee": "db.execute",
+          "lineNumber": 90
+        },
+        {
+          "caller": "update_my_shop",
+          "callee": "select(Shop).where",
+          "lineNumber": 90
+        },
+        {
+          "caller": "update_my_shop",
+          "callee": "select",
+          "lineNumber": 90
+        },
+        {
+          "caller": "update_my_shop",
+          "callee": "ShopPublic",
+          "lineNumber": 93
+        },
+        {
+          "caller": "update_my_shop",
+          "callee": "payload.model_dump",
+          "lineNumber": 102
+        },
+        {
+          "caller": "update_my_shop",
+          "callee": "data.items",
+          "lineNumber": 103
+        },
+        {
+          "caller": "update_my_shop",
+          "callee": "setattr",
+          "lineNumber": 104
+        },
+        {
+          "caller": "update_my_shop",
+          "callee": "db.commit",
+          "lineNumber": 105
+        },
+        {
+          "caller": "update_my_shop",
+          "callee": "db.refresh",
+          "lineNumber": 106
+        },
+        {
+          "caller": "update_my_shop",
+          "callee": "log.info",
+          "lineNumber": 108
+        },
+        {
+          "caller": "update_my_shop",
+          "callee": "sorted",
+          "lineNumber": 112
+        },
+        {
+          "caller": "update_my_shop",
+          "callee": "data.keys",
+          "lineNumber": 112
+        },
+        {
+          "caller": "update_my_shop",
+          "callee": "ShopPublic.model_validate",
+          "lineNumber": 114
+        }
+      ],
+      "metrics": {
+        "importCount": 5,
+        "exportCount": 3,
+        "functionCount": 3,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "app/logging_config.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 69,
+      "nonEmptyLines": 55,
+      "functions": [
+        {
+          "name": "configure_logging",
+          "startLine": 20,
+          "endLine": 65,
+          "params": [
+            "level"
+          ]
+        },
+        {
+          "name": "get_logger",
+          "startLine": 68,
+          "endLine": 69,
+          "params": [
+            "name"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "configure_logging",
+          "line": 20,
+          "isDefault": false
+        },
+        {
+          "name": "get_logger",
+          "line": 68,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "configure_logging",
+          "callee": "getattr",
+          "lineNumber": 22
+        },
+        {
+          "caller": "configure_logging",
+          "callee": "level.upper",
+          "lineNumber": 22
+        },
+        {
+          "caller": "configure_logging",
+          "callee": "structlog.processors.TimeStamper",
+          "lineNumber": 29
+        },
+        {
+          "caller": "configure_logging",
+          "callee": "structlog.processors.StackInfoRenderer",
+          "lineNumber": 30
+        },
+        {
+          "caller": "configure_logging",
+          "callee": "structlog.configure",
+          "lineNumber": 34
+        },
+        {
+          "caller": "configure_logging",
+          "callee": "structlog.make_filtering_bound_logger",
+          "lineNumber": 39
+        },
+        {
+          "caller": "configure_logging",
+          "callee": "structlog.stdlib.LoggerFactory",
+          "lineNumber": 40
+        },
+        {
+          "caller": "configure_logging",
+          "callee": "structlog.stdlib.ProcessorFormatter",
+          "lineNumber": 44
+        },
+        {
+          "caller": "configure_logging",
+          "callee": "structlog.processors.JSONRenderer",
+          "lineNumber": 50
+        },
+        {
+          "caller": "configure_logging",
+          "callee": "logging.StreamHandler",
+          "lineNumber": 54
+        },
+        {
+          "caller": "configure_logging",
+          "callee": "handler.setFormatter",
+          "lineNumber": 55
+        },
+        {
+          "caller": "configure_logging",
+          "callee": "logging.getLogger",
+          "lineNumber": 57
+        },
+        {
+          "caller": "configure_logging",
+          "callee": "root.setLevel",
+          "lineNumber": 60
+        },
+        {
+          "caller": "configure_logging",
+          "callee": "logging.getLogger(noisy).setLevel",
+          "lineNumber": 65
+        },
+        {
+          "caller": "configure_logging",
+          "callee": "logging.getLogger",
+          "lineNumber": 65
+        },
+        {
+          "caller": "configure_logging",
+          "callee": "max",
+          "lineNumber": 65
+        },
+        {
+          "caller": "get_logger",
+          "callee": "structlog.get_logger",
+          "lineNumber": 69
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 2,
+        "functionCount": 2,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "app/main.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 149,
+      "nonEmptyLines": 131,
+      "functions": [
+        {
+          "name": "lifespan",
+          "startLine": 32,
+          "endLine": 61,
+          "params": [
+            "_"
+          ]
+        },
+        {
+          "name": "_low_stock_loop",
+          "startLine": 64,
+          "endLine": 107,
+          "params": []
+        },
+        {
+          "name": "create_app",
+          "startLine": 110,
+          "endLine": 146,
+          "params": []
+        }
+      ],
+      "exports": [
+        {
+          "name": "lifespan",
+          "line": 31,
+          "isDefault": false
+        },
+        {
+          "name": "_low_stock_loop",
+          "line": 64,
+          "isDefault": false
+        },
+        {
+          "name": "create_app",
+          "line": 110,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "lifespan",
+          "callee": "get_settings",
+          "lineNumber": 33
+        },
+        {
+          "caller": "lifespan",
+          "callee": "configure_logging",
+          "lineNumber": 34
+        },
+        {
+          "caller": "lifespan",
+          "callee": "get_logger",
+          "lineNumber": 35
+        },
+        {
+          "caller": "lifespan",
+          "callee": "log.info",
+          "lineNumber": 36
+        },
+        {
+          "caller": "lifespan",
+          "callee": "get_engine",
+          "lineNumber": 43
+        },
+        {
+          "caller": "lifespan",
+          "callee": "log.info",
+          "lineNumber": 44
+        },
+        {
+          "caller": "lifespan",
+          "callee": "str(engine.url).split",
+          "lineNumber": 44
+        },
+        {
+          "caller": "lifespan",
+          "callee": "str",
+          "lineNumber": 44
+        },
+        {
+          "caller": "lifespan",
+          "callee": "asyncio.create_task",
+          "lineNumber": 52
+        },
+        {
+          "caller": "lifespan",
+          "callee": "_low_stock_loop",
+          "lineNumber": 52
+        },
+        {
+          "caller": "lifespan",
+          "callee": "bg_task.cancel",
+          "lineNumber": 58
+        },
+        {
+          "caller": "lifespan",
+          "callee": "contextlib.suppress",
+          "lineNumber": 59
+        },
+        {
+          "caller": "lifespan",
+          "callee": "log.info",
+          "lineNumber": 61
+        },
+        {
+          "caller": "_low_stock_loop",
+          "callee": "get_settings",
+          "lineNumber": 72
+        },
+        {
+          "caller": "_low_stock_loop",
+          "callee": "max",
+          "lineNumber": 73
+        },
+        {
+          "caller": "_low_stock_loop",
+          "callee": "get_logger",
+          "lineNumber": 74
+        },
+        {
+          "caller": "_low_stock_loop",
+          "callee": "log.info",
+          "lineNumber": 75
+        },
+        {
+          "caller": "_low_stock_loop",
+          "callee": "asyncio.sleep",
+          "lineNumber": 79
+        },
+        {
+          "caller": "_low_stock_loop",
+          "callee": "get_sessionmaker",
+          "lineNumber": 80
+        },
+        {
+          "caller": "_low_stock_loop",
+          "callee": "session_factory",
+          "lineNumber": 81
+        },
+        {
+          "caller": "_low_stock_loop",
+          "callee": "session.begin",
+          "lineNumber": 81
+        },
+        {
+          "caller": "_low_stock_loop",
+          "callee": "(\r\n                    await session.execute(select(Shop.id))\r\n                ).scalars().all",
+          "lineNumber": 82
+        },
+        {
+          "caller": "_low_stock_loop",
+          "callee": "(\r\n                    await session.execute(select(Shop.id))\r\n                ).scalars",
+          "lineNumber": 82
+        },
+        {
+          "caller": "_low_stock_loop",
+          "callee": "session.execute",
+          "lineNumber": 83
+        },
+        {
+          "caller": "_low_stock_loop",
+          "callee": "select",
+          "lineNumber": 83
+        },
+        {
+          "caller": "_low_stock_loop",
+          "callee": "compute_low_stock",
+          "lineNumber": 87
+        },
+        {
+          "caller": "_low_stock_loop",
+          "callee": "log.info",
+          "lineNumber": 89
+        },
+        {
+          "caller": "_low_stock_loop",
+          "callee": "len",
+          "lineNumber": 92
+        },
+        {
+          "caller": "_low_stock_loop",
+          "callee": "len",
+          "lineNumber": 99
+        },
+        {
+          "caller": "_low_stock_loop",
+          "callee": "log.info",
+          "lineNumber": 101
+        },
+        {
+          "caller": "_low_stock_loop",
+          "callee": "log.error",
+          "lineNumber": 105
+        },
+        {
+          "caller": "_low_stock_loop",
+          "callee": "str",
+          "lineNumber": 105
+        },
+        {
+          "caller": "create_app",
+          "callee": "get_settings",
+          "lineNumber": 111
+        },
+        {
+          "caller": "create_app",
+          "callee": "FastAPI",
+          "lineNumber": 112
+        },
+        {
+          "caller": "create_app",
+          "callee": "app.add_middleware",
+          "lineNumber": 122
+        },
+        {
+          "caller": "create_app",
+          "callee": "app.include_router",
+          "lineNumber": 130
+        },
+        {
+          "caller": "create_app",
+          "callee": "app.include_router",
+          "lineNumber": 131
+        },
+        {
+          "caller": "create_app",
+          "callee": "app.include_router",
+          "lineNumber": 132
+        },
+        {
+          "caller": "create_app",
+          "callee": "app.include_router",
+          "lineNumber": 133
+        },
+        {
+          "caller": "create_app",
+          "callee": "app.include_router",
+          "lineNumber": 134
+        },
+        {
+          "caller": "create_app",
+          "callee": "app.include_router",
+          "lineNumber": 135
+        },
+        {
+          "caller": "create_app",
+          "callee": "app.include_router",
+          "lineNumber": 136
+        },
+        {
+          "caller": "create_app",
+          "callee": "app.include_router",
+          "lineNumber": 137
+        },
+        {
+          "caller": "create_app",
+          "callee": "app.include_router",
+          "lineNumber": 138
+        },
+        {
+          "caller": "create_app",
+          "callee": "app.include_router",
+          "lineNumber": 139
+        },
+        {
+          "caller": "create_app",
+          "callee": "app.include_router",
+          "lineNumber": 144
+        }
+      ],
+      "metrics": {
+        "importCount": 15,
+        "exportCount": 3,
+        "functionCount": 3,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "app/schemas/eod.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 80,
+      "nonEmptyLines": 58,
+      "classes": [
+        {
+          "name": "SignOffRequest",
+          "startLine": 12,
+          "endLine": 23,
+          "methods": [
+            "_not_far_past"
+          ],
+          "properties": [
+            "business_date",
+            "notes",
+            "shop_id"
+          ]
+        },
+        {
+          "name": "SignOffResponse",
+          "startLine": 26,
+          "endLine": 30,
+          "methods": [],
+          "properties": [
+            "business_date",
+            "signed_off_at",
+            "signed_off_by_user_id",
+            "invoices_signed_off"
+          ]
+        },
+        {
+          "name": "PaymentModeTotal",
+          "startLine": 33,
+          "endLine": 35,
+          "methods": [],
+          "properties": [
+            "mode",
+            "amount"
+          ]
+        },
+        {
+          "name": "EodTotalsResponse",
+          "startLine": 38,
+          "endLine": 45,
+          "methods": [],
+          "properties": [
+            "business_date",
+            "signed_off",
+            "invoice_count",
+            "revenue",
+            "voided_count",
+            "reversal_count",
+            "payments_by_mode"
+          ]
+        },
+        {
+          "name": "SignOffHistoryResponse",
+          "startLine": 48,
+          "endLine": 49,
+          "methods": [],
+          "properties": [
+            "signoffs"
+          ]
+        },
+        {
+          "name": "PendingVoidResponse",
+          "startLine": 52,
+          "endLine": 53,
+          "methods": [],
+          "properties": [
+            "invoices"
+          ]
+        },
+        {
+          "name": "LowStockItem",
+          "startLine": 55,
+          "endLine": 61,
+          "methods": [],
+          "properties": [
+            "product_id",
+            "barcode",
+            "brand",
+            "size_label",
+            "current_stock",
+            "effective_threshold"
+          ]
+        },
+        {
+          "name": "LowStockResponse",
+          "startLine": 64,
+          "endLine": 68,
+          "methods": [],
+          "properties": [
+            "items",
+            "evaluated_at"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "SignOffRequest",
+          "line": 12,
+          "isDefault": false
+        },
+        {
+          "name": "SignOffResponse",
+          "line": 26,
+          "isDefault": false
+        },
+        {
+          "name": "PaymentModeTotal",
+          "line": 33,
+          "isDefault": false
+        },
+        {
+          "name": "EodTotalsResponse",
+          "line": 38,
+          "isDefault": false
+        },
+        {
+          "name": "SignOffHistoryResponse",
+          "line": 48,
+          "isDefault": false
+        },
+        {
+          "name": "PendingVoidResponse",
+          "line": 52,
+          "isDefault": false
+        },
+        {
+          "name": "LowStockItem",
+          "line": 55,
+          "isDefault": false
+        },
+        {
+          "name": "LowStockResponse",
+          "line": 64,
+          "isDefault": false
+        }
+      ],
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 8,
+        "functionCount": 0,
+        "classCount": 8
+      }
+    },
+    {
+      "path": "app/schemas/shop.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 67,
+      "nonEmptyLines": 51,
+      "classes": [
+        {
+          "name": "ShopPublic",
+          "startLine": 12,
+          "endLine": 22,
+          "methods": [],
+          "properties": [
+            "id",
+            "name",
+            "code",
+            "gstin",
+            "excise_duty_rate",
+            "low_stock_threshold_default"
+          ]
+        },
+        {
+          "name": "ShopSummary",
+          "startLine": 25,
+          "endLine": 32,
+          "methods": [],
+          "properties": [
+            "id",
+            "name",
+            "code"
+          ]
+        },
+        {
+          "name": "ShopUpdate",
+          "startLine": 35,
+          "endLine": 67,
+          "methods": [
+            "_gstin_shape"
+          ],
+          "properties": [
+            "name",
+            "gstin",
+            "excise_duty_rate",
+            "low_stock_threshold_default",
+            "shop_id"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "ShopPublic",
+          "line": 12,
+          "isDefault": false
+        },
+        {
+          "name": "ShopSummary",
+          "line": 25,
+          "isDefault": false
+        },
+        {
+          "name": "ShopUpdate",
+          "line": 35,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "_gstin_shape",
+          "callee": "v.strip",
+          "lineNumber": 64
+        },
+        {
+          "caller": "_gstin_shape",
+          "callee": "_GSTIN_RE.match",
+          "lineNumber": 65
+        },
+        {
+          "caller": "_gstin_shape",
+          "callee": "ValueError",
+          "lineNumber": 66
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 3,
+        "functionCount": 0,
+        "classCount": 3
+      }
+    },
+    {
+      "path": "app/services/eod.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 253,
+      "nonEmptyLines": 220,
+      "functions": [
+        {
+          "name": "_day_bounds",
+          "startLine": 66,
+          "endLine": 70,
+          "params": [
+            "business_date"
+          ]
+        },
+        {
+          "name": "sign_off_day",
+          "startLine": 73,
+          "endLine": 139,
+          "params": [
+            "db",
+            "shop_id",
+            "business_date",
+            "signed_off_by_user_id",
+            "notes"
+          ]
+        },
+        {
+          "name": "get_day_totals",
+          "startLine": 142,
+          "endLine": 202,
+          "params": [
+            "db",
+            "shop_id",
+            "business_date"
+          ]
+        },
+        {
+          "name": "list_signoff_history",
+          "startLine": 205,
+          "endLine": 222,
+          "params": [
+            "db",
+            "shop_id",
+            "from_date",
+            "to_date",
+            "limit"
+          ]
+        },
+        {
+          "name": "list_pending_voids",
+          "startLine": 225,
+          "endLine": 242,
+          "params": [
+            "db",
+            "shop_id",
+            "limit"
+          ]
+        }
+      ],
+      "classes": [
+        {
+          "name": "EodError",
+          "startLine": 42,
+          "endLine": 46,
+          "methods": [
+            "__init__"
+          ],
+          "properties": []
+        },
+        {
+          "name": "SignOffResult",
+          "startLine": 50,
+          "endLine": 52,
+          "methods": [],
+          "properties": [
+            "sign_off",
+            "invoices_signed_off"
+          ]
+        },
+        {
+          "name": "EodTotals",
+          "startLine": 56,
+          "endLine": 63,
+          "methods": [],
+          "properties": [
+            "business_date",
+            "signed_off",
+            "invoice_count",
+            "revenue",
+            "voided_count",
+            "reversal_count",
+            "payments_by_mode"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "EodError",
+          "line": 42,
+          "isDefault": false
+        },
+        {
+          "name": "SignOffResult",
+          "line": 49,
+          "isDefault": false
+        },
+        {
+          "name": "EodTotals",
+          "line": 55,
+          "isDefault": false
+        },
+        {
+          "name": "_day_bounds",
+          "line": 66,
+          "isDefault": false
+        },
+        {
+          "name": "sign_off_day",
+          "line": 73,
+          "isDefault": false
+        },
+        {
+          "name": "get_day_totals",
+          "line": 142,
+          "isDefault": false
+        },
+        {
+          "name": "list_signoff_history",
+          "line": 205,
+          "isDefault": false
+        },
+        {
+          "name": "list_pending_voids",
+          "line": 225,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "__init__",
+          "callee": "super().__init__",
+          "lineNumber": 44
+        },
+        {
+          "caller": "__init__",
+          "callee": "super",
+          "lineNumber": 44
+        },
+        {
+          "caller": "_day_bounds",
+          "callee": "datetime.combine",
+          "lineNumber": 68
+        },
+        {
+          "caller": "_day_bounds",
+          "callee": "timedelta",
+          "lineNumber": 69
+        },
+        {
+          "caller": "sign_off_day",
+          "callee": "date.today",
+          "lineNumber": 88
+        },
+        {
+          "caller": "sign_off_day",
+          "callee": "EodError",
+          "lineNumber": 89
+        },
+        {
+          "caller": "sign_off_day",
+          "callee": "(\r\n        await db.execute(\r\n            select(EodSignOff).where(\r\n                EodSignOff.shop_id == shop_id,\r\n                EodSignOff.business_date == business_date,\r\n            )\r\n        )\r\n    ).scalar_one_or_none",
+          "lineNumber": 97
+        },
+        {
+          "caller": "sign_off_day",
+          "callee": "db.execute",
+          "lineNumber": 98
+        },
+        {
+          "caller": "sign_off_day",
+          "callee": "select(EodSignOff).where",
+          "lineNumber": 99
+        },
+        {
+          "caller": "sign_off_day",
+          "callee": "select",
+          "lineNumber": 99
+        },
+        {
+          "caller": "sign_off_day",
+          "callee": "EodError",
+          "lineNumber": 106
+        },
+        {
+          "caller": "sign_off_day",
+          "callee": "business_date.isoformat",
+          "lineNumber": 108
+        },
+        {
+          "caller": "sign_off_day",
+          "callee": "_day_bounds",
+          "lineNumber": 111
+        },
+        {
+          "caller": "sign_off_day",
+          "callee": "datetime.now",
+          "lineNumber": 112
+        },
+        {
+          "caller": "sign_off_day",
+          "callee": "(\r\n        await db.execute(\r\n            select(Invoice).where(\r\n                Invoice.shop_id == shop_id,\r\n                Invoice.finalized_at >= start,\r\n                Invoice.finalized_at < end,\r\n                Invoice.eod_signed_off.is_(False),\r\n            )\r\n        )\r\n    ).scalars().all",
+          "lineNumber": 114
+        },
+        {
+          "caller": "sign_off_day",
+          "callee": "(\r\n        await db.execute(\r\n            select(Invoice).where(\r\n                Invoice.shop_id == shop_id,\r\n                Invoice.finalized_at >= start,\r\n                Invoice.finalized_at < end,\r\n                Invoice.eod_signed_off.is_(False),\r\n            )\r\n        )\r\n    ).scalars",
+          "lineNumber": 114
+        },
+        {
+          "caller": "sign_off_day",
+          "callee": "db.execute",
+          "lineNumber": 115
+        },
+        {
+          "caller": "sign_off_day",
+          "callee": "select(Invoice).where",
+          "lineNumber": 116
+        },
+        {
+          "caller": "sign_off_day",
+          "callee": "select",
+          "lineNumber": 116
+        },
+        {
+          "caller": "sign_off_day",
+          "callee": "Invoice.eod_signed_off.is_",
+          "lineNumber": 120
+        },
+        {
+          "caller": "sign_off_day",
+          "callee": "EodSignOff",
+          "lineNumber": 130
+        },
+        {
+          "caller": "sign_off_day",
+          "callee": "len",
+          "lineNumber": 135
+        },
+        {
+          "caller": "sign_off_day",
+          "callee": "db.add",
+          "lineNumber": 138
+        },
+        {
+          "caller": "sign_off_day",
+          "callee": "SignOffResult",
+          "lineNumber": 139
+        },
+        {
+          "caller": "sign_off_day",
+          "callee": "len",
+          "lineNumber": 139
+        },
+        {
+          "caller": "get_day_totals",
+          "callee": "_day_bounds",
+          "lineNumber": 148
+        },
+        {
+          "caller": "get_day_totals",
+          "callee": "(\r\n        await db.execute(\r\n            select(EodSignOff.id).where(\r\n                EodSignOff.shop_id == shop_id,\r\n                EodSignOff.business_date == business_date,\r\n            )\r\n        )\r\n    ).first",
+          "lineNumber": 149
+        },
+        {
+          "caller": "get_day_totals",
+          "callee": "db.execute",
+          "lineNumber": 150
+        },
+        {
+          "caller": "get_day_totals",
+          "callee": "select(EodSignOff.id).where",
+          "lineNumber": 151
+        },
+        {
+          "caller": "get_day_totals",
+          "callee": "select",
+          "lineNumber": 151
+        },
+        {
+          "caller": "get_day_totals",
+          "callee": "(\r\n        await db.execute(\r\n            select(Invoice).where(\r\n                Invoice.shop_id == shop_id,\r\n                Invoice.finalized_at >= start,\r\n                Invoice.finalized_at < end,\r\n            )\r\n        )\r\n    ).scalars().all",
+          "lineNumber": 158
+        },
+        {
+          "caller": "get_day_totals",
+          "callee": "(\r\n        await db.execute(\r\n            select(Invoice).where(\r\n                Invoice.shop_id == shop_id,\r\n                Invoice.finalized_at >= start,\r\n                Invoice.finalized_at < end,\r\n            )\r\n        )\r\n    ).scalars",
+          "lineNumber": 158
+        },
+        {
+          "caller": "get_day_totals",
+          "callee": "db.execute",
+          "lineNumber": 159
+        },
+        {
+          "caller": "get_day_totals",
+          "callee": "select(Invoice).where",
+          "lineNumber": 160
+        },
+        {
+          "caller": "get_day_totals",
+          "callee": "select",
+          "lineNumber": 160
+        },
+        {
+          "caller": "get_day_totals",
+          "callee": "sum",
+          "lineNumber": 172
+        },
+        {
+          "caller": "get_day_totals",
+          "callee": "Decimal",
+          "lineNumber": 174
+        },
+        {
+          "caller": "get_day_totals",
+          "callee": "sum",
+          "lineNumber": 176
+        },
+        {
+          "caller": "get_day_totals",
+          "callee": "sum",
+          "lineNumber": 179
+        },
+        {
+          "caller": "get_day_totals",
+          "callee": "sum",
+          "lineNumber": 180
+        },
+        {
+          "caller": "get_day_totals",
+          "callee": "defaultdict",
+          "lineNumber": 184
+        },
+        {
+          "caller": "get_day_totals",
+          "callee": "Decimal",
+          "lineNumber": 184
+        },
+        {
+          "caller": "get_day_totals",
+          "callee": "(\r\n            await db.execute(\r\n                select(Payment).where(Payment.invoice_id.in_(invoice_ids))\r\n            )\r\n        ).scalars().all",
+          "lineNumber": 186
+        },
+        {
+          "caller": "get_day_totals",
+          "callee": "(\r\n            await db.execute(\r\n                select(Payment).where(Payment.invoice_id.in_(invoice_ids))\r\n            )\r\n        ).scalars",
+          "lineNumber": 186
+        },
+        {
+          "caller": "get_day_totals",
+          "callee": "db.execute",
+          "lineNumber": 187
+        },
+        {
+          "caller": "get_day_totals",
+          "callee": "select(Payment).where",
+          "lineNumber": 188
+        },
+        {
+          "caller": "get_day_totals",
+          "callee": "select",
+          "lineNumber": 188
+        },
+        {
+          "caller": "get_day_totals",
+          "callee": "Payment.invoice_id.in_",
+          "lineNumber": 188
+        },
+        {
+          "caller": "get_day_totals",
+          "callee": "EodTotals",
+          "lineNumber": 194
+        },
+        {
+          "caller": "get_day_totals",
+          "callee": "dict",
+          "lineNumber": 201
+        },
+        {
+          "caller": "list_signoff_history",
+          "callee": "select(EodSignOff).where",
+          "lineNumber": 215
+        },
+        {
+          "caller": "list_signoff_history",
+          "callee": "select",
+          "lineNumber": 215
+        },
+        {
+          "caller": "list_signoff_history",
+          "callee": "stmt.where",
+          "lineNumber": 217
+        },
+        {
+          "caller": "list_signoff_history",
+          "callee": "stmt.where",
+          "lineNumber": 220
+        },
+        {
+          "caller": "list_signoff_history",
+          "callee": "stmt.order_by(EodSignOff.business_date.desc()).limit",
+          "lineNumber": 221
+        },
+        {
+          "caller": "list_signoff_history",
+          "callee": "stmt.order_by",
+          "lineNumber": 221
+        },
+        {
+          "caller": "list_signoff_history",
+          "callee": "EodSignOff.business_date.desc",
+          "lineNumber": 221
+        },
+        {
+          "caller": "list_signoff_history",
+          "callee": "list",
+          "lineNumber": 222
+        },
+        {
+          "caller": "list_signoff_history",
+          "callee": "(await db.execute(stmt)).scalars().all",
+          "lineNumber": 222
+        },
+        {
+          "caller": "list_signoff_history",
+          "callee": "(await db.execute(stmt)).scalars",
+          "lineNumber": 222
+        },
+        {
+          "caller": "list_signoff_history",
+          "callee": "db.execute",
+          "lineNumber": 222
+        },
+        {
+          "caller": "list_pending_voids",
+          "callee": "select(Invoice)\r\n        .where(\r\n            Invoice.shop_id == shop_id,\r\n            Invoice.status == InvoiceStatus.PENDING_VOID,\r\n        )\r\n        .order_by(Invoice.void_requested_at.asc().nulls_last())\r\n        .limit",
+          "lineNumber": 234
+        },
+        {
+          "caller": "list_pending_voids",
+          "callee": "select(Invoice)\r\n        .where(\r\n            Invoice.shop_id == shop_id,\r\n            Invoice.status == InvoiceStatus.PENDING_VOID,\r\n        )\r\n        .order_by",
+          "lineNumber": 234
+        },
+        {
+          "caller": "list_pending_voids",
+          "callee": "select(Invoice)\r\n        .where",
+          "lineNumber": 234
+        },
+        {
+          "caller": "list_pending_voids",
+          "callee": "select",
+          "lineNumber": 234
+        },
+        {
+          "caller": "list_pending_voids",
+          "callee": "Invoice.void_requested_at.asc().nulls_last",
+          "lineNumber": 239
+        },
+        {
+          "caller": "list_pending_voids",
+          "callee": "Invoice.void_requested_at.asc",
+          "lineNumber": 239
+        },
+        {
+          "caller": "list_pending_voids",
+          "callee": "list",
+          "lineNumber": 242
+        },
+        {
+          "caller": "list_pending_voids",
+          "callee": "(await db.execute(stmt)).scalars().all",
+          "lineNumber": 242
+        },
+        {
+          "caller": "list_pending_voids",
+          "callee": "(await db.execute(stmt)).scalars",
+          "lineNumber": 242
+        },
+        {
+          "caller": "list_pending_voids",
+          "callee": "db.execute",
+          "lineNumber": 242
+        }
+      ],
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 8,
+        "functionCount": 5,
+        "classCount": 3
+      }
+    }
+  ]
+}

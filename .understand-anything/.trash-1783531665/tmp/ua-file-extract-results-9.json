@@ -1,0 +1,468 @@
+{
+  "scriptCompleted": true,
+  "filesAnalyzed": 2,
+  "filesSkipped": [],
+  "results": [
+    {
+      "path": "tests/test_log_tables.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 35,
+      "nonEmptyLines": 30,
+      "functions": [
+        {
+          "name": "test_three_log_tables_exist",
+          "startLine": 8,
+          "endLine": 18,
+          "params": [
+            "db_session"
+          ]
+        },
+        {
+          "name": "test_log_tables_have_required_columns",
+          "startLine": 21,
+          "endLine": 35,
+          "params": [
+            "db_session"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "test_three_log_tables_exist",
+          "line": 8,
+          "isDefault": false
+        },
+        {
+          "name": "test_log_tables_have_required_columns",
+          "line": 21,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "test_three_log_tables_exist",
+          "callee": "(\n        await db_session.execute(\n            text(\n                \"SELECT table_name FROM information_schema.tables \"\n                \"WHERE table_name IN ('invoicing_logs', 'stockin_logs', 'admin_logs') \"\n                \"ORDER BY table_name\"\n            )\n        )\n    ).all",
+          "lineNumber": 9
+        },
+        {
+          "caller": "test_three_log_tables_exist",
+          "callee": "db_session.execute",
+          "lineNumber": 10
+        },
+        {
+          "caller": "test_three_log_tables_exist",
+          "callee": "text",
+          "lineNumber": 11
+        },
+        {
+          "caller": "test_log_tables_have_required_columns",
+          "callee": "(\n            await db_session.execute(\n                text(\n                    \"SELECT column_name FROM information_schema.columns \"\n                    \"WHERE table_name = :t ORDER BY ordinal_position\"\n                ),\n                {\"t\": table},\n            )\n        ).scalars().all",
+          "lineNumber": 24
+        },
+        {
+          "caller": "test_log_tables_have_required_columns",
+          "callee": "(\n            await db_session.execute(\n                text(\n                    \"SELECT column_name FROM information_schema.columns \"\n                    \"WHERE table_name = :t ORDER BY ordinal_position\"\n                ),\n                {\"t\": table},\n            )\n        ).scalars",
+          "lineNumber": 24
+        },
+        {
+          "caller": "test_log_tables_have_required_columns",
+          "callee": "db_session.execute",
+          "lineNumber": 25
+        },
+        {
+          "caller": "test_log_tables_have_required_columns",
+          "callee": "text",
+          "lineNumber": 26
+        },
+        {
+          "caller": "test_log_tables_have_required_columns",
+          "callee": "set",
+          "lineNumber": 33
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 2,
+        "functionCount": 2,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "tests/test_staff.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 253,
+      "nonEmptyLines": 219,
+      "functions": [
+        {
+          "name": "test_owner_creates_receiver_user",
+          "startLine": 15,
+          "endLine": 30,
+          "params": [
+            "owner_client"
+          ]
+        },
+        {
+          "name": "test_owner_creates_cashier_user",
+          "startLine": 34,
+          "endLine": 47,
+          "params": [
+            "owner_client"
+          ]
+        },
+        {
+          "name": "test_owner_cannot_create_another_owner",
+          "startLine": 51,
+          "endLine": 62,
+          "params": [
+            "owner_client"
+          ]
+        },
+        {
+          "name": "test_owner_cannot_create_superadmin",
+          "startLine": 66,
+          "endLine": 77,
+          "params": [
+            "owner_client"
+          ]
+        },
+        {
+          "name": "test_duplicate_username_rejected_with_409",
+          "startLine": 81,
+          "endLine": 95,
+          "params": [
+            "owner_client",
+            "receiver"
+          ]
+        },
+        {
+          "name": "test_duplicate_phone_rejected_with_409",
+          "startLine": 99,
+          "endLine": 113,
+          "params": [
+            "owner_client",
+            "receiver"
+          ]
+        },
+        {
+          "name": "test_duplicate_phone_rejected_across_shops_with_409",
+          "startLine": 117,
+          "endLine": 144,
+          "params": [
+            "superadmin_client",
+            "owner",
+            "db_session"
+          ]
+        },
+        {
+          "name": "test_owner_lists_only_their_shop_staff",
+          "startLine": 148,
+          "endLine": 156,
+          "params": [
+            "owner_client",
+            "shop"
+          ]
+        },
+        {
+          "name": "test_receiver_cannot_create_staff",
+          "startLine": 160,
+          "endLine": 171,
+          "params": [
+            "receiver_client"
+          ]
+        },
+        {
+          "name": "test_owner_resets_staff_password",
+          "startLine": 175,
+          "endLine": 193,
+          "params": [
+            "owner_client",
+            "receiver"
+          ]
+        },
+        {
+          "name": "test_owner_cannot_reset_password_for_other_shop_staff",
+          "startLine": 197,
+          "endLine": 220,
+          "params": [
+            "owner_client",
+            "db_session"
+          ]
+        },
+        {
+          "name": "test_owner_cannot_reset_own_password_via_staff_endpoint",
+          "startLine": 224,
+          "endLine": 231,
+          "params": [
+            "owner_client",
+            "owner"
+          ]
+        },
+        {
+          "name": "test_receiver_cannot_reset_staff_password",
+          "startLine": 235,
+          "endLine": 242,
+          "params": [
+            "receiver_client",
+            "receiver"
+          ]
+        },
+        {
+          "name": "test_superadmin_resets_staff_password_any_shop",
+          "startLine": 246,
+          "endLine": 253,
+          "params": [
+            "superadmin_client",
+            "receiver"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "test_owner_creates_receiver_user",
+          "line": 14,
+          "isDefault": false
+        },
+        {
+          "name": "test_owner_creates_cashier_user",
+          "line": 33,
+          "isDefault": false
+        },
+        {
+          "name": "test_owner_cannot_create_another_owner",
+          "line": 50,
+          "isDefault": false
+        },
+        {
+          "name": "test_owner_cannot_create_superadmin",
+          "line": 65,
+          "isDefault": false
+        },
+        {
+          "name": "test_duplicate_username_rejected_with_409",
+          "line": 80,
+          "isDefault": false
+        },
+        {
+          "name": "test_duplicate_phone_rejected_with_409",
+          "line": 98,
+          "isDefault": false
+        },
+        {
+          "name": "test_duplicate_phone_rejected_across_shops_with_409",
+          "line": 116,
+          "isDefault": false
+        },
+        {
+          "name": "test_owner_lists_only_their_shop_staff",
+          "line": 147,
+          "isDefault": false
+        },
+        {
+          "name": "test_receiver_cannot_create_staff",
+          "line": 159,
+          "isDefault": false
+        },
+        {
+          "name": "test_owner_resets_staff_password",
+          "line": 174,
+          "isDefault": false
+        },
+        {
+          "name": "test_owner_cannot_reset_password_for_other_shop_staff",
+          "line": 196,
+          "isDefault": false
+        },
+        {
+          "name": "test_owner_cannot_reset_own_password_via_staff_endpoint",
+          "line": 223,
+          "isDefault": false
+        },
+        {
+          "name": "test_receiver_cannot_reset_staff_password",
+          "line": 234,
+          "isDefault": false
+        },
+        {
+          "name": "test_superadmin_resets_staff_password_any_shop",
+          "line": 245,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "test_owner_creates_receiver_user",
+          "callee": "owner_client.post",
+          "lineNumber": 16
+        },
+        {
+          "caller": "test_owner_creates_receiver_user",
+          "callee": "resp.json",
+          "lineNumber": 27
+        },
+        {
+          "caller": "test_owner_creates_cashier_user",
+          "callee": "owner_client.post",
+          "lineNumber": 35
+        },
+        {
+          "caller": "test_owner_creates_cashier_user",
+          "callee": "resp.json",
+          "lineNumber": 46
+        },
+        {
+          "caller": "test_owner_cannot_create_another_owner",
+          "callee": "owner_client.post",
+          "lineNumber": 52
+        },
+        {
+          "caller": "test_owner_cannot_create_superadmin",
+          "callee": "owner_client.post",
+          "lineNumber": 67
+        },
+        {
+          "caller": "test_duplicate_username_rejected_with_409",
+          "callee": "owner_client.post",
+          "lineNumber": 85
+        },
+        {
+          "caller": "test_duplicate_phone_rejected_with_409",
+          "callee": "owner_client.post",
+          "lineNumber": 103
+        },
+        {
+          "caller": "test_duplicate_phone_rejected_across_shops_with_409",
+          "callee": "Shop",
+          "lineNumber": 128
+        },
+        {
+          "caller": "test_duplicate_phone_rejected_across_shops_with_409",
+          "callee": "db_session.add",
+          "lineNumber": 129
+        },
+        {
+          "caller": "test_duplicate_phone_rejected_across_shops_with_409",
+          "callee": "db_session.flush",
+          "lineNumber": 130
+        },
+        {
+          "caller": "test_duplicate_phone_rejected_across_shops_with_409",
+          "callee": "db_session.commit",
+          "lineNumber": 131
+        },
+        {
+          "caller": "test_duplicate_phone_rejected_across_shops_with_409",
+          "callee": "superadmin_client.post",
+          "lineNumber": 133
+        },
+        {
+          "caller": "test_owner_lists_only_their_shop_staff",
+          "callee": "owner_client.get",
+          "lineNumber": 151
+        },
+        {
+          "caller": "test_owner_lists_only_their_shop_staff",
+          "callee": "resp.json",
+          "lineNumber": 153
+        },
+        {
+          "caller": "test_owner_lists_only_their_shop_staff",
+          "callee": "len",
+          "lineNumber": 155
+        },
+        {
+          "caller": "test_owner_lists_only_their_shop_staff",
+          "callee": "all",
+          "lineNumber": 156
+        },
+        {
+          "caller": "test_receiver_cannot_create_staff",
+          "callee": "receiver_client.post",
+          "lineNumber": 161
+        },
+        {
+          "caller": "test_owner_resets_staff_password",
+          "callee": "owner_client.patch",
+          "lineNumber": 178
+        },
+        {
+          "caller": "test_owner_resets_staff_password",
+          "callee": "resp.json",
+          "lineNumber": 183
+        },
+        {
+          "caller": "test_owner_resets_staff_password",
+          "callee": "owner_client.post",
+          "lineNumber": 186
+        },
+        {
+          "caller": "test_owner_resets_staff_password",
+          "callee": "owner_client.post",
+          "lineNumber": 190
+        },
+        {
+          "caller": "test_owner_cannot_reset_password_for_other_shop_staff",
+          "callee": "Shop",
+          "lineNumber": 200
+        },
+        {
+          "caller": "test_owner_cannot_reset_password_for_other_shop_staff",
+          "callee": "db_session.add",
+          "lineNumber": 201
+        },
+        {
+          "caller": "test_owner_cannot_reset_password_for_other_shop_staff",
+          "callee": "db_session.flush",
+          "lineNumber": 202
+        },
+        {
+          "caller": "test_owner_cannot_reset_password_for_other_shop_staff",
+          "callee": "User",
+          "lineNumber": 203
+        },
+        {
+          "caller": "test_owner_cannot_reset_password_for_other_shop_staff",
+          "callee": "db_session.add",
+          "lineNumber": 212
+        },
+        {
+          "caller": "test_owner_cannot_reset_password_for_other_shop_staff",
+          "callee": "db_session.commit",
+          "lineNumber": 213
+        },
+        {
+          "caller": "test_owner_cannot_reset_password_for_other_shop_staff",
+          "callee": "db_session.refresh",
+          "lineNumber": 214
+        },
+        {
+          "caller": "test_owner_cannot_reset_password_for_other_shop_staff",
+          "callee": "owner_client.patch",
+          "lineNumber": 216
+        },
+        {
+          "caller": "test_owner_cannot_reset_own_password_via_staff_endpoint",
+          "callee": "owner_client.patch",
+          "lineNumber": 227
+        },
+        {
+          "caller": "test_receiver_cannot_reset_staff_password",
+          "callee": "receiver_client.patch",
+          "lineNumber": 238
+        },
+        {
+          "caller": "test_superadmin_resets_staff_password_any_shop",
+          "callee": "superadmin_client.patch",
+          "lineNumber": 249
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 14,
+        "functionCount": 14,
+        "classCount": 0
+      }
+    }
+  ]
+}

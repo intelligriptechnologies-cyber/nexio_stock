@@ -1,0 +1,209 @@
+{
+  "nodes": [
+    {
+      "id": "file:app/api/__init__.py",
+      "type": "file",
+      "name": "__init__.py",
+      "filePath": "app/api/__init__.py",
+      "summary": "Empty package marker file for the app.api package, making the api directory importable as a Python package.",
+      "tags": ["package-init", "barrel"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:app/api/_test_only.py",
+      "type": "file",
+      "name": "_test_only.py",
+      "filePath": "app/api/_test_only.py",
+      "summary": "Empty placeholder router mounted only under test app_env, kept so leftover test references to test-only endpoints still compile now that the real role-gated endpoints exist.",
+      "tags": ["test", "router", "placeholder"],
+      "complexity": "simple",
+      "languageNotes": "Docstring documents that its original placeholder role-gate endpoints were superseded by real endpoints in lots.py and checkout.py."
+    },
+    {
+      "id": "file:app/api/dashboard.py",
+      "type": "file",
+      "name": "dashboard.py",
+      "filePath": "app/api/dashboard.py",
+      "summary": "FastAPI router exposing shop dashboard endpoints for EOD sign-off, EOD totals, sign-off history, pending void queue, and low-stock reporting, all scoped by shop and role.",
+      "tags": ["api-handler", "dashboard", "eod", "router"],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:app/api/health.py",
+      "type": "file",
+      "name": "health.py",
+      "filePath": "app/api/health.py",
+      "summary": "FastAPI router providing liveness and readiness health-check endpoints, with readiness verifying database connectivity via a trivial query.",
+      "tags": ["api-handler", "health-check", "router"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:app/api/shops.py",
+      "type": "file",
+      "name": "shops.py",
+      "filePath": "app/api/shops.py",
+      "summary": "FastAPI router for shop management: listing all shops (superadmin), fetching the caller's own shop, and updating shop settings like GSTIN and excise duty rate.",
+      "tags": ["api-handler", "shop-management", "router"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:app/api/dashboard.py:sign_off",
+      "type": "function",
+      "name": "sign_off",
+      "filePath": "app/api/dashboard.py",
+      "lineRange": [56, 92],
+      "summary": "POST endpoint that signs off a shop's business day within a unit-of-work transaction, delegating to the sign_off_day service and mapping domain errors to HTTP responses.",
+      "tags": ["api-handler", "eod", "transaction"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:app/api/dashboard.py:eod_totals",
+      "type": "function",
+      "name": "eod_totals",
+      "filePath": "app/api/dashboard.py",
+      "lineRange": [100, 126],
+      "summary": "GET endpoint returning revenue and payment-mode totals for a given business date and shop.",
+      "tags": ["api-handler", "eod", "reporting"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:app/api/dashboard.py:eod_history",
+      "type": "function",
+      "name": "eod_history",
+      "filePath": "app/api/dashboard.py",
+      "lineRange": [134, 162],
+      "summary": "GET endpoint listing historical EOD sign-off records for a shop within an optional date range.",
+      "tags": ["api-handler", "eod", "reporting"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:app/api/dashboard.py:void_queue",
+      "type": "function",
+      "name": "void_queue",
+      "filePath": "app/api/dashboard.py",
+      "lineRange": [170, 196],
+      "summary": "GET endpoint returning the queue of invoices pending void approval for a shop.",
+      "tags": ["api-handler", "void", "reporting"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:app/api/dashboard.py:low_stock",
+      "type": "function",
+      "name": "low_stock",
+      "filePath": "app/api/dashboard.py",
+      "lineRange": [203, 235],
+      "summary": "GET endpoint computing and returning products currently below their effective low-stock threshold for a shop.",
+      "tags": ["api-handler", "inventory", "reporting"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:app/api/health.py:liveness",
+      "type": "function",
+      "name": "liveness",
+      "filePath": "app/api/health.py",
+      "lineRange": [13, 14],
+      "summary": "Simple liveness probe endpoint returning a static OK status.",
+      "tags": ["api-handler", "health-check"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:app/api/health.py:readiness",
+      "type": "function",
+      "name": "readiness",
+      "filePath": "app/api/health.py",
+      "lineRange": [18, 20],
+      "summary": "Readiness probe endpoint that executes a trivial query against the database to confirm connectivity.",
+      "tags": ["api-handler", "health-check", "database"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:app/api/shops.py:list_shops",
+      "type": "function",
+      "name": "list_shops",
+      "filePath": "app/api/shops.py",
+      "lineRange": [38, 43],
+      "summary": "Superadmin-only endpoint listing all shops ordered by name.",
+      "tags": ["api-handler", "shop-management"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:app/api/shops.py:get_my_shop",
+      "type": "function",
+      "name": "get_my_shop",
+      "filePath": "app/api/shops.py",
+      "lineRange": [51, 73],
+      "summary": "Endpoint returning the caller's own shop details, resolving the effective shop id from the requesting user's scope.",
+      "tags": ["api-handler", "shop-management"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:app/api/shops.py:update_my_shop",
+      "type": "function",
+      "name": "update_my_shop",
+      "filePath": "app/api/shops.py",
+      "lineRange": [81, 114],
+      "summary": "Endpoint that updates mutable shop settings (name, GSTIN, excise duty rate, low-stock threshold) for the caller's shop and logs the change.",
+      "tags": ["api-handler", "shop-management", "mutation"],
+      "complexity": "moderate"
+    }
+  ],
+  "edges": [
+    { "source": "file:app/api/dashboard.py", "target": "file:app/api/deps.py", "type": "imports", "direction": "forward", "weight": 0.7 },
+    { "source": "file:app/api/dashboard.py", "target": "file:app/logging_config.py", "type": "imports", "direction": "forward", "weight": 0.7 },
+    { "source": "file:app/api/dashboard.py", "target": "file:app/models/user.py", "type": "imports", "direction": "forward", "weight": 0.7 },
+    { "source": "file:app/api/dashboard.py", "target": "file:app/schemas/eod.py", "type": "imports", "direction": "forward", "weight": 0.7 },
+    { "source": "file:app/api/dashboard.py", "target": "file:app/services/eod.py", "type": "imports", "direction": "forward", "weight": 0.7 },
+    { "source": "file:app/api/health.py", "target": "file:app/api/deps.py", "type": "imports", "direction": "forward", "weight": 0.7 },
+    { "source": "file:app/api/shops.py", "target": "file:app/api/deps.py", "type": "imports", "direction": "forward", "weight": 0.7 },
+    { "source": "file:app/api/shops.py", "target": "file:app/logging_config.py", "type": "imports", "direction": "forward", "weight": 0.7 },
+    { "source": "file:app/api/shops.py", "target": "file:app/models/shop.py", "type": "imports", "direction": "forward", "weight": 0.7 },
+    { "source": "file:app/api/shops.py", "target": "file:app/models/user.py", "type": "imports", "direction": "forward", "weight": 0.7 },
+    { "source": "file:app/api/shops.py", "target": "file:app/schemas/shop.py", "type": "imports", "direction": "forward", "weight": 0.7 },
+
+    { "source": "file:app/api/dashboard.py", "target": "function:app/api/dashboard.py:sign_off", "type": "contains", "direction": "forward", "weight": 1.0 },
+    { "source": "file:app/api/dashboard.py", "target": "function:app/api/dashboard.py:eod_totals", "type": "contains", "direction": "forward", "weight": 1.0 },
+    { "source": "file:app/api/dashboard.py", "target": "function:app/api/dashboard.py:eod_history", "type": "contains", "direction": "forward", "weight": 1.0 },
+    { "source": "file:app/api/dashboard.py", "target": "function:app/api/dashboard.py:void_queue", "type": "contains", "direction": "forward", "weight": 1.0 },
+    { "source": "file:app/api/dashboard.py", "target": "function:app/api/dashboard.py:low_stock", "type": "contains", "direction": "forward", "weight": 1.0 },
+    { "source": "file:app/api/dashboard.py", "target": "function:app/api/dashboard.py:sign_off", "type": "exports", "direction": "forward", "weight": 0.8 },
+    { "source": "file:app/api/dashboard.py", "target": "function:app/api/dashboard.py:eod_totals", "type": "exports", "direction": "forward", "weight": 0.8 },
+    { "source": "file:app/api/dashboard.py", "target": "function:app/api/dashboard.py:eod_history", "type": "exports", "direction": "forward", "weight": 0.8 },
+    { "source": "file:app/api/dashboard.py", "target": "function:app/api/dashboard.py:void_queue", "type": "exports", "direction": "forward", "weight": 0.8 },
+    { "source": "file:app/api/dashboard.py", "target": "function:app/api/dashboard.py:low_stock", "type": "exports", "direction": "forward", "weight": 0.8 },
+
+    { "source": "file:app/api/health.py", "target": "function:app/api/health.py:liveness", "type": "contains", "direction": "forward", "weight": 1.0 },
+    { "source": "file:app/api/health.py", "target": "function:app/api/health.py:readiness", "type": "contains", "direction": "forward", "weight": 1.0 },
+    { "source": "file:app/api/health.py", "target": "function:app/api/health.py:liveness", "type": "exports", "direction": "forward", "weight": 0.8 },
+    { "source": "file:app/api/health.py", "target": "function:app/api/health.py:readiness", "type": "exports", "direction": "forward", "weight": 0.8 },
+
+    { "source": "file:app/api/shops.py", "target": "function:app/api/shops.py:list_shops", "type": "contains", "direction": "forward", "weight": 1.0 },
+    { "source": "file:app/api/shops.py", "target": "function:app/api/shops.py:get_my_shop", "type": "contains", "direction": "forward", "weight": 1.0 },
+    { "source": "file:app/api/shops.py", "target": "function:app/api/shops.py:update_my_shop", "type": "contains", "direction": "forward", "weight": 1.0 },
+    { "source": "file:app/api/shops.py", "target": "function:app/api/shops.py:list_shops", "type": "exports", "direction": "forward", "weight": 0.8 },
+    { "source": "file:app/api/shops.py", "target": "function:app/api/shops.py:get_my_shop", "type": "exports", "direction": "forward", "weight": 0.8 },
+    { "source": "file:app/api/shops.py", "target": "function:app/api/shops.py:update_my_shop", "type": "exports", "direction": "forward", "weight": 0.8 },
+
+    { "source": "function:app/api/dashboard.py:sign_off", "target": "function:app/api/deps.py:require_role", "type": "calls", "direction": "forward", "weight": 0.8 },
+    { "source": "function:app/api/dashboard.py:sign_off", "target": "function:app/api/deps.py:resolve_write_shop_id", "type": "calls", "direction": "forward", "weight": 0.8 },
+    { "source": "function:app/api/dashboard.py:sign_off", "target": "function:app/services/eod.py:sign_off_day", "type": "calls", "direction": "forward", "weight": 0.8 },
+    { "source": "function:app/api/dashboard.py:eod_totals", "target": "function:app/api/deps.py:require_role", "type": "calls", "direction": "forward", "weight": 0.8 },
+    { "source": "function:app/api/dashboard.py:eod_totals", "target": "function:app/api/deps.py:resolve_write_shop_id", "type": "calls", "direction": "forward", "weight": 0.8 },
+    { "source": "function:app/api/dashboard.py:eod_totals", "target": "function:app/services/eod.py:get_day_totals", "type": "calls", "direction": "forward", "weight": 0.8 },
+    { "source": "function:app/api/dashboard.py:eod_history", "target": "function:app/api/deps.py:require_role", "type": "calls", "direction": "forward", "weight": 0.8 },
+    { "source": "function:app/api/dashboard.py:eod_history", "target": "function:app/api/deps.py:resolve_write_shop_id", "type": "calls", "direction": "forward", "weight": 0.8 },
+    { "source": "function:app/api/dashboard.py:eod_history", "target": "function:app/services/eod.py:list_signoff_history", "type": "calls", "direction": "forward", "weight": 0.8 },
+    { "source": "function:app/api/dashboard.py:void_queue", "target": "function:app/api/deps.py:require_role", "type": "calls", "direction": "forward", "weight": 0.8 },
+    { "source": "function:app/api/dashboard.py:void_queue", "target": "function:app/api/deps.py:resolve_write_shop_id", "type": "calls", "direction": "forward", "weight": 0.8 },
+    { "source": "function:app/api/dashboard.py:void_queue", "target": "function:app/services/eod.py:list_pending_voids", "type": "calls", "direction": "forward", "weight": 0.8 },
+    { "source": "function:app/api/dashboard.py:low_stock", "target": "function:app/api/deps.py:require_role", "type": "calls", "direction": "forward", "weight": 0.8 },
+    { "source": "function:app/api/dashboard.py:low_stock", "target": "function:app/api/deps.py:resolve_write_shop_id", "type": "calls", "direction": "forward", "weight": 0.8 },
+
+    { "source": "function:app/api/shops.py:list_shops", "target": "function:app/api/deps.py:require_role", "type": "calls", "direction": "forward", "weight": 0.8 },
+    { "source": "function:app/api/shops.py:get_my_shop", "target": "function:app/api/deps.py:require_role", "type": "calls", "direction": "forward", "weight": 0.8 },
+    { "source": "function:app/api/shops.py:get_my_shop", "target": "function:app/api/deps.py:resolve_write_shop_id", "type": "calls", "direction": "forward", "weight": 0.8 },
+    { "source": "function:app/api/shops.py:update_my_shop", "target": "function:app/api/deps.py:require_role", "type": "calls", "direction": "forward", "weight": 0.8 },
+    { "source": "function:app/api/shops.py:update_my_shop", "target": "function:app/api/deps.py:resolve_write_shop_id", "type": "calls", "direction": "forward", "weight": 0.8 },
+
+    { "source": "function:app/api/health.py:readiness", "target": "function:app/api/deps.py:db_session", "type": "calls", "direction": "forward", "weight": 0.8 }
+  ]
+}

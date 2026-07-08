@@ -1,0 +1,17 @@
+{
+  "projectRoot": "C:/barstock",
+  "batchFiles": [
+    {"path": "app/api/auth.py", "language": "python", "sizeLines": 140, "fileCategory": "code"},
+    {"path": "app/api/deps.py", "language": "python", "sizeLines": 129, "fileCategory": "code"},
+    {"path": "app/api/staff.py", "language": "python", "sizeLines": 109, "fileCategory": "code"},
+    {"path": "app/api/users.py", "language": "python", "sizeLines": 18, "fileCategory": "code"},
+    {"path": "app/cli.py", "language": "python", "sizeLines": 186, "fileCategory": "code"},
+    {"path": "app/config.py", "language": "python", "sizeLines": 42, "fileCategory": "code"},
+    {"path": "app/db.py", "language": "python", "sizeLines": 136, "fileCategory": "code"},
+    {"path": "app/models/user.py", "language": "python", "sizeLines": 84, "fileCategory": "code"},
+    {"path": "app/schemas/auth.py", "language": "python", "sizeLines": 91, "fileCategory": "code"},
+    {"path": "app/security/jwt.py", "language": "python", "sizeLines": 44, "fileCategory": "code"},
+    {"path": "app/security/passwords.py", "language": "python", "sizeLines": 23, "fileCategory": "code"}
+  ],
+  "batchImportData": {"app/api/auth.py":["app/api/deps.py","app/config.py","app/logging_config.py","app/models/user.py","app/schemas/auth.py","app/security/jwt.py","app/security/passwords.py"],"app/api/deps.py":["app/db.py","app/models/shop.py","app/models/user.py","app/security/jwt.py"],"app/api/staff.py":["app/api/_errors.py","app/api/deps.py","app/logging_config.py","app/models/user.py","app/schemas/auth.py","app/security/passwords.py"],"app/api/users.py":["app/api/deps.py","app/schemas/auth.py"],"app/cli.py":["app/config.py","app/db.py","app/logging_config.py","app/models/shop.py","app/models/user.py","app/security/passwords.py"],"app/config.py":[],"app/db.py":["app/config.py"],"app/models/user.py":["app/db.py"],"app/schemas/auth.py":["app/models/user.py"],"app/security/jwt.py":["app/config.py"],"app/security/passwords.py":["app/config.py"]}
+}

@@ -1,0 +1,23 @@
+{
+  "fixedSectionOk": false,
+  "nodesRecovered": 0,
+  "edgesRestored": 0,
+  "crossBatchEdgesAdded": 0,
+  "typesRemapped": 0,
+  "complexityRemapped": 0,
+  "nodesCorrected": 130,
+  "staleDuplicateNodesRemoved": 1,
+  "staleDuplicateEdgesRemoved": 9,
+  "notes": [
+    "CRITICAL: batch-100.json (the pruned pre-existing graph carried forward for unchanged files) was NOT actually pruned of the 80 changed files. It still contained 130 node IDs identical to nodes freshly re-analyzed in batch-1..batch-9. Because merge-batch-graphs.py's node dedup keeps the LAST occurrence by processing order, and batch-100 is processed last, all 130 freshly re-analyzed nodes were silently overwritten by their stale pre-change versions in assembled-graph.json (confirmed: 130/130 overlapping IDs had different summary/complexity/tags between fresh and stale, and the assembled output matched the stale batch-100 version in every case). This defeats the purpose of the incremental re-analysis for those files/functions/classes. Fixed by replacing all 130 node entries with the fresh batch versions.",
+    "The 'Fixed' section of the merge report (130 x duplicate node IDs removed) is misleading in this context: it reads as routine dedup noise, but it actually represents 130 cases of fresh re-analysis being clobbered by stale carried-forward data. Recommend the merge script either process batch-100 FIRST (so real batches win ties) or explicitly drop from batch-100 any node whose file path appears in the changed-files list, rather than relying solely on ID-based dedup order.",
+    "Found one additional stale-duplicate NOT caught by the merge script's ID-based dedup: app/config.py had been mistyped as node type 'config' (id 'config:app/config.py') in the OLD graph, and this was manually fixed in batch-2-part-1.json to type 'file' (id 'file:app/config.py') per the report's note. However, batch-100 still carried the old 'config:app/config.py' node (with 9 stale edges) forward, and because the ID prefix differs from the corrected 'file:app/config.py' ID, the dedup-by-ID logic could not detect it as a duplicate. Both nodes co-existed in assembled-graph.json describing the same file. Verified 'file:app/config.py' already has complete, correct edges (contains/exports for Settings class and get_settings, plus imports from db.py/jwt.py/passwords.py/alembic/env.py/main.py/cli.py/auth.py) so the stale 'config:app/config.py' node and its 9 edges were simply removed as pure redundant duplicates -- no data was lost.",
+    "No nodes with missing 'id' fields were found (0).",
+    "No unknown/unmappable node types were found -- all types (function, file, class, config, document, service) are valid known types.",
+    "No unknown complexity values were found -- all complexity values were already simple/moderate/complex before this review.",
+    "No dangling edges (referencing non-existent nodes) were found after mechanical fixes.",
+    "No duplicate edge keys (source,target,type) remained.",
+    "Cross-batch import-map verification: checked all 87 importMap entries against assembled-graph.json; every import relationship where both source and target files exist as nodes in the graph already has a corresponding 'imports' edge (0 gaps found). The merge script's own importMap recovery pass (7 edges) plus pre-existing edges fully cover this -- no additional cross-batch edges were needed.",
+    "Final state: 396 nodes (397 - 1 stale duplicate removed), 767 edges (776 - 9 stale duplicate edges removed). All node IDs unique, zero dangling edges, zero duplicate edge keys."
+  ]
+}

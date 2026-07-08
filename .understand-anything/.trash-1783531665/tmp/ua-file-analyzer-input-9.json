@@ -1,0 +1,8 @@
+{
+  "projectRoot": "C:/barstock",
+  "batchFiles": [
+    {"path": "tests/test_log_tables.py", "language": "python", "sizeLines": 35, "fileCategory": "code"},
+    {"path": "tests/test_staff.py", "language": "python", "sizeLines": 136, "fileCategory": "code"}
+  ],
+  "batchImportData": {"tests/test_log_tables.py":[],"tests/test_staff.py":[]}
+}

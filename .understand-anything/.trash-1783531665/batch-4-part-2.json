@@ -1,0 +1,1024 @@
+{
+  "nodes": [
+    {
+      "id": "file:app/services/checkout.py",
+      "type": "file",
+      "name": "checkout.py",
+      "filePath": "app/services/checkout.py",
+      "summary": "Core checkout business logic: validates idempotency keys, resolves cart barcodes to products, locks and decrements stock, and creates the invoice, lines, and payments transactionally.",
+      "tags": [
+        "service",
+        "checkout",
+        "transaction",
+        "invoicing"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "class:app/services/checkout.py:CheckoutError",
+      "type": "class",
+      "name": "CheckoutError",
+      "filePath": "app/services/checkout.py",
+      "lineRange": [
+        48,
+        58
+      ],
+      "summary": "Domain exception raised for checkout validation failures, carrying an error code mapped to an HTTP status by the API layer.",
+      "tags": [
+        "error-handling",
+        "domain-exception"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:app/services/checkout.py:CartLine",
+      "type": "class",
+      "name": "CartLine",
+      "filePath": "app/services/checkout.py",
+      "lineRange": [
+        61,
+        65
+      ],
+      "summary": "Internal dataclass representing a single cart line by barcode and quantity for the service layer.",
+      "tags": [
+        "data-model",
+        "checkout"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:app/services/checkout.py:PaymentLine",
+      "type": "class",
+      "name": "PaymentLine",
+      "filePath": "app/services/checkout.py",
+      "lineRange": [
+        68,
+        72
+      ],
+      "summary": "Internal dataclass representing a single payment mode/amount pair for the service layer.",
+      "tags": [
+        "data-model",
+        "checkout"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:app/services/checkout.py:FinalizeResult",
+      "type": "class",
+      "name": "FinalizeResult",
+      "filePath": "app/services/checkout.py",
+      "lineRange": [
+        76,
+        78
+      ],
+      "summary": "Result wrapper pairing the created or replayed invoice with an is_replay flag.",
+      "tags": [
+        "data-model",
+        "checkout",
+        "idempotency"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:app/services/checkout.py:_check_idempotency_key_present",
+      "type": "function",
+      "name": "_check_idempotency_key_present",
+      "filePath": "app/services/checkout.py",
+      "lineRange": [
+        86,
+        95
+      ],
+      "summary": "Validates that an idempotency key header is present and non-blank, raising CheckoutError otherwise.",
+      "tags": [
+        "validation",
+        "idempotency"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:app/services/checkout.py:_is_today_signed_off",
+      "type": "function",
+      "name": "_is_today_signed_off",
+      "filePath": "app/services/checkout.py",
+      "lineRange": [
+        97,
+        109
+      ],
+      "summary": "Checks whether the shop's business day has already been EOD signed off, blocking new checkouts.",
+      "tags": [
+        "validation",
+        "eod"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:app/services/checkout.py:_resolve_products_for_cart",
+      "type": "function",
+      "name": "_resolve_products_for_cart",
+      "filePath": "app/services/checkout.py",
+      "lineRange": [
+        112,
+        155
+      ],
+      "summary": "Resolves cart barcodes to active Product rows for the shop, raising CheckoutError for unknown or duplicate barcodes.",
+      "tags": [
+        "data-access",
+        "checkout",
+        "validation"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:app/services/checkout.py:finalize_checkout",
+      "type": "function",
+      "name": "finalize_checkout",
+      "filePath": "app/services/checkout.py",
+      "lineRange": [
+        158,
+        330
+      ],
+      "summary": "Transactionally finalizes a checkout: validates idempotency and payment totals, locks products and shop row, checks stock via compute_derived_stock, and creates the invoice with its lines and payments.",
+      "tags": [
+        "service",
+        "transaction",
+        "checkout",
+        "invoicing"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:app/services/invoice_pdf.py",
+      "type": "file",
+      "name": "invoice_pdf.py",
+      "filePath": "app/services/invoice_pdf.py",
+      "summary": "Renders a finalized invoice as a printable PDF receipt using ReportLab, including line items, payment breakdown, and shop details.",
+      "tags": [
+        "service",
+        "pdf",
+        "invoicing"
+      ],
+      "complexity": "moderate",
+      "languageNotes": "Uses ReportLab's SimpleDocTemplate/Table/Paragraph flowables to build a structured PDF document in-memory."
+    },
+    {
+      "id": "function:app/services/invoice_pdf.py:render_invoice_pdf",
+      "type": "function",
+      "name": "render_invoice_pdf",
+      "filePath": "app/services/invoice_pdf.py",
+      "lineRange": [
+        29,
+        160
+      ],
+      "summary": "Builds and returns the raw bytes of a PDF receipt for a given invoice, shop name, GSTIN, and excise duty rate.",
+      "tags": [
+        "pdf",
+        "invoicing",
+        "rendering"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:app/services/voids.py",
+      "type": "file",
+      "name": "voids.py",
+      "filePath": "app/services/voids.py",
+      "summary": "Business logic for voiding invoices: direct pre-EOD voids that restore stock, and the post-EOD request/approve/reject workflow that creates reversal invoices.",
+      "tags": [
+        "service",
+        "voids",
+        "transaction",
+        "invoicing"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "class:app/services/voids.py:VoidError",
+      "type": "class",
+      "name": "VoidError",
+      "filePath": "app/services/voids.py",
+      "lineRange": [
+        42,
+        46
+      ],
+      "summary": "Domain exception raised for void validation failures, carrying an error code mapped to HTTP status by the API layer.",
+      "tags": [
+        "error-handling",
+        "domain-exception"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:app/services/voids.py:VoidResult",
+      "type": "class",
+      "name": "VoidResult",
+      "filePath": "app/services/voids.py",
+      "lineRange": [
+        50,
+        52
+      ],
+      "summary": "Result wrapper pairing the original invoice with an optional reversal invoice created during approval.",
+      "tags": [
+        "data-model",
+        "voids"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:app/services/voids.py:_load_invoice_for_void",
+      "type": "function",
+      "name": "_load_invoice_for_void",
+      "filePath": "app/services/voids.py",
+      "lineRange": [
+        55,
+        68
+      ],
+      "summary": "Loads an invoice scoped to a shop for void processing, raising VoidError if not found.",
+      "tags": [
+        "data-access",
+        "voids"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:app/services/voids.py:direct_void",
+      "type": "function",
+      "name": "direct_void",
+      "filePath": "app/services/voids.py",
+      "lineRange": [
+        71,
+        109
+      ],
+      "summary": "Directly voids a pre-EOD finalized invoice, restoring the underlying stock and marking it voided.",
+      "tags": [
+        "service",
+        "voids",
+        "transaction"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:app/services/voids.py:request_post_eod_void",
+      "type": "function",
+      "name": "request_post_eod_void",
+      "filePath": "app/services/voids.py",
+      "lineRange": [
+        112,
+        146
+      ],
+      "summary": "Files a void request against an already EOD-signed-off invoice, marking it pending owner approval.",
+      "tags": [
+        "service",
+        "voids",
+        "eod"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:app/services/voids.py:approve_post_eod_void",
+      "type": "function",
+      "name": "approve_post_eod_void",
+      "filePath": "app/services/voids.py",
+      "lineRange": [
+        149,
+        230
+      ],
+      "summary": "Owner approval of a pending post-EOD void: locks the shop row, creates a reversal invoice with negated lines and payments, and marks the original invoice voided.",
+      "tags": [
+        "service",
+        "voids",
+        "transaction",
+        "approval"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:app/services/voids.py:reject_post_eod_void",
+      "type": "function",
+      "name": "reject_post_eod_void",
+      "filePath": "app/services/voids.py",
+      "lineRange": [
+        233,
+        262
+      ],
+      "summary": "Owner rejection of a pending post-EOD void request, reverting the invoice back to finalized status.",
+      "tags": [
+        "service",
+        "voids",
+        "approval"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:tests/test_eod.py",
+      "type": "file",
+      "name": "test_eod.py",
+      "filePath": "tests/test_eod.py",
+      "summary": "Integration tests for end-of-day sign-off, EOD totals reporting, sign-off history, and the void request queue, covering role restrictions and revenue exclusions for voided/reversal invoices.",
+      "tags": [
+        "test",
+        "eod",
+        "voids",
+        "checkout"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:tests/test_eod.py:_seed_product",
+      "type": "function",
+      "name": "_seed_product",
+      "filePath": "tests/test_eod.py",
+      "lineRange": [
+        16,
+        21
+      ],
+      "summary": "Test helper that creates a product via the API for use in EOD test scenarios.",
+      "tags": [
+        "test",
+        "fixture-helper"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_eod.py:_seed_lot",
+      "type": "function",
+      "name": "_seed_lot",
+      "filePath": "tests/test_eod.py",
+      "lineRange": [
+        24,
+        31
+      ],
+      "summary": "Test helper that stocks in a lot of items via the receiver client.",
+      "tags": [
+        "test",
+        "fixture-helper"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_eod.py:_finalize",
+      "type": "function",
+      "name": "_finalize",
+      "filePath": "tests/test_eod.py",
+      "lineRange": [
+        34,
+        51
+      ],
+      "summary": "Test helper that finalizes a single-line checkout via the cashier client with a fresh idempotency key.",
+      "tags": [
+        "test",
+        "fixture-helper",
+        "checkout"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_eod.py:test_owner_signs_off_today",
+      "type": "function",
+      "name": "test_owner_signs_off_today",
+      "filePath": "tests/test_eod.py",
+      "lineRange": [
+        58,
+        76
+      ],
+      "summary": "Verifies an owner can sign off the current business day after finalizing invoices.",
+      "tags": [
+        "test",
+        "eod"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:tests/test_eod.py:test_double_sign_off_returns_409",
+      "type": "function",
+      "name": "test_double_sign_off_returns_409",
+      "filePath": "tests/test_eod.py",
+      "lineRange": [
+        80,
+        98
+      ],
+      "summary": "Verifies signing off an already-signed-off day returns a 409 conflict.",
+      "tags": [
+        "test",
+        "eod"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:tests/test_eod.py:test_future_date_rejected",
+      "type": "function",
+      "name": "test_future_date_rejected",
+      "filePath": "tests/test_eod.py",
+      "lineRange": [
+        102,
+        110
+      ],
+      "summary": "Verifies sign-off requests for a future date are rejected.",
+      "tags": [
+        "test",
+        "eod",
+        "validation"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_eod.py:test_cashier_cannot_sign_off",
+      "type": "function",
+      "name": "test_cashier_cannot_sign_off",
+      "filePath": "tests/test_eod.py",
+      "lineRange": [
+        114,
+        119
+      ],
+      "summary": "Verifies a cashier role is forbidden from performing EOD sign-off.",
+      "tags": [
+        "test",
+        "eod",
+        "authorization"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_eod.py:test_checkout_rejected_after_eod_sign_off",
+      "type": "function",
+      "name": "test_checkout_rejected_after_eod_sign_off",
+      "filePath": "tests/test_eod.py",
+      "lineRange": [
+        126,
+        150
+      ],
+      "summary": "Verifies new checkouts are rejected once the business day has been EOD signed off.",
+      "tags": [
+        "test",
+        "eod",
+        "checkout"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:tests/test_eod.py:test_eod_totals_for_signed_off_day",
+      "type": "function",
+      "name": "test_eod_totals_for_signed_off_day",
+      "filePath": "tests/test_eod.py",
+      "lineRange": [
+        157,
+        182
+      ],
+      "summary": "Verifies EOD totals reporting reflects finalized invoices for a signed-off day.",
+      "tags": [
+        "test",
+        "eod",
+        "reporting"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:tests/test_eod.py:test_eod_totals_for_unsigned_day_returns_zero_signed_off_false",
+      "type": "function",
+      "name": "test_eod_totals_for_unsigned_day_returns_zero_signed_off_false",
+      "filePath": "tests/test_eod.py",
+      "lineRange": [
+        186,
+        204
+      ],
+      "summary": "Verifies EOD totals for an unsigned day report zero totals and signed_off false.",
+      "tags": [
+        "test",
+        "eod",
+        "reporting"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:tests/test_eod.py:test_eod_totals_excludes_voided_and_reversal_from_revenue",
+      "type": "function",
+      "name": "test_eod_totals_excludes_voided_and_reversal_from_revenue",
+      "filePath": "tests/test_eod.py",
+      "lineRange": [
+        208,
+        236
+      ],
+      "summary": "Verifies voided invoices and their reversal entries are excluded from EOD revenue totals.",
+      "tags": [
+        "test",
+        "eod",
+        "voids",
+        "reporting"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:tests/test_eod.py:test_eod_history_lists_signoffs_in_descending_order",
+      "type": "function",
+      "name": "test_eod_history_lists_signoffs_in_descending_order",
+      "filePath": "tests/test_eod.py",
+      "lineRange": [
+        243,
+        267
+      ],
+      "summary": "Verifies the sign-off history endpoint lists entries newest-first.",
+      "tags": [
+        "test",
+        "eod",
+        "reporting"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:tests/test_eod.py:test_eod_history_filters_by_date_range",
+      "type": "function",
+      "name": "test_eod_history_filters_by_date_range",
+      "filePath": "tests/test_eod.py",
+      "lineRange": [
+        271,
+        301
+      ],
+      "summary": "Verifies sign-off history can be filtered by a given date range.",
+      "tags": [
+        "test",
+        "eod",
+        "reporting"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:tests/test_eod.py:test_void_queue_lists_pending_invoices",
+      "type": "function",
+      "name": "test_void_queue_lists_pending_invoices",
+      "filePath": "tests/test_eod.py",
+      "lineRange": [
+        308,
+        330
+      ],
+      "summary": "Verifies the pending void queue lists invoices awaiting owner approval.",
+      "tags": [
+        "test",
+        "voids",
+        "reporting"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:tests/test_eod.py:test_void_queue_excludes_resolved_voids",
+      "type": "function",
+      "name": "test_void_queue_excludes_resolved_voids",
+      "filePath": "tests/test_eod.py",
+      "lineRange": [
+        334,
+        353
+      ],
+      "summary": "Verifies already-approved or rejected void requests no longer appear in the pending queue.",
+      "tags": [
+        "test",
+        "voids",
+        "reporting"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:tests/test_eod.py:test_eod_signoff_record_persists",
+      "type": "function",
+      "name": "test_eod_signoff_record_persists",
+      "filePath": "tests/test_eod.py",
+      "lineRange": [
+        360,
+        374
+      ],
+      "summary": "Verifies an EodSignOff database record is persisted correctly after sign-off.",
+      "tags": [
+        "test",
+        "eod",
+        "data-model"
+      ],
+      "complexity": "simple"
+    }
+  ],
+  "edges": [
+    {
+      "source": "file:app/services/checkout.py",
+      "target": "file:app/models/invoice.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:app/services/checkout.py",
+      "target": "file:app/models/lot.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:app/services/checkout.py",
+      "target": "file:app/models/product.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:app/services/checkout.py",
+      "target": "file:app/models/shop.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:app/services/invoice_pdf.py",
+      "target": "file:app/models/invoice.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:app/services/voids.py",
+      "target": "file:app/models/invoice.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:app/services/voids.py",
+      "target": "file:app/models/shop.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_eod.py",
+      "target": "file:app/models/invoice.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:app/services/checkout.py",
+      "target": "class:app/services/checkout.py:CheckoutError",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:app/services/checkout.py",
+      "target": "class:app/services/checkout.py:CartLine",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:app/services/checkout.py",
+      "target": "class:app/services/checkout.py:PaymentLine",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:app/services/checkout.py",
+      "target": "class:app/services/checkout.py:FinalizeResult",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:app/services/checkout.py",
+      "target": "function:app/services/checkout.py:_check_idempotency_key_present",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:app/services/checkout.py",
+      "target": "function:app/services/checkout.py:_is_today_signed_off",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:app/services/checkout.py",
+      "target": "function:app/services/checkout.py:_resolve_products_for_cart",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:app/services/checkout.py",
+      "target": "function:app/services/checkout.py:finalize_checkout",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:app/services/checkout.py",
+      "target": "class:app/services/checkout.py:CheckoutError",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:app/services/checkout.py",
+      "target": "function:app/services/checkout.py:finalize_checkout",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:app/services/invoice_pdf.py",
+      "target": "function:app/services/invoice_pdf.py:render_invoice_pdf",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:app/services/invoice_pdf.py",
+      "target": "function:app/services/invoice_pdf.py:render_invoice_pdf",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:app/services/voids.py",
+      "target": "class:app/services/voids.py:VoidError",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:app/services/voids.py",
+      "target": "class:app/services/voids.py:VoidResult",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:app/services/voids.py",
+      "target": "function:app/services/voids.py:_load_invoice_for_void",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:app/services/voids.py",
+      "target": "function:app/services/voids.py:direct_void",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:app/services/voids.py",
+      "target": "function:app/services/voids.py:request_post_eod_void",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:app/services/voids.py",
+      "target": "function:app/services/voids.py:approve_post_eod_void",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:app/services/voids.py",
+      "target": "function:app/services/voids.py:reject_post_eod_void",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:app/services/voids.py",
+      "target": "class:app/services/voids.py:VoidError",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:app/services/voids.py",
+      "target": "function:app/services/voids.py:direct_void",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:app/services/voids.py",
+      "target": "function:app/services/voids.py:request_post_eod_void",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:app/services/voids.py",
+      "target": "function:app/services/voids.py:approve_post_eod_void",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:app/services/voids.py",
+      "target": "function:app/services/voids.py:reject_post_eod_void",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_eod.py",
+      "target": "function:tests/test_eod.py:_seed_product",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_eod.py",
+      "target": "function:tests/test_eod.py:_seed_lot",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_eod.py",
+      "target": "function:tests/test_eod.py:_finalize",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_eod.py",
+      "target": "function:tests/test_eod.py:test_owner_signs_off_today",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_eod.py",
+      "target": "function:tests/test_eod.py:test_double_sign_off_returns_409",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_eod.py",
+      "target": "function:tests/test_eod.py:test_future_date_rejected",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_eod.py",
+      "target": "function:tests/test_eod.py:test_cashier_cannot_sign_off",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_eod.py",
+      "target": "function:tests/test_eod.py:test_checkout_rejected_after_eod_sign_off",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_eod.py",
+      "target": "function:tests/test_eod.py:test_eod_totals_for_signed_off_day",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_eod.py",
+      "target": "function:tests/test_eod.py:test_eod_totals_for_unsigned_day_returns_zero_signed_off_false",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_eod.py",
+      "target": "function:tests/test_eod.py:test_eod_totals_excludes_voided_and_reversal_from_revenue",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_eod.py",
+      "target": "function:tests/test_eod.py:test_eod_history_lists_signoffs_in_descending_order",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_eod.py",
+      "target": "function:tests/test_eod.py:test_eod_history_filters_by_date_range",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_eod.py",
+      "target": "function:tests/test_eod.py:test_void_queue_lists_pending_invoices",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_eod.py",
+      "target": "function:tests/test_eod.py:test_void_queue_excludes_resolved_voids",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_eod.py",
+      "target": "function:tests/test_eod.py:test_eod_signoff_record_persists",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "function:app/services/checkout.py:finalize_checkout",
+      "target": "function:app/services/checkout.py:_check_idempotency_key_present",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:app/services/checkout.py:finalize_checkout",
+      "target": "function:app/services/checkout.py:_is_today_signed_off",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:app/services/checkout.py:finalize_checkout",
+      "target": "function:app/services/checkout.py:_resolve_products_for_cart",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:app/services/voids.py:direct_void",
+      "target": "function:app/services/voids.py:_load_invoice_for_void",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:app/services/voids.py:request_post_eod_void",
+      "target": "function:app/services/voids.py:_load_invoice_for_void",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:app/services/voids.py:approve_post_eod_void",
+      "target": "function:app/services/voids.py:_load_invoice_for_void",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:app/services/voids.py:reject_post_eod_void",
+      "target": "function:app/services/voids.py:_load_invoice_for_void",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "class:app/services/checkout.py:CartLine",
+      "target": "class:app/schemas/checkout.py:CheckoutLine",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "class:app/services/checkout.py:PaymentLine",
+      "target": "class:app/schemas/checkout.py:PaymentInput",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "class:app/services/checkout.py:FinalizeResult",
+      "target": "class:app/schemas/checkout.py:CheckoutFinalizeResponse",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:app/services/checkout.py",
+      "target": "file:tests/test_eod.py",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:app/services/voids.py",
+      "target": "file:tests/test_eod.py",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "function:tests/test_eod.py:_seed_product",
+      "target": "function:tests/test_eod.py:test_owner_signs_off_today",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    }
+  ]
+}

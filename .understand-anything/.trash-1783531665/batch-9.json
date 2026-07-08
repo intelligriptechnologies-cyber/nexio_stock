@@ -1,0 +1,200 @@
+{
+  "nodes": [
+    {
+      "id": "file:tests/test_log_tables.py",
+      "type": "file",
+      "name": "test_log_tables.py",
+      "filePath": "tests/test_log_tables.py",
+      "summary": "Integration tests verifying that the invoicing_logs, stockin_logs, and admin_logs audit tables exist in the database and expose their required columns.",
+      "tags": ["test", "database", "audit-log", "schema-validation"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_log_tables.py:test_three_log_tables_exist",
+      "type": "function",
+      "name": "test_three_log_tables_exist",
+      "filePath": "tests/test_log_tables.py",
+      "lineRange": [8, 18],
+      "summary": "Queries information_schema.tables to assert that the three expected log tables (invoicing_logs, stockin_logs, admin_logs) exist.",
+      "tags": ["test", "database", "schema-check"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_log_tables.py:test_log_tables_have_required_columns",
+      "type": "function",
+      "name": "test_log_tables_have_required_columns",
+      "filePath": "tests/test_log_tables.py",
+      "lineRange": [21, 35],
+      "summary": "Queries information_schema.columns for each log table and asserts that a minimal required set of columns is present.",
+      "tags": ["test", "database", "schema-check"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:tests/test_staff.py",
+      "type": "file",
+      "name": "test_staff.py",
+      "filePath": "tests/test_staff.py",
+      "summary": "Integration test suite covering staff-management endpoints: owner-created receiver/cashier accounts, role restrictions, duplicate username/phone conflict handling across and within shops, shop-scoped staff listing, and staff password reset authorization rules across owner, receiver, and superadmin roles.",
+      "tags": ["test", "api-handler", "authorization", "staff-management"],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:tests/test_staff.py:test_owner_creates_receiver_user",
+      "type": "function",
+      "name": "test_owner_creates_receiver_user",
+      "filePath": "tests/test_staff.py",
+      "lineRange": [15, 30],
+      "summary": "Verifies an owner can create a new staff account with the receiver role.",
+      "tags": ["test", "staff-management", "authorization"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_staff.py:test_owner_creates_cashier_user",
+      "type": "function",
+      "name": "test_owner_creates_cashier_user",
+      "filePath": "tests/test_staff.py",
+      "lineRange": [34, 47],
+      "summary": "Verifies an owner can create a new staff account with the cashier role.",
+      "tags": ["test", "staff-management", "authorization"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_staff.py:test_owner_cannot_create_another_owner",
+      "type": "function",
+      "name": "test_owner_cannot_create_another_owner",
+      "filePath": "tests/test_staff.py",
+      "lineRange": [51, 62],
+      "summary": "Verifies an owner is forbidden from creating another owner-role staff account.",
+      "tags": ["test", "authorization", "role-restriction"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_staff.py:test_owner_cannot_create_superadmin",
+      "type": "function",
+      "name": "test_owner_cannot_create_superadmin",
+      "filePath": "tests/test_staff.py",
+      "lineRange": [66, 77],
+      "summary": "Verifies an owner is forbidden from creating a superadmin-role staff account.",
+      "tags": ["test", "authorization", "role-restriction"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_staff.py:test_duplicate_username_rejected_with_409",
+      "type": "function",
+      "name": "test_duplicate_username_rejected_with_409",
+      "filePath": "tests/test_staff.py",
+      "lineRange": [81, 95],
+      "summary": "Verifies creating a staff account with a duplicate username returns HTTP 409 conflict.",
+      "tags": ["test", "validation", "conflict-handling"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_staff.py:test_duplicate_phone_rejected_with_409",
+      "type": "function",
+      "name": "test_duplicate_phone_rejected_with_409",
+      "filePath": "tests/test_staff.py",
+      "lineRange": [99, 113],
+      "summary": "Verifies creating a staff account with a duplicate phone number within the same shop returns HTTP 409 conflict.",
+      "tags": ["test", "validation", "conflict-handling"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_staff.py:test_duplicate_phone_rejected_across_shops_with_409",
+      "type": "function",
+      "name": "test_duplicate_phone_rejected_across_shops_with_409",
+      "filePath": "tests/test_staff.py",
+      "lineRange": [117, 144],
+      "summary": "Sets up a second shop and owner, then verifies phone number uniqueness is enforced globally across shops with HTTP 409.",
+      "tags": ["test", "validation", "conflict-handling", "multi-shop"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:tests/test_staff.py:test_owner_lists_only_their_shop_staff",
+      "type": "function",
+      "name": "test_owner_lists_only_their_shop_staff",
+      "filePath": "tests/test_staff.py",
+      "lineRange": [148, 156],
+      "summary": "Verifies the staff listing endpoint scopes results to only the requesting owner's own shop.",
+      "tags": ["test", "shop-scope", "authorization"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_staff.py:test_receiver_cannot_create_staff",
+      "type": "function",
+      "name": "test_receiver_cannot_create_staff",
+      "filePath": "tests/test_staff.py",
+      "lineRange": [160, 171],
+      "summary": "Verifies a receiver-role user is forbidden from creating new staff accounts.",
+      "tags": ["test", "authorization", "role-restriction"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_staff.py:test_owner_resets_staff_password",
+      "type": "function",
+      "name": "test_owner_resets_staff_password",
+      "filePath": "tests/test_staff.py",
+      "lineRange": [175, 193],
+      "summary": "Verifies an owner can reset a staff member's password and that the new password subsequently works for login.",
+      "tags": ["test", "authorization", "password-reset"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:tests/test_staff.py:test_owner_cannot_reset_password_for_other_shop_staff",
+      "type": "function",
+      "name": "test_owner_cannot_reset_password_for_other_shop_staff",
+      "filePath": "tests/test_staff.py",
+      "lineRange": [197, 220],
+      "summary": "Sets up a second shop with its own staff member and verifies an owner cannot reset the password of staff belonging to a different shop.",
+      "tags": ["test", "shop-scope", "authorization", "password-reset"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:tests/test_staff.py:test_owner_cannot_reset_own_password_via_staff_endpoint",
+      "type": "function",
+      "name": "test_owner_cannot_reset_own_password_via_staff_endpoint",
+      "filePath": "tests/test_staff.py",
+      "lineRange": [224, 231],
+      "summary": "Verifies an owner cannot use the staff password-reset endpoint to reset their own password.",
+      "tags": ["test", "authorization", "password-reset"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_staff.py:test_receiver_cannot_reset_staff_password",
+      "type": "function",
+      "name": "test_receiver_cannot_reset_staff_password",
+      "filePath": "tests/test_staff.py",
+      "lineRange": [235, 242],
+      "summary": "Verifies a receiver-role user is forbidden from resetting another staff member's password.",
+      "tags": ["test", "authorization", "role-restriction", "password-reset"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_staff.py:test_superadmin_resets_staff_password_any_shop",
+      "type": "function",
+      "name": "test_superadmin_resets_staff_password_any_shop",
+      "filePath": "tests/test_staff.py",
+      "lineRange": [246, 253],
+      "summary": "Verifies a superadmin can reset the password of staff belonging to any shop, bypassing shop-scope restrictions.",
+      "tags": ["test", "authorization", "password-reset", "superadmin"],
+      "complexity": "simple"
+    }
+  ],
+  "edges": [
+    {"source": "file:tests/test_log_tables.py", "target": "function:tests/test_log_tables.py:test_three_log_tables_exist", "type": "contains", "direction": "forward", "weight": 1.0},
+    {"source": "file:tests/test_log_tables.py", "target": "function:tests/test_log_tables.py:test_log_tables_have_required_columns", "type": "contains", "direction": "forward", "weight": 1.0},
+    {"source": "file:tests/test_staff.py", "target": "function:tests/test_staff.py:test_owner_creates_receiver_user", "type": "contains", "direction": "forward", "weight": 1.0},
+    {"source": "file:tests/test_staff.py", "target": "function:tests/test_staff.py:test_owner_creates_cashier_user", "type": "contains", "direction": "forward", "weight": 1.0},
+    {"source": "file:tests/test_staff.py", "target": "function:tests/test_staff.py:test_owner_cannot_create_another_owner", "type": "contains", "direction": "forward", "weight": 1.0},
+    {"source": "file:tests/test_staff.py", "target": "function:tests/test_staff.py:test_owner_cannot_create_superadmin", "type": "contains", "direction": "forward", "weight": 1.0},
+    {"source": "file:tests/test_staff.py", "target": "function:tests/test_staff.py:test_duplicate_username_rejected_with_409", "type": "contains", "direction": "forward", "weight": 1.0},
+    {"source": "file:tests/test_staff.py", "target": "function:tests/test_staff.py:test_duplicate_phone_rejected_with_409", "type": "contains", "direction": "forward", "weight": 1.0},
+    {"source": "file:tests/test_staff.py", "target": "function:tests/test_staff.py:test_duplicate_phone_rejected_across_shops_with_409", "type": "contains", "direction": "forward", "weight": 1.0},
+    {"source": "file:tests/test_staff.py", "target": "function:tests/test_staff.py:test_owner_lists_only_their_shop_staff", "type": "contains", "direction": "forward", "weight": 1.0},
+    {"source": "file:tests/test_staff.py", "target": "function:tests/test_staff.py:test_receiver_cannot_create_staff", "type": "contains", "direction": "forward", "weight": 1.0},
+    {"source": "file:tests/test_staff.py", "target": "function:tests/test_staff.py:test_owner_resets_staff_password", "type": "contains", "direction": "forward", "weight": 1.0},
+    {"source": "file:tests/test_staff.py", "target": "function:tests/test_staff.py:test_owner_cannot_reset_password_for_other_shop_staff", "type": "contains", "direction": "forward", "weight": 1.0},
+    {"source": "file:tests/test_staff.py", "target": "function:tests/test_staff.py:test_owner_cannot_reset_own_password_via_staff_endpoint", "type": "contains", "direction": "forward", "weight": 1.0},
+    {"source": "file:tests/test_staff.py", "target": "function:tests/test_staff.py:test_receiver_cannot_reset_staff_password", "type": "contains", "direction": "forward", "weight": 1.0},
+    {"source": "file:tests/test_staff.py", "target": "function:tests/test_staff.py:test_superadmin_resets_staff_password_any_shop", "type": "contains", "direction": "forward", "weight": 1.0}
+  ]
+}

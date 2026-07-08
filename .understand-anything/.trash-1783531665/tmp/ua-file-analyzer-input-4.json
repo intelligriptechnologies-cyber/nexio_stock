@@ -1,0 +1,14 @@
+{
+  "projectRoot": "C:/barstock",
+  "batchFiles": [
+    {"path": "app/api/checkout.py", "language": "python", "sizeLines": 248, "fileCategory": "code"},
+    {"path": "app/api/voids.py", "language": "python", "sizeLines": 307, "fileCategory": "code"},
+    {"path": "app/models/invoice.py", "language": "python", "sizeLines": 284, "fileCategory": "code"},
+    {"path": "app/schemas/checkout.py", "language": "python", "sizeLines": 114, "fileCategory": "code"},
+    {"path": "app/services/checkout.py", "language": "python", "sizeLines": 410, "fileCategory": "code"},
+    {"path": "app/services/invoice_pdf.py", "language": "python", "sizeLines": 160, "fileCategory": "code"},
+    {"path": "app/services/voids.py", "language": "python", "sizeLines": 272, "fileCategory": "code"},
+    {"path": "tests/test_eod.py", "language": "python", "sizeLines": 374, "fileCategory": "code"}
+  ],
+  "batchImportData": {"app/api/checkout.py":["app/api/deps.py","app/logging_config.py","app/models/invoice.py","app/models/log.py","app/models/user.py","app/schemas/checkout.py","app/services/checkout.py"],"app/api/voids.py":["app/api/deps.py","app/logging_config.py","app/models/invoice.py","app/models/log.py","app/models/user.py","app/schemas/checkout.py","app/services/voids.py"],"app/models/invoice.py":["app/db.py"],"app/schemas/checkout.py":["app/models/invoice.py"],"app/services/checkout.py":["app/models/invoice.py","app/models/lot.py","app/models/product.py","app/models/shop.py"],"app/services/invoice_pdf.py":["app/models/invoice.py"],"app/services/voids.py":["app/models/invoice.py","app/models/shop.py"],"tests/test_eod.py":["app/models/invoice.py"]}
+}

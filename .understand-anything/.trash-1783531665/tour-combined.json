@@ -1,0 +1,298 @@
+[
+  {
+    "order": 1,
+    "title": "Project Overview",
+    "description": "README.md introduces Barstock as a single-counter liquor shop inventory and billing system built for a shop in Odisha, India, using FastAPI, async SQLAlchemy 2.0, and Postgres. It walks through the tech stack, setup steps (migrations, first superadmin, shop creation), and the overall project layout, giving you the map for the rest of this tour.",
+    "nodeIds": [
+      "document:README.md"
+    ]
+  },
+  {
+    "order": 2,
+    "title": "Application Entry Point",
+    "description": "app/main.py is the FastAPI application factory: it manages the startup/shutdown lifespan (opening the DB engine, launching a background low-stock polling task), configures CORS, and mounts every API router. With the highest fan-out in the codebase, this file is the single place that wires all the pieces you'll meet in later steps together.",
+    "nodeIds": [
+      "file:app/main.py"
+    ],
+    "languageLesson": "FastAPI's lifespan context manager (an async generator used with `@asynccontextmanager`) replaces the older on_event('startup'/'shutdown') hooks, letting setup and teardown code share state cleanly."
+  },
+  {
+    "order": 3,
+    "title": "Configuration, Database & Logging Bootstrap",
+    "description": "app/config.py centralizes all environment-driven settings (DB URL, JWT secret/TTL, bcrypt rounds, CORS origins) via pydantic-settings, sourced from the variables listed in .env.example. app/db.py builds the async SQLAlchemy engine and sessionmaker, exposing the get_db dependency and a unit_of_work context manager, while app/logging_config.py sets up structured JSON logging with structlog. These three modules are imported almost everywhere else in the app.",
+    "nodeIds": [
+      "file:app/config.py",
+      "file:app/db.py",
+      "file:app/logging_config.py",
+      "config:.env.example"
+    ],
+    "languageLesson": "pydantic-settings validates and type-coerces environment variables at startup, failing fast if required config is missing, rather than surfacing a cryptic error deep in a request handler."
+  },
+  {
+    "order": 4,
+    "title": "Security: JWT & Passwords",
+    "description": "app/security/jwt.py issues and decodes JWT access tokens using the secret/algorithm/TTL from config.py, and app/security/passwords.py hashes and verifies passwords with bcrypt. Together these two small, focused modules are the trust boundary underneath every authenticated request in the system.",
+    "nodeIds": [
+      "file:app/security/jwt.py",
+      "file:app/security/passwords.py"
+    ]
+  },
+  {
+    "order": 5,
+    "title": "Core Domain: Users & Shops",
+    "description": "app/models/user.py defines shop staff accounts with a role enum (superadmin, owner, receiver, cashier) and a shop-scoping relationship, while app/models/shop.py models the Shop itself \u2014 the tenant record holding shop code, GST/excise settings, invoice numbering state, and low-stock defaults. With the highest fan-in of any files in the project, these two models are the vocabulary every other table and API in Barstock builds on.",
+    "nodeIds": [
+      "file:app/models/user.py",
+      "file:app/models/shop.py"
+    ]
+  },
+  {
+    "order": 6,
+    "title": "Request Dependencies: Auth Guards & Shop Scoping",
+    "description": "app/api/deps.py is the connective tissue of the API layer: it injects DB sessions, resolves the current user from the JWT set up in Step 4, and provides role-based access guards plus shop-scope resolution helpers. Nearly every router mounted in main.py depends on this one file to enforce who can see and touch what.",
+    "nodeIds": [
+      "file:app/api/deps.py"
+    ]
+  },
+  {
+    "order": 7,
+    "title": "Identity & Staff Management API",
+    "description": "app/api/auth.py handles superadmin login and shop-scoped staff login by phone or staff ID, validated against the request/response shapes in app/schemas/auth.py. app/api/staff.py lets shop owners create staff accounts, list them, and reset passwords \u2014 building directly on the User model and security helpers from the previous steps.",
+    "nodeIds": [
+      "file:app/api/auth.py",
+      "file:app/schemas/auth.py",
+      "file:app/api/staff.py"
+    ]
+  },
+  {
+    "order": 8,
+    "title": "Inventory Domain: Products & Lots",
+    "description": "app/models/product.py models the bottles sold in the shop, including a pending-approval lifecycle, and app/models/lot.py models received stock lots and their line items \u2014 together forming the inventory data model. app/schemas/product.py and app/schemas/lot.py define the Pydantic validation for creating, quick-adding, and CSV-importing products, and for lot receiving with duplicate-barcode checks.",
+    "nodeIds": [
+      "file:app/models/product.py",
+      "file:app/models/lot.py",
+      "file:app/schemas/product.py",
+      "file:app/schemas/lot.py"
+    ]
+  },
+  {
+    "order": 9,
+    "title": "Inventory API: Catalog & Stock Receiving",
+    "description": "app/api/products.py exposes product creation, quick-add during checkout, barcode lookup, updates, pending-product activation, and CSV bulk import. app/api/lots.py handles the receiving side: creating lots with line items, listing lots, and fetching lot detail. Both routers rely on the shop-scope and role guards from Step 6 to keep inventory changes tenant-isolated.",
+    "nodeIds": [
+      "file:app/api/products.py",
+      "file:app/api/lots.py"
+    ]
+  },
+  {
+    "order": 10,
+    "title": "Billing Core: Invoice Model & Checkout Service",
+    "description": "app/models/invoice.py defines invoices, invoice lines, payments, EOD sign-offs, and idempotency keys \u2014 the transactional heart of the billing domain. app/services/checkout.py implements the actual checkout logic: validating idempotency keys, resolving cart barcodes to products, locking and decrementing stock, and creating the invoice atomically, validated by the request/response shapes in app/schemas/checkout.py.",
+    "nodeIds": [
+      "file:app/models/invoice.py",
+      "file:app/services/checkout.py",
+      "file:app/schemas/checkout.py"
+    ],
+    "languageLesson": "Row-level locking (SELECT ... FOR UPDATE via SQLAlchemy) inside an async transaction prevents two concurrent checkouts from overselling the same bottle when stock is low."
+  },
+  {
+    "order": 11,
+    "title": "Checkout API & PDF Receipts",
+    "description": "app/api/checkout.py exposes the finalize-cart, invoice-detail, and invoice-PDF endpoints, enforcing the role and shop-scope checks from Step 6 on top of the service logic from Step 10. app/services/invoice_pdf.py renders a finalized invoice as a printable PDF receipt with ReportLab, including line items, payment breakdown, and shop-specific GST/excise details from the Shop model in Step 5.",
+    "nodeIds": [
+      "file:app/api/checkout.py",
+      "file:app/services/invoice_pdf.py"
+    ]
+  },
+  {
+    "order": 12,
+    "title": "Voids & End-of-Day Operations",
+    "description": "app/services/voids.py implements direct pre-EOD voids that restore stock, plus a post-EOD request/approve/reject workflow that creates reversal invoices instead of deleting history. app/services/eod.py signs off a business day's invoices and computes revenue/payment totals. app/api/voids.py and app/api/dashboard.py expose these as HTTP endpoints for void requests, EOD sign-off, totals, and the pending-void queue.",
+    "nodeIds": [
+      "file:app/services/voids.py",
+      "file:app/services/eod.py",
+      "file:app/api/voids.py",
+      "file:app/api/dashboard.py"
+    ]
+  },
+  {
+    "order": 13,
+    "title": "Audit Log & Low-Stock Alerts",
+    "description": "app/models/log.py defines the append-only business event log using joined-table inheritance, with subclasses per category (invoicing, stock-in, admin) \u2014 every checkout, void, and receiving action from prior steps writes here for an immutable audit trail. app/services/low_stock.py computes which active products have fallen at or below their threshold by deriving current stock from lot receipts and invoice lines, powering the low-stock endpoint mounted in Step 12's dashboard router.",
+    "nodeIds": [
+      "file:app/models/log.py",
+      "file:app/services/low_stock.py"
+    ],
+    "languageLesson": "Joined-table inheritance in SQLAlchemy stores shared columns in a parent table and category-specific columns in child tables linked by a foreign key, letting one polymorphic query return all log types while each subclass keeps its own schema."
+  },
+  {
+    "order": 14,
+    "title": "Database Schema Evolution",
+    "description": "config:alembic.ini and file:alembic/env.py configure Alembic's async migration environment, while the earliest migration in alembic/versions creates the shops, users, and log tables you met in Steps 5 and 13, and a later migration adds the invoices, invoice_lines, and payments tables backing Step 10's billing model. Each migration is an incremental, ordered step that evolves the Postgres schema alongside the ORM models.",
+    "nodeIds": [
+      "config:alembic.ini",
+      "file:alembic/env.py",
+      "file:alembic/versions/0243c7acf544_foundation_shops_users_log_tables.py",
+      "file:alembic/versions/ea0fba754aaa_invoices_invoice_lines_payments_.py"
+    ],
+    "languageLesson": "Alembic migrations should be idempotent and ordered by revision chain; each script's upgrade()/downgrade() pair lets the schema move forward or roll back deterministically as the codebase evolves."
+  },
+  {
+    "order": 15,
+    "title": "Test Suite & Local Infrastructure",
+    "description": "tests/conftest.py provisions an isolated per-test Postgres database via Alembic migrations and asyncpg, plus role-scoped client fixtures (owner, receiver, cashier, superadmin) used across the suite. tests/test_checkout.py exercises the full checkout flow from Steps 10-11 end to end \u2014 split payments, idempotency replay, concurrent finalizes, and PDF generation. docker-compose.yml provisions the local Postgres container these tests run against, and pyproject.toml defines the project's dependencies, console scripts, and tool configuration (ruff, pytest, coverage) that tie the whole backend together.",
+    "nodeIds": [
+      "file:tests/conftest.py",
+      "file:tests/test_checkout.py",
+      "service:docker-compose.yml",
+      "config:pyproject.toml"
+    ]
+  },
+  {
+    "order": 16,
+    "title": "Application Bootstrap",
+    "description": "The tour starts where the browser starts: index.html loads main.tsx, which mounts the React tree and wraps the whole app in AuthProvider and ShopScopeProvider before rendering App. It also pulls in index.css, which loads Tailwind's base/components/utilities layers. This is the single place that wires global state providers around the routing tree, so everything downstream can assume an authenticated session and a shop scope already exist.",
+    "nodeIds": [
+      "file:frontend/src/main.tsx",
+      "file:frontend/index.html",
+      "file:frontend/src/index.css"
+    ],
+    "languageLesson": "React 18's createRoot API expects providers to be composed outermost-first; nesting AuthProvider around ShopScopeProvider around App means both contexts are available to every component in the tree, including App itself."
+  },
+  {
+    "order": 17,
+    "title": "Routing and Role Guards",
+    "description": "App.tsx has by far the highest fan-out in the codebase (15 outbound file references) because it imports and wires up every page in the app. It defines a Protected wrapper component that checks the authenticated user's role via useAuth before allowing a route to render, redirecting to ForbiddenPage otherwise. Understanding this file gives you a map of every screen in the SPA and which roles can reach them, before you dive into any individual page.",
+    "nodeIds": [
+      "file:frontend/src/App.tsx",
+      "file:frontend/src/pages/ForbiddenPage.tsx",
+      "file:frontend/src/pages/HomeRedirect.tsx"
+    ],
+    "languageLesson": "TypeScript discriminated checks on a `role` string field, combined with React Router's element-as-prop routing, let Protected act as a generic higher-order guard without duplicating auth logic in every page."
+  },
+  {
+    "order": 18,
+    "title": "Authentication Core",
+    "description": "AuthProvider.tsx has the second-highest fan-in in the project (14 dependents) \u2014 nearly every page and shared component calls its useAuth hook. It manages the session (token, user, readiness), persists it to sessionStorage, and exposes login/logout plus homePathFor, a helper that picks the right landing page for a given role. It depends on jwt.ts, a dependency-free helper that decodes JWT payloads and checks expiry, which readSession calls to validate the stored token on load.",
+    "nodeIds": [
+      "file:frontend/src/auth/AuthProvider.tsx",
+      "file:frontend/src/auth/jwt.ts"
+    ],
+    "languageLesson": "jwt.ts hand-rolls base64url decoding instead of pulling in a JWT library \u2014 a deliberate choice for a small POS frontend to avoid an extra dependency for a few lines of decoding logic."
+  },
+  {
+    "order": 19,
+    "title": "PIN-Pad Login Flow",
+    "description": "Building on the AuthProvider from Step 3, LoginPage.tsx implements the shop-staff login experience: a phone number plus PIN entered through the reusable PinPad component, submitted to the API, then redirected via homePathFor. SuperadminLoginPage.tsx is a parallel, simpler flow using traditional username/password fields for the separate superadmin audience. Both pages call useAuth directly, showing how the auth context decouples login UI from session management.",
+    "nodeIds": [
+      "file:frontend/src/pages/LoginPage.tsx",
+      "file:frontend/src/components/PinPad.tsx",
+      "file:frontend/src/pages/SuperadminLoginPage.tsx"
+    ],
+    "languageLesson": "PinPad is a controlled, callback-driven component (onDigit/onBackspace/onSubmit props) rather than owning its own form state, which is what lets both LoginPage and other numeric-entry screens reuse it without coupling to a specific auth flow."
+  },
+  {
+    "order": 20,
+    "title": "Multi-Shop Scoping",
+    "description": "ShopScopeProvider.tsx (fan-in of 9) tracks which shop a superadmin is currently 'acting as', persisting the selection to sessionStorage and exposing it through useShopScope. ShopPicker.tsx is the dropdown UI that lets a superadmin switch shops, and Sidebar.tsx renders it alongside role-filtered navigation links. Together these three files implement the project's core multi-tenancy pattern: owners and staff are permanently scoped to one shop, while a superadmin can pivot between shops without re-authenticating.",
+    "nodeIds": [
+      "file:frontend/src/auth/ShopScopeProvider.tsx",
+      "file:frontend/src/components/ShopPicker.tsx",
+      "file:frontend/src/components/Sidebar.tsx"
+    ]
+  },
+  {
+    "order": 21,
+    "title": "Typed API Client Foundation",
+    "description": "client.ts has the highest fan-in of any file in the codebase (18 dependents) \u2014 it is the single fetch wrapper that every API module builds on, attaching auth headers from session storage, serializing JSON bodies, and normalizing failures into a shared ApiError. shops.ts is a small domain module built on top of it, covering shop listing (superadmin), fetching the current shop, and updating shop configuration. Every API call you see in later steps ultimately routes through this one function.",
+    "nodeIds": [
+      "file:frontend/src/api/client.ts",
+      "file:frontend/src/api/shops.ts"
+    ],
+    "languageLesson": "Centralizing error normalization in a single ApiError class means every page can catch one error type regardless of which endpoint failed, instead of handling raw fetch Response objects differently in each component."
+  },
+  {
+    "order": 22,
+    "title": "Checkout: The Core POS Screen",
+    "description": "CheckoutPage.tsx is the most complex page in the app and the reason the offline-resilience layer exists: it scans/looks up items by barcode via catalog.ts's in-memory cache, manages cart and split payments, and finalizes sales through checkout.ts's finalizeCheckout call. Because this screen runs on a single in-store counter with unreliable internet, every finalize attempt is designed to degrade gracefully rather than block the sale \u2014 which the next step explains in detail.",
+    "nodeIds": [
+      "file:frontend/src/pages/CheckoutPage.tsx",
+      "file:frontend/src/api/checkout.ts",
+      "file:frontend/src/api/catalog.ts"
+    ]
+  },
+  {
+    "order": 23,
+    "title": "Offline Resilience Hooks",
+    "description": "This is the safety net behind Step 7's checkout flow. finalize-queue.ts persists pending checkout requests to localStorage when the API call fails, useOnlineStatus.ts subscribes to the browser's online/offline events, and useRetryQueue.ts combines both to automatically flush queued checkouts once connectivity returns or on a polling interval. CheckoutPage calls useRetryQueue directly, so a cashier can keep ringing up sales through a network outage without losing a single transaction.",
+    "nodeIds": [
+      "file:frontend/src/api/finalize-queue.ts",
+      "file:frontend/src/hooks/useOnlineStatus.ts",
+      "file:frontend/src/hooks/useRetryQueue.ts"
+    ],
+    "languageLesson": "Composing useOnlineStatus inside useRetryQueue is a classic React hook-composition pattern: small, single-purpose hooks are combined into a higher-level hook rather than duplicating connectivity-detection logic in every consumer."
+  },
+  {
+    "order": 24,
+    "title": "Product Catalog and Receiving",
+    "description": "ProductsPage.tsx offers list/create/import tabs backed by products.ts (including CSV bulk-import), while ReceivingPage.tsx is the counter workflow for scanning barcodes to build a new inventory lot, backed by lots.ts's validated createLotSafe helper. Both pages share the same catalog.ts barcode cache from Step 7, and both call invalidateCache after creating or updating a product so the next barcode scan reflects the change immediately.",
+    "nodeIds": [
+      "file:frontend/src/pages/ProductsPage.tsx",
+      "file:frontend/src/api/products.ts",
+      "file:frontend/src/pages/ReceivingPage.tsx",
+      "file:frontend/src/api/lots.ts"
+    ]
+  },
+  {
+    "order": 25,
+    "title": "Owner Dashboard and EOD Sign-off",
+    "description": "DashboardPage.tsx is the owner/manager landing screen, showing today's end-of-day totals, low-stock alerts, and sign-off history, all backed by dashboard.ts's shop-scoped API calls (getEodTotals, getLowStock, getEodHistory, signOffEod). This is where the auth and shop-scope context from Steps 3 and 5 come together operationally: the dashboard only shows data for the owner's own shop, or the superadmin's currently 'acting' shop.",
+    "nodeIds": [
+      "file:frontend/src/pages/DashboardPage.tsx",
+      "file:frontend/src/api/dashboard.ts"
+    ]
+  },
+  {
+    "order": 26,
+    "title": "Staff Management and Void Approvals",
+    "description": "StaffPage.tsx lets owners create staff accounts and reset PINs via staff.ts, while InvoiceLookupPage.tsx lets any staff member look up a past invoice (via checkout.ts's getInvoice) and request a void through voids.ts's requestVoid. VoidApprovalsPage.tsx closes the loop, giving managers a queue of pending void requests to approve or reject. Together these three pages show the permission-sensitive, multi-role workflows layered on top of the checkout and auth foundations from earlier steps.",
+    "nodeIds": [
+      "file:frontend/src/pages/StaffPage.tsx",
+      "file:frontend/src/api/staff.ts",
+      "file:frontend/src/pages/InvoiceLookupPage.tsx",
+      "file:frontend/src/pages/VoidApprovalsPage.tsx",
+      "file:frontend/src/api/voids.ts"
+    ]
+  },
+  {
+    "order": 27,
+    "title": "Shop Configuration",
+    "description": "ShopConfigPage.tsx is the settings screen where an owner or superadmin edits a shop's GSTIN, excise duty rate, and low-stock threshold, using the same shops.ts module introduced in Step 6 and respecting the shop-scope context from Step 5. It is a compact example of how nearly every page in this app follows the same recipe: pull in auth and shop-scope context, call a typed API module, and render load/save state around it.",
+    "nodeIds": [
+      "file:frontend/src/pages/ShopConfigPage.tsx"
+    ]
+  },
+  {
+    "order": 28,
+    "title": "End-to-End Test Coverage",
+    "description": "The Playwright suite exercises the flows covered in this tour against a real browser. checkout-resilience.spec.ts specifically verifies the offline-queue behavior from Step 8 by simulating network failures and offline conditions, while login.smoke.spec.ts is a fast-running smoke test confirming the PIN login flow from Step 4 still authenticates against a live backend. playwright.config.ts ties it together, defining the base URL, retry policy, and a webServer block that boots the built frontend against the FastAPI backend for CI.",
+    "nodeIds": [
+      "file:frontend/e2e/checkout-resilience.spec.ts",
+      "file:frontend/e2e/login.smoke.spec.ts",
+      "config:frontend/playwright.config.ts"
+    ],
+    "languageLesson": "Playwright specs share small role-specific login helpers (e.g. loginAsCashier) defined per-file rather than in a shared module \u2014 a pattern worth noting if the suite grows and this duplication becomes worth extracting."
+  },
+  {
+    "order": 29,
+    "title": "Build and Tooling Configuration",
+    "description": "package.json declares the dependencies (React Router, React DOM) and dev tooling (Vite, ESLint, Tailwind, Playwright, openapi-typescript) and scripts that tie the whole project together, including a script that generates TypeScript types from the FastAPI backend's OpenAPI schema. vite.config.ts wires up the dev server and React plugin, tailwind.config.ts extends the theme using the shared design tokens module, and tsconfig.json references separate app/node/e2e project configs so the composite `tsc -b` build only type-checks each area with the rules it needs. This is the capstone: everything explored in this tour is built, linted, styled, and tested through the pipeline defined here.",
+    "nodeIds": [
+      "config:frontend/package.json",
+      "config:frontend/vite.config.ts",
+      "config:frontend/tailwind.config.ts",
+      "config:frontend/tsconfig.json"
+    ],
+    "languageLesson": "TypeScript project references (tsconfig.json pointing at tsconfig.app.json/tsconfig.node.json/tsconfig.e2e.json) let `tsc -b` incrementally build only the projects that changed, and let app code, Vite tooling code, and e2e test code each have distinct compiler options (e.g. different `lib` or `types` settings) without interfering with one another."
+  }
+]
