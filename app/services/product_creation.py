@@ -52,6 +52,8 @@ async def create_product_row(
     status_value: ProductStatus,
     is_active: bool = True,
     commit: bool = True,
+    pending_origin: str | None = None,
+    pending_added_by_user_id: int | None = None,
 ) -> Product:
     """Insert one product row with integrity-error translation.
 
@@ -59,6 +61,12 @@ async def create_product_row(
     commit=True: the row is committed before return. The CSV batch
     caller passes commit=False so it can flush each row (to surface
     unique violations per row) and commit the whole batch at the end.
+
+    ``pending_origin``/``pending_added_by_user_id`` (issue #31) are set
+    only by the quick-add caller — they record where a pending row came
+    from at the moment it's created, so the Pending Products list can
+    read them back directly instead of re-deriving them from the audit
+    log tables.
 
     Raises ProductConflictError (409) on a UNIQUE(barcode) collision.
     Any other IntegrityError propagates (and currently none exist --
@@ -73,6 +81,8 @@ async def create_product_row(
         low_stock_threshold=low_stock_threshold,
         is_active=is_active,
         status=status_value,
+        pending_origin=pending_origin,
+        pending_added_by_user_id=pending_added_by_user_id,
     )
     db.add(product)
     try:

@@ -201,6 +201,11 @@ async def quick_add_product(
     actor_id = _user.id
     actor_shop_id = _user.shop_id
     assert actor_shop_id is not None, "shop-scoped user must have shop_id"
+    # The origin header is the source of truth for both the audit-log
+    # table choice below and the pending-row origin recorded by the
+    # service (issue #31) — defaults to "receiving" for the in-scope
+    # #22 caller. Checkout is added in #26.
+    origin = x_quick_add_origin or "receiving"
 
     try:
         product = await products_svc.quick_add_product(
@@ -209,6 +214,8 @@ async def quick_add_product(
             barcode=payload.barcode,
             brand=payload.brand,
             size_label=payload.size_label,
+            origin=origin,
+            actor_id=actor_id,
         )
     except QuickAddConflictError as exc:
         existing = exc.existing
@@ -228,10 +235,8 @@ async def quick_add_product(
         raise _error_to_http(exc) from exc
     await db.refresh(product)
 
-    # Audit-log to the right domain table (D-v2-13). The origin header is
-    # the source of truth for which log table to write to — defaults to
-    # "receiving" for the in-scope #22 caller. Checkout is added in #26.
-    origin = x_quick_add_origin or "receiving"
+    # Audit-log to the right domain table (D-v2-13): receiving ->
+    # stockin_logs, checkout -> invoicing_logs.
     db.add(quick_add_log_entry(actor_id=actor_id, shop_id=actor_shop_id, product=product, origin=origin))
     await db.commit()
 

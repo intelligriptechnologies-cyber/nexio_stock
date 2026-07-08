@@ -19,7 +19,6 @@ from __future__ import annotations
 import csv
 import io
 from dataclasses import dataclass
-from datetime import datetime
 from decimal import Decimal, InvalidOperation
 
 from sqlalchemy import select
@@ -167,13 +166,23 @@ class QuickAddConflictError(Exception):
 
 
 async def quick_add_product(
-    db: AsyncSession, *, shop_id: int, barcode: str, brand: str, size_label: str
+    db: AsyncSession,
+    *,
+    shop_id: int,
+    barcode: str,
+    brand: str,
+    size_label: str,
+    origin: str,
+    actor_id: int,
 ) -> Product:
     """Create a ``pending`` product from brand + size only (issue #22,
-    D-v2-4). Raises ``QuickAddConflictError`` on a same-barcode race so the
-    router can log it and return 409, or ``ProductError("conflict_row_missing", ...)``
-    in the (shouldn't-happen) case where the constraint fired but no
-    existing row can be found."""
+    D-v2-4). Records ``origin``/``actor_id`` directly on the row (issue
+    #31) so the Pending Products list can read them back without
+    scanning the audit-log tables. Raises ``QuickAddConflictError`` on a
+    same-barcode race so the router can log it and return 409, or
+    ``ProductError("conflict_row_missing", ...)`` in the
+    (shouldn't-happen) case where the constraint fired but no existing
+    row can be found."""
     try:
         return await create_product_row(
             db,
@@ -184,6 +193,8 @@ async def quick_add_product(
             price=None,
             low_stock_threshold=None,
             status_value=ProductStatus.PENDING,
+            pending_origin=origin,
+            pending_added_by_user_id=actor_id,
         )
     except ProductConflictError as exc:
         # The seam has already rolled back; we can safely SELECT now.
@@ -239,10 +250,12 @@ async def list_pending_products(
     shop_id: int | None,
 ) -> list[PendingProductInfo]:
     """Owner/superadmin view of every product still in status='pending'
-    (D-v2-5), newest first, joined against the latest
-    ``product.pending_created`` log entry per product so the owner can
-    see who added it and whether it came from receiving or checkout
-    (D-v2-13). The list itself is the notification surface (D-v2-8)."""
+    (D-v2-5), newest first. Origin and adding-actor are read directly
+    off ``Product.pending_origin`` / ``pending_added_by_user_id`` (issue
+    #31) — recorded once at quick-add write time — rather than
+    re-derived by scanning every ``product.pending_created`` row across
+    ``stockin_logs``/``invoicing_logs`` on each call. The list itself is
+    the notification surface (D-v2-8)."""
     stmt = (
         select(Product)
         .where(Product.status == ProductStatus.PENDING)
@@ -256,70 +269,27 @@ async def list_pending_products(
     if not rows:
         return []
 
-    # Pull the most recent pending_created event per product across both
-    # log tables (D-v2-13). The codebase's log tables store ``payload``
-    # as the generic SQLAlchemy ``JSON`` type which renders as JSONB
-    # on Postgres but doesn't expose a typed ``astext`` accessor
-    # through SQLAlchemy's generic JSON comparator. Rather than fight
-    # the type system, fetch the events and filter to the relevant
-    # product_ids in Python -- the pending list is small (N <= dozens
-    # in any realistic deployment), and the per-product scan below is
-    # O(N events) where N is bounded by total pending_created events
-    # ever logged, which is itself a low-frequency counter-staff action.
-    product_ids = {p.id for p in rows}
-
-    stockin_events = (
-        await db.execute(
-            select(StockinLog).where(StockinLog.event_type == "product.pending_created")
-        )
-    ).scalars().all()
-    invoicing_events = (
-        await db.execute(
-            select(InvoicingLog).where(InvoicingLog.event_type == "product.pending_created")
-        )
-    ).scalars().all()
-
-    # Per-product: pick the most-recent event across both tables. The
-    # schema only allows one such event per product today (the
-    # create-and-activate is the resolution, not a repeat action), but
-    # the order-by keeps the code correct if that invariant loosens.
-    by_product: dict[int, tuple[str, int | None, datetime]] = {}
-    for ev in stockin_events:
-        pid = ev.payload.get("product_id")
-        if pid is None or pid not in product_ids:
-            continue
-        cur = by_product.get(pid)
-        if cur is None or ev.created_at > cur[2]:
-            by_product[pid] = ("receiving", ev.actor_user_id, ev.created_at)
-    for ev in invoicing_events:
-        pid = ev.payload.get("product_id")
-        if pid is None or pid not in product_ids:
-            continue
-        cur = by_product.get(pid)
-        if cur is None or ev.created_at > cur[2]:
-            by_product[pid] = ("checkout", ev.actor_user_id, ev.created_at)
-
-    # Resolve actor names (small N, one query).
-    actor_ids = {cur[1] for cur in by_product.values() if cur[1] is not None}
+    # Resolve actor names in one query (small N — the pending list is
+    # bounded to dozens of rows in any realistic deployment).
+    actor_ids = {p.pending_added_by_user_id for p in rows if p.pending_added_by_user_id is not None}
     actor_names: dict[int, str] = {}
     if actor_ids:
         actor_rows = (await db.execute(select(User).where(User.id.in_(actor_ids)))).scalars().all()
         actor_names = {u.id: u.full_name for u in actor_rows}
 
-    out: list[PendingProductInfo] = []
-    for p in rows:
-        cur = by_product.get(p.id)
-        out.append(
-            PendingProductInfo(
-                product=p,
-                last_event_origin=cur[0] if cur else None,
-                last_event_actor_id=cur[1] if cur else None,
-                last_event_actor_name=(
-                    actor_names.get(cur[1]) if cur and cur[1] is not None else None
-                ),
-            )
+    return [
+        PendingProductInfo(
+            product=p,
+            last_event_origin=p.pending_origin,
+            last_event_actor_id=p.pending_added_by_user_id,
+            last_event_actor_name=(
+                actor_names.get(p.pending_added_by_user_id)
+                if p.pending_added_by_user_id is not None
+                else None
+            ),
         )
-    return out
+        for p in rows
+    ]
 
 
 # --- CSV bulk import -----------------------------------------------------

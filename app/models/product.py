@@ -110,6 +110,18 @@ class Product(Base):
         default=ProductStatus.ACTIVE,
         server_default="active",
     )
+    # Recorded once, at quick-add write time (issue #31) — the
+    # X-Quick-Add-Origin header the caller already sent. NULL for
+    # products created via the regular POST/CSV-import paths (always
+    # active, never quick-added) and for pending rows that predate this
+    # column. The Pending Products list (#25) reads these two columns
+    # directly instead of re-deriving origin by scanning
+    # stockin_logs/invoicing_logs on every list call.
+    pending_origin: Mapped[str | None] = mapped_column(String(16), nullable=True)
+    pending_added_by_user_id: Mapped[int | None] = mapped_column(
+        ForeignKey("users.id", ondelete="set null"),
+        nullable=True,
+    )
 
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
