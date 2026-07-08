@@ -119,6 +119,30 @@ async def resolve_write_shop_id(
     return user.shop_id
 
 
+def resolve_read_shop_id(user: User, requested_shop_id: int | None) -> int | None:
+    """Resolve the shop scope for a read action (D-66).
+
+    Non-superadmin is pinned to its own shop — a `requested_shop_id`
+    that doesn't match is rejected (400) rather than silently ignored,
+    same as `resolve_write_shop_id`. Superadmin may optionally narrow
+    to one shop via the acting-shop picker; unlike the write-side rule,
+    omitting it is valid and means "no scope filter" (browse every
+    shop), since a read has no shop-less state to reject.
+
+    Returns `None` only for the superadmin-unscoped case; every other
+    caller gets a concrete shop_id back.
+    """
+    if user.role != UserRole.SUPERADMIN:
+        if requested_shop_id is not None and requested_shop_id != user.shop_id:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="only superadmin may specify shop_id",
+            )
+        assert user.shop_id is not None
+        return user.shop_id
+    return requested_shop_id
+
+
 def require_shop_scope(user: User) -> None:
     """Defensive check for non-superadmin endpoints — the user must have a
     shop_id. (Superadmin is allowed to be shop-less.)"""

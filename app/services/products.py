@@ -43,35 +43,30 @@ class ProductError(Exception):
 
 
 # --- shared shop-scoping (list / lookup / pending) ----------------------
+#
+# The authorization decision (can this caller ask for this shop_id?)
+# lives in `app.api.deps.resolve_read_shop_id` (issue #32) — by the time
+# a query reaches this module, `shop_id` is already the resolved scope:
+# a concrete shop for every non-superadmin caller, and either a concrete
+# shop or `None` ("no filter", superadmin browsing every shop) here.
 
 
-def _apply_shop_scope(stmt, *, actor_role: UserRole, actor_shop_id: int | None, shop_id: int | None):
-    """Non-superadmin is pinned to its own shop and may not request a
-    different one (D-66); superadmin may optionally narrow to one shop
-    via the acting-shop picker, else sees every shop."""
-    if actor_role != UserRole.SUPERADMIN:
-        if shop_id is not None and shop_id != actor_shop_id:
-            raise ProductError("shop_id_forbidden", "only superadmin may specify shop_id")
-        return stmt.where(Product.shop_id == actor_shop_id)
-    if shop_id is not None:
-        return stmt.where(Product.shop_id == shop_id)
-    return stmt
+def _scope_to_shop(stmt, *, shop_id: int | None):
+    if shop_id is None:
+        return stmt
+    return stmt.where(Product.shop_id == shop_id)
 
 
 async def list_products(
     db: AsyncSession,
     *,
-    actor_role: UserRole,
-    actor_shop_id: int | None,
     shop_id: int | None,
     active_only: bool,
     q: str | None,
     limit: int,
     offset: int,
 ) -> list[Product]:
-    stmt = _apply_shop_scope(
-        select(Product), actor_role=actor_role, actor_shop_id=actor_shop_id, shop_id=shop_id
-    )
+    stmt = _scope_to_shop(select(Product), shop_id=shop_id)
     if active_only:
         stmt = stmt.where(Product.is_active.is_(True))
     if q:
@@ -81,22 +76,12 @@ async def list_products(
 
 
 async def lookup_product_by_barcode(
-    db: AsyncSession,
-    *,
-    actor_role: UserRole,
-    actor_shop_id: int | None,
-    shop_id: int | None,
-    barcode: str,
+    db: AsyncSession, *, shop_id: int | None, barcode: str
 ) -> Product:
     """Scan-time product fetch (D-v2-6/#26: a ``pending`` product IS
     resolvable here). Raises ``ProductError("not_found", ...)`` when
     missing or deactivated."""
-    stmt = _apply_shop_scope(
-        select(Product).where(Product.barcode == barcode),
-        actor_role=actor_role,
-        actor_shop_id=actor_shop_id,
-        shop_id=shop_id,
-    )
+    stmt = _scope_to_shop(select(Product).where(Product.barcode == barcode), shop_id=shop_id)
     product = (await db.execute(stmt)).scalar_one_or_none()
     if product is None or not product.is_active:
         raise ProductError("not_found", f"no active product with barcode '{barcode}'")
@@ -243,11 +228,7 @@ class PendingProductInfo:
 
 
 async def list_pending_products(
-    db: AsyncSession,
-    *,
-    actor_role: UserRole,
-    actor_shop_id: int | None,
-    shop_id: int | None,
+    db: AsyncSession, *, shop_id: int | None
 ) -> list[PendingProductInfo]:
     """Owner/superadmin view of every product still in status='pending'
     (D-v2-5), newest first. Origin and adding-actor are read directly
@@ -256,14 +237,10 @@ async def list_pending_products(
     re-derived by scanning every ``product.pending_created`` row across
     ``stockin_logs``/``invoicing_logs`` on each call. The list itself is
     the notification surface (D-v2-8)."""
-    stmt = (
-        select(Product)
-        .where(Product.status == ProductStatus.PENDING)
-        .order_by(Product.created_at.desc())
-    )
-    stmt = _apply_shop_scope(
-        stmt, actor_role=actor_role, actor_shop_id=actor_shop_id, shop_id=shop_id
-    )
+    stmt = _scope_to_shop(
+        select(Product).where(Product.status == ProductStatus.PENDING),
+        shop_id=shop_id,
+    ).order_by(Product.created_at.desc())
 
     rows = (await db.execute(stmt)).scalars().all()
     if not rows:

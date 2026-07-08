@@ -25,7 +25,7 @@ from typing import Annotated, Literal
 
 from fastapi import APIRouter, Depends, File, Form, Header, HTTPException, Query, UploadFile, status
 
-from app.api.deps import DbSession, require_role, resolve_write_shop_id
+from app.api.deps import DbSession, require_role, resolve_read_shop_id, resolve_write_shop_id
 from app.logging_config import get_logger
 from app.models.product import ProductStatus
 from app.models.user import User, UserRole
@@ -81,7 +81,6 @@ _pending_roles = (UserRole.OWNER, UserRole.SUPERADMIN)
 
 _PRODUCT_ERROR_CODE_TO_STATUS: dict[str, int] = {
     "not_found": status.HTTP_404_NOT_FOUND,
-    "shop_id_forbidden": status.HTTP_400_BAD_REQUEST,
     "deactivated": status.HTTP_400_BAD_REQUEST,
     "empty_csv": status.HTTP_400_BAD_REQUEST,
     "missing_columns": status.HTTP_400_BAD_REQUEST,
@@ -281,19 +280,15 @@ async def list_products(
         Query(description="Superadmin only: scope the listing to one shop (D-66)"),
     ] = None,
 ) -> list[ProductPublic]:
-    try:
-        rows = await products_svc.list_products(
-            db,
-            actor_role=_user.role,
-            actor_shop_id=_user.shop_id,
-            shop_id=shop_id,
-            active_only=active_only,
-            q=q,
-            limit=limit,
-            offset=offset,
-        )
-    except ProductError as exc:
-        raise _error_to_http(exc) from exc
+    scoped_shop_id = resolve_read_shop_id(_user, shop_id)
+    rows = await products_svc.list_products(
+        db,
+        shop_id=scoped_shop_id,
+        active_only=active_only,
+        q=q,
+        limit=limit,
+        offset=offset,
+    )
     return [ProductPublic.model_validate(r) for r in rows]
 
 
@@ -321,14 +316,9 @@ async def lookup_product(
     decide whether to block the line (#26). The `is_active=False` check
     is unchanged: deactivating a product still hides it from scan.
     """
+    scoped_shop_id = resolve_read_shop_id(_user, shop_id)
     try:
-        product = await lookup_product_by_barcode(
-            db,
-            actor_role=_user.role,
-            actor_shop_id=_user.shop_id,
-            shop_id=shop_id,
-            barcode=barcode,
-        )
+        product = await lookup_product_by_barcode(db, shop_id=scoped_shop_id, barcode=barcode)
     except ProductError as exc:
         raise _error_to_http(exc) from exc
     return ProductPublic.model_validate(product)
@@ -391,12 +381,8 @@ async def list_pending_products(
         Query(description="Superadmin only: scope the listing to one shop"),
     ] = None,
 ) -> list[PendingProductRow]:
-    try:
-        rows = await products_svc.list_pending_products(
-            db, actor_role=_user.role, actor_shop_id=_user.shop_id, shop_id=shop_id
-        )
-    except ProductError as exc:
-        raise _error_to_http(exc) from exc
+    scoped_shop_id = resolve_read_shop_id(_user, shop_id)
+    rows = await products_svc.list_pending_products(db, shop_id=scoped_shop_id)
     return [
         PendingProductRow(
             id=r.product.id,
