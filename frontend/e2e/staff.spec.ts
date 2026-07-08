@@ -24,4 +24,34 @@ test.describe("staff management", () => {
     await expect(page).toHaveURL(/\/forbidden$/);
     await expect(page.getByRole("heading", { name: /403/ })).toBeVisible();
   });
+
+  // Issue #39 — live phone validation: error appears as the user types
+  // past the 7-digit threshold and clears once the field is valid.
+  test("phone field shows inline error on too-short input, clears on valid", async ({
+    page,
+  }) => {
+    await loginAsOwner(page);
+    await page.goto("/admin/staff");
+
+    const phone = page.getByLabel("Phone");
+    const tooShortError = page.getByRole("alert").filter({ hasText: /at least 7/ });
+    const formatError = page.getByRole("alert").filter({ hasText: /7-15 digits/ });
+
+    // Empty: no error yet (don't shout on first paint).
+    await expect(tooShortError).toHaveCount(0);
+    await expect(formatError).toHaveCount(0);
+
+    // Too short — error appears.
+    await phone.fill("123");
+    await expect(tooShortError).toBeVisible();
+
+    // Valid length + format — error clears.
+    await phone.fill("9876543210");
+    await expect(tooShortError).toHaveCount(0);
+    await expect(formatError).toHaveCount(0);
+
+    // Garbage characters — format error appears (length OK, but not 7-15 digits).
+    await phone.fill("abc12345");
+    await expect(formatError).toBeVisible();
+  });
 });

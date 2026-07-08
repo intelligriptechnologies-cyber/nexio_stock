@@ -156,12 +156,27 @@ function CreateCard({
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
 
+  // Issue #39 — live phone validation, mirrors the backend's
+  // ``_PHONE_RE`` (``app/schemas/auth.py``): 7-15 digits, optional
+  // leading ``+``. The error is shown/cleared as the user types —
+  // not only on submit attempt — and submit stays blocked until the
+  // field is valid (preserved existing behaviour).
+  const trimmedPhone = phone.trim();
+  const phoneError =
+    trimmedPhone.length === 0
+      ? undefined
+      : trimmedPhone.length < 7
+        ? "Phone must be at least 7 digits."
+        : !/^\+?[0-9]{7,15}$/.test(trimmedPhone)
+          ? "Phone must be 7-15 digits, optional leading +."
+          : undefined;
+
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
     if (
       username.trim().length < 3 ||
       fullName.trim().length === 0 ||
-      phone.trim().length < 7 ||
+      phoneError !== undefined ||
       password.length < 4
     ) {
       return;
@@ -170,7 +185,7 @@ function CreateCard({
       role,
       username: username.trim(),
       full_name: fullName.trim(),
-      phone: phone.trim(),
+      phone: trimmedPhone,
       password,
     });
     setUsername("");
@@ -198,7 +213,14 @@ function CreateCard({
       </label>
       <Field label="Username" value={username} onChange={setUsername} required minLength={3} />
       <Field label="Full name" value={fullName} onChange={setFullName} required />
-      <Field label="Phone" value={phone} onChange={setPhone} required type="tel" />
+      <Field
+        label="Phone"
+        value={phone}
+        onChange={setPhone}
+        required
+        type="tel"
+        error={phoneError}
+      />
       <Field label="PIN / password (4+ chars)" value={password} onChange={setPassword} required type="password" />
       <button
         type="submit"
@@ -218,6 +240,7 @@ function Field({
   type = "text",
   required = false,
   minLength,
+  error,
 }: {
   label: string;
   value: string;
@@ -225,6 +248,9 @@ function Field({
   type?: string;
   required?: boolean;
   minLength?: number;
+  // Issue #39 — inline validation message rendered under the input.
+  // Empty string / undefined means "no error to show".
+  error?: string;
 }) {
   return (
     <label className="flex flex-col gap-1 text-label-md">
@@ -235,8 +261,21 @@ function Field({
         onChange={(e) => onChange(e.target.value)}
         required={required}
         minLength={minLength}
+        // Issue #39 — wire aria-invalid + aria-describedby so the live
+        // error is announced to screen readers when the field is invalid.
+        aria-invalid={Boolean(error)}
+        aria-describedby={error ? `${label}-error` : undefined}
         className="min-h-touchTarget-sm rounded-md border border-outline bg-surface px-stack-gap text-body-md"
       />
+      {error && (
+        <span
+          id={`${label}-error`}
+          role="alert"
+          className="text-label-sm text-error"
+        >
+          {error}
+        </span>
+      )}
     </label>
   );
 }
