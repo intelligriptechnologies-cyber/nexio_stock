@@ -19,7 +19,7 @@ from app.api.deps import (
     DbSession,
     require_role,
     resolve_write_shop_id,
-    today_local_date,  # issue #37: shared "today" helper
+    today_local_date,
 )
 from app.db import unit_of_work
 from app.logging_config import get_logger
@@ -116,7 +116,7 @@ async def eod_totals(
         Query(
             description=(
                 "Calendar date in the shop's local timezone (IST for v1). "
-                "Defaults to today (server-local) when omitted — issue #37."
+                "Optional; defaults to server-local today when omitted."
             )
         ),
     ] = None,
@@ -125,10 +125,7 @@ async def eod_totals(
     ] = None,
 ) -> EodTotalsResponse:
     actor_shop_id = await resolve_write_shop_id(db, _user, shop_id)
-    # issue #37: previously required (no default), but `Query(...)` (Ellipsis)
-    # crashed FastAPI's validation-error serializer and surfaced as a 500.
-    # Default to server-local "today" so a caller (like DashboardPage) that
-    # forgets the param still gets a clean 200.
+    # Default to server-local today when caller omits the param.
     effective_date = business_date if business_date is not None else today_local_date()
     totals = await get_day_totals(
         db, shop_id=actor_shop_id, business_date=effective_date

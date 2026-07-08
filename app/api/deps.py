@@ -155,15 +155,6 @@ def require_shop_scope(user: User) -> None:
         )
 
 
-def today_local_date(now: datetime | None = None) -> date_cls:
-    """Server-local calendar date — the "today" the shop actually closes
-    for EOD purposes (matches `sign_off_day`'s `date.today()` convention
-    and the `_day_bounds` helper which uses local midnight, D-55).
-
-    Centralised so dashboard/totals endpoints agree on the meaning of
-    "today" when a caller omits an explicit date (issue #37).
-    """
-    moment = now if now is not None else datetime.now(UTC)
-    # `.astimezone()` without a tz arg converts to the system local zone,
-    # which is what `date.today()` and `_day_bounds` both already use.
-    return moment.astimezone().date()
+def today_local_date() -> date_cls:
+    """Server-local calendar date (system zone; IST for v1)."""
+    return datetime.now(UTC).astimezone().date()

@@ -20,8 +20,7 @@ from sqlalchemy import func, literal, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.invoice import STATUSES_COUNTING_AS_SOLD, Invoice, InvoiceLine
-from app.models.lot import LotLine
-from app.models.product import Product
+from app.models.lot import Lot, LotLine
 
 
 async def compute_derived_stock(
@@ -116,34 +115,34 @@ async def compute_derived_stock_by_shop(
     if not shop_ids:
         return {}
 
-    # Restrict the joined product rows to the requested shops so the
-    # UNION ALL only considers rows in scope. Joining through Product
-    # also gives us shop_id for the grouping column without another
-    # round-trip.
+    # Restrict by the parent rows' shop_id column (Invoice has it
+    # natively; Lot has it via shop_id directly). This avoids a join
+    # through Product just to read shop_id — the parent row already
+    # carries it, and the .in_() scope lands on the same predicate
+    # without dragging another table into the join graph.
     received_subq = (
         select(
             LotLine.product_id.label("product_id"),
-            Product.shop_id.label("shop_id"),
+            Lot.shop_id.label("shop_id"),
             func.coalesce(func.sum(LotLine.quantity), 0).label("received"),
         )
-        .join(Product, Product.id == LotLine.product_id)
-        .where(Product.shop_id.in_(shop_ids))
-        .group_by(LotLine.product_id, Product.shop_id)
+        .join(Lot, Lot.id == LotLine.lot_id)
+        .where(Lot.shop_id.in_(shop_ids))
+        .group_by(LotLine.product_id, Lot.shop_id)
         .subquery()
     )
     sold_subq = (
         select(
             InvoiceLine.product_id.label("product_id"),
-            Product.shop_id.label("shop_id"),
+            Invoice.shop_id.label("shop_id"),
             func.coalesce(func.sum(InvoiceLine.quantity), 0).label("sold"),
         )
-        .join(Product, Product.id == InvoiceLine.product_id)
         .join(Invoice, InvoiceLine.invoice_id == Invoice.id)
         .where(
-            Product.shop_id.in_(shop_ids),
+            Invoice.shop_id.in_(shop_ids),
             Invoice.status.in_(STATUSES_COUNTING_AS_SOLD),
         )
-        .group_by(InvoiceLine.product_id, Product.shop_id)
+        .group_by(InvoiceLine.product_id, Invoice.shop_id)
         .subquery()
     )
     rows = (

@@ -97,9 +97,10 @@ def _check_idempotency_key_present(key: str | None) -> str:
 async def _is_today_signed_off(db: AsyncSession, *, shop_id: int) -> bool:
     """True if the shop has an EodSignOff for today's calendar date
     (in the server's local time — see D-55)."""
+    from app.api.deps import today_local_date  # local import: avoid app.api → app.services cycle
     from app.models.invoice import EodSignOff
 
-    today = datetime.now(UTC).astimezone().date()
+    today = today_local_date()
     rows = await db.execute(
         select(EodSignOff.id).where(
             EodSignOff.shop_id == shop_id,
