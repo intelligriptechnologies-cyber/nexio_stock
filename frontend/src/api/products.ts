@@ -21,6 +21,23 @@ export interface ProductQuickAddPayload {
   size_label: string;
 }
 
+export interface PendingProductRow {
+  id: number;
+  barcode: string;
+  brand: string;
+  size_label: string;
+  created_at: string;
+  updated_at: string;
+  last_event_origin: "receiving" | "checkout" | null;
+  last_event_actor_id: number | null;
+  last_event_actor_name: string | null;
+}
+
+export interface ProductActivatePayload {
+  price: string;
+  low_stock_threshold?: number | null;
+}
+
 export interface ProductUpdatePayload {
   brand?: string;
   size_label?: string;
@@ -79,6 +96,24 @@ export function quickAddProduct(
       "X-Quick-Add-Origin": opts.origin,
     },
   });
+}
+
+// Issue #25 — Pending Products list + activation. The list IS the
+// notification surface (D-v2-8); completing a product is the dismissal.
+// Activation sets a price and flips status to 'active'; the row drops
+// off the pending list automatically.
+export function listPendingProducts(shopId?: number | null): Promise<PendingProductRow[]> {
+  const params = new URLSearchParams();
+  if (shopId != null) params.set("shop_id", String(shopId));
+  const qs = params.toString();
+  return api<PendingProductRow[]>(`/products/pending${qs ? "?" + qs : ""}`);
+}
+
+export function activateProduct(
+  id: number,
+  payload: ProductActivatePayload
+): Promise<Product> {
+  return api<Product>(`/products/${id}/activate`, { method: "POST", json: payload });
 }
 
 export function updateProduct(id: number, payload: ProductUpdatePayload): Promise<Product> {

@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import {
   getEodHistory,
   getEodTotals,
@@ -9,6 +10,7 @@ import {
   type SignOffResponse,
 } from "../api/dashboard";
 import { ApiError } from "../api/client";
+import { listPendingProducts } from "../api/products";
 import { useAuth } from "../auth/AuthProvider";
 import { useShopScope } from "../auth/ShopScopeProvider";
 
@@ -22,6 +24,7 @@ export function DashboardPage() {
   const [today, setToday] = useState<EodTotalsResponse | null>(null);
   const [lowStock, setLowStock] = useState<LowStockResponse | null>(null);
   const [history, setHistory] = useState<SignOffResponse[] | null>(null);
+  const [pendingCount, setPendingCount] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [info, setInfo] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -31,19 +34,25 @@ export function DashboardPage() {
       setToday(null);
       setLowStock(null);
       setHistory(null);
+      setPendingCount(null);
       return;
     }
     setError(null);
     setInfo(null);
     try {
-      const [t, l, h] = await Promise.all([
+      const [t, l, h, p] = await Promise.all([
         getEodTotals(undefined, actingShopId),
         getLowStock(undefined, actingShopId),
         getEodHistory(20, actingShopId),
+        // Issue #25 — the pending-products badge count. Fetched
+        // alongside the other dashboard data so the badge appears
+        // immediately when the dashboard mounts.
+        listPendingProducts(actingShopId).catch(() => []),
       ]);
       setToday(t);
       setLowStock(l);
       setHistory(h.signoffs);
+      setPendingCount(p.length);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Load failed.");
     }
@@ -98,6 +107,29 @@ export function DashboardPage() {
         <div role="status" className="rounded-md bg-success px-stack-gap py-3 text-on-secondary">
           {info}
         </div>
+      )}
+
+      {/* Pending Products badge (issue #25). Surfaces the count of
+          products awaiting a price; clicking jumps to the activation
+          screen. Hidden when the count is zero (no need to nag) and
+          when the user hasn't picked a shop yet. */}
+      {pendingCount != null && pendingCount > 0 && (
+        <Link
+          to="/admin/pending"
+          className="flex items-center justify-between rounded-md bg-warning px-gutter py-3 text-on-accent shadow-sm"
+          data-testid="pending-badge"
+          role="status"
+        >
+          <div>
+            <div className="text-label-xl">
+              {pendingCount} product{pendingCount === 1 ? "" : "s"} awaiting a price
+            </div>
+            <div className="text-label-md">
+              Tap to open the Pending Products screen and set their prices.
+            </div>
+          </div>
+          <span aria-hidden="true" className="text-headline-lg">→</span>
+        </Link>
       )}
 
       {/* KPI cards */}

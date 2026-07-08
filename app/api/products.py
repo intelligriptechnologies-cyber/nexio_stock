@@ -19,6 +19,7 @@ from __future__ import annotations
 
 import csv
 import io
+from datetime import datetime
 from decimal import Decimal, InvalidOperation
 from typing import Annotated, Literal
 
@@ -34,6 +35,8 @@ from app.models.log import InvoicingLog, StockinLog
 from app.models.product import Product, ProductStatus
 from app.models.user import User, UserRole
 from app.schemas.product import (
+    PendingProductRow,
+    ProductActivate,
     ProductCreate,
     ProductImportError,
     ProductImportResponse,
@@ -420,14 +423,196 @@ async def update_product(
         "product.updated",
         actor_user_id=actor_id,
         shop_id=product.shop_id,
-        product_id=product.id,
+product_id=product.id,
         changed_fields=sorted(data.keys()),
     )
     return ProductPublic.model_validate(product)
 
 
-# --- CSV bulk import ---
+# --- Issue #25: Pending Products list + activation ---------------------
+#
+# Activation is the resolution action (D-v2-8): completing the product
+# IS the dismissal -- there is no separate dismiss/acknowledge step. The
+# owner sets a price, the row flips from pending to active, and the
+# product drops off the pending list automatically.
 
+_pending_roles = (UserRole.OWNER, UserRole.SUPERADMIN)
+
+
+@router.get(
+    "/pending",
+    response_model=list[PendingProductRow],
+    summary="List pending products awaiting a price (issue #25, D-v2-8)",
+)
+async def list_pending_products(
+    db: DbSession,
+    _user: User = Depends(require_role(*_pending_roles)),
+    shop_id: Annotated[
+        int | None,
+        Query(description="Superadmin only: scope the listing to one shop"),
+    ] = None,
+) -> list[PendingProductRow]:
+    # Owner / superadmin view of every product still in
+    # status='pending' (D-v2-5). The list itself is the notification
+    # surface -- there's no separate dismissible notification record
+    # (D-v2-8). Newest first.
+    #
+    # Joins the latest product.pending_created log entry per product so
+    # the owner can see who added it and whether it came from receiving
+    # or checkout (D-v2-13).
+    actor_role = _user.role
+    actor_shop_id = _user.shop_id
+
+    stmt = (
+        select(Product)
+        .where(Product.status == ProductStatus.PENDING)
+        .order_by(Product.created_at.desc())
+    )
+    if actor_role != UserRole.SUPERADMIN:
+        if shop_id is not None and shop_id != actor_shop_id:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="only superadmin may specify shop_id",
+            )
+        stmt = stmt.where(Product.shop_id == actor_shop_id)
+    elif shop_id is not None:
+        stmt = stmt.where(Product.shop_id == shop_id)
+
+    rows = (await db.execute(stmt)).scalars().all()
+    if not rows:
+        return []
+
+    # Pull the most recent pending_created event per product across both
+    # log tables (D-v2-13). The codebase's log tables store ``payload``
+    # as the generic SQLAlchemy ``JSON`` type which renders as JSONB
+    # on Postgres but doesn't expose a typed ``astext`` accessor
+    # through SQLAlchemy's generic JSON comparator. Rather than fight
+    # the type system, fetch the events and filter to the relevant
+    # product_ids in Python -- the pending list is small (N <= dozens
+    # in any realistic deployment), and the per-product scan below is
+    # O(N events) where N is bounded by total pending_created events
+    # ever logged, which is itself a low-frequency counter-staff action.
+    product_ids = {p.id for p in rows}
+
+    stockin_events = (
+        await db.execute(
+            select(StockinLog).where(StockinLog.event_type == "product.pending_created")
+        )
+    ).scalars().all()
+    invoicing_events = (
+        await db.execute(
+            select(InvoicingLog).where(InvoicingLog.event_type == "product.pending_created")
+        )
+    ).scalars().all()
+
+    # Per-product: pick the most-recent event across both tables. The
+    # schema only allows one such event per product today (the
+    # create-and-activate is the resolution, not a repeat action), but
+    # the order-by keeps the code correct if that invariant loosens.
+    by_product: dict[int, tuple[str, int | None, datetime]] = {}
+    for ev in stockin_events:
+        pid = ev.payload.get("product_id")
+        if pid is None or pid not in product_ids:
+            continue
+        cur = by_product.get(pid)
+        if cur is None or ev.created_at > cur[2]:
+            by_product[pid] = ("receiving", ev.actor_user_id, ev.created_at)
+    for ev in invoicing_events:
+        pid = ev.payload.get("product_id")
+        if pid is None or pid not in product_ids:
+            continue
+        cur = by_product.get(pid)
+        if cur is None or ev.created_at > cur[2]:
+            by_product[pid] = ("checkout", ev.actor_user_id, ev.created_at)
+
+    # Resolve actor names (small N, one query).
+    actor_ids = {cur[1] for cur in by_product.values() if cur[1] is not None}
+    actor_names: dict[int, str] = {}
+    if actor_ids:
+        actor_rows = (
+            await db.execute(
+                select(User).where(User.id.in_(actor_ids))
+            )
+        ).scalars().all()
+        actor_names = {u.id: u.full_name for u in actor_rows}
+
+    out: list[PendingProductRow] = []
+    for p in rows:
+        cur = by_product.get(p.id)
+        out.append(
+            PendingProductRow(
+                id=p.id,
+                barcode=p.barcode,
+                brand=p.brand,
+                size_label=p.size_label,
+                created_at=p.created_at,
+                updated_at=p.updated_at,
+                last_event_origin=cur[0] if cur else None,
+                last_event_actor_id=cur[1] if cur else None,
+                last_event_actor_name=(
+                    actor_names.get(cur[1]) if cur and cur[1] is not None else None
+                ),
+            )
+        )
+    return out
+
+
+@router.post(
+    "/{product_id}/activate",
+    response_model=ProductPublic,
+    summary="Owner completes a pending product by setting its price (issue #25)",
+)
+async def activate_product(
+    product_id: int,
+    payload: ProductActivate,
+    db: DbSession,
+    _user: User = Depends(require_role(*_pending_roles)),
+) -> ProductPublic:
+    # Activation is the resolution action for the Pending Products list
+    # (D-v2-8). Setting a price flips the row from pending to active;
+    # the product drops off the pending list and becomes sellable at
+    # checkout. The CHECK constraint ck_products_price_iff_active
+    # enforces the price-state invariant at the DB level; this handler
+    # is the one place that flips status.
+    #
+    # Only valid on pending rows -- activating an already-active product
+    # is a no-op (status stays active, price updates if the body sets
+    # one). Activating a deactivated (is_active=False) product is a 400.
+    actor_id = _user.id
+    actor_role = _user.role
+    actor_shop_id = _user.shop_id
+    stmt = select(Product).where(Product.id == product_id)
+    if actor_role != UserRole.SUPERADMIN:
+        stmt = stmt.where(Product.shop_id == actor_shop_id)
+    product = (await db.execute(stmt)).scalar_one_or_none()
+    if product is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="product not found")
+
+    if not product.is_active:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="cannot activate a deactivated product",
+        )
+
+    was_pending = product.status == ProductStatus.PENDING
+    product.price = payload.price
+    product.low_stock_threshold = payload.low_stock_threshold
+    if was_pending:
+        product.status = ProductStatus.ACTIVE
+
+    await db.commit()
+    await db.refresh(product)
+    log.info(
+        "product.activated",
+        actor_user_id=actor_id,
+        shop_id=product.shop_id,
+        product_id=product.id,
+        was_pending=was_pending,
+    )
+    return ProductPublic.model_validate(product)
+
+
+# --- CSV bulk import ---
 
 _CSV_REQUIRED_COLUMNS = ("barcode", "brand", "size_label", "price")
 _CSV_OPTIONAL_COLUMNS = ("low_stock_threshold",)

@@ -166,9 +166,52 @@ class ProductImportResponse(BaseModel):
     errors: list[ProductImportError]
 
 
+class PendingProductRow(BaseModel):
+    """One row of the Pending Products list (issue #25, D-v2-8).
+
+    Returned by ``GET /products/pending`` so the owner can see every
+    brand-new product quick-added by a receiver/cashier that's still
+    awaiting a price. The list itself IS the notification surface —
+    no separate dismiss/acknowledge action (D-v2-8).
+
+    The ``last_event_origin`` and ``last_event_actor_*`` fields come
+    from the most recent ``product.pending_created`` log entry
+    (D-v2-13); they tell the owner whether the item was quick-added
+    during receiving or checkout so they can follow up.
+    """
+
+    id: int
+    barcode: str
+    brand: str
+    size_label: str
+    created_at: datetime
+    updated_at: datetime
+    last_event_origin: str | None  # "receiving" | "checkout" | None
+    last_event_actor_id: int | None
+    last_event_actor_name: str | None
+
+
+class ProductActivate(BaseModel):
+    """Owner completes a pending product by setting its price (issue #25).
+
+    This is the dedicated activation action (vs the generic PATCH
+    /products/{id} path). Setting ``price`` flips status to 'active'
+    (D-v2-5) — completing the product IS the resolution; there is no
+    separate dismiss step (D-v2-8). ``low_stock_threshold`` is
+    optional here too, mirroring ProductCreate.
+    """
+
+    model_config = ConfigDict(extra="forbid")
+
+    price: Decimal = Field(gt=Decimal("0"), max_digits=12, decimal_places=2)
+    low_stock_threshold: int | None = Field(default=None, ge=0)
+
+
 # Helper — re-export the model for routers that need it.
 __all__ = [
+    "PendingProductRow",
     "Product",
+    "ProductActivate",
     "ProductCreate",
     "ProductImportError",
     "ProductImportResponse",

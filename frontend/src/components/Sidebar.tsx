@@ -15,6 +15,7 @@ const ITEMS: NavItem[] = [
   { to: "/receiving", label: "Receiving", roles: ["receiver_user", "owner", "superadmin"] },
   { to: "/dashboard", label: "Dashboard", roles: ["owner", "superadmin"] },
   { to: "/admin/products", label: "Products", roles: ["owner", "superadmin"] },
+  { to: "/admin/pending", label: "Pending Products", roles: ["owner", "superadmin"] },
   { to: "/admin/staff", label: "Staff", roles: ["owner", "superadmin"] },
   { to: "/admin/shop", label: "Shop Config", roles: ["owner", "superadmin"] },
   { to: "/admin/voids", label: "Void Approvals", roles: ["owner", "superadmin"] },
