@@ -103,3 +103,64 @@ test.describe("stock receiving — quick-add new product (issue #22)", () => {
     await expect(page.getByText("No items yet")).toBeVisible();
   });
 });
+
+// --- Issue #23 — quicksearch by name or barcode. --------------------------
+
+test.describe("stock receiving — quicksearch (issue #23)", () => {
+  test("typing a brand substring shows matching products in a dropdown", async ({
+    page,
+  }) => {
+    await loginAsReceiver(page);
+    // The test seed ships a product with brand "Royal Stag" — searching
+    // for "stag" should surface it.
+    const search = page.getByRole("combobox", {
+      name: "Quick-search products by name or barcode",
+    });
+    await search.fill("stag");
+    // Dropdown should appear with the matching product.
+    const option = page.getByRole("option").filter({ hasText: "Royal Stag" });
+    await expect(option).toBeVisible({ timeout: 5000 });
+  });
+
+  test("typing a partial barcode substring shows matching products", async ({
+    page,
+  }) => {
+    await loginAsReceiver(page);
+    const search = page.getByRole("combobox", {
+      name: "Quick-search products by name or barcode",
+    });
+    await search.fill("8901234");
+    // The seed barcode "8901234567890" should match the partial.
+    const option = page.getByRole("option").filter({ hasText: "8901234567890" });
+    await expect(option).toBeVisible({ timeout: 5000 });
+  });
+
+  test("tapping a quicksearch match adds it to the lines like a scan", async ({
+    page,
+  }) => {
+    await loginAsReceiver(page);
+    const search = page.getByRole("combobox", {
+      name: "Quick-search products by name or barcode",
+    });
+    await search.fill("Royal Stag");
+    const option = page.getByRole("option").filter({ hasText: "Royal Stag" });
+    await expect(option).toBeVisible({ timeout: 5000 });
+    await option.click();
+    // Line added to the panel.
+    await expect(page.getByLabel("Quantity")).toHaveValue("1");
+    await expect(page.getByText(/Added:/)).toBeVisible();
+    // Search dropdown cleared.
+    await expect(search).toHaveValue("");
+  });
+
+  test("typing something that matches nothing shows 'No matches'", async ({
+    page,
+  }) => {
+    await loginAsReceiver(page);
+    const search = page.getByRole("combobox", {
+      name: "Quick-search products by name or barcode",
+    });
+    await search.fill("zzznomatchstringzzz");
+    await expect(page.getByText("No matches.")).toBeVisible({ timeout: 5000 });
+  });
+});

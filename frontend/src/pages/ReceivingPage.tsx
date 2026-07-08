@@ -1,8 +1,9 @@
 import { useEffect, useState, useCallback } from "react";
 import { ApiError } from "../api/client";
-import { invalidateCache, prefetchCatalog } from "../api/catalog";
+import { invalidateCache, prefetchCatalog, type CatalogProduct } from "../api/catalog";
 import { createLotSafe, type LotPublic } from "../api/lots";
 import { quickAddProduct } from "../api/products";
+import { QuickSearch } from "../components/QuickSearch";
 import { useAuth } from "../auth/AuthProvider";
 import { useShopScope } from "../auth/ShopScopeProvider";
 
@@ -104,6 +105,37 @@ export function ReceivingPage() {
       }
     },
     [actingShopId]
+  );
+
+  // Quicksearch (issue #23) — when the receiver taps a match in the
+  // search dropdown, add it exactly like a scan would. The component
+  // does the filtering; we just normalise the picked product into the
+  // same shape the scan resolver returns.
+  const addByPick = useCallback(
+    (product: CatalogProduct) => {
+      setError(null);
+      setInfo(null);
+      setLines((prev) => {
+        const existing = prev.find((l) => l.barcode === product.barcode);
+        if (existing) {
+          return prev.map((l) =>
+            l.lineId === existing.lineId ? { ...l, quantity: l.quantity + 1 } : l
+          );
+        }
+        return [
+          ...prev,
+          {
+            lineId: uid(),
+            barcode: product.barcode,
+            brand: product.brand,
+            sizeLabel: product.size_label,
+            quantity: 1,
+          },
+        ];
+      });
+      setInfo(`Added: ${product.brand} ${product.size_label}`);
+    },
+    []
   );
 
   const handleSubmitBarcode = (e: React.FormEvent) => {
@@ -284,6 +316,14 @@ export function ReceivingPage() {
             ADD
           </button>
         </form>
+
+        {/* Quicksearch (issue #23). Receiver types a brand or barcode
+            substring; tapping a match adds it like a scan. */}
+        <QuickSearch
+          onPick={addByPick}
+          placeholder="Search by name or barcode"
+          ariaLabel="Quick-search products by name or barcode"
+        />
 
         <ul className="flex flex-col gap-stack-gap">
           {lines.length === 0 && (

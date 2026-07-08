@@ -14,6 +14,7 @@ import {
   type InvoicePublic,
 } from "../api/checkout";
 import { enqueueFinalize, listQueued, clearQueued } from "../api/finalize-queue";
+import { QuickSearch } from "../components/QuickSearch";
 import { useOnlineStatus } from "../hooks/useOnlineStatus";
 import { useRetryQueue } from "../hooks/useRetryQueue";
 import { useShopScope } from "../auth/ShopScopeProvider";
@@ -141,6 +142,26 @@ export function CheckoutPage() {
     },
     [actingShopId]
   );
+
+  // Quicksearch (issue #23) — taps on a search-result dropdown add the
+  // product to the cart exactly like a scan would. The catalog is
+  // already prefetched client-side, so no network round-trip is
+  // involved. Pending products are still passed through; #26 adds the
+  // "Pending — no price yet, contact admin" block at the cart-line level.
+  const addByPick = useCallback((product: CatalogProduct) => {
+    setError(null);
+    setInfo(null);
+    setCart((prev) => {
+      const existing = prev.find((l) => l.product.barcode === product.barcode);
+      if (existing) {
+        return prev.map((l) =>
+          l.lineId === existing.lineId ? { ...l, quantity: l.quantity + 1 } : l
+        );
+      }
+      return [...prev, { lineId: uid(), product, quantity: 1 }];
+    });
+    setInfo(`Added: ${product.brand} ${product.size_label}`);
+  }, []);
 
   const removeLine = (lineId: string) => {
     setCart((prev) => prev.filter((l) => l.lineId !== lineId));
@@ -392,6 +413,14 @@ export function CheckoutPage() {
             ADD
           </button>
         </form>
+
+        {/* Quicksearch (issue #23). Cashier types a brand or barcode
+            substring; tapping a match adds it like a scan. */}
+        <QuickSearch
+          onPick={addByPick}
+          placeholder="Search by name or barcode"
+          ariaLabel="Quick-search products by name or barcode"
+        />
 
         <ul className="flex flex-col gap-stack-gap">
           {cart.length === 0 && (

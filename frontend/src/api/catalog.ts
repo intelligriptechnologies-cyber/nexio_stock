@@ -25,6 +25,10 @@ export interface CatalogProduct {
 let cache: Map<string, CatalogProduct> | null = null;
 let cacheShopId: number | null | undefined = undefined;
 let inflight: Promise<Map<string, CatalogProduct>> | null = null;
+// Parallel array of cache items kept in insertion order so quicksearch
+// (issue #23, D-v2-11) can filter by brand-substring without rebuilding
+// the list from the Map's iteration order on every keystroke.
+let cacheItems: CatalogProduct[] | null = null;
 
 // `shopId` is the superadmin's acting shop (ShopScopeProvider, D-66). A
 // superadmin scanning during checkout/receiving is acting on one specific
@@ -44,6 +48,7 @@ export async function prefetchCatalog(
     const m = new Map<string, CatalogProduct>();
     for (const p of items) m.set(p.barcode, p);
     cache = m;
+    cacheItems = items;
     cacheShopId = shopId ?? null;
     inflight = null;
     return m;
@@ -66,11 +71,66 @@ export async function resolveBarcode(
     `/products/lookup?barcode=${encodeURIComponent(barcode)}${qs}`
   );
   cache!.set(fetched.barcode, fetched);
+  // Keep the parallel search array in sync so quicksearch finds a
+  // cold-cache-miss product the next time the user types its name.
+  cacheItems = cacheItems ?? [];
+  if (!cacheItems.some((p) => p.barcode === fetched.barcode)) {
+    cacheItems.push(fetched);
+  }
   return fetched;
+}
+
+/**
+ * Quicksearch — issue #23, D-v2-11.
+ *
+ * Pure client-side filter over the already-prefetched catalog cache;
+ * no new backend endpoint (the catalog is already fully cached for
+ * barcode resolution, and extending the in-memory structure to support
+ * name substring search is a pure frontend change). Matches a product
+ * if either its barcode or its brand contains the query (case-
+ * insensitive). Returns at most ``limit`` results (default 20) so the
+ * UI can render a small dropdown without overwhelming low-literacy
+ * counter staff.
+ *
+ * Triggers a prefetch if the cache isn't ready yet; in that case the
+ * returned list will be empty (the user retypes once the catalog
+ * loads). That's intentional — quicksearch is an additive shortcut,
+ * not a replacement for the scan field.
+ */
+export async function quickSearch(
+  query: string,
+  shopId?: number | null,
+  limit = 20
+): Promise<CatalogProduct[]> {
+  const q = query.trim().toLowerCase();
+  if (!q) return [];
+  if (!cache || cacheShopId !== (shopId ?? null)) {
+    try {
+      await prefetchCatalog(shopId);
+    } catch {
+      // Network blip — return empty so the UI shows "no matches" rather
+      // than a crash. The user can retry the keystroke once the cache
+      // loads.
+      return [];
+    }
+  }
+  if (!cacheItems) return [];
+  const out: CatalogProduct[] = [];
+  for (const p of cacheItems) {
+    if (
+      p.brand.toLowerCase().includes(q) ||
+      p.barcode.toLowerCase().includes(q)
+    ) {
+      out.push(p);
+      if (out.length >= limit) break;
+    }
+  }
+  return out;
 }
 
 export function invalidateCache(): void {
   cache = null;
+  cacheItems = null;
   cacheShopId = undefined;
   inflight = null;
 }

@@ -31,6 +31,26 @@ test.describe("checkout flow", () => {
     await expect(page.getByText("No items in cart")).toBeVisible();
   });
 
+// --- Issue #23 — quicksearch at checkout. -------------------------------
+
+test.describe("checkout flow — quicksearch (issue #23)", () => {
+  test("quicksearch dropdown matches brand substring and adds to cart", async ({
+    page,
+  }) => {
+    await loginAsCashier(page);
+    const search = page.getByRole("combobox", {
+      name: "Quick-search products by name or barcode",
+    });
+    await search.fill("stag");
+    const option = page.getByRole("option").filter({ hasText: "Royal Stag" });
+    await expect(option).toBeVisible({ timeout: 5000 });
+    await option.click();
+    await expect(page.getByText(/Added:/)).toBeVisible({ timeout: 5000 });
+    // Search cleared, cart line is present.
+    await expect(search).toHaveValue("");
+  });
+});
+
   test("scanning a known barcode adds the product line", async ({ page }) => {
     await loginAsCashier(page);
     await page.getByPlaceholder("Scan or enter barcode").fill("8901234567890");
