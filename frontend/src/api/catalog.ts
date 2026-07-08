@@ -20,6 +20,12 @@ export interface CatalogProduct {
   // quick-add; the checkout UI checks ``status`` to decide whether to
   // block the line (#26).
   status: "active" | "pending";
+  // Issue #40 — current derived stock at the listing shop. Same
+  // computation the dashboard's low-stock list uses, so the value
+  // never drifts. Optional in this interface so older callers that
+  // construct CatalogProduct locally don't break; the cache and the
+  // /products endpoint always populate it.
+  current_stock?: number;
 }
 
 let cache: Map<string, CatalogProduct> | null = null;

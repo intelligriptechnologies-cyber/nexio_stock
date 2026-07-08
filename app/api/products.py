@@ -24,10 +24,11 @@ from __future__ import annotations
 from typing import Annotated, Literal
 
 from fastapi import APIRouter, Depends, File, Form, Header, HTTPException, Query, UploadFile, status
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps import DbSession, require_role, resolve_read_shop_id, resolve_write_shop_id
 from app.logging_config import get_logger
-from app.models.product import ProductStatus
+from app.models.product import Product, ProductStatus
 from app.models.user import User, UserRole
 from app.schemas.product import (
     PendingProductRow,
@@ -46,6 +47,7 @@ from app.schemas.product import (
 # `__name__` — a committed openapi.json and a generated frontend client
 # key off those ids, so the handlers keep their original names.
 from app.services import products as products_svc
+from app.services._catalog_stock import stock_counts_for
 from app.services.product_creation import (
     ProductConflictError,
     create_product_row,
@@ -103,6 +105,29 @@ def _lifecycle_error_to_http(exc: ProductLifecycleError) -> HTTPException:
         status_code=status.HTTP_400_BAD_REQUEST,
         detail={"code": exc.code, "message": exc.message},
     )
+
+
+async def _public_with_stock(
+    db: AsyncSession, rows: list[Product]
+) -> list[ProductPublic]:
+    """Build ``ProductPublic`` for each row, attaching ``current_stock``
+    in one batched query (issue #40, R-v3-4).
+
+    Single source of truth: ``app.services.stock.compute_derived_stock``,
+    which is also what the dashboard's low-stock list (#7) and
+    checkout's oversell check (#4/#28) use. The catalog value will
+    never drift from either of those.
+    """
+    stock = await stock_counts_for(db, rows)
+    out: list[ProductPublic] = []
+    for r in rows:
+        # model_validate picks up the schema-default current_stock=0;
+        # build the response explicitly so we can override with the
+        # computed value without the "multiple values for keyword" error.
+        data = ProductPublic.model_validate(r).model_dump()
+        data["current_stock"] = stock.get(r.id, 0)
+        out.append(ProductPublic(**data))
+    return out
 
 
 @router.post(
@@ -289,7 +314,10 @@ async def list_products(
         limit=limit,
         offset=offset,
     )
-    return [ProductPublic.model_validate(r) for r in rows]
+    # Issue #40 — attach current_stock via the shared stock service so
+    # the catalog column never diverges from the dashboard's low-stock
+    # list for the same product.
+    return await _public_with_stock(db, list(rows))
 
 
 @router.get(
@@ -321,7 +349,9 @@ async def lookup_product(
         product = await lookup_product_by_barcode(db, shop_id=scoped_shop_id, barcode=barcode)
     except ProductError as exc:
         raise _error_to_http(exc) from exc
-    return ProductPublic.model_validate(product)
+    # Issue #40 — same single-source-of-truth as the list endpoint.
+    enriched = await _public_with_stock(db, [product])
+    return enriched[0]
 
 
 @router.patch(

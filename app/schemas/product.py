@@ -107,6 +107,16 @@ class ProductUpdate(BaseModel):
 
 
 class ProductPublic(BaseModel):
+    """One product row returned by the catalog endpoints.
+
+    ``current_stock`` is the per-shop derived stock for this product —
+    populated by the list/lookup endpoints via
+    ``app.services.stock.compute_derived_stock`` (issue #40, R-v3-4).
+    Same computation the dashboard's low-stock list and checkout's
+    oversell check use, so the value never diverges from the dashboard
+    column for the same product.
+    """
+
     model_config = ConfigDict(from_attributes=True)
 
     id: int
@@ -122,6 +132,10 @@ class ProductPublic(BaseModel):
     status: ProductStatus
     created_at: datetime
     updated_at: datetime
+    # Issue #40 — derived stock at the listing shop. Always set by the
+    # list/lookup endpoints; default 0 here so the schema also validates
+    # in tests that construct ProductPublic directly from a bare row.
+    current_stock: int = 0
 
 
 # --- CSV import ---

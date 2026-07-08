@@ -115,6 +115,10 @@ function ListTab() {
                 <th className="px-stack-gap py-2 text-left">Size</th>
                 <th className="px-stack-gap py-2 text-left">Barcode</th>
                 <th className="px-stack-gap py-2 text-right">Price</th>
+                {/* Issue #40 — show current derived stock per product. Same
+                    value the dashboard's low-stock list uses (single source
+                    of truth = compute_derived_stock). */}
+                <th className="px-stack-gap py-2 text-right">Stock</th>
                 <th className="px-stack-gap py-2 text-right">Low-stock</th>
                 <th className="px-stack-gap py-2 text-left">Active</th>
                 <th className="px-stack-gap py-2 text-right">Actions</th>
@@ -138,6 +142,9 @@ function ListTab() {
                     <td className="px-stack-gap py-2">{p.size_label}</td>
                     <td className="px-stack-gap py-2 font-mono text-label-md">{p.barcode}</td>
                     <td className="px-stack-gap py-2 text-right font-mono">₹{p.price}</td>
+                    <td className="px-stack-gap py-2 text-right font-mono">
+                      {p.current_stock ?? 0}
+                    </td>
                     <td className="px-stack-gap py-2 text-right font-mono">—</td>
                     <td className="px-stack-gap py-2">{p.is_active ? "yes" : "no"}</td>
                     <td className="px-stack-gap py-2 text-right">
