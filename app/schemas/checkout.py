@@ -109,6 +109,35 @@ class CheckoutFinalizeResponse(BaseModel):
     is_replay: bool  # True when an existing Idempotency-Key was matched
 
 
+# --- Issue #44: invoices list (R-v3-9, R-v3-15, D-v3-6, D-v3-15) ---
+
+
+class InvoiceListRow(BaseModel):
+    """One row of the invoices grid. Lean summary — enough for a dense
+    paginated table; the full invoice detail lives on GET /invoices/{id}."""
+
+    id: int
+    invoice_number: int
+    shop_id: int
+    cashier_user_id: int
+    cashier_name: str
+    status: InvoiceStatus
+    total_amount: Decimal
+    finalized_at: datetime
+    eod_signed_off: bool
+
+
+class InvoiceListResponse(BaseModel):
+    """Paginated, filterable invoices list. Response shape is the same
+    regardless of role — the role-scoping happens at query build time
+    (R-v3-15)."""
+
+    invoices: list[InvoiceListRow]
+    total: int
+    page: int
+    limit: int
+
+
 # Re-exports.
 __all__ = [
     "CheckoutFinalizeRequest",
@@ -117,6 +146,8 @@ __all__ = [
     "Invoice",
     "InvoiceLine",
     "InvoiceLinePublic",
+    "InvoiceListResponse",
+    "InvoiceListRow",
     "InvoicePublic",
     "InvoiceStatus",
     "Payment",

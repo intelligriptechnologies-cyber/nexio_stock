@@ -2,7 +2,7 @@
 // stay separate. The page component owns the cart; these helpers just hit
 // the backend.
 
-import { api, withShopId } from "./client";
+import { api, withShopId, withShopIdParams } from "./client";
 
 export type PaymentMode = "cash" | "upi" | "card" | "credit";
 
@@ -51,7 +51,56 @@ export interface InvoicePublic {
 
 export interface CheckoutFinalizeResponse {
   invoice: InvoicePublic;
-  is_replay: boolean;
+  is_replay: boolean; // True when an existing Idempotency-Key was matched
+}
+
+// --- Issue #44: invoices grid (R-v3-9, R-v3-15) ---
+
+export interface InvoiceListRow {
+  id: number;
+  invoice_number: number;
+  shop_id: number;
+  cashier_user_id: number;
+  cashier_name: string;
+  status: "finalized" | "voided" | "reversal" | "pending_void";
+  total_amount: string;
+  finalized_at: string;
+  eod_signed_off: boolean;
+}
+
+export interface InvoiceListResponse {
+  invoices: InvoiceListRow[];
+  total: number;
+  page: number;
+  limit: number;
+}
+
+export interface InvoiceListFilters {
+  page?: number;
+  limit?: number;
+  from_date?: string;
+  to_date?: string;
+  payment_mode?: "cash" | "upi" | "card";
+  signed_off?: boolean;
+  cashier_user_id?: number;
+}
+
+export function listInvoices(
+  filters: InvoiceListFilters = {},
+  shopId?: number | null
+): Promise<InvoiceListResponse> {
+  const params = withShopIdParams(new URLSearchParams(), shopId);
+  if (filters.page) params.set("page", String(filters.page));
+  if (filters.limit) params.set("limit", String(filters.limit));
+  if (filters.from_date) params.set("from_date", filters.from_date);
+  if (filters.to_date) params.set("to_date", filters.to_date);
+  if (filters.payment_mode) params.set("payment_mode", filters.payment_mode);
+  if (filters.signed_off !== undefined)
+    params.set("signed_off", String(filters.signed_off));
+  if (filters.cashier_user_id)
+    params.set("cashier_user_id", String(filters.cashier_user_id));
+  const qs = params.toString();
+  return api<InvoiceListResponse>(`/invoices${qs ? `?${qs}` : ""}`);
 }
 
 export function finalizeCheckout(

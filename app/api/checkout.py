@@ -18,10 +18,11 @@ free of log-table coupling (D-47 / R-37).
 """
 from __future__ import annotations
 
+from datetime import date as date_cls
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, Header, HTTPException, Response, status
-from sqlalchemy import select
+from fastapi import APIRouter, Depends, Header, HTTPException, Query, Response, status
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -36,6 +37,8 @@ from app.models.user import User, UserRole
 from app.schemas.checkout import (
     CheckoutFinalizeRequest,
     CheckoutFinalizeResponse,
+    InvoiceListResponse,
+    InvoiceListRow,
     InvoicePublic,
 )
 from app.services._line_snapshots import resolve_missing_snapshots
@@ -178,6 +181,18 @@ async def finalize(
 # --- invoice read + PDF ---
 
 
+# Issue #44 — invoices list is open to all four roles with the same
+# role-scoping matrix as the single-invoice read. Cashier/receiver
+# see only their own invoices (R-v3-15); owner/superadmin see all
+# within their shop scope.
+_invoice_reader_roles = (
+    UserRole.CASHIER_USER,
+    UserRole.RECEIVER_USER,
+    UserRole.OWNER,
+    UserRole.SUPERADMIN,
+)
+
+
 async def _load_invoice_or_404(db: AsyncSession, invoice_id: int) -> Invoice:
     invoice = (
         await db.execute(
@@ -189,6 +204,154 @@ async def _load_invoice_or_404(db: AsyncSession, invoice_id: int) -> Invoice:
     if invoice is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="invoice not found")
     return invoice
+
+
+@router.get(
+    "/invoices",
+    response_model=InvoiceListResponse,
+    summary=(
+        "Paginated, filterable invoices list (issue #44, R-v3-9). "
+        "Filters: date range, shop, payment mode, signed-off status, "
+        "cashier/creator. Role-scoping (R-v3-15): owner/superadmin see "
+        "every invoice in scope; cashier/receiver see only invoices they "
+        "personally created."
+    ),
+)
+async def list_invoices(
+    db: DbSession,
+    _user: User = Depends(require_role(*_invoice_reader_roles)),
+    page: Annotated[int, Query(ge=1)] = 1,
+    limit: Annotated[int, Query(ge=1, le=200)] = 50,
+    from_date: Annotated[
+        date_cls | None,
+        Query(description="Filter by finalized_at >= from_date (YYYY-MM-DD, local)"),
+    ] = None,
+    to_date: Annotated[
+        date_cls | None,
+        Query(description="Filter by finalized_at <= to_date (YYYY-MM-DD, local)"),
+    ] = None,
+    shop_id: Annotated[
+        int | None,
+        Query(description="Superadmin-only (D-65): target shop"),
+    ] = None,
+    payment_mode: Annotated[
+        str | None,
+        Query(description="Filter by payment mode (cash|upi|card)"),
+    ] = None,
+    signed_off: Annotated[
+        bool | None,
+        Query(description="Filter by eod_signed_off flag"),
+    ] = None,
+    cashier_user_id: Annotated[
+        int | None,
+        Query(description="Filter by cashier (creator) user id"),
+    ] = None,
+) -> InvoiceListResponse:
+    from app.models.user import User as UserModel
+
+    # Role-scoping (R-v3-15): cashier/receiver always pinned to their own
+    # user_id; owner/superadmin may filter via cashier_user_id. resolve_write_shop_id
+    # gives superadmin a 400 if they haven't picked a shop.
+    actor_shop_id = await resolve_write_shop_id(db, _user, shop_id)
+
+    # Build the base query.
+    stmt = select(Invoice).where(Invoice.shop_id == actor_shop_id)
+
+    # R-v3-15 narrowest default for cashier/receiver.
+    if _user.role in (UserRole.CASHIER_USER, UserRole.RECEIVER_USER):
+        stmt = stmt.where(Invoice.cashier_user_id == _user.id)
+    elif cashier_user_id is not None:
+        stmt = stmt.where(Invoice.cashier_user_id == cashier_user_id)
+
+    if from_date is not None:
+        # Day bounds: from_date 00:00 to to_date 23:59:59.999 (inclusive).
+        # Use server-local midnight for consistency with _day_bounds in
+        # app/services/eod.py — same convention the rest of the codebase
+        # uses for business-date filtering.
+        from datetime import datetime as _dt
+        from app.services.eod import _day_bounds as _bounds  # type: ignore
+        start_dt, _ = _bounds(from_date)
+        stmt = stmt.where(Invoice.finalized_at >= start_dt)
+    if to_date is not None:
+        from app.services.eod import _day_bounds as _bounds  # type: ignore
+        _, end_dt = _bounds(to_date)
+        # _day_bounds returns the start of the NEXT day as end_exclusive;
+        # for a "to_date inclusive" filter we want <= end of to_date.
+        from datetime import timedelta
+        end_of_day = end_dt - timedelta(microseconds=1)
+        stmt = stmt.where(Invoice.finalized_at <= end_of_day)
+
+    if signed_off is not None:
+        stmt = stmt.where(Invoice.eod_signed_off == signed_off)
+
+    # Total count BEFORE pagination (so the UI can render page controls).
+    count_stmt = select(func.count()).select_from(stmt.subquery())
+    total = (await db.execute(count_stmt)).scalar_one()
+
+    # Page slice + ordering (most recent first — invoice numbers are
+    # monotonic per shop, so this is also stable).
+    rows = (
+        await db.execute(
+            stmt.order_by(Invoice.finalized_at.desc(), Invoice.id.desc())
+            .limit(limit)
+            .offset((page - 1) * limit)
+        )
+    ).scalars().all()
+
+    # Pre-fetch cashier names in one query (avoid N+1 on the row builder).
+    cashier_ids = {row.cashier_user_id for row in rows}
+    cashier_names: dict[int, str] = {}
+    if cashier_ids:
+        names = (
+            await db.execute(
+                select(UserModel.id, UserModel.full_name).where(
+                    UserModel.id.in_(cashier_ids)
+                )
+            )
+        ).all()
+        cashier_names = {r.id: r.full_name for r in names}
+
+    # Filter by payment_mode is a payment-side join — apply it AFTER the
+    # main fetch so the simple filters above stay index-friendly. If the
+    # filter narrows the result below `limit`, the page is short and the
+    # caller can paginate further. For 2000-invoice/day scale this stays
+    # fine because payment count per invoice is small (1-3 rows).
+    filtered = rows
+    if payment_mode is not None:
+        from app.models.invoice import Payment as PaymentModel
+
+        invoice_ids = [r.id for r in rows]
+        if invoice_ids:
+            paid_rows = (
+                await db.execute(
+                    select(PaymentModel.invoice_id).where(
+                        PaymentModel.invoice_id.in_(invoice_ids),
+                        PaymentModel.mode == payment_mode,
+                    )
+                )
+            ).all()
+            paid_ids = {r.invoice_id for r in paid_rows}
+            filtered = [r for r in rows if r.id in paid_ids]
+
+    return InvoiceListResponse(
+        invoices=[
+            InvoiceListRow(
+                id=row.id,
+                invoice_number=row.invoice_number,
+                shop_id=row.shop_id,
+                cashier_user_id=row.cashier_user_id,
+                cashier_name=cashier_names.get(row.cashier_user_id, ""),
+                status=row.status,
+                total_amount=row.total_amount,
+                finalized_at=row.finalized_at,
+                eod_signed_off=row.eod_signed_off,
+            )
+            for row in filtered
+        ],
+        total=total,
+        page=page,
+        limit=limit,
+    )
 
 
 @router.get(
