@@ -25,10 +25,7 @@ from typing import Annotated, Literal
 
 from fastapi import APIRouter, Depends, File, Form, Header, HTTPException, Query, UploadFile, status
 from sqlalchemy import select
-from sqlalchemy.dialects.postgresql.asyncpg import AsyncAdapt_asyncpg_dbapi
-from sqlalchemy.exc import IntegrityError
 
-from app.api._errors import is_unique_violation
 from app.api.deps import DbSession, require_role, resolve_write_shop_id
 from app.logging_config import get_logger
 from app.models.log import InvoicingLog, StockinLog
@@ -43,6 +40,11 @@ from app.schemas.product import (
     ProductPublic,
     ProductQuickAdd,
     ProductUpdate,
+)
+from app.services.product_creation import (
+    ProductConflictError,
+    create_product_row,
+    product_conflict_to_http,
 )
 from app.services.product_lifecycle import (
     ProductLifecycleError,
@@ -85,27 +87,22 @@ async def create_product(
     # name the target shop explicitly (D-64/D-65).
     actor_shop_id = await resolve_write_shop_id(db, _user, payload.shop_id)
 
-    product = Product(
-        shop_id=actor_shop_id,
-        barcode=payload.barcode,
-        brand=payload.brand,
-        size_label=payload.size_label,
-        price=payload.price,
-        low_stock_threshold=payload.low_stock_threshold,
-        is_active=True,
-        status=ProductStatus.ACTIVE,
-    )
-    db.add(product)
+    # Architecture review Candidate B: insert + 409 lives in
+    # app.services.product_creation (one seam for all three
+    # create/quick-add/import call sites).
     try:
-        await db.commit()
-    except (IntegrityError, AsyncAdapt_asyncpg_dbapi.IntegrityError) as exc:
-        if is_unique_violation(exc):
-            await db.rollback()
-            raise HTTPException(
-                status_code=status.HTTP_409_CONFLICT,
-                detail=f"barcode '{payload.barcode}' already exists",
-            ) from exc
-        raise
+        product = await create_product_row(
+            db,
+            shop_id=actor_shop_id,
+            barcode=payload.barcode,
+            brand=payload.brand,
+            size_label=payload.size_label,
+            price=payload.price,
+            low_stock_threshold=payload.low_stock_threshold,
+            status_value=ProductStatus.ACTIVE,
+        )
+    except ProductConflictError as exc:
+        raise product_conflict_to_http(exc) from exc
     await db.refresh(product)
     log.info(
         "product.created",
@@ -170,52 +167,51 @@ async def quick_add_product(
     actor_shop_id = _user.shop_id
     assert actor_shop_id is not None, "shop-scoped user must have shop_id"
 
-    product = Product(
-        shop_id=actor_shop_id,
-        barcode=payload.barcode,
-        brand=payload.brand,
-        size_label=payload.size_label,
-        price=None,
-        low_stock_threshold=None,
-        is_active=True,
-        status=ProductStatus.PENDING,
-    )
-    db.add(product)
+    # Architecture review Candidate B: insert + 409 lives in
+    # app.services.product_creation. The quick-add-specific conflict
+    # path (re-fetch the existing row, log a structured event for the
+    # audit trail) stays here because it's a quick-add concern, not
+    # a generic product-insert concern.
     try:
-        await db.commit()
-    except (IntegrityError, AsyncAdapt_asyncpg_dbapi.IntegrityError) as exc:
-        if is_unique_violation(exc):
-            await db.rollback()
-            # Re-fetch the existing product so the UI can refresh the
-            # catalog cache with the row that "won" the race (D-v2-9).
-            existing = (
-                await db.execute(
-                    select(Product).where(
-                        Product.shop_id == actor_shop_id,
-                        Product.barcode == payload.barcode,
-                    )
+        product = await create_product_row(
+            db,
+            shop_id=actor_shop_id,
+            barcode=payload.barcode,
+            brand=payload.brand,
+            size_label=payload.size_label,
+            price=None,
+            low_stock_threshold=None,
+            status_value=ProductStatus.PENDING,
+        )
+    except ProductConflictError as exc:
+        # The seam has already rolled back; we can safely SELECT now.
+        existing = (
+            await db.execute(
+                select(Product).where(
+                    Product.shop_id == actor_shop_id,
+                    Product.barcode == payload.barcode,
                 )
-            ).scalar_one_or_none()
-            if existing is None:
-                # Shouldn't happen — constraint fired but no row. Treat as
-                # a server error rather than letting it cascade as a 500.
-                raise HTTPException(
-                    status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                    detail="barcode conflict but no existing row found",
-                ) from exc
-            log.info(
-                "product.quick_add.conflict",
-                actor_user_id=actor_id,
-                shop_id=actor_shop_id,
-                barcode=payload.barcode,
-                existing_product_id=existing.id,
-                existing_status=existing.status.value,
             )
+        ).scalar_one_or_none()
+        if existing is None:
+            # Shouldn't happen — constraint fired but no row. Treat as
+            # a server error rather than letting it cascade as a 500.
             raise HTTPException(
-                status_code=status.HTTP_409_CONFLICT,
-                detail=f"barcode '{payload.barcode}' already exists",
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="barcode conflict but no existing row found",
             ) from exc
-        raise
+        log.info(
+            "product.quick_add.conflict",
+            actor_user_id=actor_id,
+            shop_id=actor_shop_id,
+            barcode=payload.barcode,
+            existing_product_id=existing.id,
+            existing_status=existing.status.value,
+        )
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=f"barcode '{payload.barcode}' already exists",
+        ) from exc
     await db.refresh(product)
 
     # Audit-log to the right domain table (D-v2-13). The origin header is
@@ -697,40 +693,38 @@ async def import_products_csv(
                 )
                 continue
 
-        product = Product(
-            shop_id=actor_shop_id,
-            barcode=barcode,
-            brand=brand,
-            size_label=size_label,
-            price=price,
-            low_stock_threshold=threshold,
-            is_active=True,
-            status=ProductStatus.ACTIVE,
-        )
-        db.add(product)
+        # Architecture review Candidate B: insert + 409 lives in
+        # app.services.product_creation. The CSV batch passes
+        # commit=False so we can flush per row and surface per-row
+        # 409s as ProductImportError entries (the existing
+        # per-row-validation shape).
         try:
-            await db.flush()
-        except (IntegrityError, AsyncAdapt_asyncpg_dbapi.IntegrityError) as exc:
-            if is_unique_violation(exc):
-                # Roll back so the failed INSERT doesn't leave the
-                # session in a DEACTIVE state. The `product` instance
-                # becomes detached automatically; we don't need to
-                # expunge it explicitly.
-                await db.rollback()
-                errors.append(
-                    ProductImportError(
-                        row=row_num,
-                        barcode=barcode,
-                        error=f"barcode '{barcode}' already exists",
-                    )
+            product = await create_product_row(
+                db,
+                shop_id=actor_shop_id,
+                barcode=barcode,
+                brand=brand,
+                size_label=size_label,
+                price=price,
+                low_stock_threshold=threshold,
+                status_value=ProductStatus.ACTIVE,
+                commit=False,
+            )
+        except ProductConflictError as exc:
+            errors.append(
+                ProductImportError(
+                    row=row_num,
+                    barcode=barcode,
+                    error=f"barcode '{exc.barcode}' already exists",
                 )
-                continue
-            raise
+            )
+            continue
 
         created += 1
         # Let the session forget the row so a later failure doesn't
-        # poison this row's in-memory state. Use expunge (not rollback)
-        # because the INSERT succeeded.
+        # poison this row's in-memory state. Use expunge (not
+        # rollback) because the INSERT succeeded (it was flushed,
+        # not committed).
         db.expunge(product)
 
     if created:

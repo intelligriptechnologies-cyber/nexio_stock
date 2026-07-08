@@ -259,3 +259,6 @@ openapi.json
 # Playwright MCP tool runtime artifacts (browser console logs, page
 # snapshots) — never part of the app surface.
 .playwright-mcp/
+
+# Scratch outputs (architecture reviews, ad hoc reports) — not part of the app.
+/tmp/
