@@ -206,11 +206,18 @@ async def test_pending_product_can_be_received_into_lot(
 
 
 @pytest.mark.usefixtures("owner", "receiver", "cashier")
-async def test_quick_add_idempotency_key_returns_same_product(
+async def test_quick_add_same_key_retry_409s(
     owner_client: AsyncClient,
 ) -> None:
-    """D-v2-12: same Idempotency-Key returns the same product on retry,
-    not a 409. A double-tap on "Add" with the same key is a no-op."""
+    """Architecture review Candidate C (2026-07-08): the in-memory
+    idempotency cache was deleted. A same-key retry now falls through
+    to the DB UNIQUE(barcode) constraint and returns 409, same as
+    any other same-barcode race. This is the deletion-test passing:
+    removing the cache observably changes nothing for the live UI
+    (which always regenerates a random key per submit) — same-key
+    replay is now caught by the same race path as a true barcode
+    collision.
+    """
     key = f"qa-idem-{uuid.uuid4().hex[:8]}"
     payload = {"barcode": "8900000000120", "brand": "Idem Brand", "size_label": "750ml"}
     first = await owner_client.post(
@@ -219,12 +226,22 @@ async def test_quick_add_idempotency_key_returns_same_product(
     assert first.status_code == 201, first.text
     first_id = first.json()["id"]
 
-    # Second call with the SAME key — should succeed and return the same product.
+    # Same key + same barcode -> the global UNIQUE(barcode) constraint
+    # rejects the second insert with 409 (same as the
+    # test_quick_add_duplicate_barcode_returns_409_with_friendly_message
+    # test, which is the real dedupe path).
     second = await owner_client.post(
         "/products/quick-add", json=payload, headers={"Idempotency-Key": key}
     )
-    assert second.status_code == 201, second.text
-    assert second.json()["id"] == first_id
+    assert second.status_code == 409, second.text
+    assert "already exists" in second.json()["detail"]
+
+    # And the original product is unchanged.
+    lookup = await owner_client.get(
+        "/products/lookup", params={"barcode": "8900000000120"}
+    )
+    assert lookup.status_code == 200
+    assert lookup.json()["id"] == first_id
 
 
 @pytest.mark.usefixtures("owner", "receiver", "cashier")

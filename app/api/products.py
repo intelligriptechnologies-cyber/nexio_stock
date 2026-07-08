@@ -170,27 +170,6 @@ async def quick_add_product(
     actor_shop_id = _user.shop_id
     assert actor_shop_id is not None, "shop-scoped user must have shop_id"
 
-    # Optional idempotency: same key for the same actor within a short
-    # window returns the existing pending product (D-v2-12). We don't
-    # need a separate IdempotencyKey table for this — the constraint
-    # below plus a per-actor key cache (in-memory for now) is enough
-    # for the ordinary double-tap case. A DB-backed key table can be
-    # added if real double-submit pressure emerges.
-    if idempotency_key:
-        cached = _quick_add_idem_cache.get((actor_id, idempotency_key))
-        if cached is not None:
-            # Re-fetch in case it was rolled back; cache is best-effort.
-            existing = (
-                await db.execute(
-                    select(Product).where(
-                        Product.shop_id == actor_shop_id,
-                        Product.barcode == cached["barcode"],
-                    )
-                )
-            ).scalar_one_or_none()
-            if existing is not None:
-                return ProductPublic.model_validate(existing)
-
     product = Product(
         shop_id=actor_shop_id,
         barcode=payload.barcode,
@@ -239,14 +218,6 @@ async def quick_add_product(
         raise
     await db.refresh(product)
 
-    # Cache the idempotency mapping so a same-key retry short-circuits.
-    if idempotency_key:
-        _quick_add_idem_cache[(actor_id, idempotency_key)] = {
-            "product_id": product.id,
-            "barcode": product.barcode,
-        }
-        _evict_quick_add_idem_cache()
-
     # Audit-log to the right domain table (D-v2-13). The origin header is
     # the source of truth for which log table to write to — defaults to
     # "receiving" for the in-scope #22 caller. Checkout is added in #26.
@@ -280,28 +251,17 @@ async def quick_add_product(
     return ProductPublic.model_validate(product)
 
 
-# In-memory idempotency cache for /products/quick-add. Bounded to the
-# most recent MAX_QUICK_ADD_IDEM entries to keep memory usage flat under
-# normal traffic; old entries fall out on insertion. This is intentionally
-# NOT a DB-backed IdempotencyKey — quick-add is a low-frequency
-# counter-staff action, and a same-key retry from the same actor within
-# seconds is the only realistic double-submit shape. If the bar raises,
-# promote this to a proper IdempotencyKey row (#22 explicitly scopes
-# this to the in-memory pattern — see D-v2-12).
-MAX_QUICK_ADD_IDEM = 1024
-_quick_add_idem_cache: dict[tuple[int, str], dict] = {}
-
-
-def _evict_quick_add_idem_cache() -> None:
-    """Evict oldest half when the cache exceeds its cap. Called inline
-    on every insert so the cache stays bounded without a background
-    task."""
-    if len(_quick_add_idem_cache) > MAX_QUICK_ADD_IDEM:
-        # dict preserves insertion order in CPython 3.7+; drop the
-        # first half (oldest).
-        keep = MAX_QUICK_ADD_IDEM // 2
-        for old_key in list(_quick_add_idem_cache.keys())[:-keep]:
-            _quick_add_idem_cache.pop(old_key, None)
+# Idempotency note: the /products/quick-add handler accepts an optional
+# Idempotency-Key header (D-v2-12). The cache that used to live here was
+# deleted in the architecture review (Candidate C, 2026-07-08) -- the
+# frontend always regenerates a random key per submit (qa-${origin}-
+# ${barcode}-${uid()}), so the cache-hit branch was structurally
+# unreachable through the actual UI. Same-barcode double-submits are
+# caught by the global UNIQUE(barcode) constraint and surface as 409
+# (handled by the same-barcode race path below). If a future caller
+# wants server-side key replay, the right shape is a stable ref on
+# the client (like CheckoutPage's idempotencyKeyRef) plus a small
+# IdempotencyKey row table -- not a per-process LRU.
 
 
 @router.get(
