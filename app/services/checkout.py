@@ -29,11 +29,10 @@ from datetime import UTC, datetime
 from decimal import Decimal
 from typing import NamedTuple
 
-from sqlalchemy import func, literal, select
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.invoice import (
-    STATUSES_COUNTING_AS_SOLD,
     IdempotencyKey,
     Invoice,
     InvoiceLine,
@@ -41,9 +40,9 @@ from app.models.invoice import (
     Payment,
     PaymentMode,
 )
-from app.models.lot import LotLine
 from app.models.product import Product
 from app.models.shop import Shop
+from app.services.stock import compute_derived_stock
 
 
 class CheckoutError(Exception):
@@ -156,93 +155,6 @@ async def _resolve_products_for_cart(
     return by_barcode
 
 
-async def _current_stock_for(
-    db: AsyncSession, *, product_ids: list[int]
-) -> dict[int, int]:
-    """Per-product stock: SUM(lot_lines.quantity) - SUM(invoice_lines.quantity).
-
-    This is the derived-stock formula from D-17: receipts minus sales.
-    The Product row lock taken earlier in `finalize_checkout` serialises
-    two parallel finalizes for the same SKU, so the second caller sees
-    the first's invoice-line inserts (uncommitted rows are not visible
-    to the second caller until the first caller's transaction commits,
-    which it does at the end of the route handler — but the first
-    caller's `with_for_update` lock is held until then, blocking the
-    second caller's read of the locked row until commit).
-    """
-    if not product_ids:
-        return {}
-    received_subq = (
-        select(
-            LotLine.product_id.label("product_id"),
-            func.coalesce(func.sum(LotLine.quantity), 0).label("received"),
-        )
-        .where(LotLine.product_id.in_(product_ids))
-        .group_by(LotLine.product_id)
-        .subquery()
-    )
-    # A line counts as "sold" only if its parent invoice is in a
-    # status listed in `STATUSES_COUNTING_AS_SOLD` (module-level
-    # constant in app.models.invoice). That set is the single source
-    # of truth — the dashboard's revenue query and #7's low-stock
-    # query filter against the same set. Currently a single-element
-    # set, so we use `==` rather than `IN (...)` to keep the SQL
-    # conventional and avoid SQLAlchemy's IN-clause quirks on a
-    # one-element tuple.
-    assert frozenset({InvoiceStatus.FINALIZED}) == STATUSES_COUNTING_AS_SOLD
-    sold_subq = (
-        select(
-            InvoiceLine.product_id.label("product_id"),
-            func.coalesce(func.sum(InvoiceLine.quantity), 0).label("sold"),
-        )
-        .join(Invoice, InvoiceLine.invoice_id == Invoice.id)
-        .where(
-            InvoiceLine.product_id.in_(product_ids),
-            Invoice.status == InvoiceStatus.FINALIZED,
-        )
-        .group_by(InvoiceLine.product_id)
-        .subquery()
-    )
-    rows = (
-        await db.execute(
-            select(
-                func.coalesce(received_subq.c.product_id, sold_subq.c.product_id).label(
-                    "product_id"
-                ),
-                (
-                    func.coalesce(received_subq.c.received, 0)
-                    - func.coalesce(sold_subq.c.sold, 0)
-                ).label("stock"),
-            )
-            .select_from(received_subq)
-            .outerjoin(
-                sold_subq, received_subq.c.product_id == sold_subq.c.product_id
-            )
-            .union_all(
-                select(
-                    sold_subq.c.product_id.label("product_id"),
-                    (
-                        literal(0)
-                        - func.coalesce(sold_subq.c.sold, 0)
-                    ).label("stock"),
-                )
-                .select_from(sold_subq)
-                .outerjoin(
-                    received_subq, sold_subq.c.product_id == received_subq.c.product_id
-                )
-                .where(received_subq.c.product_id.is_(None))
-            )
-        )
-    ).all()
-    # The union has one row per (product, side); sum the per-side
-    # stock so a product with both received and sold rows aggregates
-    # into a single net value.
-    net: dict[int, int] = {}
-    for pid, stock in rows:
-        net[pid] = net.get(pid, 0) + int(stock)
-    return net
-
-
 async def finalize_checkout(
     db: AsyncSession,
     *,
@@ -330,7 +242,7 @@ async def finalize_checkout(
     by_id = {p.id: p for p in locked_products}
 
     # 4. Check stock under the lock.
-    current = await _current_stock_for(db, product_ids=list(requested.keys()))
+    current = await compute_derived_stock(db, product_ids=list(requested.keys()))
     oversell = sorted(
         (pid, requested[pid], current.get(pid, 0))
         for pid in requested

@@ -54,8 +54,8 @@ class InvoiceStatus(str, enum.Enum):
 
 # Module-level constant for the statuses that count as "sold" in the
 # stock-derivation and revenue-aggregation queries. The set is the
-# single source of truth — checkout's _current_stock_for, the
-# dashboard's get_day_totals, and #7's low-stock query all filter
+# single source of truth — app.services.stock.compute_derived_stock,
+# the dashboard's get_day_totals, and #7's low-stock query all filter
 # against it. Currently {FINALIZED} — a single-element set. If you
 # add a new status that should count (e.g. a "RETURNED" status that
 # nets out instead of fully reverses), add it here AND update the

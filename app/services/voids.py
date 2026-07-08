@@ -3,8 +3,8 @@
 Two flows:
   1. Pre-EOD-signoff direct void: cashier/owner voids a finalized
      invoice; status flips to VOIDED; the stock derivation naturally
-     removes the lines from "sold" (see _current_stock_for in
-     checkout.py). Original line items remain visible in history with
+     removes the lines from "sold" (see app.services.stock.compute_derived_stock).
+     Original line items remain visible in history with
      a VOIDED status — never deleted, never edited.
 
   2. Post-EOD-signoff compensating reversal: cashier/owner requests

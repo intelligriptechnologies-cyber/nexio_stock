@@ -1,7 +1,7 @@
 """Low-stock evaluation (D-34, D-15, R-15).
 
 A product is "low stock" when its current derived stock (per
-`app.services.checkout._current_stock_for`'s formula) is at or below
+`app.services.stock.compute_derived_stock`'s formula) is at or below
 its effective threshold:
 
   effective_threshold = product.low_stock_threshold
@@ -20,21 +20,12 @@ acceptance criterion in #7.
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import TYPE_CHECKING
 
-from sqlalchemy import func, literal, select
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.models.invoice import (
-    STATUSES_COUNTING_AS_SOLD,
-    Invoice,
-    InvoiceLine,
-)
-from app.models.lot import LotLine
 from app.models.product import Product
-
-if TYPE_CHECKING:
-    pass
+from app.services.stock import compute_derived_stock
 
 
 @dataclass
@@ -42,80 +33,6 @@ class LowStockRow:
     product: Product
     current_stock: int
     effective_threshold: int | None  # NULL means "no threshold configured"
-
-
-async def _stock_per_product(
-    db: AsyncSession, *, shop_id: int
-) -> dict[int, int]:
-    """Return {product_id: net_stock} for every active product in the
-    shop, using the same derived-stock formula as the checkout
-    service (SUM(lot_lines) - SUM(invoice_lines where invoice.status
-    counts as 'sold')). One round-trip."""
-    received_subq = (
-        select(
-            LotLine.product_id.label("product_id"),
-            func.coalesce(func.sum(LotLine.quantity), 0).label("received"),
-        )
-        .where(LotLine.product_id.in_(
-            select(Product.id).where(
-                Product.shop_id == shop_id, Product.is_active.is_(True)
-            )
-        ))
-        .group_by(LotLine.product_id)
-        .subquery()
-    )
-    sold_subq = (
-        select(
-            InvoiceLine.product_id.label("product_id"),
-            func.coalesce(func.sum(InvoiceLine.quantity), 0).label("sold"),
-        )
-        .join(Invoice, InvoiceLine.invoice_id == Invoice.id)
-        .where(
-            InvoiceLine.product_id.in_(
-                select(Product.id).where(
-                    Product.shop_id == shop_id, Product.is_active.is_(True)
-                )
-            ),
-            Invoice.status.in_(STATUSES_COUNTING_AS_SOLD),
-        )
-        .group_by(InvoiceLine.product_id)
-        .subquery()
-    )
-    rows = (
-        await db.execute(
-            select(
-                func.coalesce(received_subq.c.product_id, sold_subq.c.product_id).label(
-                    "product_id"
-                ),
-                (
-                    func.coalesce(received_subq.c.received, 0)
-                    - func.coalesce(sold_subq.c.sold, 0)
-                ).label("stock"),
-            )
-            .select_from(received_subq)
-            .outerjoin(
-                sold_subq, received_subq.c.product_id == sold_subq.c.product_id
-            )
-            .union_all(
-                select(
-                    sold_subq.c.product_id.label("product_id"),
-                    (
-                        literal(0)
-                        - func.coalesce(sold_subq.c.sold, 0)
-                    ).label("stock"),
-                )
-                .select_from(sold_subq)
-                .outerjoin(
-                    received_subq, sold_subq.c.product_id == received_subq.c.product_id
-                )
-                .where(received_subq.c.product_id.is_(None))
-            )
-        )
-    ).all()
-    net: dict[int, int] = {}
-    for pid, stock in rows:
-        net[pid] = net.get(pid, 0) + int(stock)
-    return net
 
 
 async def compute_low_stock(
@@ -149,7 +66,7 @@ async def compute_low_stock(
     if not products:
         return []
 
-    stock_by_id = await _stock_per_product(db, shop_id=shop_id)
+    stock_by_id = await compute_derived_stock(db, product_ids=[p.id for p in products])
 
     rows: list[LowStockRow] = []
     for p in products:
