@@ -58,8 +58,10 @@ export interface ProductImportResponse {
   errors: ProductImportError[];
 }
 
-export function listProducts(opts?: { q?: string; includeInactive?: boolean }): Promise<Product[]> {
-  const params = new URLSearchParams();
+export function listProducts(
+  opts?: { q?: string; includeInactive?: boolean; shopId?: number | null }
+): Promise<Product[]> {
+  const params = withShopIdParams(new URLSearchParams(), opts?.shopId);
   if (opts?.includeInactive) params.set("active_only", "false");
   if (opts?.q) params.set("q", opts.q);
   params.set("limit", "500");

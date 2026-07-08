@@ -15,6 +15,7 @@ import { InvoiceLookupPage } from "./pages/InvoiceLookupPage";
 import { StaffPage } from "./pages/StaffPage";
 import { ShopConfigPage } from "./pages/ShopConfigPage";
 import { PendingProductsPage } from "./pages/PendingProductsPage";
+import { InventoryPage } from "./pages/InventoryPage";
 
 function Protected({ allow, children }: { allow: Role[]; children: JSX.Element }) {
   const { user, isReady } = useAuth();
@@ -145,6 +146,20 @@ export default function App() {
           <Protected allow={["cashier_user", "owner", "superadmin"]}>
             <AuthedShell>
               <InvoiceLookupPage />
+            </AuthedShell>
+          </Protected>
+        }
+      />
+      {/* Issue #43 — Inventory page. Open to all three shop-scoped
+          roles (owner, receiver, cashier) and superadmin, matching
+          the /inventory/lots server-side role list. Not under /admin
+          because /admin is owner+superadmin only. */}
+      <Route
+        path="/inventory"
+        element={
+          <Protected allow={["cashier_user", "receiver_user", "owner", "superadmin"]}>
+            <AuthedShell>
+              <InventoryPage />
             </AuthedShell>
           </Protected>
         }
