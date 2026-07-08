@@ -44,6 +44,10 @@ from app.schemas.product import (
     ProductQuickAdd,
     ProductUpdate,
 )
+from app.services.product_lifecycle import (
+    ProductLifecycleError,
+    apply_status_transition,
+)
 
 router = APIRouter(prefix="/products", tags=["products"])
 log = get_logger(__name__)
@@ -415,6 +419,21 @@ async def update_product(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="product not found")
 
     data = payload.model_dump(exclude_unset=True)
+    # Apply the price/status coupling FIRST so a bad PATCH on price
+    # surfaces as a 400 from the lifecycle module rather than a 500
+    # from the DB CHECK violation path (architecture review
+    # Candidate D, 2026-07-08).
+    if "price" in data:
+        try:
+            apply_status_transition(product, price=data["price"])
+        except ProductLifecycleError as exc:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail={"code": exc.code, "message": exc.message},
+            ) from exc
+        # apply_status_transition already wrote product.price; remove
+        # it from the generic setattr loop so we don't double-assign.
+        del data["price"]
     for field_name, value in data.items():
         setattr(product, field_name, value)
     await db.commit()
@@ -423,8 +442,8 @@ async def update_product(
         "product.updated",
         actor_user_id=actor_id,
         shop_id=product.shop_id,
-product_id=product.id,
-        changed_fields=sorted(data.keys()),
+        product_id=product.id,
+        changed_fields=sorted(payload.model_dump(exclude_unset=True).keys()),
     )
     return ProductPublic.model_validate(product)
 
@@ -569,15 +588,10 @@ async def activate_product(
     _user: User = Depends(require_role(*_pending_roles)),
 ) -> ProductPublic:
     # Activation is the resolution action for the Pending Products list
-    # (D-v2-8). Setting a price flips the row from pending to active;
-    # the product drops off the pending list and becomes sellable at
-    # checkout. The CHECK constraint ck_products_price_iff_active
-    # enforces the price-state invariant at the DB level; this handler
-    # is the one place that flips status.
-    #
-    # Only valid on pending rows -- activating an already-active product
-    # is a no-op (status stays active, price updates if the body sets
-    # one). Activating a deactivated (is_active=False) product is a 400.
+    # (D-v2-8). The price/status coupling is delegated to
+    # apply_status_transition so the rule lives in one place
+    # (architecture review Candidate D, 2026-07-08). Activating a
+    # deactivated (is_active=False) product is a 400.
     actor_id = _user.id
     actor_role = _user.role
     actor_shop_id = _user.shop_id
@@ -595,10 +609,14 @@ async def activate_product(
         )
 
     was_pending = product.status == ProductStatus.PENDING
-    product.price = payload.price
+    try:
+        apply_status_transition(product, price=payload.price)
+    except ProductLifecycleError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail={"code": exc.code, "message": exc.message},
+        ) from exc
     product.low_stock_threshold = payload.low_stock_threshold
-    if was_pending:
-        product.status = ProductStatus.ACTIVE
 
     await db.commit()
     await db.refresh(product)

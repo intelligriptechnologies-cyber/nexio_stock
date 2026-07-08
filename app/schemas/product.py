@@ -5,7 +5,7 @@ import re
 from datetime import datetime
 from decimal import Decimal
 
-from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from app.models.product import Product, ProductStatus
 
@@ -89,10 +89,12 @@ class ProductQuickAdd(BaseModel):
 class ProductUpdate(BaseModel):
     """Partial update — owner edits price, brand, threshold, etc. without re-uploading.
 
-    Setting a price on a pending product flips it to active (the
-    "completion" action — issue #25). The cross-field rule lives here
-    rather than per-field because the relationship between ``status`` and
-    ``price`` is structural (D-v2-5).
+    The price/status coupling (D-v2-5: active rows have price>0,
+    pending rows have price=NULL) is enforced by
+    ``app.services.product_lifecycle.apply_status_transition`` from
+    the ``update_product`` handler. The schema no longer carries a
+    no-op cross-field validator — the invariant lives in the
+    lifecycle module (architecture review Candidate D, 2026-07-08).
     """
 
     model_config = ConfigDict(extra="forbid")
@@ -102,17 +104,6 @@ class ProductUpdate(BaseModel):
     price: Decimal | None = Field(default=None, gt=Decimal("0"), max_digits=12, decimal_places=2)
     low_stock_threshold: int | None = Field(default=None, ge=0)
     is_active: bool | None = None
-
-    @model_validator(mode="after")
-    def _price_consistent(self) -> ProductUpdate:
-        # The handler is responsible for cross-checking price vs the row's
-        # current status (we don't have the row here), but at the schema
-        # level we forbid setting price=None via this endpoint — partial
-        # updates can't nullify a price on an active product without an
-        # explicit "deactivate" path, which lives on the catalog side.
-        # (Pydantic v2: peer fields aren't bound in @field_validator, so
-        # the cross-field rule below uses @model_validator.)
-        return self
 
 
 class ProductPublic(BaseModel):
