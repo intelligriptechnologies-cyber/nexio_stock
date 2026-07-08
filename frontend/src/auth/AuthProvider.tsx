@@ -1,5 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import type { ReactNode } from "react";
+import { clearToken, getToken, setToken } from "../api/client";
 import { decodeJwt, isExpired, type JwtPayload } from "./jwt";
 
 export type Role = "superadmin" | "owner" | "receiver_user" | "cashier_user";
@@ -21,18 +22,17 @@ export interface AuthContextValue {
   isReady: boolean;
 }
 
-const TOKEN_KEY = "barstock.token";
 const USER_KEY = "barstock.user";
 
 const Ctx = createContext<AuthContextValue | undefined>(undefined);
 
 function readSession(): { token: string; user: AuthUser; payload: JwtPayload } | null {
-  const token = sessionStorage.getItem(TOKEN_KEY);
+  const token = getToken();
   const userRaw = sessionStorage.getItem(USER_KEY);
   if (!token || !userRaw) return null;
   const payload = decodeJwt(token);
   if (!payload || isExpired(payload)) {
-    sessionStorage.removeItem(TOKEN_KEY);
+    clearToken();
     sessionStorage.removeItem(USER_KEY);
     return null;
   }
@@ -46,29 +46,29 @@ function readSession(): { token: string; user: AuthUser; payload: JwtPayload } |
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
-  const [token, setToken] = useState<string | null>(null);
+  const [token, setTokenState] = useState<string | null>(null);
   const [isReady, setIsReady] = useState(false);
 
   useEffect(() => {
     const s = readSession();
     if (s) {
-      setToken(s.token);
+      setTokenState(s.token);
       setUser(s.user);
     }
     setIsReady(true);
   }, []);
 
   const login = useCallback((newToken: string, newUser: AuthUser) => {
-    sessionStorage.setItem(TOKEN_KEY, newToken);
-    sessionStorage.setItem(USER_KEY, JSON.stringify(newUser));
     setToken(newToken);
+    sessionStorage.setItem(USER_KEY, JSON.stringify(newUser));
+    setTokenState(newToken);
     setUser(newUser);
   }, []);
 
   const logout = useCallback(() => {
-    sessionStorage.removeItem(TOKEN_KEY);
+    clearToken();
     sessionStorage.removeItem(USER_KEY);
-    setToken(null);
+    setTokenState(null);
     setUser(null);
   }, []);
 

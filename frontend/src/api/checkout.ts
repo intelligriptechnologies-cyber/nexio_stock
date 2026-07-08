@@ -66,24 +66,10 @@ export function getInvoice(invoiceId: number): Promise<InvoicePublic> {
   return api<InvoicePublic>(`/invoices/${invoiceId}`);
 }
 
-// Returns the absolute URL for the PDF download — used in an <a download>
-// tag, so we just compose the URL and let the browser handle auth via the
-// sessionStorage token + Authorization header on fetch (browser-native
-// <a href> doesn't send headers, so the cashier must be logged in via
-// the SPA, and we use a fetch + blob approach below for the actual
-// download to keep the Bearer token attached).
-export function pdfUrl(invoiceId: number, base: string): string {
-  return `${base}/invoices/${invoiceId}/pdf`;
-}
-
-export async function downloadInvoicePdf(
-  invoiceId: number,
-  base: string,
-  token: string
-): Promise<Blob> {
-  const res = await fetch(`${base}/invoices/${invoiceId}/pdf`, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
-  if (!res.ok) throw new Error(`PDF download failed: HTTP ${res.status}`);
-  return res.blob();
+// Browser-native <a href> doesn't send headers, so a plain link can't
+// carry the Bearer token — we fetch the PDF as a blob (via `api()`, so
+// auth-header injection and error-detail parsing come for free) and
+// hand the caller an object URL to trigger the download with.
+export async function downloadInvoicePdf(invoiceId: number): Promise<Blob> {
+  return api<Blob>(`/invoices/${invoiceId}/pdf`, { responseType: "blob" });
 }

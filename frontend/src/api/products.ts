@@ -127,26 +127,11 @@ export async function importProductsCsv(
   const fd = new FormData();
   fd.append("file", file);
   if (shopId != null) fd.append("shop_id", String(shopId));
-  const res = await fetch(
-    `${(import.meta.env.VITE_API_BASE as string | undefined) ?? ""}/products/import-csv`,
-    {
-      method: "POST",
-      body: fd,
-      headers: {
-        // No Content-Type — the browser sets the multipart boundary.
-        Authorization: `Bearer ${sessionStorage.getItem("barstock.token") ?? ""}`,
-      },
-    }
-  );
-  if (!res.ok) {
-    let detail = res.statusText;
-    try {
-      const j = (await res.json()) as { detail?: unknown };
-      if (typeof j.detail === "string") detail = j.detail;
-    } catch {
-      /* noop */
-    }
-    throw new Error(`HTTP ${res.status}: ${detail}`);
-  }
-  return (await res.json()) as ProductImportResponse;
+  // No Content-Type header — passing FormData as the body leaves it
+  // unset so the browser adds the multipart boundary; `api()` only
+  // forces application/json when called with the `json` option.
+  return api<ProductImportResponse>("/products/import-csv", {
+    method: "POST",
+    body: fd,
+  });
 }

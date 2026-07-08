@@ -5,6 +5,22 @@
 const BASE = (import.meta.env.VITE_API_BASE as string | undefined) ?? "http://127.0.0.1:8000";
 const TOKEN_KEY = "barstock.token";
 
+// The one place that reads/writes the session token (issue #29). Every
+// other module -- AuthProvider's login/logout, and the two call sites
+// that bypass `api()` for multipart upload / blob download -- goes
+// through these instead of hardcoding the storage key.
+export function getToken(): string | null {
+  return sessionStorage.getItem(TOKEN_KEY);
+}
+
+export function setToken(token: string): void {
+  sessionStorage.setItem(TOKEN_KEY, token);
+}
+
+export function clearToken(): void {
+  sessionStorage.removeItem(TOKEN_KEY);
+}
+
 export class ApiError extends Error {
   constructor(
     public readonly status: number,
@@ -17,10 +33,14 @@ export class ApiError extends Error {
 
 export async function api<T = unknown>(
   path: string,
-  init: RequestInit & { json?: unknown; idempotencyKey?: string } = {}
+  init: RequestInit & {
+    json?: unknown;
+    idempotencyKey?: string;
+    responseType?: "json" | "text" | "blob";
+  } = {}
 ): Promise<T> {
   const headers = new Headers(init.headers ?? {});
-  const token = sessionStorage.getItem(TOKEN_KEY);
+  const token = getToken();
   if (token) headers.set("Authorization", `Bearer ${token}`);
   let body = init.body;
   if (init.json !== undefined) {
@@ -51,6 +71,8 @@ export async function api<T = unknown>(
     throw new ApiError(res.status, detail, payload);
   }
 
+  if (init.responseType === "blob") return (await res.blob()) as unknown as T;
+  if (init.responseType === "text") return (await res.text()) as unknown as T;
   const ct = res.headers.get("content-type") ?? "";
   if (ct.includes("application/json")) return (await res.json()) as T;
   return (await res.text()) as unknown as T;

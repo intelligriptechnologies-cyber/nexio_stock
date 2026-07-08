@@ -330,9 +330,7 @@ export function CheckoutPage() {
   const downloadPdf = async () => {
     if (!lastInvoice) return;
     try {
-      const token = sessionStorage.getItem("barstock.token") ?? "";
-      const base = (import.meta.env.VITE_API_BASE as string | undefined) ?? "";
-      const blob = await downloadInvoicePdf(lastInvoice.id, base, token);
+      const blob = await downloadInvoicePdf(lastInvoice.id);
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
