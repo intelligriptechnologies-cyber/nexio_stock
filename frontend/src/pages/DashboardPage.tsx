@@ -4,10 +4,12 @@ import {
   getEodHistory,
   getEodTotals,
   getLowStock,
+  getStockOverview,
   signOffEod,
   type EodTotalsResponse,
   type LowStockResponse,
   type SignOffResponse,
+  type StockOverviewResponse,
 } from "../api/dashboard";
 import { toUserMessage } from "../api/client";
 import { listPendingProducts } from "../api/products";
@@ -24,6 +26,10 @@ export function DashboardPage() {
   const [lowStock, setLowStock] = useState<LowStockResponse | null>(null);
   const [history, setHistory] = useState<SignOffResponse[] | null>(null);
   const [pendingCount, setPendingCount] = useState<number | null>(null);
+  // Issue #41 — cross-shop stock overview (owner/superadmin only).
+  // null while loading or for non-authorized roles; the section
+  // renders nothing in those cases.
+  const [stockOverview, setStockOverview] = useState<StockOverviewResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [info, setInfo] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -34,12 +40,17 @@ export function DashboardPage() {
       setLowStock(null);
       setHistory(null);
       setPendingCount(null);
+      setStockOverview(null);
       return;
     }
     setError(null);
     setInfo(null);
     try {
-      const [t, l, h, p] = await Promise.all([
+      // Issue #41 — stock overview is owner/superadmin only; for
+      // other roles the call 403s and we render an empty section.
+      // The catch keeps the rest of the batch alive (mirrors how
+      // listPendingProducts is wrapped below).
+      const [t, l, h, p, so] = await Promise.all([
         getEodTotals(undefined, actingShopId),
         getLowStock(undefined, actingShopId),
         getEodHistory(20, actingShopId),
@@ -47,11 +58,13 @@ export function DashboardPage() {
         // alongside the other dashboard data so the badge appears
         // immediately when the dashboard mounts.
         listPendingProducts(actingShopId).catch(() => []),
+        getStockOverview().catch(() => null),
       ]);
       setToday(t);
       setLowStock(l);
       setHistory(h.signoffs);
       setPendingCount(p.length);
+      setStockOverview(so);
     } catch (e) {
       setError(toUserMessage(e, "Load failed."));
     }
@@ -209,6 +222,59 @@ export function DashboardPage() {
           </table>
         )}
       </section>
+
+      {/* Issue #41 — cross-shop stock overview (owner/superadmin only).
+          Hidden for other roles: stockOverview is null on 403. */}
+      {stockOverview && stockOverview.shops.length > 0 && (
+        <section className="rounded-lg bg-surface-container p-gutter">
+          <h2 className="mb-stack-gap text-headline-md text-primary">
+            Stock across all shops
+          </h2>
+          {stockOverview.shops.map((g) => (
+            <div key={g.shop_id} className="mb-stack-gap">
+              <h3 className="text-label-xl text-on-surface-variant">
+                {g.shop_name}
+              </h3>
+              {g.items.length === 0 ? (
+                <div className="text-on-surface-variant">
+                  No products in this shop.
+                </div>
+              ) : (
+                <table className="w-full border-collapse">
+                  <thead>
+                    <tr className="border-b border-outline text-label-md text-on-surface-variant">
+                      <th className="py-2 text-left">Product</th>
+                      <th className="py-2 text-left">Barcode</th>
+                      <th className="py-2 text-right">Stock</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {g.items.map((it) => (
+                      <tr
+                        key={`${g.shop_id}-${it.product_id}`}
+                        className="border-b border-outline/40"
+                      >
+                        <td className="py-2">
+                          {it.brand} {it.size_label}
+                        </td>
+                        <td className="py-2 font-mono text-label-md">
+                          {it.barcode}
+                        </td>
+                        <td className="py-2 text-right font-mono">
+                          {it.current_stock}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
+            </div>
+          ))}
+          <div className="text-label-md text-on-surface-variant">
+            Evaluated {new Date(stockOverview.evaluated_at).toLocaleString()}.
+          </div>
+        </section>
+      )}
 
       {/* Mark day end */}
       <section className="flex items-center justify-between rounded-lg bg-surface-container p-gutter">

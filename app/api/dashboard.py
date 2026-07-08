@@ -1,9 +1,11 @@
-"""Owner dashboard — EOD totals, sign-off history, void queue (R-26).
+"""Owner dashboard — EOD totals, sign-off history, void queue, stock
+overview (R-26, R-44, D-32, D-36, D-63).
 
-Owner + superadmin only for the EOD actions; the read-only totals
-endpoints are also open to receiver (so they can see "today is
-closed" on the receiving screen) and cashier (so the checkout
-screen can show "today is closed, you can't ring up more sales").
+Owner + superadmin only for the EOD actions and the cross-shop stock
+overview; the read-only totals endpoints are also open to receiver
+(so they can see "today is closed" on the receiving screen) and
+cashier (so the checkout screen can show "today is closed, you can't
+ring up more sales").
 """
 from __future__ import annotations
 
@@ -30,6 +32,9 @@ from app.schemas.eod import (
     SignOffHistoryResponse,
     SignOffRequest,
     SignOffResponse,
+    StockOverviewResponse,
+    StockOverviewShopGroup,
+    StockOverviewShopRow,
 )
 from app.services.eod import (
     EodError,
@@ -38,6 +43,7 @@ from app.services.eod import (
     list_signoff_history,
     sign_off_day,
 )
+from app.services.stock_overview import build_stock_overview, now_utc
 
 router = APIRouter(prefix="/dashboard", tags=["dashboard"])
 log = get_logger(__name__)
@@ -173,7 +179,7 @@ async def eod_history(
                 invoices_signed_off=row.invoices_signed_off,
             )
             for row in rows
-        ]
+        ],
     )
 
 
@@ -253,4 +259,54 @@ async def low_stock(
             for row in rows
         ],
         evaluated_at=datetime.now(UTC),
+    )
+
+
+# --- Issue #41: cross-shop stock overview (R-v3-5, D-v3-5) ---
+
+
+@router.get(
+    "/stock-overview",
+    response_model=StockOverviewResponse,
+    summary=(
+        "Aggregated stock per product, grouped by shop, across every "
+        "shop the caller is authorized to see (issue #41, R-v3-5)"
+    ),
+)
+async def stock_overview(
+    db: DbSession,
+    _user: User = Depends(require_role(*_owner_only)),
+) -> StockOverviewResponse:
+    """Owner/superadmin-only (same role check as the other dashboard
+    reads, e.g. ``/low-stock``). Receiver/cashier are intentionally
+    excluded — they get per-shop stock via the Inventory page (#43).
+
+    Per D-v3-5: deliberately a NEW dedicated endpoint, not an
+    ``all_shops`` flag bolted onto ``/dashboard/low-stock``. The
+    cross-shop view is free to grow its own shape (grouped-by-shop
+    fields, different pagination, different filter dimensions)
+    without entangling it with the per-shop low-stock-threshold
+    logic.
+    """
+    groups = await build_stock_overview(db, actor=_user)
+    return StockOverviewResponse(
+        shops=[
+            StockOverviewShopGroup(
+                shop_id=g.shop_id,
+                shop_name=g.shop_name,
+                items=[
+                    StockOverviewShopRow(
+                        product_id=row.product_id,
+                        barcode=row.barcode,
+                        brand=row.brand,
+                        size_label=row.size_label,
+                        current_stock=row.current_stock,
+                        is_active=row.is_active,
+                    )
+                    for row in g.rows
+                ],
+            )
+            for g in groups
+        ],
+        evaluated_at=now_utc(),
     )

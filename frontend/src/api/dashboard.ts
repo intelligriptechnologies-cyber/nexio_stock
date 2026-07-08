@@ -71,6 +71,28 @@ export interface LowStockResponse {
   evaluated_at: string;
 }
 
+// --- Issue #41: cross-shop stock overview (R-v3-5, D-v3-5) ---
+
+export interface StockOverviewRow {
+  product_id: number;
+  barcode: string;
+  brand: string;
+  size_label: string;
+  current_stock: number;
+  is_active: boolean;
+}
+
+export interface StockOverviewShopGroup {
+  shop_id: number;
+  shop_name: string;
+  items: StockOverviewRow[];
+}
+
+export interface StockOverviewResponse {
+  shops: StockOverviewShopGroup[];
+  evaluated_at: string;
+}
+
 export function getEodTotals(
   businessDate?: string,
   shopId?: number | null
@@ -107,4 +129,12 @@ export function getEodHistory(limit = 30, shopId?: number | null): Promise<SignO
 export function getLowStock(limit = 50, shopId?: number | null): Promise<LowStockResponse> {
   const params = withShopIdParams(new URLSearchParams({ limit: String(limit) }), shopId);
   return api<LowStockResponse>(`/dashboard/low-stock?${params.toString()}`);
+}
+
+// Issue #41 — cross-shop stock overview. Distinct from getLowStock:
+// this one is owner/superadmin-only and returns stock per product
+// grouped by shop across every shop the caller is authorized to see.
+// No query params; the backend scopes by the caller's role.
+export function getStockOverview(): Promise<StockOverviewResponse> {
+  return api<StockOverviewResponse>("/dashboard/stock-overview");
 }

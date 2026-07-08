@@ -68,6 +68,40 @@ class LowStockResponse(BaseModel):
     evaluated_at: datetime
 
 
+# --- Issue #41: Dashboard cross-shop stock overview ---
+
+
+class StockOverviewShopRow(BaseModel):
+    """Stock for one product in one shop. The cross-shop overview is
+    a list of these grouped by shop on the frontend."""
+
+    product_id: int
+    barcode: str
+    brand: str
+    size_label: str
+    current_stock: int
+    is_active: bool
+
+
+class StockOverviewShopGroup(BaseModel):
+    """One shop's worth of stock rows. The shop's name rides along so
+    the frontend doesn't need a second round-trip to label each group."""
+
+    shop_id: int
+    shop_name: str
+    items: list[StockOverviewShopRow]
+
+
+class StockOverviewResponse(BaseModel):
+    """Aggregated stock across every shop the caller is authorized to
+    see (R-v3-5, D-v3-5). Independent of the per-shop low-stock list
+    (D-v3-5: a new dedicated endpoint, not an all_shops flag bolted
+    onto /dashboard/low-stock)."""
+
+    shops: list[StockOverviewShopGroup]
+    evaluated_at: datetime
+
+
 __all__ = [
     "EodTotalsResponse",
     "LowStockItem",
@@ -77,4 +111,7 @@ __all__ = [
     "SignOffHistoryResponse",
     "SignOffRequest",
     "SignOffResponse",
+    "StockOverviewResponse",
+    "StockOverviewShopGroup",
+    "StockOverviewShopRow",
 ]
