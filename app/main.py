@@ -16,6 +16,7 @@ from app.api import (
     checkout,
     dashboard,
     health,
+    inventory,  # issue #43
     lots,
     products,
     shops,
@@ -133,6 +134,7 @@ def create_app() -> FastAPI:
     app.include_router(users.router)
     app.include_router(products.router)
     app.include_router(lots.router)
+    app.include_router(inventory.router)  # issue #43
     app.include_router(checkout.router)
     app.include_router(voids.router)
     app.include_router(dashboard.router)

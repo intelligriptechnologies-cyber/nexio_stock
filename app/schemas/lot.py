@@ -77,6 +77,27 @@ class LotListResponse(BaseModel):
     lots: list[LotPublic]
 
 
+# --- Issue #43: lean lot-history rows for the Inventory page ---
+
+
+class LotSummary(BaseModel):
+    """One row of the Inventory page's lot history. Lean shape (no
+    lines, no notes, no reference) — the Inventory page shows just
+    lot #, date, receiver, total quantity. Full lot detail lives on
+    ``GET /lots/{lot_id}``."""
+
+    id: int
+    received_at: datetime
+    received_by_user_id: int
+    received_by_name: str
+    total_quantity: int
+
+
+class LotSummaryListResponse(BaseModel):
+    lots: list[LotSummary]
+    evaluated_at: datetime
+
+
 # Re-export models.
 __all__ = [
     "Lot",
@@ -86,4 +107,6 @@ __all__ = [
     "LotLinePublic",
     "LotListResponse",
     "LotPublic",
+    "LotSummary",
+    "LotSummaryListResponse",
 ]
