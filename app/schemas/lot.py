@@ -18,11 +18,20 @@ class LotLineCreate(BaseModel):
 
 
 class LotLinePublic(BaseModel):
+    """One line on a lot. ``product_brand`` / ``product_size_label`` are
+    a snapshot captured at receive time (issue #38, D-v3-4) — same
+    rationale as ``InvoiceLinePublic``: a later product rename never
+    retroactively changes a historical lot line. Pre-migration rows
+    resolve via a live ``Product`` join; see
+    ``app/services/_line_snapshots.py``."""
+
     model_config = ConfigDict(from_attributes=True)
 
     id: int
     product_id: int
     quantity: int
+    product_brand: str
+    product_size_label: str
 
 
 class LotCreate(BaseModel):

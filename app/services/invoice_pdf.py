@@ -77,10 +77,20 @@ def render_invoice_pdf(
     # Lines table.
     line_data = [["#", "Product", "Qty", "Unit Price", "Line Total"]]
     for idx, line in enumerate(invoice.lines, start=1):
+        # Issue #38: render the snapshot brand + size. Pre-migration
+        # rows are backfilled by ``app/api/checkout.py`` before this
+        # render runs, so the snapshot is always present here. If we
+        # somehow get here without it (e.g. someone calling this
+        # function outside the route layer), fall back to the raw id.
+        product_label = (
+            f"{line.product_brand} ({line.product_size_label})"
+            if line.product_brand
+            else f"#{line.product_id}"
+        )
         line_data.append(
             [
                 str(idx),
-                str(line.product_id),
+                product_label,
                 str(line.quantity),
                 f"{line.unit_price:.2f}",
                 f"{line.line_total:.2f}",

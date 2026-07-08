@@ -128,7 +128,8 @@ export function InvoiceLookupPage() {
             <tbody>
               {invoice.lines.map((l) => (
                 <tr key={l.id} className="border-b border-outline/40">
-                  <td className="py-2">{l.product_id}</td>
+                  {/* Issue #38: render snapshot brand + size instead of raw product_id. */}
+                  <td className="py-2">{l.product_brand} {l.product_size_label}</td>
                   <td className="py-2 text-right font-mono">{l.quantity}</td>
                   <td className="py-2 text-right font-mono">₹{l.unit_price}</td>
                   <td className="py-2 text-right font-mono">₹{l.line_total}</td>

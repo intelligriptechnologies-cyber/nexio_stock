@@ -208,7 +208,13 @@ async def void_queue(
     for r in rows:
         await db.refresh(r, attribute_names=["payments"])
         invoices.append(InvoicePublic.model_validate(r))
+    # Issue #38: backfill snapshot for any pre-migration line across
+    # the void queue. One round-trip for the union of distinct product_ids.
+    from app.services._line_snapshots import resolve_missing_snapshots
+
+    await resolve_missing_snapshots(db, [ln for inv in invoices for ln in inv.lines])
     return PendingVoidResponse(invoices=invoices)
+
 
 @router.get(
     "/low-stock",

@@ -83,6 +83,13 @@ class LotLine(Base):
         nullable=False,
     )
     quantity: Mapped[int] = mapped_column(Integer, nullable=False)
+    # Issue #38 — snapshot of the product's brand + size at receive time.
+    # Same reasoning as ``invoice_lines.product_brand``: a later product
+    # rename must not retroactively change a historical lot line. NULL
+    # for pre-migration rows; the API falls back to a live Product join
+    # for those only.
+    product_brand: Mapped[str | None] = mapped_column(String(200), nullable=True)
+    product_size_label: Mapped[str | None] = mapped_column(String(64), nullable=True)
 
     lot: Mapped[Lot] = relationship(back_populates="lines")
     product: Mapped[Product] = relationship()

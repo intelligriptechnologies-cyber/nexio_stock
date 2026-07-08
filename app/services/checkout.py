@@ -307,6 +307,10 @@ async def finalize_checkout(
                 quantity=qty,
                 unit_price=product.price,
                 line_total=line_total,
+                # Issue #38 — snapshot brand + size at sale time so a
+                # later product rename never alters this invoice line.
+                product_brand=product.brand,
+                product_size_label=product.size_label,
             )
         )
 

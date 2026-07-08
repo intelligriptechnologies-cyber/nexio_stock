@@ -59,6 +59,16 @@ class CheckoutFinalizeRequest(BaseModel):
 
 
 class InvoiceLinePublic(BaseModel):
+    """One line item on a finalized invoice.
+
+    ``product_brand`` and ``product_size_label`` are a snapshot captured
+    at sale time (issue #38, D-v3-4). Renaming a product later does
+    NOT change this line's display. For rows created before the
+    snapshot columns shipped, the API resolves them via a live join —
+    see ``app/services/_line_snapshots.py`` — so the wire shape is
+    always a present string, never ``null``.
+    """
+
     model_config = ConfigDict(from_attributes=True)
 
     id: int
@@ -66,6 +76,8 @@ class InvoiceLinePublic(BaseModel):
     quantity: int
     unit_price: Decimal
     line_total: Decimal
+    product_brand: str
+    product_size_label: str
 
 
 class PaymentPublic(BaseModel):

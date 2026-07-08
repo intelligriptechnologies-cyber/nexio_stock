@@ -30,9 +30,7 @@ from app.api._logs import write_business_log
 from app.api.deps import DbSession, require_role, resolve_write_shop_id
 from app.db import unit_of_work
 from app.logging_config import get_logger
-from app.models.invoice import (
-    Invoice,
-)
+from app.models.invoice import Invoice
 from app.models.log import InvoicingLog
 from app.models.user import User, UserRole
 from app.schemas.checkout import (
@@ -40,6 +38,7 @@ from app.schemas.checkout import (
     CheckoutFinalizeResponse,
     InvoicePublic,
 )
+from app.services._line_snapshots import resolve_missing_snapshots
 from app.services.checkout import (
     CartLine,
     CheckoutError,
@@ -129,6 +128,11 @@ async def finalize(
     # lazy="select" by default; touching it sync from async raises).
     await db.refresh(invoice, attribute_names=["lines", "payments"])
 
+    # Issue #38: fill in snapshot columns for any line that pre-dates
+    # the snapshot migration (no-op for rows created after it). New
+    # rows already carry their snapshot from the write path.
+    await resolve_missing_snapshots(db, list(invoice.lines))
+
     # Write the invoicing_logs row for this finalize (R-37, D-47). One
     # log entry per finalized invoice; the payload is rich enough to
     # rebuild the cart from the log without joining invoice_lines.
@@ -203,6 +207,8 @@ async def get_invoice(
     invoice = await _load_invoice_or_404(db, invoice_id)
     if actor_role != UserRole.SUPERADMIN and invoice.shop_id != actor_shop_id:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="invoice not found")
+    # Issue #38: backfill snapshot for any pre-migration line.
+    await resolve_missing_snapshots(db, list(invoice.lines))
     return InvoicePublic.model_validate(invoice)
 
 
@@ -222,6 +228,10 @@ async def get_invoice_pdf(
     invoice = await _load_invoice_or_404(db, invoice_id)
     if actor_role != UserRole.SUPERADMIN and invoice.shop_id != actor_shop_id:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="invoice not found")
+
+    # Issue #38: same backfill as the JSON read path — the PDF renders
+    # straight off the ORM rows, so the snapshot must be present.
+    await resolve_missing_snapshots(db, list(invoice.lines))
 
     # Render the PDF, passing shop-level config (#8) so the
     # GSTIN and configurable excise-duty placeholder line are

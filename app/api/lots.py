@@ -35,6 +35,7 @@ from app.models.lot import Lot, LotLine
 from app.models.product import Product
 from app.models.user import User, UserRole
 from app.schemas.lot import LotCreate, LotListResponse, LotPublic
+from app.services._line_snapshots import resolve_missing_snapshots
 
 router = APIRouter(prefix="/lots", tags=["lots"])
 log = get_logger(__name__)
@@ -100,6 +101,9 @@ async def create_lot(
                     lot_id=lot.id,
                     product_id=product.id,
                     quantity=line.quantity,
+                    # Issue #38 — snapshot brand + size at receive time.
+                    product_brand=product.brand,
+                    product_size_label=product.size_label,
                 )
             )
 
@@ -142,6 +146,8 @@ async def create_lot(
 
     # Eager-load the lines for the response.
     await _load_lines(db, lot)
+    # Issue #38: backfill snapshot for any pre-migration lot line.
+    await resolve_missing_snapshots(db, list(lot.lines))
     return LotPublic.model_validate(lot)
 
 
@@ -168,6 +174,10 @@ async def list_lots(
     ).scalars().all()
     for lot in lots:
         await _load_lines(db, lot)
+    # Issue #38: backfill snapshot for any pre-migration line across the
+    # whole page. One query per page (resolves the union of distinct
+    # missing product_ids); no-op if every line is already snapshot'd.
+    await resolve_missing_snapshots(db, [ln for lot in lots for ln in lot.lines])
     return LotListResponse(lots=[LotPublic.model_validate(lot) for lot in lots])
 
 
@@ -188,6 +198,8 @@ async def get_lot(
     if lot is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="lot not found")
     await _load_lines(db, lot)
+    # Issue #38: backfill snapshot for any pre-migration line.
+    await resolve_missing_snapshots(db, list(lot.lines))
     return LotPublic.model_validate(lot)
 
 

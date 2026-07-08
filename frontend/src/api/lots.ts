@@ -16,6 +16,9 @@ export interface LotLinePublic {
   id: number;
   product_id: number;
   quantity: number;
+  // Issue #38 — snapshot of brand + size captured at receive time.
+  product_brand: string;
+  product_size_label: string;
 }
 
 export interface LotPublic {

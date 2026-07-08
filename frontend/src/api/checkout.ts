@@ -22,6 +22,11 @@ export interface InvoiceLinePublic {
   quantity: number;
   unit_price: string;
   line_total: string;
+  // Issue #38 — snapshot of the product's brand + size, captured at
+  // sale time. Always present on the wire (the API falls back to a
+  // live Product join for pre-migration rows).
+  product_brand: string;
+  product_size_label: string;
 }
 
 export interface PaymentPublic {

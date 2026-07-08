@@ -178,6 +178,13 @@ class InvoiceLine(Base):
     # Price captured at sale time (R-9: invoice must retain verbatim).
     unit_price: Mapped[Decimal] = mapped_column(Numeric(12, 2), nullable=False)
     line_total: Mapped[Decimal] = mapped_column(Numeric(12, 2), nullable=False)
+    # Issue #38 — snapshot of the product's brand + size at sale time.
+    # Populated at create time so a later product rename never changes
+    # a historical invoice line (D-v3-4). NULL for rows created before
+    # this migration; the API layer falls back to a live Product join
+    # for those rows only.
+    product_brand: Mapped[str | None] = mapped_column(String(200), nullable=True)
+    product_size_label: Mapped[str | None] = mapped_column(String(64), nullable=True)
 
     invoice: Mapped[Invoice] = relationship(back_populates="lines")
     product: Mapped[Product] = relationship()
