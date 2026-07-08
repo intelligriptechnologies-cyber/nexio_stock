@@ -90,6 +90,11 @@ ignore = [
     # fires inconsistently when other Enums in the same file use the
     # str-inheriting form).
 ]
+"app/models/product.py" = [
+    "UP042",  # `class ProductStatus(str, enum.Enum)` follows the UserRole /
+    # InvoiceStatus pattern; promoting to StrEnum is a separate codebase-
+    # wide refactor.
+]
 "app/schemas/auth.py" = [
     "S105",   # "bearer" is the OAuth token type literal, not a password
 ]

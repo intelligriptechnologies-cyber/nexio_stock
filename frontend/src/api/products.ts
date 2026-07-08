@@ -15,6 +15,12 @@ export interface ProductCreatePayload {
   low_stock_threshold?: number | null;
 }
 
+export interface ProductQuickAddPayload {
+  barcode: string;
+  brand: string;
+  size_label: string;
+}
+
 export interface ProductUpdatePayload {
   brand?: string;
   size_label?: string;
@@ -49,6 +55,30 @@ export function createProduct(
 ): Promise<Product> {
   const json = shopId != null ? { ...payload, shop_id: shopId } : payload;
   return api<Product>("/products", { method: "POST", json });
+}
+
+/**
+ * Provisional product quick-add (issue #22). Captures brand + size only;
+ * the resulting product is ``status='pending'`` and must be completed by
+ * the owner (Pending Products screen, #25) before it can be sold.
+ *
+ * Sends an ``Idempotency-Key`` header so a double-tap on "Add" is a
+ * no-op rather than a duplicate-error (D-v2-12). The receiving screen
+ * always passes ``X-Quick-Add-Origin: receiving`` so the audit-log entry
+ * lands on ``stockin_logs`` (#26 sets the checkout variant).
+ */
+export function quickAddProduct(
+  payload: ProductQuickAddPayload,
+  opts: { idempotencyKey: string; origin: "receiving" | "checkout" }
+): Promise<Product> {
+  return api<Product>("/products/quick-add", {
+    method: "POST",
+    json: payload,
+    headers: {
+      "Idempotency-Key": opts.idempotencyKey,
+      "X-Quick-Add-Origin": opts.origin,
+    },
+  });
 }
 
 export function updateProduct(id: number, payload: ProductUpdatePayload): Promise<Product> {

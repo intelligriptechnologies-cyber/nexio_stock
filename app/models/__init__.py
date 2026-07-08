@@ -18,7 +18,7 @@ from app.models.invoice import (
 )
 from app.models.log import AdminLog, InvoicingLog, StockinLog
 from app.models.lot import Lot, LotLine
-from app.models.product import Product
+from app.models.product import Product, ProductStatus
 from app.models.shop import Shop
 from app.models.user import User, UserRole
 
@@ -36,6 +36,7 @@ __all__ = [
     "Payment",
     "PaymentMode",
     "Product",
+    "ProductStatus",
     "Shop",
     "StockinLog",
     "User",

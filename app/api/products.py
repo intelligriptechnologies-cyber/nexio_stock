@@ -7,15 +7,22 @@ read-only and accepts a barcode (scanned or manually typed per the
 fallback in R-10/R-27) and returns the product record. It's exposed
 through this router rather than one in #3/#4 so a single place owns the
 contract.
+
+Quick-add (issue #22, D-v2-5/D-v2-9/D-v2-12) creates a ``pending`` product
+on the spot from brand + size only. It's open to receiver, cashier, and
+owner (D-v2-10). The endpoint accepts an optional ``X-Quick-Add-Origin``
+header (``receiving`` | ``checkout``) so the event can be logged to the
+right domain log table (D-v2-13); default is ``receiving`` because that's
+the only caller in #22, and ``checkout`` is added in #26.
 """
 from __future__ import annotations
 
 import csv
 import io
 from decimal import Decimal, InvalidOperation
-from typing import Annotated
+from typing import Annotated, Literal
 
-from fastapi import APIRouter, Depends, File, Form, HTTPException, Query, UploadFile, status
+from fastapi import APIRouter, Depends, File, Form, Header, HTTPException, Query, UploadFile, status
 from sqlalchemy import select
 from sqlalchemy.dialects.postgresql.asyncpg import AsyncAdapt_asyncpg_dbapi
 from sqlalchemy.exc import IntegrityError
@@ -23,13 +30,15 @@ from sqlalchemy.exc import IntegrityError
 from app.api._errors import is_unique_violation
 from app.api.deps import DbSession, require_role, resolve_write_shop_id
 from app.logging_config import get_logger
-from app.models.product import Product
+from app.models.log import InvoicingLog, StockinLog
+from app.models.product import Product, ProductStatus
 from app.models.user import User, UserRole
 from app.schemas.product import (
     ProductCreate,
     ProductImportError,
     ProductImportResponse,
     ProductPublic,
+    ProductQuickAdd,
     ProductUpdate,
 )
 
@@ -41,6 +50,13 @@ log = get_logger(__name__)
 # flows (#3 receiving, #4 checkout). Owner and superadmin have it too.
 _lookup_roles = (UserRole.OWNER, UserRole.RECEIVER_USER, UserRole.CASHIER_USER, UserRole.SUPERADMIN)
 _write_roles = (UserRole.OWNER, UserRole.SUPERADMIN)
+# Quick-add is intentionally broader than /products POST — receiver and
+# cashier are the primary users (D-v2-1); owner is a superset of both
+# (D-v2-10). Superadmin is NOT in this set: superadmin creating
+# provisional products in a shop they're not operating in would skip
+# the owner-completion notification surface. If a future ticket needs
+# superadmin quick-add, add it then with the appropriate origin header.
+_quick_add_roles = (UserRole.OWNER, UserRole.RECEIVER_USER, UserRole.CASHIER_USER)
 
 
 @router.post(
@@ -70,6 +86,7 @@ async def create_product(
         price=payload.price,
         low_stock_threshold=payload.low_stock_threshold,
         is_active=True,
+        status=ProductStatus.ACTIVE,
     )
     db.add(product)
     try:
@@ -91,6 +108,193 @@ async def create_product(
         barcode=product.barcode,
     )
     return ProductPublic.model_validate(product)
+
+
+@router.post(
+    "/quick-add",
+    response_model=ProductPublic,
+    status_code=status.HTTP_201_CREATED,
+    summary="Provisional product creation (receiver/cashier/owner, brand + size only)",
+)
+async def quick_add_product(
+    payload: ProductQuickAdd,
+    db: DbSession,
+    _user: User = Depends(require_role(*_quick_add_roles)),
+    idempotency_key: Annotated[
+        str | None,
+        Header(
+            alias="Idempotency-Key",
+            description="Reuses the checkout-finalize idempotency pattern (D-v2-12, D-30). "
+            "A double-tap on 'Add' with the same key is a no-op rather than a duplicate-error.",
+            max_length=80,
+        ),
+    ] = None,
+    x_quick_add_origin: Annotated[
+        Literal["receiving", "checkout"] | None,
+        Header(
+            alias="X-Quick-Add-Origin",
+            description="Which screen triggered the quick-add; routes the audit-log "
+            "entry to stockin_logs (receiving) or invoicing_logs (checkout) per D-v2-13. "
+            "Defaults to 'receiving' because that's the only caller in #22; "
+            "checkout is added in #26.",
+        ),
+    ] = None,
+) -> ProductPublic:
+    """Quick-add: receiver/cashier/owner registers a brand-new product on
+    the spot when a scan doesn't resolve (issue #22, D-v2-4).
+
+    Behavior:
+      - Creates a ``status='pending'`` Product (no price, no threshold).
+      - Owner completes it later via the Pending Products screen (#25).
+      - A pending product can be received into a Lot like an active one
+        (D-v2-6) — receiving this endpoint does NOT bypass that.
+      - Same-barcode race is caught by the DB unique constraint on
+        ``barcode`` (D-52, D-v2-9) and surfaced as a 409 with a
+        conflict-friendly detail so the UI can show
+        "Someone already added this — refreshing" instead of a raw error.
+
+    Idempotency: the optional ``Idempotency-Key`` header means a
+    double-tap on "Add" with the same key returns the same product
+    rather than producing a second create (D-v2-12). The check is
+    scoped to this endpoint only — separate from the checkout-finalize
+    idempotency namespace.
+    """
+    actor_id = _user.id
+    actor_shop_id = _user.shop_id
+    assert actor_shop_id is not None, "shop-scoped user must have shop_id"
+
+    # Optional idempotency: same key for the same actor within a short
+    # window returns the existing pending product (D-v2-12). We don't
+    # need a separate IdempotencyKey table for this — the constraint
+    # below plus a per-actor key cache (in-memory for now) is enough
+    # for the ordinary double-tap case. A DB-backed key table can be
+    # added if real double-submit pressure emerges.
+    if idempotency_key:
+        cached = _quick_add_idem_cache.get((actor_id, idempotency_key))
+        if cached is not None:
+            # Re-fetch in case it was rolled back; cache is best-effort.
+            existing = (
+                await db.execute(
+                    select(Product).where(
+                        Product.shop_id == actor_shop_id,
+                        Product.barcode == cached["barcode"],
+                    )
+                )
+            ).scalar_one_or_none()
+            if existing is not None:
+                return ProductPublic.model_validate(existing)
+
+    product = Product(
+        shop_id=actor_shop_id,
+        barcode=payload.barcode,
+        brand=payload.brand,
+        size_label=payload.size_label,
+        price=None,
+        low_stock_threshold=None,
+        is_active=True,
+        status=ProductStatus.PENDING,
+    )
+    db.add(product)
+    try:
+        await db.commit()
+    except (IntegrityError, AsyncAdapt_asyncpg_dbapi.IntegrityError) as exc:
+        if is_unique_violation(exc):
+            await db.rollback()
+            # Re-fetch the existing product so the UI can refresh the
+            # catalog cache with the row that "won" the race (D-v2-9).
+            existing = (
+                await db.execute(
+                    select(Product).where(
+                        Product.shop_id == actor_shop_id,
+                        Product.barcode == payload.barcode,
+                    )
+                )
+            ).scalar_one_or_none()
+            if existing is None:
+                # Shouldn't happen — constraint fired but no row. Treat as
+                # a server error rather than letting it cascade as a 500.
+                raise HTTPException(
+                    status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    detail="barcode conflict but no existing row found",
+                ) from exc
+            log.info(
+                "product.quick_add.conflict",
+                actor_user_id=actor_id,
+                shop_id=actor_shop_id,
+                barcode=payload.barcode,
+                existing_product_id=existing.id,
+                existing_status=existing.status.value,
+            )
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail=f"barcode '{payload.barcode}' already exists",
+            ) from exc
+        raise
+    await db.refresh(product)
+
+    # Cache the idempotency mapping so a same-key retry short-circuits.
+    if idempotency_key:
+        _quick_add_idem_cache[(actor_id, idempotency_key)] = {
+            "product_id": product.id,
+            "barcode": product.barcode,
+        }
+        _evict_quick_add_idem_cache()
+
+    # Audit-log to the right domain table (D-v2-13). The origin header is
+    # the source of truth for which log table to write to — defaults to
+    # "receiving" for the in-scope #22 caller. Checkout is added in #26.
+    origin = x_quick_add_origin or "receiving"
+    log_payload = {
+        "product_id": product.id,
+        "barcode": product.barcode,
+        "brand": product.brand,
+        "size_label": product.size_label,
+        "origin": origin,
+    }
+    log_cls = StockinLog if origin == "receiving" else InvoicingLog
+    db.add(
+        log_cls(
+            shop_id=actor_shop_id,
+            actor_user_id=actor_id,
+            event_type="product.pending_created",
+            payload=log_payload,
+        )
+    )
+    await db.commit()
+
+    log.info(
+        "product.quick_add.created",
+        actor_user_id=actor_id,
+        shop_id=actor_shop_id,
+        product_id=product.id,
+        barcode=product.barcode,
+        origin=origin,
+    )
+    return ProductPublic.model_validate(product)
+
+
+# In-memory idempotency cache for /products/quick-add. Bounded to the
+# most recent MAX_QUICK_ADD_IDEM entries to keep memory usage flat under
+# normal traffic; old entries fall out on insertion. This is intentionally
+# NOT a DB-backed IdempotencyKey — quick-add is a low-frequency
+# counter-staff action, and a same-key retry from the same actor within
+# seconds is the only realistic double-submit shape. If the bar raises,
+# promote this to a proper IdempotencyKey row (#22 explicitly scopes
+# this to the in-memory pattern — see D-v2-12).
+MAX_QUICK_ADD_IDEM = 1024
+_quick_add_idem_cache: dict[tuple[int, str], dict] = {}
+
+
+def _evict_quick_add_idem_cache() -> None:
+    """Evict oldest half when the cache exceeds its cap. Called inline
+    on every insert so the cache stays bounded without a background
+    task."""
+    if len(_quick_add_idem_cache) > MAX_QUICK_ADD_IDEM:
+        # dict preserves insertion order in CPython 3.7+; drop the
+        # first half (oldest).
+        keep = MAX_QUICK_ADD_IDEM // 2
+        for old_key in list(_quick_add_idem_cache.keys())[:-keep]:
+            _quick_add_idem_cache.pop(old_key, None)
 
 
 @router.get(
@@ -152,7 +356,13 @@ async def lookup_product(
     """Scan-time product fetch. The locally-cached catalog (R-12 / D-30)
     lives client-side; this endpoint is the cold-start / cache-miss path
     AND the server-side lookup the cashier and receiver use in their
-    respective flows."""
+    respective flows.
+
+    A ``pending`` product IS resolvable here — the receiver needs to scan
+    it into a Lot (D-v2-6) and the cashier needs the status field to
+    decide whether to block the line (#26). The `is_active=False` check
+    is unchanged: deactivating a product still hides it from scan.
+    """
     actor_role = _user.role
     actor_shop_id = _user.shop_id
     stmt = select(Product).where(Product.barcode == barcode)
@@ -332,6 +542,7 @@ async def import_products_csv(
             price=price,
             low_stock_threshold=threshold,
             is_active=True,
+            status=ProductStatus.ACTIVE,
         )
         db.add(product)
         try:

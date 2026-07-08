@@ -255,3 +255,7 @@ __marimo__/
 # The committed version of the schema lives at frontend/src/api/schema.ts,
 # produced by `npm run gen:api` in the frontend subdir.
 openapi.json
+
+# Playwright MCP tool runtime artifacts (browser console logs, page
+# snapshots) — never part of the app surface.
+.playwright-mcp/

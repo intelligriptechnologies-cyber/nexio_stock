@@ -14,6 +14,12 @@ export interface CatalogProduct {
   size_label: string;
   price: string; // Decimal serialised as string in JSON
   is_active: boolean;
+  // Issue #22 — provisional product lifecycle. ``pending`` products are
+  // receivable into a Lot but not sellable at checkout (D-v2-6). The
+  // catalog cache includes them so the receiver can scan them after
+  // quick-add; the checkout UI checks ``status`` to decide whether to
+  // block the line (#26).
+  status: "active" | "pending";
 }
 
 let cache: Map<string, CatalogProduct> | null = null;

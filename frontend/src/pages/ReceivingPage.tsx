@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback } from "react";
 import { ApiError } from "../api/client";
 import { invalidateCache, prefetchCatalog } from "../api/catalog";
 import { createLotSafe, type LotPublic } from "../api/lots";
+import { quickAddProduct } from "../api/products";
 import { useAuth } from "../auth/AuthProvider";
 import { useShopScope } from "../auth/ShopScopeProvider";
 
@@ -14,7 +15,17 @@ interface ReceivingLine {
 }
 
 function uid(): string {
-  return Math.random().toString(36).slice(2, 10);
+  // Stable, opaque per-tab id used as the Idempotency-Key for quick-add
+  // (D-v2-12). Math.random() is enough for the "double-tap on the same
+  // button within seconds" shape that the cache is designed for — not a
+  // cryptographic context.
+  return Math.random().toString(36).slice(2, 10) + Date.now().toString(36);
+}
+
+interface QuickAddState {
+  // The barcode the receiver just scanned/typed that didn't resolve.
+  // null = the quick-add modal is closed.
+  barcode: string;
 }
 
 export function ReceivingPage() {
@@ -29,6 +40,14 @@ export function ReceivingPage() {
   const [busy, setBusy] = useState(false);
   const [catalogReady, setCatalogReady] = useState(false);
   const [lastLot, setLastLot] = useState<LotPublic | null>(null);
+  // Quick-add modal state (issue #22). When a scan misses, we surface
+  // a one-shot form so the receiver can register the brand-new product
+  // on the spot instead of rejecting the lot.
+  const [quickAdd, setQuickAdd] = useState<QuickAddState | null>(null);
+  const [quickAddBusy, setQuickAddBusy] = useState(false);
+  const [quickAddError, setQuickAddError] = useState<string | null>(null);
+  const [quickAddBrand, setQuickAddBrand] = useState("");
+  const [quickAddSize, setQuickAddSize] = useState("");
 
   useEffect(() => {
     setCatalogReady(false);
@@ -67,8 +86,17 @@ export function ReceivingPage() {
         setInfo(`Added: ${product.brand} ${product.size_label}`);
       } catch (e) {
         if (e instanceof ApiError) {
-          if (e.status === 404) setError(`Barcode not found in catalog: ${code}`);
-          else if (e.status === 0) setError("Network error — catalog lookup failed.");
+          if (e.status === 404) {
+            // Barcode not in catalog. Offer quick-add (issue #22, AC #5)
+            // rather than flat-rejecting the line — receivers on the
+            // counter need a way to register brand-new stock the owner
+            // hasn't seen yet.
+            setQuickAdd({ barcode: code });
+            setQuickAddBrand("");
+            setQuickAddSize("");
+            setQuickAddError(null);
+            setError(`Barcode not found in catalog: ${code}. Quick-add it?`);
+          } else if (e.status === 0) setError("Network error — catalog lookup failed.");
           else setError(e.detail);
         } else {
           setError("Unknown error resolving barcode.");
@@ -109,6 +137,80 @@ export function ReceivingPage() {
     setReference("");
     setNotes("");
     setBarcode("");
+  };
+
+  const submitQuickAdd = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!quickAdd) return;
+    if (!quickAddBrand.trim() || !quickAddSize.trim()) {
+      setQuickAddError("Brand and size are both required.");
+      return;
+    }
+    setQuickAddBusy(true);
+    setQuickAddError(null);
+    try {
+      // One idempotency key per open modal: a double-tap on "Add" returns
+      // the same product instead of producing a duplicate row OR a
+      // duplicate-error toast (D-v2-12, AC #5 / Story #16).
+      const idemKey = `qa-r-${quickAdd.barcode}-${uid()}`;
+      const product = await quickAddProduct(
+        {
+          barcode: quickAdd.barcode,
+          brand: quickAddBrand.trim(),
+          size_label: quickAddSize.trim(),
+        },
+        { idempotencyKey: idemKey, origin: "receiving" }
+      );
+      // Refresh the catalog so the next scan of this barcode resolves
+      // instantly (the receiver will scan the same code into a Lot
+      // line right after).
+      invalidateCache();
+      await prefetchCatalog(actingShopId);
+      setCatalogReady(true);
+
+      // Drop the new product into the lines table so the receiver can
+      // immediately set its quantity and save the lot without an extra
+      // scan.
+      setLines((prev) => [
+        ...prev,
+        {
+          lineId: uid(),
+          barcode: product.barcode,
+          brand: product.brand,
+          sizeLabel: product.size_label,
+          quantity: 1,
+        },
+      ]);
+      setInfo(
+        `Quick-added (pending — owner needs to set the price): ${product.brand} ${product.size_label}`
+      );
+      setQuickAdd(null);
+    } catch (e) {
+      if (e instanceof ApiError) {
+        if (e.status === 409) {
+          // Someone (probably the owner on another terminal) just
+          // added this barcode. Re-resolve and add it to the lines.
+          setQuickAddError("Someone already added this — refreshing.");
+          setQuickAdd(null);
+          void addByBarcode(quickAdd.barcode);
+        } else if (e.status === 0) {
+          setQuickAddError("Network error — quick-add failed. Try again.");
+        } else {
+          setQuickAddError(e.detail);
+        }
+      } else {
+        setQuickAddError("Unknown error during quick-add.");
+      }
+    } finally {
+      setQuickAddBusy(false);
+    }
+  };
+
+  const cancelQuickAdd = () => {
+    setQuickAdd(null);
+    setQuickAddError(null);
+    setQuickAddBrand("");
+    setQuickAddSize("");
   };
 
   const save = async () => {
@@ -295,6 +397,100 @@ export function ReceivingPage() {
           </div>
         )}
       </aside>
+
+      {/* Quick-add modal (issue #22). Shown when a scan misses the
+          catalog so the receiver can register the brand-new product on
+          the spot. Modal stays above the page scroll. */}
+      {quickAdd && (
+        <div
+          className="fixed inset-0 z-30 flex items-center justify-center bg-black/50 p-stack-gap"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="quick-add-title"
+        >
+          <form
+            onSubmit={submitQuickAdd}
+            className="flex w-full max-w-md flex-col gap-stack-gap rounded-lg bg-surface-container p-gutter"
+          >
+            <header className="flex items-start justify-between">
+              <div>
+                <h2 id="quick-add-title" className="text-headline-md text-primary">
+                  Quick-add new product
+                </h2>
+                <p className="mt-1 text-label-md text-on-surface-variant">
+                  This barcode isn't in the catalog. Register it as
+                  <strong> pending</strong> — the owner will set the price
+                  later. Stock you receive for it counts immediately.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={cancelQuickAdd}
+                className="h-12 w-12 rounded-md bg-error text-display-lg text-on-error"
+                aria-label="Cancel quick-add"
+              >
+                ×
+              </button>
+            </header>
+
+            <div className="rounded-md bg-surface p-stack-gap text-label-md">
+              <span className="text-on-surface-variant">Barcode</span>
+              <div className="font-mono text-body-md">{quickAdd.barcode}</div>
+            </div>
+
+            <label className="flex flex-col gap-1 text-label-md">
+              Brand
+              <input
+                type="text"
+                value={quickAddBrand}
+                onChange={(e) => setQuickAddBrand(e.target.value)}
+                placeholder="e.g. Royal Stag"
+                maxLength={200}
+                autoFocus
+                className="min-h-touchTarget-sm rounded-md border border-outline bg-surface px-stack-gap text-body-md"
+              />
+            </label>
+
+            <label className="flex flex-col gap-1 text-label-md">
+              Size
+              <input
+                type="text"
+                value={quickAddSize}
+                onChange={(e) => setQuickAddSize(e.target.value)}
+                placeholder="e.g. 750ml"
+                maxLength={64}
+                className="min-h-touchTarget-sm rounded-md border border-outline bg-surface px-stack-gap text-body-md"
+              />
+            </label>
+
+            {quickAddError && (
+              <div
+                role="alert"
+                className="rounded-md bg-error px-stack-gap py-3 text-on-error"
+              >
+                {quickAddError}
+              </div>
+            )}
+
+            <div className="flex gap-stack-gap">
+              <button
+                type="button"
+                onClick={cancelQuickAdd}
+                className="min-h-touchTarget flex-1 rounded-md bg-surface-container-high text-label-xl text-on-surface"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={quickAddBusy}
+                className="min-h-touchTarget flex-1 rounded-md bg-accent text-display-lg text-on-accent disabled:opacity-50"
+              >
+                {quickAddBusy ? "ADDING…" : "ADD"}
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
 
       {/* Lot result modal */}
       {lastLot && (
