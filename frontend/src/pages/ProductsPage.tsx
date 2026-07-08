@@ -32,10 +32,11 @@ interface ScanState {
   barcode: string;
   busy: boolean;
   error: string | null;
-  // null = idle, "found" = row matched and selected, "new" = QuickAddModal open
-  result: "found" | "new" | null;
-  // For "found" — the product that matched.
-  matchedProduct?: Product;
+  // null = idle, "new" = QuickAddModal open. The "found" branch is
+  // signalled by error === null + busy === false + barcode matches a
+  // visible row; we don't carry the matched product on the state
+  // object to avoid a stale-reference footgun if items reload.
+  result: "new" | null;
 }
 
 interface EditState {
@@ -78,7 +79,7 @@ export function ProductsPage() {
     let cancelled = false;
     setItems(null);
     setError(null);
-    listProducts({ q: q || undefined, includeInactive })
+    listProducts({ q: q || undefined, includeInactive, shopId: actingShopId })
       .then((rows) => {
         if (!cancelled) setItems(rows);
       })
@@ -119,19 +120,18 @@ export function ProductsPage() {
       setScan({ barcode, busy: true, error: null, result: null });
       try {
         const product = await resolveBarcode(barcode, actingShopId);
-        setScan({
-          barcode,
-          busy: false,
-          error: null,
-          result: "found",
-          matchedProduct: product,
-        });
-        // Scroll the matching row into view + flash-highlight via a
-        // one-shot className — simplest possible affordance.
+        setScan({ barcode, busy: false, error: null, result: null });
+        // Scroll the matching row into view + flash-highlight. The
+        // bg-success/10 highlight matches the project's existing
+        // row-highlight convention (no `ring-*` Tailwind utility in
+        // use elsewhere in the codebase).
         const rowEl = document.getElementById(`product-row-${product.id}`);
         rowEl?.scrollIntoView({ block: "center" });
-        rowEl?.classList.add("ring-2", "ring-accent");
-        setTimeout(() => rowEl?.classList.remove("ring-2", "ring-accent"), 1500);
+        rowEl?.classList.add("bg-success/10");
+        setTimeout(
+          () => rowEl?.classList.remove("bg-success/10"),
+          1500,
+        );
       } catch (e) {
         if (e instanceof ApiError && e.status === 404) {
           // D-v3-10 — unrecognized barcode → QuickAdd modal with the
@@ -178,7 +178,7 @@ export function ProductsPage() {
   const onQuickAddSubmit = async (values: { brand: string; size: string }) => {
     setScan((s) => ({ ...s, busy: true, error: null }));
     try {
-      const product = await quickAddProduct(
+      await quickAddProduct(
         {
           barcode: scan.barcode,
           brand: values.brand,
@@ -194,7 +194,6 @@ export function ProductsPage() {
         busy: false,
         error: null,
         result: null,
-        matchedProduct: product,
       });
       invalidateCache();
       reload();
