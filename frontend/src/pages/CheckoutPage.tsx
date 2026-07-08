@@ -508,12 +508,19 @@ export function CheckoutPage() {
               className="flex items-center justify-between rounded-md bg-surface px-stack-gap py-3 shadow-sm"
             >
               <div className="flex flex-col">
-                <span className="text-label-xl text-on-surface">{l.product.brand}</span>
-                <span className="text-label-md text-on-surface-variant">{l.product.size_label}</span>
-                <span className="font-mono text-label-md text-on-surface-variant">
-                  {l.product.barcode}
-                </span>
-              </div>
+                              <span className="text-label-xl text-on-surface">{l.product.brand}</span>
+                              <span className="text-label-md text-on-surface-variant">{l.product.size_label}</span>
+                              <span className="font-mono text-label-md text-on-surface-variant">
+                                {l.product.barcode}
+                              </span>
+                              {/* Issue #42 — show current derived stock at this shop,
+                                  sourced from the catalog snapshot at scan time. Helps
+                                  the cashier catch a potential oversell before submit. */}
+                              <span className="text-label-md text-on-surface-variant">
+                                In stock:{" "}
+                                <span className="font-mono">{l.product.current_stock ?? 0}</span>
+                              </span>
+                            </div>
               <div className="flex items-center gap-stack-gap">
                 <button
                   type="button"

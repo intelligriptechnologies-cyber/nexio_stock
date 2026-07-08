@@ -14,6 +14,10 @@ interface ReceivingLine {
   brand: string;
   sizeLabel: string;
   quantity: number;
+  // Issue #42 — current derived stock at the receiving shop, snapshotted
+  // from the catalog at scan time. ``undefined`` for entries that
+  // predated the catalog refresh; falls back to '—' in the render.
+  currentStock?: number;
 }
 
 function uid(): string {
@@ -58,6 +62,7 @@ export function ReceivingPage() {
           brand: product.brand,
           sizeLabel: product.size_label,
           quantity: 1,
+          currentStock: product.current_stock,
         },
       ]);
       setInfo(
@@ -100,6 +105,7 @@ export function ReceivingPage() {
               brand: product.brand,
               sizeLabel: product.size_label,
               quantity: 1,
+              currentStock: product.current_stock,
             },
           ];
         });
@@ -146,6 +152,7 @@ export function ReceivingPage() {
             brand: product.brand,
             sizeLabel: product.size_label,
             quantity: 1,
+            currentStock: product.current_stock,
           },
         ];
       });
@@ -288,6 +295,13 @@ export function ReceivingPage() {
                 <span className="text-label-md text-on-surface-variant">{l.sizeLabel}</span>
                 <span className="font-mono text-label-md text-on-surface-variant">
                   {l.barcode}
+                </span>
+                {/* Issue #42 — current stock at the receiving shop,
+                    snapshotted at scan time so the receiver sees what's
+                    already on the shelf before deciding how much to add. */}
+                <span className="text-label-md text-on-surface-variant">
+                  On shelf:{" "}
+                  <span className="font-mono">{l.currentStock ?? "—"}</span>
                 </span>
               </div>
               <div className="flex items-center gap-stack-gap">

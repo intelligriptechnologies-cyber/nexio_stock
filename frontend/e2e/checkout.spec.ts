@@ -37,6 +37,25 @@ test.describe("checkout flow", () => {
     await expect(page.getByText("No items in cart")).toBeVisible();
   });
 
+// --- Issue #42 — show available stock per shop in cart / lot lines. ---
+
+test.describe("checkout flow — per-line stock (issue #42)", () => {
+  test("cart line shows 'In stock: <n>' from the catalog snapshot", async ({
+    page,
+  }) => {
+    await loginAsCashier(page);
+    const search = page.getByRole("combobox", {
+      name: "Quick-search products by name or barcode",
+    });
+    await search.fill("stag");
+    const option = page.getByRole("option").filter({ hasText: "Royal Stag" });
+    await option.click();
+    // The cart line should show the stock snapshot pulled from the
+    // catalog at scan time (issue #42).
+    await expect(page.getByText(/In stock:/)).toBeVisible({ timeout: 5000 });
+  });
+});
+
 // --- Issue #23 — quicksearch at checkout. -------------------------------
 
 test.describe("checkout flow — quicksearch (issue #23)", () => {
