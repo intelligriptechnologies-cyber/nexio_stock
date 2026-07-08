@@ -25,6 +25,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
+from app.api._errors import map_error_to_http
 from app.api.deps import DbSession, require_role, resolve_write_shop_id
 from app.db import unit_of_work
 from app.logging_config import get_logger
@@ -74,15 +75,6 @@ _CHECKOUT_CODE_TO_STATUS: dict[str, int] = {
 }
 
 
-def _error_to_http(exc: CheckoutError) -> HTTPException:
-    from app.api._errors import map_error_to_http
-
-    http = map_error_to_http(exc, code_to_status=_CHECKOUT_CODE_TO_STATUS)
-    if http.status_code == 500:
-        log.error("checkout.unmapped_error_code", code=exc.code, message=exc.message)
-    return http
-
-
 @router.post(
     "/checkout/finalize",
     response_model=CheckoutFinalizeResponse,
@@ -124,7 +116,11 @@ async def finalize(
                 note=payload.note,
             )
     except CheckoutError as exc:
-        raise _error_to_http(exc) from exc
+        raise map_error_to_http(
+            exc,
+            code_to_status=_CHECKOUT_CODE_TO_STATUS,
+            log_event="checkout.unmapped_error_code",
+        ) from exc
 
     invoice = result.invoice
 

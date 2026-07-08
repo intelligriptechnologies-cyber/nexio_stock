@@ -123,7 +123,9 @@ async def unit_of_work(db: AsyncSession) -> AsyncIterator[None]:
             async with unit_of_work(db):
                 result = await some_service_call(db, ...)
         except SomeDomainError as exc:
-            raise _error_to_http(exc) from exc
+            raise map_error_to_http(
+                exc, code_to_status=..., log_event="..."
+            ) from exc
 
     The rollback happens here, inside the context manager, before the
     domain exception re-propagates to the caller's except block --

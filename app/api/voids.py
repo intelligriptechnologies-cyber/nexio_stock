@@ -21,6 +21,7 @@ from __future__ import annotations
 from fastapi import APIRouter, Body, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.api._errors import map_error_to_http
 from app.api.deps import DbSession, require_role
 from app.db import unit_of_work
 from app.logging_config import get_logger
@@ -78,15 +79,6 @@ _VOID_CODE_TO_STATUS: dict[str, int] = {
 }
 
 
-def _error_to_http(exc: VoidError) -> HTTPException:
-    from app.api._errors import map_error_to_http
-
-    http = map_error_to_http(exc, code_to_status=_VOID_CODE_TO_STATUS)
-    if http.status_code == 500:
-        log.error("void.unmapped_error_code", code=exc.code, message=exc.message)
-    return http
-
-
 @router.post(
     "/{invoice_id}/void",
     response_model=InvoicePublic,
@@ -126,7 +118,11 @@ async def request_void(
                 )
                 event_type = "invoice.voided"
     except VoidError as exc:
-        raise _error_to_http(exc) from exc
+        raise map_error_to_http(
+            exc,
+            code_to_status=_VOID_CODE_TO_STATUS,
+            log_event="void.unmapped_error_code",
+        ) from exc
 
     await _write_void_log(
         db,
@@ -177,7 +173,11 @@ async def approve_void(
                 reason=reason,
             )
     except VoidError as exc:
-        raise _error_to_http(exc) from exc
+        raise map_error_to_http(
+            exc,
+            code_to_status=_VOID_CODE_TO_STATUS,
+            log_event="void.unmapped_error_code",
+        ) from exc
 
     await _write_void_log(
         db,
@@ -227,7 +227,11 @@ async def reject_void(
                 reason=reason,
             )
     except VoidError as exc:
-        raise _error_to_http(exc) from exc
+        raise map_error_to_http(
+            exc,
+            code_to_status=_VOID_CODE_TO_STATUS,
+            log_event="void.unmapped_error_code",
+        ) from exc
 
     await _write_void_log(
         db,

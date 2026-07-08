@@ -9,18 +9,24 @@ Two patterns repeat in the routers:
    `sqlalchemy.exc.IntegrityError`; others don't. Walk the __cause__
    chain to make the predicate robust to both shapes.
 
-2. `map_error_to_http(exc, code_to_status, fallback_status=500)` —
+2. `map_error_to_http(exc, code_to_status, fallback_status=500, log_event=...)` —
    a tiny helper that maps our domain-error objects to
    `fastapi.HTTPException` with consistent body shape. Each router
    has its own `*Error` class; the mapping is per-router, so this
    helper takes the mapping as a parameter rather than baking in
-   any specific error class.
+   any specific error class. It also owns the "log at ERROR when the
+   mapped status is 500" convenience — pass `log_event` (a router-scoped
+   event name) to opt in.
 """
 from __future__ import annotations
 
 from fastapi import HTTPException
 from sqlalchemy.dialects.postgresql.asyncpg import AsyncAdapt_asyncpg_dbapi
 from sqlalchemy.exc import IntegrityError
+
+from app.logging_config import get_logger
+
+log = get_logger(__name__)
 
 
 def is_unique_violation(exc: BaseException) -> bool:
@@ -49,6 +55,7 @@ def map_error_to_http(
     *,
     code_to_status: dict[str, int],
     fallback_status: int = 500,
+    log_event: str,
 ) -> HTTPException:
     """Build an HTTPException from a domain error.
 
@@ -58,10 +65,16 @@ def map_error_to_http(
     `code_to_status` is `{error_code: http_status}` — a per-router
     mapping. Codes not in the map fall back to `fallback_status`
     (default 500).
+
+    When the mapped status is 500, logs at ERROR under `log_event`
+    (a router-scoped event name, e.g. "checkout.unmapped_error_code")
+    so an unmapped domain-error code is never silently swallowed.
     """
     code = getattr(exc, "code", None) or type(exc).__name__
     status_code = code_to_status.get(str(code), fallback_status)
     message = getattr(exc, "message", str(exc))
+    if status_code == 500:
+        log.error(log_event, code=str(code), message=message)
     return HTTPException(
         status_code=status_code,
         detail={"code": str(code), "message": message},

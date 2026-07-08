@@ -10,8 +10,9 @@ from __future__ import annotations
 from datetime import date as date_cls
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, Query, status
 
+from app.api._errors import map_error_to_http
 from app.api.deps import DbSession, require_role, resolve_write_shop_id
 from app.db import unit_of_work
 from app.logging_config import get_logger
@@ -46,15 +47,6 @@ _EOD_CODE_TO_STATUS: dict[str, int] = {
 }
 
 
-def _error_to_http(exc: EodError) -> HTTPException:
-    from app.api._errors import map_error_to_http
-
-    http = map_error_to_http(exc, code_to_status=_EOD_CODE_TO_STATUS)
-    if http.status_code == 500:
-        log.error("eod.unmapped_error_code", code=exc.code, message=exc.message)
-    return http
-
-
 @router.post(
     "/eod/sign-off",
     response_model=SignOffResponse,
@@ -79,7 +71,11 @@ async def sign_off(
                 notes=payload.notes,
             )
     except EodError as exc:
-        raise _error_to_http(exc) from exc
+        raise map_error_to_http(
+            exc,
+            code_to_status=_EOD_CODE_TO_STATUS,
+            log_event="eod.unmapped_error_code",
+        ) from exc
 
     log.info(
         "eod.signed_off",
