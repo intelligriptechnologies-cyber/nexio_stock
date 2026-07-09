@@ -24,13 +24,13 @@ export function ShopPicker() {
   if (user?.role !== "superadmin") return null;
 
   return (
-    <div className="border-b border-on-primary/20 p-stack-gap">
-      <label className="block text-label-md text-on-primary/70" htmlFor="shop-picker">
+    <div className="border-b border-outline p-stack-gap">
+      <label className="block text-label-md text-on-surface-variant" htmlFor="shop-picker">
         Acting on shop
       </label>
       <select
         id="shop-picker"
-        className="mt-1 w-full min-h-touchTarget-sm rounded-md bg-primary-container px-2 text-label-md text-on-primary"
+        className="mt-1 w-full min-h-touchTarget-sm rounded-md border border-outline bg-surface px-2 text-label-md text-on-surface"
         value={actingShopId ?? ""}
         onChange={(e) => setActingShopId(e.target.value ? Number(e.target.value) : null)}
       >
@@ -43,7 +43,7 @@ export function ShopPicker() {
       </select>
       {error && <div className="mt-1 text-label-md text-red-300">{error}</div>}
       {!error && actingShopId === null && (
-        <div className="mt-1 text-label-md text-on-primary/60">
+        <div className="mt-1 text-label-md text-on-surface-variant">
           Pick a shop before creating/editing anything.
         </div>
       )}

@@ -9,7 +9,7 @@ services:
       POSTGRES_PASSWORD: barstock
       POSTGRES_DB: barstock
     ports:
-      - "5432:5432"
+      - "${BARSTOCK_DB_PORT:-5432}:5432"
     volumes:
       - barstock_pgdata:/var/lib/postgresql/data
     healthcheck:

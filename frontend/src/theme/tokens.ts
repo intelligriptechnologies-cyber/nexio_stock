@@ -6,12 +6,14 @@
 //   surface   #f8fafc (Light Gray — background)
 // Touch targets: min 64px (oversized, per design spec).
 
+const orange = "#fb923c";
+
 export const tokens = {
   colors: {
     primary: "#1e293b",
     "on-primary": "#ffffff",
     "primary-container": "#334155",
-    accent: "#fb923c",
+    accent: orange,
     "on-accent": "#1e293b",
     secondary: "#10b981",
     "on-secondary": "#ffffff",
@@ -24,7 +26,7 @@ export const tokens = {
     error: "#dc2626",
     "on-error": "#ffffff",
     success: "#10b981",
-    warning: "#f59e0b",
+    warning: orange,
   },
   fontFamily: {
     body: ["Inter", "system-ui", "sans-serif"],

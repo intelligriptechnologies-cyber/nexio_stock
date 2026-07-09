@@ -35,7 +35,7 @@ export function Sidebar() {
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className="fixed left-3 top-3 z-40 flex h-12 w-12 items-center justify-center rounded-md bg-primary text-on-primary md:hidden"
+        className="fixed left-3 top-3 z-40 flex h-12 w-12 items-center justify-center rounded-md bg-accent text-on-accent md:hidden"
         aria-label="Toggle menu"
       >
         ☰
@@ -43,7 +43,7 @@ export function Sidebar() {
 
       {/* Drawer overlay on mobile, fixed sidebar on desktop */}
       <aside
-        className={`fixed inset-y-0 left-0 z-30 flex w-64 flex-col bg-primary text-on-primary transition-transform md:translate-x-0 ${
+        className={`fixed inset-y-0 left-0 z-30 flex w-64 flex-col border-r border-outline bg-surface-container-high text-on-surface shadow-sm transition-transform md:translate-x-0 ${
           open ? "translate-x-0" : "-translate-x-full"
         }`}
         aria-label="Main navigation"
@@ -52,17 +52,17 @@ export function Sidebar() {
           Barstock
         </div>
         <ShopPicker />
-        <nav className="flex flex-1 flex-col gap-1 px-2">
+        <nav className="flex flex-1 flex-col gap-2 px-3">
           {items.map((it) => (
             <NavLink
               key={it.to}
               to={it.to}
               onClick={() => setOpen(false)}
               className={({ isActive }) =>
-                `flex min-h-touchTarget-sm items-center rounded-md px-stack-gap text-label-md transition ${
+                `flex h-12 min-h-touchTarget-sm items-center rounded-md px-stack-gap text-label-xl transition ${
                   isActive
-                    ? "bg-primary-container text-on-primary"
-                    : "text-on-primary/80 hover:bg-primary-container/60"
+                    ? "bg-accent text-on-accent shadow-sm"
+                    : "text-on-surface-variant hover:bg-surface hover:text-on-surface"
                 }`
               }
             >
@@ -70,9 +70,9 @@ export function Sidebar() {
             </NavLink>
           ))}
         </nav>
-        <div className="border-t border-on-primary/20 p-stack-gap">
+        <div className="border-t border-outline p-stack-gap">
           <div className="text-label-md">{user.fullName}</div>
-          <div className="text-label-md text-on-primary/70">{user.role}</div>
+          <div className="text-label-md text-on-surface-variant">{user.role}</div>
           <button
             type="button"
             onClick={() => {
