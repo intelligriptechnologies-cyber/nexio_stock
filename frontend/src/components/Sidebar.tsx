@@ -17,6 +17,9 @@ const ITEMS: NavItem[] = [
   { to: "/checkout", label: "Checkout", roles: ["cashier_user", "owner", "superadmin"] },
   { to: "/invoices", label: "Invoices", roles: ["cashier_user", "owner", "superadmin"] },
   { to: "/receiving", label: "Receiving", roles: ["receiver_user", "owner", "superadmin"] },
+  // Issue #43 — Inventory page. Open to all three shop-scoped roles
+  // (D-v3-13) and superadmin.
+  { to: "/inventory", label: "Inventory", roles: ["cashier_user", "receiver_user", "owner", "superadmin"] },
   { to: "/dashboard", label: "Dashboard", roles: ["owner", "superadmin"] },
   { to: "/inventory", label: "Inventory", roles: ["owner", "superadmin"] },
   { to: "/admin/shops", label: "Shops", roles: ["superadmin"] },
