@@ -14,6 +14,7 @@
 import { useCallback, useState } from "react";
 import { ApiError } from "../api/client";
 import { invalidateCache, prefetchCatalog } from "../api/catalog";
+import { notifyPendingProductsChanged } from "../api/pending-products-events";
 import { quickAddProduct } from "../api/products";
 import { useShopScope } from "../auth/ShopScopeProvider";
 
@@ -101,6 +102,7 @@ export function useQuickAdd(options: UseQuickAddOptions): UseQuickAddReturn {
         // resolves locally. Both pages depend on this.
         invalidateCache();
         await prefetchCatalog(actingShopId);
+        notifyPendingProductsChanged();
         onResolved(product);
         setQuickAdd(null);
       } catch (e) {

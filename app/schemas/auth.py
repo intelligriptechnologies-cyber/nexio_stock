@@ -131,6 +131,14 @@ class StaffPasswordReset(BaseModel):
     password: str = Field(min_length=4, max_length=128)
 
 
+class StaffUpdate(BaseModel):
+    """Owner/superadmin updates mutable staff account state."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    is_active: bool
+
+
 class SuperAdminCreate(BaseModel):
     """Bootstrap superadmin (CLI-only, never exposed as a route)."""
 

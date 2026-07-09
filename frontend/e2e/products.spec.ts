@@ -21,6 +21,27 @@ test.describe("product catalog — owner", () => {
     await expect(page.getByText(/No products match|Loading…|Refreshing/)).toBeVisible();
   });
 
+  test("global scanner opens an existing barcode in catalog edit mode", async ({ page }) => {
+    await loginAsOwner(page);
+    await page.goto("/admin/products");
+    await page.keyboard.type("8901234567890", { delay: 1 });
+    await page.keyboard.press("Enter");
+    await expect(page.getByPlaceholder("Search by brand")).toHaveValue("8901234567890");
+    await expect(page.getByRole("button", { name: "Save" })).toBeVisible({ timeout: 5000 });
+  });
+
+  test("global scanner prefills a missing barcode on the new-product tab", async ({ page }) => {
+    await loginAsOwner(page);
+    await page.goto("/admin/products");
+    const barcode = `SCAN-MISSING-${Date.now()}`;
+    await page.keyboard.type(barcode, { delay: 1 });
+    await page.keyboard.press("Enter");
+    await expect(page.getByRole("heading", { name: "New product" })).toBeVisible({
+      timeout: 5000,
+    });
+    await expect(page.getByLabel("Barcode")).toHaveValue(barcode);
+  });
+
   test("create-tab shows the new-product form", async ({ page }) => {
     await loginAsOwner(page);
     await page.goto("/admin/products");

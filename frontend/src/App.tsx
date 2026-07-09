@@ -13,8 +13,11 @@ import { ProductsPage } from "./pages/ProductsPage";
 import { VoidApprovalsPage } from "./pages/VoidApprovalsPage";
 import { InvoiceLookupPage } from "./pages/InvoiceLookupPage";
 import { StaffPage } from "./pages/StaffPage";
-import { ShopConfigPage } from "./pages/ShopConfigPage";
+import { SettingsPage } from "./pages/SettingsPage";
 import { PendingProductsPage } from "./pages/PendingProductsPage";
+import { ShopMaintenancePage } from "./pages/ShopMaintenancePage";
+import { LogsPage } from "./pages/LogsPage";
+import { InventoryPage } from "./pages/InventoryPage";
 
 function Protected({ allow, children }: { allow: Role[]; children: JSX.Element }) {
   const { user, isReady } = useAuth();
@@ -80,11 +83,31 @@ export default function App() {
         }
       />
       <Route
+        path="/inventory"
+        element={
+          <Protected allow={["owner", "superadmin"]}>
+            <AuthedShell>
+              <InventoryPage />
+            </AuthedShell>
+          </Protected>
+        }
+      />
+      <Route
         path="/admin"
         element={
           <Protected allow={["owner", "superadmin"]}>
             <AuthedShell>
               <AdminPlaceholder />
+            </AuthedShell>
+          </Protected>
+        }
+      />
+      <Route
+        path="/admin/shops"
+        element={
+          <Protected allow={["superadmin"]}>
+            <AuthedShell>
+              <ShopMaintenancePage />
             </AuthedShell>
           </Protected>
         }
@@ -130,15 +153,26 @@ export default function App() {
         }
       />
       <Route
-        path="/admin/shop"
+        path="/admin/settings"
         element={
           <Protected allow={["owner", "superadmin"]}>
             <AuthedShell>
-              <ShopConfigPage />
+              <SettingsPage />
             </AuthedShell>
           </Protected>
         }
       />
+      <Route
+        path="/admin/logs"
+        element={
+          <Protected allow={["owner", "superadmin"]}>
+            <AuthedShell>
+              <LogsPage />
+            </AuthedShell>
+          </Protected>
+        }
+      />
+      <Route path="/admin/shop" element={<Navigate to="/admin/settings" replace />} />
       <Route
         path="/invoices"
         element={

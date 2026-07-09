@@ -19,8 +19,9 @@ test.describe("void — owner queue + cashier request", () => {
   test("cashier sees the invoice lookup page", async ({ page }) => {
     await loginAsCashier(page);
     await page.goto("/invoices");
-    await expect(page.getByRole("heading", { name: "Invoice lookup" })).toBeVisible();
-    await expect(page.getByRole("button", { name: "LOOKUP" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Invoices" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Today" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Past Invoices" })).toBeVisible();
   });
 
   test("cashier cannot reach the void approvals queue", async ({ page }) => {

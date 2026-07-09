@@ -57,9 +57,11 @@ from app.services.products import (
     ProductError,
     QuickAddConflictError,
     activate_pending_product,
+    count_pending_products,
     get_product_for_write,
     lookup_product_by_barcode,
     quick_add_log_entry,
+    reject_pending_product,
     update_product_fields,
 )
 from app.services.stock import compute_derived_stock
@@ -402,6 +404,23 @@ async def update_product(
 
 
 @router.get(
+    "/pending/count",
+    response_model=dict[str, int],
+    summary="Count pending products for sidebar badges",
+)
+async def pending_product_count(
+    db: DbSession,
+    _user: User = Depends(require_role(*_pending_roles)),
+    shop_id: Annotated[
+        int | None,
+        Query(description="Superadmin only: scope the count to one shop"),
+    ] = None,
+) -> dict[str, int]:
+    scoped_shop_id = resolve_read_shop_id(_user, shop_id)
+    return {"count": await count_pending_products(db, shop_id=scoped_shop_id)}
+
+
+@router.get(
     "/pending",
     response_model=list[PendingProductRow],
     summary="List pending products awaiting a price (issue #25, D-v2-8)",
@@ -430,6 +449,28 @@ async def list_pending_products(
         )
         for r in rows
     ]
+
+
+@router.post(
+    "/{product_id}/reject",
+    response_model=ProductPublic,
+    summary="Owner soft-rejects a pending product",
+)
+async def reject_product(
+    product_id: int,
+    db: DbSession,
+    _user: User = Depends(require_role(*_pending_roles)),
+) -> ProductPublic:
+    try:
+        product = await get_product_for_write(
+            db, product_id=product_id, actor_role=_user.role, actor_shop_id=_user.shop_id
+        )
+    except ProductError as exc:
+        raise _error_to_http(exc) from exc
+    reject_pending_product(product)
+    await db.commit()
+    await db.refresh(product)
+    return ProductPublic.model_validate(product)
 
 
 @router.post(

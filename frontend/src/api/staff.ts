@@ -4,7 +4,7 @@
 //   POST  /staff                  create a new staff account (owner only)
 //   PATCH /staff/{id}/password    reset a staff member's password/PIN (owner or superadmin)
 
-import { api, withShopId } from "./client";
+import { api, withShopId, withShopIdParams } from "./client";
 
 export type StaffRole = "receiver_user" | "cashier_user";
 
@@ -27,8 +27,10 @@ export interface StaffCreatePayload {
   password: string;
 }
 
-export function listStaff(): Promise<StaffMember[]> {
-  return api<StaffMember[]>("/staff");
+export function listStaff(shopId?: number | null): Promise<StaffMember[]> {
+  const params = withShopIdParams(new URLSearchParams(), shopId);
+  const qs = params.toString();
+  return api<StaffMember[]>(`/staff${qs ? `?${qs}` : ""}`);
 }
 
 export function createStaff(
@@ -38,6 +40,28 @@ export function createStaff(
   return api<StaffMember>("/staff", { method: "POST", json: withShopId(payload, shopId) });
 }
 
-export function resetStaffPassword(userId: number, password: string): Promise<StaffMember> {
-  return api<StaffMember>(`/staff/${userId}/password`, { method: "PATCH", json: { password } });
+export function resetStaffPassword(
+  userId: number,
+  password: string,
+  shopId?: number | null
+): Promise<StaffMember> {
+  const params = withShopIdParams(new URLSearchParams(), shopId);
+  const qs = params.toString();
+  return api<StaffMember>(`/staff/${userId}/password${qs ? `?${qs}` : ""}`, {
+    method: "PATCH",
+    json: { password },
+  });
+}
+
+export function setStaffActive(
+  userId: number,
+  isActive: boolean,
+  shopId?: number | null
+): Promise<StaffMember> {
+  const params = withShopIdParams(new URLSearchParams(), shopId);
+  const qs = params.toString();
+  return api<StaffMember>(`/staff/${userId}${qs ? `?${qs}` : ""}`, {
+    method: "PATCH",
+    json: { is_active: isActive },
+  });
 }

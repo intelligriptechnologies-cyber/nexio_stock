@@ -106,7 +106,7 @@ export function QuickAddModal({
         </button>
         <button
           type="submit"
-          className="min-h-touchTarget flex-1 rounded-md bg-accent text-display-lg text-on-accent disabled:opacity-50"
+          className="min-h-touchTarget flex-1 rounded-md bg-action text-display-lg text-on-action disabled:opacity-50"
           disabled={busy}
         >
           {busy ? "ADDING\u2026" : "ADD"}

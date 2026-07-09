@@ -19,7 +19,7 @@
 
 import { api, withShopId, withShopIdParams } from "./client";
 
-function todayLocalDateString(): string {
+export function todayLocalDateString(): string {
   // Local "today" matches the server's `today_local_date()` convention
   // (system-local timezone, IST for v1). Using UTC here would silently
   // shift the business date around the IST-morning window.
@@ -109,12 +109,13 @@ export function getEodTotals(
 
 export function signOffEod(
   businessDate?: string,
-  shopId?: number | null
+  shopId?: number | null,
+  notes?: string
 ): Promise<SignOffResponse> {
   // Issue #37: explicit "today" rather than relying on the body being
   // empty — keeps client and server in lockstep on what date gets
   // locked.
-  const body = { business_date: businessDate ?? todayLocalDateString() };
+  const body = { business_date: businessDate ?? todayLocalDateString(), notes: notes || undefined };
   return api<SignOffResponse>("/dashboard/eod/sign-off", {
     method: "POST",
     json: withShopId(body, shopId),

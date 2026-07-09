@@ -110,7 +110,7 @@ export function QuickSearch({
                   </span>
                 </span>
                 <span className="font-mono text-label-md text-on-surface">
-                  ₹{p.price}
+                  {p.price === null ? "--" : `₹${p.price}`}
                 </span>
               </button>
             </li>

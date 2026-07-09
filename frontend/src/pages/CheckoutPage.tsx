@@ -10,12 +10,14 @@ import {
   finalizeCheckout,
   downloadInvoicePdf,
   getInvoice,
+  validateCheckoutCart,
   type PaymentMode,
   type InvoicePublic,
 } from "../api/checkout";
 import { enqueueFinalize, listQueued, clearQueued } from "../api/finalize-queue";
 import { QuickSearch } from "../components/QuickSearch";
 import { QuickAddModal } from "../components/QuickAddModal";
+import { useBarcodeScanner } from "../hooks/useBarcodeScanner";
 import { useQuickAdd } from "../hooks/useQuickAdd";
 import { useOnlineStatus } from "../hooks/useOnlineStatus";
 import { useRetryQueue } from "../hooks/useRetryQueue";
@@ -32,7 +34,15 @@ interface PaymentSplit {
   amount: string;
 }
 
-const PAYMENT_MODES: PaymentMode[] = ["cash", "upi", "card", "credit"];
+interface CheckoutDraft {
+  id: string;
+  label: string;
+  cart: CartLine[];
+  payments: PaymentSplit[];
+  note: string;
+}
+
+const PAYMENT_MODES: PaymentMode[] = ["cash", "upi", "card"];
 
 function moneyString(cents: number): string {
   return (cents / 100).toFixed(2);
@@ -49,7 +59,7 @@ function uid(): string {
 }
 
 function formatPaymentLabel(m: PaymentMode): string {
-  return { cash: "Cash", upi: "UPI", card: "Card", credit: "Credit" }[m];
+  return { cash: "Cash", upi: "UPI", card: "Card" }[m];
 }
 
 export function CheckoutPage() {
@@ -67,6 +77,7 @@ export function CheckoutPage() {
   });
 
   const [cart, setCart] = useState<CartLine[]>([]);
+  const [drafts, setDrafts] = useState<CheckoutDraft[]>([]);
   const [barcode, setBarcode] = useState("");
   const [payments, setPayments] = useState<PaymentSplit[]>([{ mode: "cash", amount: "0.00" }]);
   const [note, setNote] = useState("");
@@ -100,6 +111,12 @@ export function CheckoutPage() {
   const idempotencyKeyRef = useRef<string>(uid());
   const [queuedSnapshot, setQueuedSnapshot] = useState(() => listQueued());
 
+  useEffect(() => {
+    if (!info) return;
+    const timer = window.setTimeout(() => setInfo(null), 4000);
+    return () => window.clearTimeout(timer);
+  }, [info]);
+
   const refreshQueueSnapshot = useCallback(() => {
     setQueuedSnapshot(listQueued());
   }, []);
@@ -121,7 +138,7 @@ export function CheckoutPage() {
   const totalCents = useMemo(
     () =>
       cart.reduce((acc, l) => {
-        const unit = parseMoney(l.product.price);
+        const unit = parseMoney(l.product.price ?? "0");
         return acc + unit * l.quantity;
       }, 0),
     [cart]
@@ -151,7 +168,7 @@ export function CheckoutPage() {
         // finalize path also rejects pending lines (see
         // app/services/checkout.py), so this is a UX defense, not
         // the sole guard.
-        if (product.status === "pending") {
+        if (product.status === "pending" || product.price === null) {
           setError(
             `Pending — no price yet, contact admin: ${product.brand} ${product.size_label}`
           );
@@ -196,7 +213,7 @@ export function CheckoutPage() {
   const addByPick = useCallback((product: CatalogProduct) => {
     setError(null);
     setInfo(null);
-    if (product.status === "pending") {
+    if (product.status === "pending" || product.price === null) {
       setError(
         `Pending — no price yet, contact admin: ${product.brand} ${product.size_label}`
       );
@@ -226,6 +243,68 @@ export function CheckoutPage() {
           l.lineId === lineId ? { ...l, quantity: Math.max(1, l.quantity + delta) } : l
         )
     );
+  };
+
+  const validateLineQuantity = async (lineId: string, nextQty: number) => {
+    const line = cart.find((l) => l.lineId === lineId);
+    if (!line) return;
+    const requested = Math.max(1, Math.floor(nextQty || 1));
+    setCart((prev) => prev.map((l) => (l.lineId === lineId ? { ...l, quantity: requested } : l)));
+    try {
+      const result = await validateCheckoutCart(
+        [{ barcode: line.product.barcode, quantity: requested }],
+        actingShopId
+      );
+      const checked = result.lines[0];
+      if (checked.adjusted) {
+        setCart((prev) =>
+          prev.map((l) =>
+            l.lineId === lineId ? { ...l, quantity: Math.max(1, checked.accepted_quantity) } : l
+          )
+        );
+        setError(
+          `${line.product.brand} ${line.product.size_label}: only ${checked.available_quantity} in stock. Quantity reduced.`
+        );
+      }
+    } catch (e) {
+      setError(toUserMessage(e, "Could not validate stock."));
+    }
+  };
+
+  const clearActiveCheckout = () => {
+    setCart([]);
+    setPayments([{ mode: "cash", amount: "0.00" }]);
+    setNote("");
+    setError(null);
+    setInfo(null);
+  };
+
+  const parkDraft = () => {
+    if (cart.length === 0) return;
+    setDrafts((prev) => [
+      ...prev,
+      {
+        id: uid(),
+        label: `Draft ${prev.length + 1}`,
+        cart,
+        payments,
+        note,
+      },
+    ]);
+    setCart([]);
+    setPayments([{ mode: "cash", amount: "0.00" }]);
+    setNote("");
+    setInfo("Checkout parked as a draft.");
+  };
+
+  const restoreDraft = (draft: CheckoutDraft) => {
+    if (cart.length > 0) parkDraft();
+    setCart(draft.cart);
+    setPayments(draft.payments);
+    setNote(draft.note);
+    setDrafts((prev) => prev.filter((d) => d.id !== draft.id));
+    setError(null);
+    setInfo(`Restored ${draft.label}.`);
   };
 
   const setPaymentMode = (idx: number, mode: PaymentMode) => {
@@ -261,6 +340,11 @@ export function CheckoutPage() {
     setBarcode("");
   };
 
+  useBarcodeScanner({
+    enabled: catalogReady && !quickAdd && !lastInvoice,
+    onScan: (code) => void addByBarcode(code),
+  });
+
   const finalize = async () => {
     setError(null);
     setInfo(null);
@@ -278,9 +362,7 @@ export function CheckoutPage() {
     try {
       const res = await finalizeCheckout(body, idemKey, actingShopId);
       setLastInvoice(res.invoice);
-      setCart([]);
-      setPayments([{ mode: "cash", amount: "0.00" }]);
-      setNote("");
+      clearActiveCheckout();
       idempotencyKeyRef.current = uid();
       setInfo(res.is_replay ? "Idempotent replay — same invoice shown." : "Invoice created.");
     } catch (e) {
@@ -293,9 +375,7 @@ export function CheckoutPage() {
             idempotencyKey: idemKey,
             body: withShopId(body, actingShopId),
           });
-          setCart([]);
-          setPayments([{ mode: "cash", amount: "0.00" }]);
-          setNote("");
+          clearActiveCheckout();
           idempotencyKeyRef.current = uid();
           setInfo(
             online
@@ -361,7 +441,7 @@ export function CheckoutPage() {
         {!online && (
           <div
             role="status"
-            className="flex items-center gap-stack-gap rounded-md bg-warning px-stack-gap py-3 text-on-accent"
+            className="flex items-center gap-stack-gap rounded-md bg-warning px-stack-gap py-3 text-on-warning"
           >
             <span className="text-headline-md">⚠</span>
             <div className="flex-1">
@@ -389,7 +469,7 @@ export function CheckoutPage() {
                     void retryQueue.flush();
                     refreshQueueSnapshot();
                   }}
-                  className="min-h-touchTarget-sm rounded-md bg-accent px-stack-gap text-label-md text-on-accent disabled:opacity-50"
+                  className="min-h-touchTarget-sm rounded-md bg-action px-stack-gap text-label-md text-on-action disabled:opacity-50"
                   disabled={!online}
                 >
                   Retry now
@@ -481,12 +561,40 @@ export function CheckoutPage() {
           />
           <button
             type="submit"
-            className="min-h-touchTarget rounded-md bg-accent px-gutter text-label-xl text-on-accent"
+            className="min-h-touchTarget rounded-md bg-action px-gutter text-label-xl text-on-action"
             disabled={!catalogReady}
           >
             ADD
           </button>
         </form>
+
+        <div className="flex flex-wrap gap-stack-gap">
+          <button
+            type="button"
+            onClick={parkDraft}
+            disabled={cart.length === 0}
+            className="min-h-touchTarget-sm rounded-md bg-surface-container-high px-stack-gap text-label-md text-on-surface disabled:opacity-50"
+          >
+            Park
+          </button>
+          <button
+            type="button"
+            onClick={clearActiveCheckout}
+            className="min-h-touchTarget-sm rounded-md bg-surface-container-high px-stack-gap text-label-md text-on-surface"
+          >
+            All Clear
+          </button>
+          {drafts.map((draft) => (
+            <button
+              key={draft.id}
+              type="button"
+              onClick={() => restoreDraft(draft)}
+              className="min-h-touchTarget-sm rounded-md bg-primary px-stack-gap text-label-md text-on-primary"
+            >
+              {draft.label} ({draft.cart.length})
+            </button>
+          ))}
+        </div>
 
         {/* Quicksearch (issue #23). Cashier types a brand or barcode
             substring; tapping a match adds it like a scan. */}
@@ -530,7 +638,30 @@ export function CheckoutPage() {
                 >
                   −
                 </button>
-                <span className="w-12 text-center text-headline-md">{l.quantity}</span>
+                <input
+                  type="number"
+                  inputMode="numeric"
+                  min={1}
+                  value={l.quantity}
+                  onChange={(e) =>
+                    setCart((prev) =>
+                      prev.map((row) =>
+                        row.lineId === l.lineId
+                          ? { ...row, quantity: Math.max(1, Number(e.target.value) || 1) }
+                          : row
+                      )
+                    )
+                  }
+                  onBlur={(e) => void validateLineQuantity(l.lineId, Number(e.target.value))}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      void validateLineQuantity(l.lineId, Number(e.currentTarget.value));
+                    }
+                  }}
+                  className="h-12 w-16 rounded-md border border-outline bg-surface text-center font-mono text-headline-md"
+                  aria-label="Quantity"
+                />
                 <button
                   type="button"
                   onClick={() => changeQty(l.lineId, +1)}
@@ -541,7 +672,7 @@ export function CheckoutPage() {
                 </button>
                 <span className="w-24 text-right font-mono text-headline-md text-on-surface">
                   ₹
-                  {moneyString(parseMoney(l.product.price) * l.quantity)}
+                  {moneyString(parseMoney(l.product.price ?? "0") * l.quantity)}
                 </span>
                 <button
                   type="button"
@@ -637,7 +768,7 @@ export function CheckoutPage() {
           type="button"
           onClick={finalize}
           disabled={!canFinalize}
-          className="min-h-touchTarget rounded-md bg-accent text-display-lg text-on-accent disabled:opacity-50"
+          className="min-h-touchTarget rounded-md bg-action text-display-lg text-on-action disabled:opacity-50"
         >
           {busy ? "FINISHING…" : "FINISH & PAY"}
         </button>

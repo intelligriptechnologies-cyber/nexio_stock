@@ -103,6 +103,9 @@ class Invoice(Base):
     finalized_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )
+    business_date: Mapped[date_cls] = mapped_column(
+        Date, nullable=False, server_default=func.current_date()
+    )
     # #6 flips this true on EOD sign-off. The exact UTC timestamp and
     # the owner who signed off are recorded for audit (R-26).
     eod_signed_off: Mapped[bool] = mapped_column(
@@ -215,6 +218,106 @@ class Payment(Base):
     amount: Mapped[Decimal] = mapped_column(Numeric(12, 2), nullable=False)
 
     invoice: Mapped[Invoice] = relationship(back_populates="payments")
+
+
+class PastInvoice(Base):
+    """Archived invoice header created during EOD sign-off.
+
+    Current invoices live in ``invoices`` until EOD. Sign-off copies them
+    here, copies their lines/payments to the matching archive tables, then
+    deletes the current rows.
+    """
+
+    __tablename__ = "past_invoices"
+    __table_args__ = (
+        UniqueConstraint("shop_id", "invoice_number", name="uq_past_invoices_shop_number"),
+        Index("ix_past_invoices_shop_business_date", "shop_id", "business_date"),
+        Index("ix_past_invoices_shop_status", "shop_id", "status"),
+    )
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    original_invoice_id: Mapped[int | None] = mapped_column(Integer, nullable=True, index=True)
+    shop_id: Mapped[int] = mapped_column(
+        ForeignKey("shops.id", ondelete="restrict"), nullable=False
+    )
+    cashier_user_id: Mapped[int] = mapped_column(
+        ForeignKey("users.id", ondelete="restrict"), nullable=False
+    )
+    invoice_number: Mapped[int] = mapped_column(Integer, nullable=False)
+    status: Mapped[InvoiceStatus] = mapped_column(
+        Enum(InvoiceStatus, name="invoice_status", native_enum=False, length=32),
+        nullable=False,
+    )
+    total_amount: Mapped[Decimal] = mapped_column(Numeric(12, 2), nullable=False)
+    finalized_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    business_date: Mapped[date_cls] = mapped_column(Date, nullable=False)
+    eod_signed_off_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    eod_signed_off_by_user_id: Mapped[int | None] = mapped_column(
+        ForeignKey("users.id", ondelete="set null"), nullable=True
+    )
+    note: Mapped[str | None] = mapped_column(String(200), nullable=True)
+    reverses_past_invoice_id: Mapped[int | None] = mapped_column(
+        ForeignKey("past_invoices.id", ondelete="set null"),
+        nullable=True,
+        index=True,
+    )
+    void_requested_by_user_id: Mapped[int | None] = mapped_column(
+        ForeignKey("users.id", ondelete="set null"), nullable=True
+    )
+    void_requested_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+
+    lines: Mapped[list[PastInvoiceLine]] = relationship(
+        back_populates="invoice", cascade="all, delete-orphan"
+    )
+    payments: Mapped[list[PastPayment]] = relationship(
+        back_populates="invoice", cascade="all, delete-orphan"
+    )
+
+    @property
+    def eod_signed_off(self) -> bool:
+        return True
+
+
+class PastInvoiceLine(Base):
+    __tablename__ = "past_invoice_lines"
+    __table_args__ = (
+        UniqueConstraint("invoice_id", "product_id", name="uq_past_invoice_lines_invoice_product"),
+    )
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    invoice_id: Mapped[int] = mapped_column(
+        ForeignKey("past_invoices.id", ondelete="cascade"), nullable=False
+    )
+    product_id: Mapped[int] = mapped_column(
+        ForeignKey("products.id", ondelete="restrict"), nullable=False
+    )
+    quantity: Mapped[int] = mapped_column(Integer, nullable=False)
+    unit_price: Mapped[Decimal] = mapped_column(Numeric(12, 2), nullable=False)
+    line_total: Mapped[Decimal] = mapped_column(Numeric(12, 2), nullable=False)
+    product_brand: Mapped[str | None] = mapped_column(String(200), nullable=True)
+    product_size_label: Mapped[str | None] = mapped_column(String(64), nullable=True)
+
+    invoice: Mapped[PastInvoice] = relationship(back_populates="lines")
+    product: Mapped[Product] = relationship()
+
+
+class PastPayment(Base):
+    __tablename__ = "past_payments"
+    __table_args__ = (Index("ix_past_payments_invoice", "invoice_id"),)
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    invoice_id: Mapped[int] = mapped_column(
+        ForeignKey("past_invoices.id", ondelete="cascade"), nullable=False
+    )
+    mode: Mapped[PaymentMode] = mapped_column(
+        Enum(PaymentMode, name="payment_mode", native_enum=False, length=16),
+        nullable=False,
+    )
+    amount: Mapped[Decimal] = mapped_column(Numeric(12, 2), nullable=False)
+
+    invoice: Mapped[PastInvoice] = relationship(back_populates="payments")
 
 
 class EodSignOff(Base):

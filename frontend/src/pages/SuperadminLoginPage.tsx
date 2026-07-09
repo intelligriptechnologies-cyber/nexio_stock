@@ -72,7 +72,7 @@ export function SuperadminLoginPage() {
         <button
           type="submit"
           disabled={loading}
-          className="min-h-touchTarget rounded-md bg-accent text-on-accent"
+          className="min-h-touchTarget rounded-md bg-action text-on-action"
         >
           {loading ? "Signing in…" : "LOGIN"}
         </button>

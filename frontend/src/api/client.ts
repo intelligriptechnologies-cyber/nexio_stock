@@ -85,7 +85,11 @@ export async function api<T = unknown>(
   try {
     res = await fetch(`${BASE}${path}`, { ...init, headers, body });
   } catch (e) {
-    throw new ApiError(0, e instanceof Error ? e.message : "network error");
+    throw new ApiError(
+      0,
+      "Could not reach the server. Check that the backend is running, then refresh.",
+      e instanceof Error ? e.message : e
+    );
   }
 
   if (!res.ok) {

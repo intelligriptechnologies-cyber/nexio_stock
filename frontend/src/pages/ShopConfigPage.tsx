@@ -129,7 +129,7 @@ export function ShopConfigPage() {
         <button
           type="submit"
           disabled={busy}
-          className="md:col-span-2 min-h-touchTarget rounded-md bg-accent text-label-xl text-on-accent disabled:opacity-50"
+          className="md:col-span-2 min-h-touchTarget rounded-md bg-action text-label-xl text-on-action disabled:opacity-50"
         >
           {busy ? "Saving…" : "Save shop config"}
         </button>

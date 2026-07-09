@@ -29,14 +29,19 @@ from decimal import Decimal
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 
 from app.models.invoice import (
     STATUSES_COUNTING_AS_SOLD,
     EodSignOff,
     Invoice,
     InvoiceStatus,
+    PastInvoice,
+    PastInvoiceLine,
+    PastPayment,
     Payment,
 )
+from app.models.shop import Shop
 
 
 class EodError(Exception):
@@ -108,24 +113,64 @@ async def sign_off_day(
             f"business_date {business_date.isoformat()} is already signed off",
         )
 
-    start, end = _day_bounds(business_date)
     now = datetime.now(UTC)
+    shop = (
+        await db.execute(select(Shop).where(Shop.id == shop_id).with_for_update())
+    ).scalar_one()
 
     invoices = (
         await db.execute(
-            select(Invoice).where(
+            select(Invoice)
+            .where(
                 Invoice.shop_id == shop_id,
-                Invoice.finalized_at >= start,
-                Invoice.finalized_at < end,
-                Invoice.eod_signed_off.is_(False),
+                Invoice.business_date == business_date,
             )
+            .options(selectinload(Invoice.lines), selectinload(Invoice.payments))
         )
     ).scalars().all()
 
     for inv in invoices:
-        inv.eod_signed_off = True
-        inv.eod_signed_off_at = now
-        inv.eod_signed_off_by_user_id = signed_off_by_user_id
+        archived = PastInvoice(
+            original_invoice_id=inv.id,
+            shop_id=inv.shop_id,
+            cashier_user_id=inv.cashier_user_id,
+            invoice_number=inv.invoice_number,
+            status=inv.status,
+            total_amount=inv.total_amount,
+            finalized_at=inv.finalized_at,
+            business_date=inv.business_date,
+            eod_signed_off_at=now,
+            eod_signed_off_by_user_id=signed_off_by_user_id,
+            note=inv.note,
+            void_requested_by_user_id=inv.void_requested_by_user_id,
+            void_requested_at=inv.void_requested_at,
+        )
+        db.add(archived)
+        await db.flush()
+        for line in inv.lines:
+            db.add(
+                PastInvoiceLine(
+                    invoice_id=archived.id,
+                    product_id=line.product_id,
+                    quantity=line.quantity,
+                    unit_price=line.unit_price,
+                    line_total=line.line_total,
+                    product_brand=line.product_brand,
+                    product_size_label=line.product_size_label,
+                )
+            )
+        for payment in inv.payments:
+            db.add(
+                PastPayment(
+                    invoice_id=archived.id,
+                    mode=payment.mode,
+                    amount=payment.amount,
+                )
+            )
+        await db.delete(inv)
+
+    if shop.current_business_date <= business_date:
+        shop.current_business_date = business_date + timedelta(days=1)
 
     signoff = EodSignOff(
         shop_id=shop_id,
@@ -145,7 +190,6 @@ async def get_day_totals(
     """Aggregate the day's invoices. Returns `signed_off=False` and zero
     totals if the day hasn't been signed off — the UI shows this as
     'not yet closed'."""
-    start, end = _day_bounds(business_date)
     signed_off = (
         await db.execute(
             select(EodSignOff.id).where(
@@ -155,15 +199,23 @@ async def get_day_totals(
         )
     ).first() is not None
 
-    invoices = (
+    current_invoices = (
         await db.execute(
             select(Invoice).where(
                 Invoice.shop_id == shop_id,
-                Invoice.finalized_at >= start,
-                Invoice.finalized_at < end,
+                Invoice.business_date == business_date,
             )
         )
     ).scalars().all()
+    past_invoices = (
+        await db.execute(
+            select(PastInvoice).where(
+                PastInvoice.shop_id == shop_id,
+                PastInvoice.business_date == business_date,
+            )
+        )
+    ).scalars().all()
+    invoices = [*current_invoices, *past_invoices]
 
     # Use FINALIZED only for revenue (REVERSAL nets out, VOIDED
     # contributes nothing — same filter as the stock derivation).
@@ -180,12 +232,25 @@ async def get_day_totals(
     reversal_count = sum(1 for inv in invoices if inv.status == InvoiceStatus.REVERSAL)
 
     # Payment-mode split. Eager-load payments once.
-    invoice_ids = [inv.id for inv in invoices if inv.status in STATUSES_COUNTING_AS_SOLD]
+    current_invoice_ids = [
+        inv.id for inv in current_invoices if inv.status in STATUSES_COUNTING_AS_SOLD
+    ]
+    past_invoice_ids = [
+        inv.id for inv in past_invoices if inv.status in STATUSES_COUNTING_AS_SOLD
+    ]
     payments_by_mode: dict[str, Decimal] = defaultdict(lambda: Decimal("0"))
-    if invoice_ids:
+    if current_invoice_ids:
         payment_rows = (
             await db.execute(
-                select(Payment).where(Payment.invoice_id.in_(invoice_ids))
+                select(Payment).where(Payment.invoice_id.in_(current_invoice_ids))
+            )
+        ).scalars().all()
+        for p in payment_rows:
+            payments_by_mode[p.mode.value] += p.amount
+    if past_invoice_ids:
+        payment_rows = (
+            await db.execute(
+                select(PastPayment).where(PastPayment.invoice_id.in_(past_invoice_ids))
             )
         ).scalars().all()
         for p in payment_rows:

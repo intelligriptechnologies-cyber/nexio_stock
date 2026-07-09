@@ -21,7 +21,7 @@ import io
 from dataclasses import dataclass
 from decimal import Decimal, InvalidOperation
 
-from sqlalchemy import select
+from sqlalchemy import func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api._logs import write_business_log
@@ -71,7 +71,14 @@ async def list_products(
     if active_only:
         stmt = stmt.where(Product.is_active.is_(True))
     if q:
-        stmt = stmt.where(Product.brand.ilike(f"%{q}%"))
+        like = f"%{q}%"
+        stmt = stmt.where(
+            or_(
+                Product.brand.ilike(like),
+                Product.barcode.ilike(like),
+                Product.size_label.ilike(like),
+            )
+        )
     stmt = stmt.order_by(Product.brand, Product.size_label).limit(limit).offset(offset)
     return (await db.execute(stmt)).scalars().all()
 
@@ -193,6 +200,16 @@ async def quick_add_product(
             raise ProductError(
                 "conflict_row_missing", "barcode conflict but no existing row found"
             ) from exc
+        if existing.status == ProductStatus.REJECTED and existing.shop_id == shop_id:
+            existing.status = ProductStatus.PENDING
+            existing.brand = brand
+            existing.size_label = size_label
+            existing.price = None
+            existing.is_active = True
+            existing.pending_origin = origin
+            existing.pending_added_by_user_id = actor_id
+            await db.commit()
+            return existing
         raise QuickAddConflictError(existing) from exc
 
 
@@ -270,6 +287,22 @@ async def list_pending_products(
         )
         for p in rows
     ]
+
+
+async def count_pending_products(db: AsyncSession, *, shop_id: int | None) -> int:
+    stmt = _scope_to_shop(
+        select(func.count(Product.id)).where(Product.status == ProductStatus.PENDING),
+        shop_id=shop_id,
+    )
+    return int((await db.execute(stmt)).scalar_one())
+
+
+def reject_pending_product(product: Product) -> bool:
+    if product.status != ProductStatus.PENDING:
+        return False
+    product.status = ProductStatus.REJECTED
+    product.price = None
+    return True
 
 
 # --- CSV bulk import -----------------------------------------------------
@@ -414,6 +447,7 @@ __all__ = [
     "ProductError",
     "QuickAddConflictError",
     "activate_pending_product",
+    "count_pending_products",
     "get_product_for_write",
     "import_products_csv",
     "list_pending_products",
@@ -421,5 +455,6 @@ __all__ = [
     "lookup_product_by_barcode",
     "quick_add_log_entry",
     "quick_add_product",
+    "reject_pending_product",
     "update_product_fields",
 ]

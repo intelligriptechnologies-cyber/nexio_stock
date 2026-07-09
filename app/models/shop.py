@@ -6,11 +6,12 @@ shop is a manual superadmin action (D-58). Shop-scoped data is filtered by
 """
 from __future__ import annotations
 
+from datetime import date as date_cls
 from datetime import datetime
 from decimal import Decimal
 from typing import TYPE_CHECKING
 
-from sqlalchemy import DateTime, Numeric, String, func
+from sqlalchemy import Boolean, Date, DateTime, Integer, Numeric, String, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db import Base
@@ -36,6 +37,9 @@ class Shop(Base):
     last_invoice_number: Mapped[int] = mapped_column(
         nullable=False, default=0, server_default="0"
     )
+    current_business_date: Mapped[date_cls] = mapped_column(
+        Date, nullable=False, server_default=func.current_date()
+    )
     # --- #8: GSTIN + excise-duty line on the invoice (D-23) ---
     # GSTIN is 15 chars for Indian state-level registrations. Stored
     # as a string, optional — set by the owner when the shop is
@@ -49,6 +53,33 @@ class Shop(Base):
     # breakdown. NULL means "don't show a tax line on the invoice".
     excise_duty_rate: Mapped[Decimal | None] = mapped_column(
         Numeric(8, 2), nullable=True
+    )
+    app_display_name: Mapped[str | None] = mapped_column(
+        String(80), nullable=True, default="BarStock", server_default="BarStock"
+    )
+    action_color: Mapped[str] = mapped_column(
+        String(7), nullable=False, default="#22c55e", server_default="#22c55e"
+    )
+    sidebar_menu_inactive_text_color: Mapped[str] = mapped_column(
+        String(9), nullable=False, default="#535353cf", server_default="#535353cf"
+    )
+    sidebar_menu_active_text_color: Mapped[str] = mapped_column(
+        String(9), nullable=False, default="#ffffff", server_default="#ffffff"
+    )
+    active_tab_color: Mapped[str] = mapped_column(
+        String(7), nullable=False, default="#5a5148", server_default="#5a5148"
+    )
+    email_enabled: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, default=False, server_default="false"
+    )
+    smtp_host: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    smtp_port: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    smtp_username: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    smtp_password: Mapped[str | None] = mapped_column(String(1024), nullable=True)
+    smtp_from_email: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    smtp_from_name: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    smtp_use_tls: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, default=True, server_default="true"
     )
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),

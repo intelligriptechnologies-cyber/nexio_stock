@@ -3,6 +3,17 @@
 @tailwind utilities;
 
 @layer base {
+  :root {
+    --color-action: #22c55e;
+    --color-on-action: #ffffff;
+    --color-active-tab: #5a5148;
+    --color-on-active-tab: #ffffff;
+    --color-sidebar-active: #22c55e;
+    --color-on-sidebar-active: #ffffff;
+    --color-sidebar-menu-inactive-text: #535353cf;
+    --color-sidebar-menu-active-text: #ffffff;
+  }
+
   html,
   body,
   #root {

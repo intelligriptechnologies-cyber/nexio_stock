@@ -16,6 +16,7 @@ from app.api import (
     checkout,
     dashboard,
     health,
+    logs,
     lots,
     products,
     shops,
@@ -23,9 +24,17 @@ from app.api import (
     users,
     voids,
 )
+from app.api import (
+    settings as settings_api,
+)
 from app.config import get_settings
 from app.db import get_engine
 from app.logging_config import configure_logging, get_logger
+
+DEPLOYMENT_FRONTEND_ORIGINS = (
+    "https://frontend-production-d1b9.up.railway.app",
+    "https://barstock-dev.nexiohyper.com",
+)
 
 
 @asynccontextmanager
@@ -118,10 +127,11 @@ def create_app() -> FastAPI:
         ),
         lifespan=lifespan,
     )
-    if settings.cors_allow_origins:
+    cors_allow_origins = list(dict.fromkeys([*settings.cors_allow_origins, *DEPLOYMENT_FRONTEND_ORIGINS]))
+    if cors_allow_origins:
         app.add_middleware(
             CORSMiddleware,
-            allow_origins=settings.cors_allow_origins,
+            allow_origins=cors_allow_origins,
             allow_credentials=True,
             allow_methods=["*"],
             allow_headers=["*"],
@@ -135,8 +145,10 @@ def create_app() -> FastAPI:
     app.include_router(lots.router)
     app.include_router(checkout.router)
     app.include_router(voids.router)
+    app.include_router(logs.router)
     app.include_router(dashboard.router)
     app.include_router(shops.router)
+    app.include_router(settings_api.router)
 
     # Test-only routes — used by tests to exercise role gates end-to-end.
     # Removed in #3 (when /lots lands) and #4 (when /checkout lands).

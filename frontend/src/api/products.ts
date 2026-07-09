@@ -1,11 +1,14 @@
 import { api, withShopId, withShopIdParams } from "./client";
 import type { CatalogProduct } from "./catalog";
 
-// Re-export the catalog type under the products module name for cleaner
-// page imports. (CatalogProduct is the shape returned by /products when
-// active_only=true; full ProductPublic adds fields the catalog cache
-// doesn't need.)
-export type Product = CatalogProduct;
+export interface Product extends CatalogProduct {
+  shop_id: number;
+  price: string | null;
+  low_stock_threshold: number | null;
+  created_at: string;
+  updated_at: string;
+  current_stock: number;
+}
 
 export interface ProductCreatePayload {
   barcode: string;
@@ -58,10 +61,21 @@ export interface ProductImportResponse {
   errors: ProductImportError[];
 }
 
-export function listProducts(opts?: { q?: string; includeInactive?: boolean }): Promise<Product[]> {
+export interface ProductCopyResponse {
+  copied: number;
+  skipped: number;
+  skipped_products: Array<{ barcode: string; reason: string }>;
+}
+
+export function listProducts(opts?: {
+  q?: string;
+  includeInactive?: boolean;
+  shopId?: number | null;
+}): Promise<Product[]> {
   const params = new URLSearchParams();
   if (opts?.includeInactive) params.set("active_only", "false");
   if (opts?.q) params.set("q", opts.q);
+  withShopIdParams(params, opts?.shopId);
   params.set("limit", "500");
   return api<Product[]>(`/products?${params.toString()}`);
 }
@@ -107,11 +121,21 @@ export function listPendingProducts(shopId?: number | null): Promise<PendingProd
   return api<PendingProductRow[]>(`/products/pending${qs ? "?" + qs : ""}`);
 }
 
+export function getPendingProductCount(shopId?: number | null): Promise<{ count: number }> {
+  const params = withShopIdParams(new URLSearchParams(), shopId);
+  const qs = params.toString();
+  return api<{ count: number }>(`/products/pending/count${qs ? "?" + qs : ""}`);
+}
+
 export function activateProduct(
   id: number,
   payload: ProductActivatePayload
 ): Promise<Product> {
   return api<Product>(`/products/${id}/activate`, { method: "POST", json: payload });
+}
+
+export function rejectProduct(id: number): Promise<Product> {
+  return api<Product>(`/products/${id}/reject`, { method: "POST" });
 }
 
 export function updateProduct(id: number, payload: ProductUpdatePayload): Promise<Product> {
@@ -131,5 +155,15 @@ export async function importProductsCsv(
   return api<ProductImportResponse>("/products/import-csv", {
     method: "POST",
     body: fd,
+  });
+}
+
+export function copyProductsFromShop(
+  targetShopId: number,
+  sourceShopId: number
+): Promise<ProductCopyResponse> {
+  return api<ProductCopyResponse>(`/shops/${targetShopId}/products/copy-from-shop`, {
+    method: "POST",
+    json: { source_shop_id: sourceShopId },
   });
 }

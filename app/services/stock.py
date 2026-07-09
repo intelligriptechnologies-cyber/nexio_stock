@@ -19,7 +19,13 @@ from __future__ import annotations
 from sqlalchemy import func, literal, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.models.invoice import STATUSES_COUNTING_AS_SOLD, Invoice, InvoiceLine
+from app.models.invoice import (
+    STATUSES_COUNTING_AS_SOLD,
+    Invoice,
+    InvoiceLine,
+    PastInvoice,
+    PastInvoiceLine,
+)
 from app.models.lot import LotLine
 from app.models.product import Product
 
@@ -47,17 +53,35 @@ async def compute_derived_stock(
         .group_by(LotLine.product_id)
         .subquery()
     )
-    sold_subq = (
+    current_sold_subq = (
         select(
             InvoiceLine.product_id.label("product_id"),
-            func.coalesce(func.sum(InvoiceLine.quantity), 0).label("sold"),
+            InvoiceLine.quantity.label("quantity"),
         )
         .join(Invoice, InvoiceLine.invoice_id == Invoice.id)
         .where(
             InvoiceLine.product_id.in_(product_ids),
             Invoice.status.in_(STATUSES_COUNTING_AS_SOLD),
         )
-        .group_by(InvoiceLine.product_id)
+    )
+    past_sold_subq = (
+        select(
+            PastInvoiceLine.product_id.label("product_id"),
+            PastInvoiceLine.quantity.label("quantity"),
+        )
+        .join(PastInvoice, PastInvoiceLine.invoice_id == PastInvoice.id)
+        .where(
+            PastInvoiceLine.product_id.in_(product_ids),
+            PastInvoice.status.in_(STATUSES_COUNTING_AS_SOLD),
+        )
+    )
+    sold_union = current_sold_subq.union_all(past_sold_subq).subquery()
+    sold_subq = (
+        select(
+            sold_union.c.product_id.label("product_id"),
+            func.coalesce(func.sum(sold_union.c.quantity), 0).label("sold"),
+        )
+        .group_by(sold_union.c.product_id)
         .subquery()
     )
     rows = (
@@ -131,11 +155,11 @@ async def compute_derived_stock_by_shop(
         .group_by(LotLine.product_id, Product.shop_id)
         .subquery()
     )
-    sold_subq = (
+    current_sold_subq = (
         select(
             InvoiceLine.product_id.label("product_id"),
             Product.shop_id.label("shop_id"),
-            func.coalesce(func.sum(InvoiceLine.quantity), 0).label("sold"),
+            InvoiceLine.quantity.label("quantity"),
         )
         .join(Product, Product.id == InvoiceLine.product_id)
         .join(Invoice, InvoiceLine.invoice_id == Invoice.id)
@@ -143,7 +167,28 @@ async def compute_derived_stock_by_shop(
             Product.shop_id.in_(shop_ids),
             Invoice.status.in_(STATUSES_COUNTING_AS_SOLD),
         )
-        .group_by(InvoiceLine.product_id, Product.shop_id)
+    )
+    past_sold_subq = (
+        select(
+            PastInvoiceLine.product_id.label("product_id"),
+            Product.shop_id.label("shop_id"),
+            PastInvoiceLine.quantity.label("quantity"),
+        )
+        .join(Product, Product.id == PastInvoiceLine.product_id)
+        .join(PastInvoice, PastInvoiceLine.invoice_id == PastInvoice.id)
+        .where(
+            Product.shop_id.in_(shop_ids),
+            PastInvoice.status.in_(STATUSES_COUNTING_AS_SOLD),
+        )
+    )
+    sold_union = current_sold_subq.union_all(past_sold_subq).subquery()
+    sold_subq = (
+        select(
+            sold_union.c.product_id.label("product_id"),
+            sold_union.c.shop_id.label("shop_id"),
+            func.coalesce(func.sum(sold_union.c.quantity), 0).label("sold"),
+        )
+        .group_by(sold_union.c.product_id, sold_union.c.shop_id)
         .subquery()
     )
     rows = (

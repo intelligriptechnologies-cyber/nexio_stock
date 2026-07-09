@@ -44,10 +44,8 @@ async def test_cashier_gets_403_on_owner_only_staff_endpoint(
 
 
 @pytest.mark.usefixtures("owner", "receiver", "cashier", "superadmin")
-async def test_superadmin_can_list_all_staff(superadmin_client: AsyncClient) -> None:
-    # R-5: superadmin sees all shop data for support/debugging.
-    resp = await superadmin_client.get("/staff")
+async def test_superadmin_staff_list_is_shop_scoped(superadmin_client: AsyncClient) -> None:
+    resp = await superadmin_client.get("/staff", params={"shop_id": 1})
     assert resp.status_code == 200
     body = resp.json()
-    # superadmin + owner + receiver + cashier = 4
-    assert len(body) == 4
+    assert {row["role"] for row in body} == {"receiver_user", "cashier_user"}

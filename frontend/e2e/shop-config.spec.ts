@@ -8,18 +8,20 @@ async function loginAsCashier(page: Page) {
   return _login.loginAsCashier(page);
 }
 
-test.describe("shop config", () => {
-  test("owner sees the shop config form with all three fields", async ({ page }) => {
+test.describe("settings", () => {
+  test("owner reaches invoice settings from the old shop config URL", async ({ page }) => {
     await loginAsOwner(page);
     await page.goto("/admin/shop");
-    await expect(page.getByRole("heading", { name: "Shop Config" })).toBeVisible();
+    await expect(page).toHaveURL(/\/admin\/settings$/);
+    await expect(page.getByRole("heading", { name: "Settings" })).toBeVisible();
+    await page.getByRole("button", { name: "Invoice Settings" }).click();
     await expect(page.getByText(/GSTIN/)).toBeVisible();
     await expect(page.getByText(/Excise duty rate/)).toBeVisible();
     await expect(page.getByText(/Default low-stock threshold/)).toBeVisible();
-    await expect(page.getByRole("button", { name: "Save shop config" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Save" })).toBeVisible();
   });
 
-  test("cashier cannot reach shop config", async ({ page }) => {
+  test("cashier cannot reach settings", async ({ page }) => {
     await loginAsCashier(page);
     await page.goto("/admin/shop");
     await expect(page).toHaveURL(/\/forbidden$/);

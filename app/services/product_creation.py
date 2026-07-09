@@ -20,11 +20,12 @@ from __future__ import annotations
 from decimal import Decimal
 
 from fastapi import HTTPException, status
+from sqlalchemy import select
 from sqlalchemy.dialects.postgresql.asyncpg import AsyncAdapt_asyncpg_dbapi
 from sqlalchemy.exc import IntegrityError
 
 from app.api._errors import is_unique_violation
-from app.models.product import Product, ProductStatus
+from app.models.product import MasterProduct, Product, ProductStatus
 
 
 class ProductConflictError(Exception):
@@ -72,11 +73,33 @@ async def create_product_row(
     Any other IntegrityError propagates (and currently none exist --
     the only DB-level uniqueness constraint is on barcode).
     """
+    master = (
+        await db.execute(select(MasterProduct).where(MasterProduct.barcode == barcode))
+    ).scalar_one_or_none()
+    if master is None:
+        master = MasterProduct(
+            barcode=barcode,
+            brand=brand,
+            size_label=size_label,
+            is_active=True,
+        )
+        db.add(master)
+        await db.flush()
+
+    existing = (
+        await db.execute(
+            select(Product).where(
+                Product.shop_id == shop_id,
+                Product.master_product_id == master.id,
+            )
+        )
+    ).scalar_one_or_none()
+    if existing is not None:
+        raise ProductConflictError(barcode)
+
     product = Product(
         shop_id=shop_id,
-        barcode=barcode,
-        brand=brand,
-        size_label=size_label,
+        master_product_id=master.id,
         price=price,
         low_stock_threshold=low_stock_threshold,
         is_active=is_active,
@@ -84,6 +107,7 @@ async def create_product_row(
         pending_origin=pending_origin,
         pending_added_by_user_id=pending_added_by_user_id,
     )
+    product.master_product = master
     db.add(product)
     try:
         if commit:

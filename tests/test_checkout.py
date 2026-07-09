@@ -10,6 +10,7 @@ from sqlalchemy import select
 
 from app.models.invoice import (
     Invoice,
+    InvoiceLine,
 )
 from app.models.log import InvoicingLog
 from app.models.lot import LotLine
@@ -395,6 +396,37 @@ async def test_finalize_writes_an_invoicing_log(
     finalize_logs = [r for r in rows if r.event_type == "invoice.finalized"]
     assert len(finalize_logs) == 1
     assert finalize_logs[0].payload["invoice_id"] == invoice_id
+
+
+@pytest.mark.usefixtures("owner", "receiver", "cashier")
+async def test_invoice_list_backfills_legacy_line_snapshots(
+    cashier_client: AsyncClient,
+    owner_client: AsyncClient,
+    receiver_client: AsyncClient,
+    db_session,
+) -> None:
+    await _seed_product(owner_client, "8901000000016", price="100.00")
+    await _seed_lot(receiver_client, items=[("8901000000016", 5)])
+    cr = await cashier_client.post(
+        "/checkout/finalize",
+        headers={"Idempotency-Key": _idem_key()},
+        json={
+            "lines": [{"barcode": "8901000000016", "quantity": 1}],
+            "payments": [{"mode": "cash", "amount": "100.00"}],
+        },
+    )
+    assert cr.status_code == 201
+    line = (await db_session.execute(select(InvoiceLine))).scalars().first()
+    assert line is not None
+    line.product_brand = None
+    line.product_size_label = None
+    await db_session.commit()
+
+    resp = await owner_client.get("/invoices", params={"source": "current"})
+    assert resp.status_code == 200, resp.text
+    first_line = resp.json()["invoices"][0]["lines"][0]
+    assert first_line["product_brand"] == "Test"
+    assert first_line["product_size_label"] == "750ml"
 
 
 # --- PDF ---

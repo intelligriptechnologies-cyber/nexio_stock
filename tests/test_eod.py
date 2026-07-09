@@ -8,7 +8,7 @@ import pytest
 from httpx import AsyncClient
 from sqlalchemy import select
 
-from app.models.invoice import EodSignOff, Invoice
+from app.models.invoice import EodSignOff, Invoice, PastInvoice
 
 # --- helpers ---
 
@@ -372,6 +372,61 @@ async def test_eod_signoff_record_persists(
     rows = (await db_session.execute(select(EodSignOff))).scalars().all()
     assert len(rows) == 1
     assert rows[0].invoices_signed_off == 1
+
+
+@pytest.mark.usefixtures("owner", "receiver", "cashier", "superadmin")
+async def test_superadmin_signoff_with_shop_id_archives_current_invoices_and_notes(
+    owner_client: AsyncClient,
+    receiver_client: AsyncClient,
+    cashier_client: AsyncClient,
+    superadmin_client: AsyncClient,
+    db_session,
+    shop,
+) -> None:
+    await _seed_product(owner_client, "8903000000013")
+    await _seed_lot(receiver_client, items=[("8903000000013", 5)])
+    inv = await _finalize(
+        cashier_client,
+        barcode="8903000000013",
+        quantity=1,
+        amount="100.00",
+        mode="card",
+    )
+
+    today = date.today().isoformat()
+    resp = await superadmin_client.post(
+        "/dashboard/eod/sign-off",
+        json={
+            "business_date": today,
+            "shop_id": shop.id,
+            "notes": "Reviewed cash/card settlement at counter.",
+        },
+    )
+    assert resp.status_code == 201, resp.text
+    assert resp.json()["invoices_signed_off"] == 1
+
+    current = (
+        await db_session.execute(select(Invoice).where(Invoice.id == inv["id"]))
+    ).scalar_one_or_none()
+    assert current is None
+
+    archived = (
+        await db_session.execute(
+            select(PastInvoice).where(PastInvoice.original_invoice_id == inv["id"])
+        )
+    ).scalar_one()
+    assert archived.shop_id == shop.id
+    assert archived.invoice_number == inv["invoice_number"]
+
+    signoff = (
+        await db_session.execute(
+            select(EodSignOff).where(
+                EodSignOff.shop_id == shop.id,
+                EodSignOff.business_date == date.today(),
+            )
+        )
+    ).scalar_one()
+    assert signoff.notes == "Reviewed cash/card settlement at counter."
 
 
 # --- issue #37: eod-totals no longer 500s when business_date is omitted ---

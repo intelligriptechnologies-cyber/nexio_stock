@@ -151,9 +151,17 @@ async def test_owner_lists_only_their_shop_staff(
     resp = await owner_client.get("/staff")
     assert resp.status_code == 200
     body = resp.json()
-    # owner + receiver + cashier in the same shop = 3
-    assert len(body) == 3
+    # Staff page manages cashier/receiver only; owner accounts are handled
+    # from Shop Management.
+    assert len(body) == 2
     assert all(u["shop_id"] == shop.id for u in body)
+    assert {u["role"] for u in body} == {"receiver_user", "cashier_user"}
+
+
+@pytest.mark.usefixtures("owner", "receiver", "cashier")
+async def test_owner_staff_list_rejects_explicit_shop_id(owner_client: AsyncClient, shop: object) -> None:
+    resp = await owner_client.get("/staff", params={"shop_id": shop.id})
+    assert resp.status_code == 400
 
 
 @pytest.mark.usefixtures("owner", "receiver", "cashier")
@@ -231,6 +239,33 @@ async def test_owner_cannot_reset_own_password_via_staff_endpoint(
     assert resp.status_code == 404
 
 
+@pytest.mark.usefixtures("owner")
+async def test_owner_can_activate_and_deactivate_staff(
+    owner_client: AsyncClient, receiver: User
+) -> None:
+    inactive = await owner_client.patch(
+        f"/staff/{receiver.id}",
+        json={"is_active": False},
+    )
+    assert inactive.status_code == 200
+    assert inactive.json()["is_active"] is False
+
+    active = await owner_client.patch(
+        f"/staff/{receiver.id}",
+        json={"is_active": True},
+    )
+    assert active.status_code == 200
+    assert active.json()["is_active"] is True
+
+
+@pytest.mark.usefixtures("owner")
+async def test_owner_cannot_activate_owner_via_staff_endpoint(
+    owner_client: AsyncClient, owner: User
+) -> None:
+    resp = await owner_client.patch(f"/staff/{owner.id}", json={"is_active": False})
+    assert resp.status_code == 404
+
+
 @pytest.mark.usefixtures("owner", "receiver")
 async def test_receiver_cannot_reset_staff_password(
     receiver_client: AsyncClient, receiver: User
@@ -251,3 +286,64 @@ async def test_superadmin_resets_staff_password_any_shop(
         json={"password": "supersetpass"},
     )
     assert resp.status_code == 200
+
+
+@pytest.mark.usefixtures("owner", "receiver", "cashier")
+async def test_superadmin_lists_staff_for_selected_shop_only(
+    superadmin_client: AsyncClient,
+    receiver: User,
+    cashier: User,
+    db_session: AsyncSession,
+) -> None:
+    shop2 = Shop(code="shop2-stafflist", name="Shop Two")
+    db_session.add(shop2)
+    await db_session.flush()
+    other = User(
+        shop_id=shop2.id,
+        role=UserRole.CASHIER_USER,
+        username="othercash2",
+        full_name="Other Cashier",
+        phone="+15555550401",
+        password_hash="x",
+        is_active=True,
+    )
+    db_session.add(other)
+    await db_session.commit()
+
+    resp = await superadmin_client.get("/staff", params={"shop_id": receiver.shop_id})
+    assert resp.status_code == 200
+    ids = {row["id"] for row in resp.json()}
+    assert ids == {receiver.id, cashier.id}
+
+
+@pytest.mark.usefixtures("superadmin")
+async def test_superadmin_staff_list_requires_shop_id(superadmin_client: AsyncClient) -> None:
+    resp = await superadmin_client.get("/staff")
+    assert resp.status_code == 400
+
+
+@pytest.mark.usefixtures("owner", "receiver")
+async def test_superadmin_can_bound_staff_activation_to_selected_shop(
+    superadmin_client: AsyncClient,
+    receiver: User,
+    db_session: AsyncSession,
+) -> None:
+    shop2 = Shop(code="shop2-staffactive", name="Shop Two")
+    db_session.add(shop2)
+    await db_session.flush()
+    await db_session.commit()
+
+    wrong_shop = await superadmin_client.patch(
+        f"/staff/{receiver.id}",
+        params={"shop_id": shop2.id},
+        json={"is_active": False},
+    )
+    assert wrong_shop.status_code == 404
+
+    ok = await superadmin_client.patch(
+        f"/staff/{receiver.id}",
+        params={"shop_id": receiver.shop_id},
+        json={"is_active": False},
+    )
+    assert ok.status_code == 200
+    assert ok.json()["is_active"] is False

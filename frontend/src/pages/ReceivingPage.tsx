@@ -4,6 +4,7 @@ import { invalidateCache, prefetchCatalog, type CatalogProduct } from "../api/ca
 import { createLotSafe, type LotPublic } from "../api/lots";
 import { QuickSearch } from "../components/QuickSearch";
 import { QuickAddModal } from "../components/QuickAddModal";
+import { useBarcodeScanner } from "../hooks/useBarcodeScanner";
 import { useQuickAdd } from "../hooks/useQuickAdd";
 import { useAuth } from "../auth/AuthProvider";
 import { useShopScope } from "../auth/ShopScopeProvider";
@@ -80,6 +81,12 @@ export function ReceivingPage() {
       .then(() => setCatalogReady(true))
       .catch((e) => setError(`Catalog load failed: ${e instanceof Error ? e.message : e}`));
   }, [actingShopId]);
+
+  useEffect(() => {
+    if (!info) return;
+    const timer = window.setTimeout(() => setInfo(null), 4000);
+    return () => window.clearTimeout(timer);
+  }, [info]);
 
   const addByBarcode = useCallback(
     async (raw: string) => {
@@ -166,6 +173,11 @@ export function ReceivingPage() {
     void addByBarcode(barcode);
     setBarcode("");
   };
+
+  useBarcodeScanner({
+    enabled: catalogReady && !quickAdd && !lastLot,
+    onScan: (code) => void addByBarcode(code),
+  });
 
   const changeQty = (lineId: string, delta: number) => {
     setLines((prev) =>
@@ -264,7 +276,7 @@ export function ReceivingPage() {
           />
           <button
             type="submit"
-            className="min-h-touchTarget rounded-md bg-accent px-gutter text-label-xl text-on-accent"
+            className="min-h-touchTarget rounded-md bg-action px-gutter text-label-xl text-on-action"
             disabled={!catalogReady}
           >
             ADD
@@ -319,6 +331,12 @@ export function ReceivingPage() {
                   min={1}
                   value={l.quantity}
                   onChange={(e) => setLineQty(l.lineId, Number(e.target.value))}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && lines.length > 0 && !busy) {
+                      e.preventDefault();
+                      void save();
+                    }
+                  }}
                   className="h-14 w-20 rounded-md border border-outline bg-surface text-center font-mono text-headline-md"
                   aria-label="Quantity"
                 />
@@ -382,7 +400,7 @@ export function ReceivingPage() {
           type="button"
           onClick={save}
           disabled={lines.length === 0 || busy}
-          className="min-h-touchTarget rounded-md bg-accent text-display-lg text-on-accent disabled:opacity-50"
+          className="min-h-touchTarget rounded-md bg-action text-display-lg text-on-action disabled:opacity-50"
         >
           {busy ? "SAVING…" : "SAVE STOCK"}
         </button>

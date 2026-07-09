@@ -1,4 +1,4 @@
-import type { KeyboardEvent } from "react";
+import { useEffect } from "react";
 
 // Oversized 12-key pad per docs/frontend_initial/barstock_design.md:
 //   - keys are 64px tall (min touch target)
@@ -25,18 +25,31 @@ export function PinPad({
   disabled = false,
   accentLabel = "SUBMIT",
 }: PinPadProps) {
-  const handleKey = (e: KeyboardEvent<HTMLDivElement>) => {
-    if (disabled) return;
-    if (/^[0-9]$/.test(e.key)) onDigit(e.key);
-    else if (e.key === "Backspace") onBackspace();
-    else if (e.key === "Enter") onSubmit();
-    else if (e.key === "Escape") onClear();
-  };
+  useEffect(() => {
+    const handleKey = (e: globalThis.KeyboardEvent) => {
+      if (disabled) return;
+
+      if (/^[0-9]$/.test(e.key)) {
+        e.preventDefault();
+        onDigit(e.key);
+      } else if (e.key === "Backspace") {
+        e.preventDefault();
+        onBackspace();
+      } else if (e.key === "Enter") {
+        e.preventDefault();
+        onSubmit();
+      } else if (e.key === "Escape") {
+        e.preventDefault();
+        onClear();
+      }
+    };
+
+    window.addEventListener("keydown", handleKey);
+    return () => window.removeEventListener("keydown", handleKey);
+  }, [disabled, onBackspace, onClear, onDigit, onSubmit]);
 
   return (
     <div
-      tabIndex={0}
-      onKeyDown={handleKey}
       className="grid w-full max-w-xs grid-cols-3 gap-3 outline-none"
       aria-label="PIN pad"
     >
@@ -85,7 +98,7 @@ export function PinPad({
         type="button"
         disabled={disabled}
         onClick={onSubmit}
-        className="col-span-3 min-h-touchTarget rounded-md bg-accent text-label-xl text-on-accent active:opacity-90 disabled:opacity-50"
+        className="col-span-3 min-h-touchTarget rounded-md bg-action text-label-xl text-on-action active:opacity-90 disabled:opacity-50"
       >
         {accentLabel}
       </button>

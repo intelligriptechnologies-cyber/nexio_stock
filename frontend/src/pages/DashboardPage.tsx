@@ -127,7 +127,7 @@ export function DashboardPage() {
       {pendingCount != null && pendingCount > 0 && (
         <Link
           to="/admin/pending"
-          className="flex items-center justify-between rounded-md bg-warning px-gutter py-3 text-on-accent shadow-sm"
+          className="flex items-center justify-between rounded-md bg-warning px-gutter py-3 text-on-warning shadow-sm"
           data-testid="pending-badge"
           role="status"
         >
@@ -136,7 +136,7 @@ export function DashboardPage() {
               {pendingCount} product{pendingCount === 1 ? "" : "s"} awaiting a price
             </div>
             <div className="text-label-md">
-              Tap to open the Pending Products screen and set their prices.
+              Tap to open Pending and set their prices.
             </div>
           </div>
           <span aria-hidden="true" className="text-headline-lg">→</span>
@@ -341,7 +341,7 @@ function KpiCard({
     accent === "success"
       ? "bg-success text-on-secondary"
       : accent === "warning"
-      ? "bg-warning text-on-accent"
+      ? "bg-warning text-on-warning"
       : "bg-primary text-on-primary";
   return (
     <div className={`flex flex-col gap-1 rounded-lg p-gutter ${bg}`}>

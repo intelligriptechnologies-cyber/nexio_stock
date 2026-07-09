@@ -1,7 +1,7 @@
 """Checkout + invoice + payment schemas."""
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import date, datetime
 from decimal import Decimal
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
@@ -99,6 +99,7 @@ class InvoicePublic(BaseModel):
     total_amount: Decimal
     note: str | None
     finalized_at: datetime
+    business_date: date
     eod_signed_off: bool
     lines: list[InvoiceLinePublic]
     payments: list[PaymentPublic]
@@ -109,14 +110,50 @@ class CheckoutFinalizeResponse(BaseModel):
     is_replay: bool  # True when an existing Idempotency-Key was matched
 
 
+class CartValidationLine(BaseModel):
+    barcode: str = Field(min_length=1, max_length=64)
+    requested_quantity: int = Field(gt=0)
+    available_quantity: int = Field(ge=0)
+    accepted_quantity: int = Field(ge=0)
+    adjusted: bool
+
+
+class CartValidationRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    lines: list[CheckoutLine] = Field(min_length=1, max_length=200)
+    shop_id: int | None = None
+
+
+class CartValidationResponse(BaseModel):
+    lines: list[CartValidationLine]
+
+
+class InvoiceEditRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    lines: list[CheckoutLine] = Field(min_length=1, max_length=200)
+    payments: list[PaymentInput] = Field(min_length=1, max_length=10)
+    note: str | None = Field(default=None, max_length=200)
+
+
+class InvoiceListResponse(BaseModel):
+    invoices: list[InvoicePublic]
+
+
 # Re-exports.
 __all__ = [
+    "CartValidationLine",
+    "CartValidationRequest",
+    "CartValidationResponse",
     "CheckoutFinalizeRequest",
     "CheckoutFinalizeResponse",
     "CheckoutLine",
     "Invoice",
+    "InvoiceEditRequest",
     "InvoiceLine",
     "InvoiceLinePublic",
+    "InvoiceListResponse",
     "InvoicePublic",
     "InvoiceStatus",
     "Payment",

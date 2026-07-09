@@ -39,7 +39,19 @@ from datetime import datetime
 from decimal import Decimal
 from typing import TYPE_CHECKING
 
-from sqlalchemy import Boolean, DateTime, Enum, ForeignKey, Index, Numeric, String, func
+from sqlalchemy import (
+    Boolean,
+    DateTime,
+    Enum,
+    ForeignKey,
+    Index,
+    Numeric,
+    String,
+    UniqueConstraint,
+    func,
+    select,
+)
+from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db import Base
@@ -60,17 +72,37 @@ class ProductStatus(str, enum.Enum):
 
     PENDING = "pending"
     ACTIVE = "active"
+    REJECTED = "rejected"
+
+
+class MasterProduct(Base):
+    __tablename__ = "master_products"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    barcode: Mapped[str] = mapped_column(String(64), unique=True, nullable=False)
+    brand: Mapped[str] = mapped_column(String(200), nullable=False)
+    size_label: Mapped[str] = mapped_column(String(64), nullable=False)
+    is_active: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        onupdate=func.now(),
+        nullable=False,
+    )
 
 
 class Product(Base):
     __tablename__ = "products"
     __table_args__ = (
-        # The unique-constraint is global across all shops (D-52): barcodes
-        # are physical, so two products with the same code is always a
-        # mistake, never an intended overlap. shop_id is still on every
-        # row (D-35) for multi-tenant scoping of other operations.
-        Index("ix_products_shop_barcode", "shop_id", "barcode"),
-        Index("ix_products_shop_brand", "shop_id", "brand"),
+        UniqueConstraint(
+            "shop_id",
+            "master_product_id",
+            name="uq_products_shop_master_product",
+        ),
+        Index("ix_products_shop_master_product", "shop_id", "master_product_id"),
         # Used by the Pending Products screen (#25) to filter the
         # owner-dashboard badge / list query to a single shop.
         Index("ix_products_shop_status", "shop_id", "status"),
@@ -82,9 +114,11 @@ class Product(Base):
         nullable=False,
         index=True,
     )
-    barcode: Mapped[str] = mapped_column(String(64), unique=True, nullable=False)
-    brand: Mapped[str] = mapped_column(String(200), nullable=False)
-    size_label: Mapped[str] = mapped_column(String(64), nullable=False)
+    master_product_id: Mapped[int] = mapped_column(
+        ForeignKey("master_products.id", ondelete="restrict"),
+        nullable=False,
+        index=True,
+    )
     # Nullable when ``status = 'pending'``. A DB-level CHECK
     # (``ck_products_price_iff_active``) ties the two together.
     price: Mapped[Decimal | None] = mapped_column(Numeric(12, 2), nullable=True)
@@ -134,3 +168,60 @@ class Product(Base):
     )
 
     shop: Mapped[Shop] = relationship()
+    master_product: Mapped[MasterProduct] = relationship(lazy="joined", innerjoin=True)
+
+    def _ensure_master_product(self) -> MasterProduct:
+        if self.master_product is None:  # type: ignore[truthy-function]
+            self.master_product = MasterProduct(barcode="", brand="", size_label="")
+        return self.master_product
+
+    @hybrid_property
+    def barcode(self) -> str:
+        return self.master_product.barcode
+
+    @barcode.inplace.setter
+    def _set_barcode(self, value: str) -> None:
+        self._ensure_master_product().barcode = value
+
+    @barcode.inplace.expression
+    @classmethod
+    def _barcode_expression(cls):
+        return (
+            select(MasterProduct.barcode)
+            .where(MasterProduct.id == cls.master_product_id)
+            .scalar_subquery()
+        )
+
+    @hybrid_property
+    def brand(self) -> str:
+        return self.master_product.brand
+
+    @brand.inplace.setter
+    def _set_brand(self, value: str) -> None:
+        self._ensure_master_product().brand = value
+
+    @brand.inplace.expression
+    @classmethod
+    def _brand_expression(cls):
+        return (
+            select(MasterProduct.brand)
+            .where(MasterProduct.id == cls.master_product_id)
+            .scalar_subquery()
+        )
+
+    @hybrid_property
+    def size_label(self) -> str:
+        return self.master_product.size_label
+
+    @size_label.inplace.setter
+    def _set_size_label(self, value: str) -> None:
+        self._ensure_master_product().size_label = value
+
+    @size_label.inplace.expression
+    @classmethod
+    def _size_label_expression(cls):
+        return (
+            select(MasterProduct.size_label)
+            .where(MasterProduct.id == cls.master_product_id)
+            .scalar_subquery()
+        )

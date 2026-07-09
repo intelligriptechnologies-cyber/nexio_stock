@@ -3,6 +3,7 @@ import ReactDOM from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
 import { AuthProvider } from "./auth/AuthProvider";
 import { ShopScopeProvider } from "./auth/ShopScopeProvider";
+import { SettingsThemeProvider } from "./theme/SettingsThemeProvider";
 import App from "./App";
 import "./index.css";
 
@@ -11,7 +12,9 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
     <BrowserRouter>
       <AuthProvider>
         <ShopScopeProvider>
-          <App />
+          <SettingsThemeProvider>
+            <App />
+          </SettingsThemeProvider>
         </ShopScopeProvider>
       </AuthProvider>
     </BrowserRouter>

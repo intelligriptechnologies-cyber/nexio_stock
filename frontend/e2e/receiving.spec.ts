@@ -37,6 +37,15 @@ test.describe("stock receiving — new lot", () => {
     await expect(page.getByLabel("Quantity")).toHaveValue("1");
   });
 
+  test("global scanner adds a line even when another field is focused", async ({ page }) => {
+    await loginAsReceiver(page);
+    await page.getByLabel("Reference (optional)").focus();
+    await page.keyboard.type("8901234567890", { delay: 1 });
+    await page.keyboard.press("Enter");
+    await expect(page.getByText(/Added:/)).toBeVisible({ timeout: 5000 });
+    await expect(page.getByLabel("Quantity")).toHaveValue("1");
+  });
+
   test("quantity +/- buttons adjust the line", async ({ page }) => {
     await loginAsReceiver(page);
     await page.getByPlaceholder("Scan or enter barcode").fill("8901234567890");
@@ -72,6 +81,16 @@ test.describe("stock receiving — quick-add new product (issue #22)", () => {
     await expect(
       page.getByRole("dialog", { name: "Quick-add new product" })
     ).toContainText("QUICKADD-NEW-001");
+  });
+
+  test("global scanner opens quick-add for a missing barcode", async ({ page }) => {
+    await loginAsReceiver(page);
+    const barcode = `QUICKADD-SCAN-${Date.now()}`;
+    await page.keyboard.type(barcode, { delay: 1 });
+    await page.keyboard.press("Enter");
+    const dialog = page.getByRole("dialog", { name: "Quick-add new product" });
+    await expect(dialog).toBeVisible({ timeout: 5000 });
+    await expect(dialog).toContainText(barcode);
   });
 
   test("submitting the quick-add form adds the line and closes the modal", async ({

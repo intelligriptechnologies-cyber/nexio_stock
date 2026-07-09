@@ -1,15 +1,16 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { ApiError } from "../api/client";
 import {
   createStaff,
   listStaff,
   resetStaffPassword,
+  setStaffActive,
   type StaffCreatePayload,
   type StaffMember,
   type StaffRole,
 } from "../api/staff";
 import { useAuth } from "../auth/AuthProvider";
-import { useShopScope } from "../auth/ShopScopeProvider";
+import { SHOP_SCOPE_MESSAGE, useShopScope } from "../auth/ShopScopeProvider";
 
 export function StaffPage() {
   const { user } = useAuth();
@@ -18,32 +19,38 @@ export function StaffPage() {
   const [error, setError] = useState<string | null>(null);
   const [info, setInfo] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const scopedShopId = user?.role === "superadmin" ? actingShopId : null;
 
-  const reload = async () => {
+  const reload = useCallback(async () => {
     setItems(null);
     setError(null);
+    if (user?.role === "superadmin" && actingShopId === null) {
+      setItems([]);
+      setError(SHOP_SCOPE_MESSAGE);
+      return;
+    }
     try {
-      const rows = await listStaff();
+      const rows = await listStaff(scopedShopId);
       setItems(rows);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Load failed.");
     }
-  };
+  }, [actingShopId, scopedShopId, user?.role]);
 
   useEffect(() => {
     void reload();
-  }, []);
+  }, [reload]);
 
   const onCreate = async (payload: StaffCreatePayload) => {
     if (user?.role === "superadmin" && actingShopId === null) {
-      setError("Pick a shop first (top of the sidebar).");
+      setError(SHOP_SCOPE_MESSAGE);
       return;
     }
     setBusy(true);
     setError(null);
     setInfo(null);
     try {
-      const created = await createStaff(payload, actingShopId);
+      const created = await createStaff(payload, scopedShopId);
       setInfo(`Created ${created.role} ${created.username}.`);
       await reload();
     } catch (e) {
@@ -71,10 +78,22 @@ export function StaffPage() {
     setError(null);
     setInfo(null);
     try {
-      await resetStaffPassword(staffMember.id, password);
+      await resetStaffPassword(staffMember.id, password, scopedShopId);
       setInfo(`Reset PIN for ${staffMember.username}.`);
     } catch (e) {
       setError(e instanceof ApiError ? e.detail : e instanceof Error ? e.message : "Reset failed.");
+    }
+  };
+
+  const onToggleActive = async (staffMember: StaffMember) => {
+    setError(null);
+    setInfo(null);
+    try {
+      const updated = await setStaffActive(staffMember.id, !staffMember.is_active, scopedShopId);
+      setInfo(`${updated.is_active ? "Activated" : "Deactivated"} ${updated.username}.`);
+      await reload();
+    } catch (e) {
+      setError(e instanceof ApiError ? e.detail : e instanceof Error ? e.message : "Update failed.");
     }
   };
 
@@ -119,7 +138,7 @@ export function StaffPage() {
                 <th className="py-2 text-left">Full name</th>
                 <th className="py-2 text-left">Phone</th>
                 <th className="py-2 text-left">Active</th>
-                <th className="py-2 text-right">Reset PIN</th>
+                <th className="py-2 text-right">Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -131,7 +150,16 @@ export function StaffPage() {
                   <td className="py-2 font-mono text-label-md">{s.phone}</td>
                   <td className="py-2">{s.is_active ? "yes" : "no"}</td>
                   <td className="py-2 text-right">
-                    <ResetPinButton onClick={() => void onResetPassword(s)} />
+                    <div className="flex justify-end gap-2">
+                      <ResetPinButton onClick={() => void onResetPassword(s)} />
+                      <button
+                        type="button"
+                        onClick={() => void onToggleActive(s)}
+                        className="rounded-md bg-primary px-stack-gap py-1 text-label-md text-on-primary"
+                      >
+                        {s.is_active ? "Deactivate" : "Activate"}
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -225,7 +253,7 @@ function CreateCard({
       <button
         type="submit"
         disabled={busy}
-        className="md:col-span-2 min-h-touchTarget rounded-md bg-accent text-label-xl text-on-accent disabled:opacity-50"
+        className="md:col-span-2 min-h-touchTarget rounded-md bg-action text-label-xl text-on-action disabled:opacity-50"
       >
         {busy ? "Creating…" : "Create staff account"}
       </button>

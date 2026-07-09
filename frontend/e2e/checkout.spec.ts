@@ -86,11 +86,30 @@ test.describe("checkout flow — quicksearch (issue #23)", () => {
     await expect(page.getByText(/8901234567890/)).toBeVisible();
   });
 
+  test("global scanner adds a known barcode from any focused field", async ({ page }) => {
+    await loginAsCashier(page);
+    await page.getByLabel("Note (optional)").focus();
+    await page.keyboard.type("8901234567890", { delay: 1 });
+    await page.keyboard.press("Enter");
+    await expect(page.getByText(/Added:/)).toBeVisible({ timeout: 5000 });
+    await expect(page.getByText(/8901234567890/)).toBeVisible();
+  });
+
   test("unknown barcode surfaces a clear error", async ({ page }) => {
     await loginAsCashier(page);
     await page.getByPlaceholder("Scan or enter barcode").fill("DOES-NOT-EXIST-999");
     await page.getByRole("button", { name: "ADD" }).click();
     await expect(page.getByRole("alert")).toContainText(/not found/i);
+  });
+
+  test("global scanner opens quick-add for an unknown barcode", async ({ page }) => {
+    await loginAsCashier(page);
+    const barcode = `CHECKOUT-SCAN-${Date.now()}`;
+    await page.keyboard.type(barcode, { delay: 1 });
+    await page.keyboard.press("Enter");
+    const dialog = page.getByRole("dialog", { name: "Quick-add new product" });
+    await expect(dialog).toBeVisible({ timeout: 5000 });
+    await expect(dialog).toContainText(barcode);
   });
 
   test("split payment across two modes is supported", async ({ page }) => {

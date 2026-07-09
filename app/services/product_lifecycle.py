@@ -53,10 +53,10 @@ def _validate_status_price_pair(status: ProductStatus, price: Decimal | None) ->
             "active_requires_price",
             "an active product must have a price > 0",
         )
-    if status == ProductStatus.PENDING and price is not None:
+    if status in (ProductStatus.PENDING, ProductStatus.REJECTED) and price is not None:
         raise ProductLifecycleError(
-            "pending_requires_no_price",
-            "a pending product must not have a price",
+            "inactive_lifecycle_requires_no_price",
+            "a pending or rejected product must not have a price",
         )
 
 

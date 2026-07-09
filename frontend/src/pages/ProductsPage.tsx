@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useState } from "react";
-import { toUserMessage } from "../api/client";
+import { ApiError, toUserMessage } from "../api/client";
 import {
   createProduct,
+  copyProductsFromShop,
   importProductsCsv,
   listProducts,
   updateProduct,
@@ -10,18 +11,60 @@ import {
   type ProductCreatePayload,
   type ProductUpdatePayload,
 } from "../api/products";
-import { invalidateCache } from "../api/catalog";
+import { listShops, type ShopSummary } from "../api/shops";
+import { invalidateCache, resolveBarcode } from "../api/catalog";
+import { useAuth } from "../auth/AuthProvider";
 import { useShopScope, useShopScopeGuard } from "../auth/ShopScopeProvider";
+import { useBarcodeScanner } from "../hooks/useBarcodeScanner";
 
-type Tab = "list" | "create" | "import";
+type Tab = "list" | "create" | "import" | "copy";
+interface InitialBarcode {
+  value: string;
+  token: number;
+}
 
 export function ProductsPage() {
+  const { actingShopId } = useShopScope();
   const [tab, setTab] = useState<Tab>("list");
+  const [catalogQuery, setCatalogQuery] = useState("");
+  const [editingId, setEditingId] = useState<number | null>(null);
+  const [initialBarcode, setInitialBarcode] = useState<InitialBarcode | null>(null);
+  const [scannerError, setScannerError] = useState<string | null>(null);
+
+  const handleScan = useCallback(
+    async (raw: string) => {
+      const code = raw.trim();
+      if (!code) return;
+      setScannerError(null);
+      try {
+        const product = await resolveBarcode(code, actingShopId);
+        setTab("list");
+        setCatalogQuery(product.barcode);
+        setEditingId(product.id);
+      } catch (e) {
+        if (e instanceof ApiError && e.status === 404) {
+          setTab("create");
+          setInitialBarcode({ value: code, token: Date.now() });
+          return;
+        }
+        setScannerError(toUserMessage(e, "Could not resolve scanned barcode."));
+      }
+    },
+    [actingShopId]
+  );
+
+  useBarcodeScanner({ enabled: true, onScan: (barcode) => void handleScan(barcode) });
+
   return (
     <div className="flex flex-col gap-stack-gap">
       <h1 className="text-headline-lg text-primary">Products</h1>
+      {scannerError && (
+        <div role="alert" className="rounded-md bg-error px-stack-gap py-3 text-on-error">
+          {scannerError}
+        </div>
+      )}
       <nav className="flex gap-stack-gap" aria-label="Product sections">
-        {(["list", "create", "import"] as const).map((t) => (
+        {(["list", "create", "import", "copy"] as const).map((t) => (
           <button
             key={t}
             type="button"
@@ -30,30 +73,76 @@ export function ProductsPage() {
               tab === t ? "bg-primary text-on-primary" : "bg-surface-container-high text-on-surface-variant"
             }`}
           >
-            {t === "list" ? "Catalog" : t === "create" ? "New product" : "Bulk import"}
+            {t === "list"
+              ? "Catalog"
+              : t === "create"
+                ? "New product"
+                : t === "import"
+                  ? "Bulk import"
+                  : "Copy products"}
           </button>
         ))}
       </nav>
-      {tab === "list" && <ListTab />}
-      {tab === "create" && <CreateTab onCreated={() => setTab("list")} />}
+      {tab === "list" && (
+        <ListTab
+          q={catalogQuery}
+          onQueryChange={setCatalogQuery}
+          editingId={editingId}
+          onEditingIdChange={setEditingId}
+        />
+      )}
+      {tab === "create" && (
+        <CreateTab initialBarcode={initialBarcode} onCreated={() => setTab("list")} />
+      )}
       {tab === "import" && <ImportTab />}
+      {tab === "copy" && <CopyTab />}
     </div>
   );
 }
 
-function ListTab() {
+function ListTab({
+  q,
+  onQueryChange,
+  editingId,
+  onEditingIdChange,
+}: {
+  q: string;
+  onQueryChange: (q: string) => void;
+  editingId: number | null;
+  onEditingIdChange: (id: number | null) => void;
+}) {
+  const { user } = useAuth();
+  const { actingShopId } = useShopScope();
+  const isSuperadmin = user?.role === "superadmin";
   const [items, setItems] = useState<Product[] | null>(null);
-  const [q, setQ] = useState("");
+  const [shops, setShops] = useState<ShopSummary[]>([]);
+  const [selectedShopId, setSelectedShopId] = useState<number | null>(actingShopId);
   const [includeInactive, setIncludeInactive] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [editingId, setEditingId] = useState<number | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);
+
+  useEffect(() => {
+    if (!isSuperadmin) return;
+    listShops()
+      .then(setShops)
+      .catch((e) => setError(toUserMessage(e, "Could not load shops.")));
+  }, [isSuperadmin]);
+
+  useEffect(() => {
+    if (isSuperadmin && actingShopId != null) {
+      setSelectedShopId(actingShopId);
+    }
+  }, [actingShopId, isSuperadmin]);
 
   useEffect(() => {
     let cancelled = false;
     setItems(null);
     setError(null);
-    listProducts({ q: q || undefined, includeInactive })
+    listProducts({
+      q: q || undefined,
+      includeInactive,
+      shopId: isSuperadmin ? selectedShopId : actingShopId,
+    })
       .then((rows) => {
         if (!cancelled) setItems(rows);
       })
@@ -63,9 +152,10 @@ function ListTab() {
     return () => {
       cancelled = true;
     };
-  }, [q, includeInactive, refreshKey]);
+  }, [q, includeInactive, refreshKey, actingShopId, isSuperadmin, selectedShopId]);
 
   const reload = useCallback(() => setRefreshKey((k) => k + 1), []);
+  const shopById = new Map(shops.map((shop) => [shop.id, shop]));
 
   return (
     <div className="flex flex-col gap-stack-gap">
@@ -73,7 +163,7 @@ function ListTab() {
         <input
           type="search"
           value={q}
-          onChange={(e) => setQ(e.target.value)}
+          onChange={(e) => onQueryChange(e.target.value)}
           placeholder="Search by brand"
           className="min-h-touchTarget-sm flex-1 rounded-md border border-outline bg-surface px-stack-gap text-body-md"
         />
@@ -85,6 +175,24 @@ function ListTab() {
           />
           Include inactive
         </label>
+        {isSuperadmin && (
+          <label className="flex flex-col gap-1 text-label-md">
+            Shop
+            <select
+              aria-label="Shop"
+              value={selectedShopId ?? ""}
+              onChange={(e) => setSelectedShopId(e.target.value ? Number(e.target.value) : null)}
+              className="min-h-touchTarget-sm rounded-md border border-outline bg-surface px-stack-gap text-body-md"
+            >
+              <option value="">All shops</option>
+              {shops.map((shop) => (
+                <option key={shop.id} value={shop.id}>
+                  {shop.name} ({shop.code})
+                </option>
+              ))}
+            </select>
+          </label>
+        )}
         <button
           type="button"
           onClick={reload}
@@ -112,13 +220,10 @@ function ListTab() {
             <thead>
               <tr className="border-b border-outline text-label-md text-on-surface-variant">
                 <th className="px-stack-gap py-2 text-left">Brand</th>
+                {isSuperadmin && <th className="px-stack-gap py-2 text-left">Shop</th>}
                 <th className="px-stack-gap py-2 text-left">Size</th>
                 <th className="px-stack-gap py-2 text-left">Barcode</th>
                 <th className="px-stack-gap py-2 text-right">Price</th>
-                {/* Issue #40 — show current derived stock per product. Same
-                    value the dashboard's low-stock list uses (single source
-                    of truth = compute_derived_stock). */}
-                <th className="px-stack-gap py-2 text-right">Stock</th>
                 <th className="px-stack-gap py-2 text-right">Low-stock</th>
                 <th className="px-stack-gap py-2 text-left">Active</th>
                 <th className="px-stack-gap py-2 text-right">Actions</th>
@@ -130,27 +235,33 @@ function ListTab() {
                   <EditRow
                     key={p.id}
                     product={p}
+                    showShop={isSuperadmin}
+                    shopLabel={formatShopLabel(p.shop_id, shopById)}
                     onDone={() => {
-                      setEditingId(null);
+                      onEditingIdChange(null);
                       reload();
                     }}
-                    onCancel={() => setEditingId(null)}
+                    onCancel={() => onEditingIdChange(null)}
                   />
                 ) : (
                   <tr key={p.id} className="border-b border-outline/40">
                     <td className="px-stack-gap py-2">{p.brand}</td>
+                    {isSuperadmin && (
+                      <td className="px-stack-gap py-2">{formatShopLabel(p.shop_id, shopById)}</td>
+                    )}
                     <td className="px-stack-gap py-2">{p.size_label}</td>
                     <td className="px-stack-gap py-2 font-mono text-label-md">{p.barcode}</td>
-                    <td className="px-stack-gap py-2 text-right font-mono">₹{p.price}</td>
                     <td className="px-stack-gap py-2 text-right font-mono">
-                      {p.current_stock ?? 0}
+                      {p.price == null ? "—" : `₹${p.price}`}
                     </td>
-                    <td className="px-stack-gap py-2 text-right font-mono">—</td>
+                    <td className="px-stack-gap py-2 text-right font-mono">
+                      {p.low_stock_threshold ?? "—"}
+                    </td>
                     <td className="px-stack-gap py-2">{p.is_active ? "yes" : "no"}</td>
                     <td className="px-stack-gap py-2 text-right">
                       <button
                         type="button"
-                        onClick={() => setEditingId(p.id)}
+                        onClick={() => onEditingIdChange(p.id)}
                         className="rounded-md bg-primary px-stack-gap py-1 text-label-md text-on-primary"
                       >
                         Edit
@@ -167,19 +278,126 @@ function ListTab() {
   );
 }
 
+function formatShopLabel(shopId: number, shopById: Map<number, ShopSummary>): string {
+  const shop = shopById.get(shopId);
+  return shop ? `${shop.name} (${shop.code})` : `Shop ${shopId}`;
+}
+
+function CopyTab() {
+  const { actingShopId } = useShopScope();
+  const shopScopeGuard = useShopScopeGuard();
+  const [shops, setShops] = useState<ShopSummary[]>([]);
+  const [sourceShopId, setSourceShopId] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [result, setResult] = useState<{
+    copied: number;
+    skipped: number;
+    skipped_products: Array<{ barcode: string; reason: string }>;
+  } | null>(null);
+
+  useEffect(() => {
+    listShops()
+      .then(setShops)
+      .catch((e) => setError(toUserMessage(e, "Could not load shops.")));
+  }, []);
+
+  const submit = async () => {
+    if (shopScopeGuard.blocked || actingShopId == null) {
+      setError(shopScopeGuard.message);
+      return;
+    }
+    const src = Number(sourceShopId);
+    if (!src || src === actingShopId) {
+      setError("Pick a different source shop.");
+      return;
+    }
+    setBusy(true);
+    setError(null);
+    setResult(null);
+    try {
+      const res = await copyProductsFromShop(actingShopId, src);
+      invalidateCache();
+      setResult(res);
+    } catch (e) {
+      setError(toUserMessage(e, "Copy failed."));
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <section className="flex max-w-xl flex-col gap-stack-gap rounded-lg bg-surface-container p-gutter">
+      <h2 className="text-headline-md text-primary">Copy products</h2>
+      <label className="flex flex-col gap-1 text-label-md">
+        Source shop
+        <select
+          value={sourceShopId}
+          onChange={(e) => setSourceShopId(e.target.value)}
+          className="min-h-touchTarget-sm rounded-md border border-outline bg-surface px-stack-gap text-body-md"
+        >
+          <option value="">Select source shop</option>
+          {shops
+            .filter((shop) => shop.id !== actingShopId)
+            .map((shop) => (
+              <option key={shop.id} value={shop.id}>
+                {shop.name} ({shop.code})
+              </option>
+            ))}
+        </select>
+      </label>
+      <button
+        type="button"
+        onClick={submit}
+        disabled={busy}
+        className="min-h-touchTarget rounded-md bg-action text-label-xl text-on-action disabled:opacity-50"
+      >
+        {busy ? "Copying..." : "Copy into selected shop"}
+      </button>
+      {error && (
+        <div role="alert" className="rounded-md bg-error px-stack-gap py-3 text-on-error">
+          {error}
+        </div>
+      )}
+      {result && (
+        <div className="rounded-md bg-surface px-stack-gap py-3 text-body-md">
+          <div className="font-bold text-primary">
+            {result.copied} copied, {result.skipped} skipped
+          </div>
+          {result.skipped_products.length > 0 && (
+            <ul className="mt-2 list-disc pl-5 text-on-surface-variant">
+              {result.skipped_products.slice(0, 20).map((item) => (
+                <li key={item.barcode}>
+                  <span className="font-mono">{item.barcode}</span>: {item.reason}
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      )}
+    </section>
+  );
+}
+
 function EditRow({
   product,
+  showShop,
+  shopLabel,
   onDone,
   onCancel,
 }: {
   product: Product;
+  showShop: boolean;
+  shopLabel: string;
   onDone: () => void;
   onCancel: () => void;
 }) {
   const [brand, setBrand] = useState(product.brand);
   const [sizeLabel, setSizeLabel] = useState(product.size_label);
-  const [price, setPrice] = useState(product.price);
-  const [threshold, setThreshold] = useState<string>("");
+  const [price, setPrice] = useState(product.price ?? "");
+  const [threshold, setThreshold] = useState<string>(
+    product.low_stock_threshold === null ? "" : String(product.low_stock_threshold)
+  );
   const [active, setActive] = useState(product.is_active);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -221,6 +439,7 @@ function EditRow({
           className="w-full rounded-md border border-outline bg-surface px-2 py-1 text-body-md"
         />
       </td>
+      {showShop && <td className="px-stack-gap py-2">{shopLabel}</td>}
       <td className="px-stack-gap py-2">
         <input
           value={sizeLabel}
@@ -269,7 +488,7 @@ function EditRow({
             type="button"
             onClick={save}
             disabled={busy}
-            className="rounded-md bg-accent px-stack-gap py-1 text-label-md text-on-accent disabled:opacity-50"
+            className="rounded-md bg-action px-stack-gap py-1 text-label-md text-on-action disabled:opacity-50"
           >
             {busy ? "Saving…" : "Save"}
           </button>
@@ -284,7 +503,13 @@ function EditRow({
   );
 }
 
-function CreateTab({ onCreated }: { onCreated: () => void }) {
+function CreateTab({
+  initialBarcode,
+  onCreated,
+}: {
+  initialBarcode: InitialBarcode | null;
+  onCreated: () => void;
+}) {
   const { actingShopId } = useShopScope();
   const shopScopeGuard = useShopScopeGuard();
   const [barcode, setBarcode] = useState("");
@@ -295,6 +520,10 @@ function CreateTab({ onCreated }: { onCreated: () => void }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [info, setInfo] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (initialBarcode) setBarcode(initialBarcode.value);
+  }, [initialBarcode]);
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -354,7 +583,7 @@ function CreateTab({ onCreated }: { onCreated: () => void }) {
       <button
         type="submit"
         disabled={busy}
-        className="min-h-touchTarget rounded-md bg-accent text-label-xl text-on-accent disabled:opacity-50"
+        className="min-h-touchTarget rounded-md bg-action text-label-xl text-on-action disabled:opacity-50"
       >
         {busy ? "Creating…" : "Create product"}
       </button>
@@ -453,7 +682,7 @@ function ImportTab() {
         type="button"
         onClick={submit}
         disabled={!file || busy}
-        className="min-h-touchTarget rounded-md bg-accent text-label-xl text-on-accent disabled:opacity-50"
+        className="min-h-touchTarget rounded-md bg-action text-label-xl text-on-action disabled:opacity-50"
       >
         {busy ? "Importing…" : "Upload CSV"}
       </button>

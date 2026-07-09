@@ -6,25 +6,46 @@
 //   surface   #f8fafc (Light Gray — background)
 // Touch targets: min 64px (oversized, per design spec).
 
+const actionGreen = "var(--color-action)";
+const onAction = "var(--color-on-action)";
+const activeTab = "var(--color-active-tab)";
+const onActiveTab = "var(--color-on-active-tab)";
+const logoutOrange = "#fb923c";
+
 export const tokens = {
   colors: {
     primary: "#1e293b",
     "on-primary": "#ffffff",
     "primary-container": "#334155",
-    accent: "#fb923c",
-    "on-accent": "#1e293b",
+    action: actionGreen,
+    "on-action": onAction,
+    "action-hover": "#16a34a",
+    "action-muted": "#bbf7d0",
+    "active-tab": activeTab,
+    "on-active-tab": onActiveTab,
+    accent: actionGreen,
+    "on-accent": "#ffffff",
+    logout: logoutOrange,
+    "on-logout": "#1e293b",
     secondary: "#10b981",
     "on-secondary": "#ffffff",
+    sidebar: "#e2e8f0",
+    "on-sidebar": "#1e293b",
+    "on-sidebar-muted": "var(--color-sidebar-menu-inactive-text)",
+    "sidebar-active": actionGreen,
+    "on-sidebar-active": "var(--color-sidebar-menu-active-text)",
+    "sidebar-hover": "#cbd5e1",
     surface: "#f8fafc",
     "surface-container": "#f1f5f9",
     "surface-container-high": "#e2e8f0",
     "on-surface": "#0f172a",
     "on-surface-variant": "#475569",
     outline: "#cbd5e1",
-    error: "#dc2626",
-    "on-error": "#ffffff",
+    error: "#fee2e2",
+    "on-error": "#7f1d1d",
     success: "#10b981",
     warning: "#f59e0b",
+    "on-warning": "#1e293b",
   },
   fontFamily: {
     body: ["Inter", "system-ui", "sans-serif"],
@@ -57,6 +78,7 @@ export const tokens = {
   touchTarget: {
     DEFAULT: "64px",
     sm: "48px",
+    nav: "48px",
   },
 };
 

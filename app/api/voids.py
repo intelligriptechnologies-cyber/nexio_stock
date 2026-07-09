@@ -26,7 +26,7 @@ from app.api._logs import write_business_log
 from app.api.deps import DbSession, require_role
 from app.db import unit_of_work
 from app.logging_config import get_logger
-from app.models.invoice import Invoice, InvoiceStatus
+from app.models.invoice import Invoice, InvoiceStatus, PastInvoice
 from app.models.log import InvoicingLog
 from app.models.user import User, UserRole
 from app.schemas.checkout import InvoicePublic
@@ -62,6 +62,10 @@ async def _resolve_void_shop_id(db: AsyncSession, user: User, invoice_id: int) -
     shop_id = (
         await db.execute(select(Invoice.shop_id).where(Invoice.id == invoice_id))
     ).scalar_one_or_none()
+    if shop_id is None:
+        shop_id = (
+            await db.execute(select(PastInvoice.shop_id).where(PastInvoice.id == invoice_id))
+        ).scalar_one_or_none()
     if shop_id is None:
         _not_found()
     return shop_id
@@ -261,13 +265,22 @@ async def reject_void(
 
 async def _load_invoice(
     db: AsyncSession, invoice_id: int, shop_id: int
-) -> Invoice:
+) -> Invoice | PastInvoice:
     from sqlalchemy import select
 
-    return (
+    current = (
         await db.execute(
             select(Invoice).where(
                 Invoice.id == invoice_id, Invoice.shop_id == shop_id
+            )
+        )
+    ).scalar_one_or_none()
+    if current is not None:
+        return current
+    return (
+        await db.execute(
+            select(PastInvoice).where(
+                PastInvoice.id == invoice_id, PastInvoice.shop_id == shop_id
             )
         )
     ).scalar_one_or_none() or _not_found()

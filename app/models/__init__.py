@@ -13,12 +13,15 @@ from app.models.invoice import (
     Invoice,
     InvoiceLine,
     InvoiceStatus,
+    PastInvoice,
+    PastInvoiceLine,
+    PastPayment,
     Payment,
     PaymentMode,
 )
 from app.models.log import AdminLog, InvoicingLog, StockinLog
 from app.models.lot import Lot, LotLine
-from app.models.product import Product, ProductStatus
+from app.models.product import MasterProduct, Product, ProductStatus
 from app.models.shop import Shop
 from app.models.user import User, UserRole
 
@@ -33,6 +36,10 @@ __all__ = [
     "InvoicingLog",
     "Lot",
     "LotLine",
+    "MasterProduct",
+    "PastInvoice",
+    "PastInvoiceLine",
+    "PastPayment",
     "Payment",
     "PaymentMode",
     "Product",

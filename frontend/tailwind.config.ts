@@ -21,8 +21,16 @@ export default {
       fontSize: tokens.fontSize as unknown as Record<string, [string, Record<string, string | number>]>,
       borderRadius: tokens.borderRadius as unknown as Record<string, string>,
       spacing: tokens.spacing as unknown as Record<string, string>,
-      minHeight: tokens.touchTarget as unknown as Record<string, string>,
-      minWidth: tokens.touchTarget as unknown as Record<string, string>,
+      minHeight: {
+        touchTarget: tokens.touchTarget.DEFAULT,
+        "touchTarget-sm": tokens.touchTarget.sm,
+        "touchTarget-nav": tokens.touchTarget.nav,
+      },
+      minWidth: {
+        touchTarget: tokens.touchTarget.DEFAULT,
+        "touchTarget-sm": tokens.touchTarget.sm,
+        "touchTarget-nav": tokens.touchTarget.nav,
+      },
     },
   },
   plugins: [],

@@ -4,7 +4,7 @@
 
 import { api, withShopId } from "./client";
 
-export type PaymentMode = "cash" | "upi" | "card" | "credit";
+export type PaymentMode = "cash" | "upi" | "card";
 
 export interface CheckoutLine {
   barcode: string;
@@ -40,10 +40,11 @@ export interface InvoicePublic {
   shop_id: number;
   cashier_user_id: number;
   invoice_number: number;
-  status: "open" | "finalized" | "voided" | "reversed";
+  status: "finalized" | "voided" | "reversal" | "pending_void";
   total_amount: string;
   note: string | null;
   finalized_at: string;
+  business_date: string;
   eod_signed_off: boolean;
   lines: InvoiceLinePublic[];
   payments: PaymentPublic[];
@@ -68,6 +69,51 @@ export function finalizeCheckout(
 
 export function getInvoice(invoiceId: number): Promise<InvoicePublic> {
   return api<InvoicePublic>(`/invoices/${invoiceId}`);
+}
+
+export interface CartValidationLine {
+  barcode: string;
+  requested_quantity: number;
+  available_quantity: number;
+  accepted_quantity: number;
+  adjusted: boolean;
+}
+
+export function validateCheckoutCart(
+  lines: CheckoutLine[],
+  shopId?: number | null
+): Promise<{ lines: CartValidationLine[] }> {
+  return api<{ lines: CartValidationLine[] }>("/checkout/validate", {
+    method: "POST",
+    json: withShopId({ lines }, shopId),
+  });
+}
+
+export function listInvoices(opts: {
+  source: "current" | "past";
+  shopId?: number | null;
+  dateFrom?: string;
+  dateTo?: string;
+  cashier?: number;
+  paymentMode?: PaymentMode;
+  status?: InvoicePublic["status"];
+}): Promise<{ invoices: InvoicePublic[] }> {
+  const params = new URLSearchParams();
+  params.set("source", opts.source);
+  if (opts.dateFrom) params.set("date_from", opts.dateFrom);
+  if (opts.dateTo) params.set("date_to", opts.dateTo);
+  if (opts.cashier) params.set("cashier", String(opts.cashier));
+  if (opts.paymentMode) params.set("payment_mode", opts.paymentMode);
+  if (opts.status) params.set("status", opts.status);
+  if (opts.shopId != null) params.set("shop_id", String(opts.shopId));
+  return api<{ invoices: InvoicePublic[] }>(`/invoices?${params.toString()}`);
+}
+
+export function editInvoice(
+  invoiceId: number,
+  payload: { lines: CheckoutLine[]; payments: PaymentInput[]; note?: string }
+): Promise<InvoicePublic> {
+  return api<InvoicePublic>(`/invoices/${invoiceId}`, { method: "PATCH", json: payload });
 }
 
 // Browser-native <a href> doesn't send headers, so a plain link can't

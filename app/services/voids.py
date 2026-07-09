@@ -32,9 +32,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.invoice import (
     Invoice,
-    InvoiceLine,
     InvoiceStatus,
-    Payment,
+    PastInvoice,
+    PastInvoiceLine,
+    PastPayment,
 )
 from app.models.shop import Shop
 
@@ -48,13 +49,13 @@ class VoidError(Exception):
 
 @dataclass
 class VoidResult:
-    invoice: Invoice
-    reversal: Invoice | None  # only populated for approve_post_eod
+    invoice: Invoice | PastInvoice
+    reversal: Invoice | PastInvoice | None  # only populated for approve_post_eod
 
 
 async def _load_invoice_for_void(
     db: AsyncSession, *, invoice_id: int, shop_id: int
-) -> Invoice:
+) -> Invoice | PastInvoice:
     invoice = (
         await db.execute(
             select(Invoice).where(
@@ -63,9 +64,19 @@ async def _load_invoice_for_void(
             )
         )
     ).scalar_one_or_none()
-    if invoice is None:
+    if invoice is not None:
+        return invoice
+    past = (
+        await db.execute(
+            select(PastInvoice).where(
+                PastInvoice.id == invoice_id,
+                PastInvoice.shop_id == shop_id,
+            )
+        )
+    ).scalar_one_or_none()
+    if past is None:
         raise VoidError("not_found", "invoice not found")
-    return invoice
+    return past
 
 
 async def direct_void(
@@ -75,7 +86,7 @@ async def direct_void(
     shop_id: int,
     actor_user_id: int,
     reason: str | None = None,
-) -> Invoice:
+) -> Invoice | PastInvoice:
     """Pre-EOD direct void. Allowed for cashier + owner; rejected for
     signed-off invoices (caller must use request_post_eod_void)."""
     invoice = await _load_invoice_for_void(
@@ -123,7 +134,7 @@ async def request_post_eod_void(
     invoice = await _load_invoice_for_void(
         db, invoice_id=invoice_id, shop_id=shop_id
     )
-    if not invoice.eod_signed_off:
+    if isinstance(invoice, Invoice) and not invoice.eod_signed_off:
         raise VoidError(
             "use_direct_void",
             "invoice is not EOD-signed-off; use the direct void flow",
@@ -166,7 +177,7 @@ async def approve_post_eod_void(
             "not_pending",
             f"invoice is in status {invoice.status.value}; cannot approve",
         )
-    if not invoice.eod_signed_off:
+    if isinstance(invoice, Invoice) and not invoice.eod_signed_off:
         raise VoidError(
             "not_signed_off",
             "original invoice isn't EOD-signed-off; use direct void",
@@ -186,36 +197,43 @@ async def approve_post_eod_void(
     # Eager-load the original's lines + payments so we can copy them.
     await db.refresh(invoice, attribute_names=["lines", "payments"])
 
-    reversal = Invoice(
+    is_past = isinstance(invoice, PastInvoice)
+    reversal = PastInvoice(
         shop_id=shop_id,
         cashier_user_id=owner_user_id,
         invoice_number=next_number,
         status=InvoiceStatus.REVERSAL,
         total_amount=(-invoice.total_amount),
+        finalized_at=datetime.now(UTC),
+        business_date=invoice.business_date,
+        eod_signed_off_at=datetime.now(UTC),
+        eod_signed_off_by_user_id=owner_user_id,
         note=(
             f"Reversal of invoice {invoice.invoice_number}. "
             + (reason or "")
         ),
-        reverses_invoice_id=invoice.id,
+        reverses_past_invoice_id=invoice.id if is_past else None,
     )
     db.add(reversal)
     await db.flush()  # need reversal.id for the lines
 
     for line in invoice.lines:
         db.add(
-            InvoiceLine(
+            PastInvoiceLine(
                 invoice_id=reversal.id,
                 product_id=line.product_id,
                 quantity=line.quantity,
                 unit_price=line.unit_price,
                 line_total=-line.line_total,
+                product_brand=line.product_brand,
+                product_size_label=line.product_size_label,
             )
         )
 
     # Mirror the payments as negatives — same total, just reversed.
     for p in invoice.payments:
         db.add(
-            Payment(
+            PastPayment(
                 invoice_id=reversal.id,
                 mode=p.mode,
                 amount=-p.amount,

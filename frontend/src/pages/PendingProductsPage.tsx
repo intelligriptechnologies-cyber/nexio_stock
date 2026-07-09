@@ -10,13 +10,18 @@ import { ApiError } from "../api/client";
 import {
   activateProduct,
   listPendingProducts,
+  rejectProduct,
+  updateProduct,
   type PendingProductRow,
 } from "../api/products";
 import { invalidateCache } from "../api/catalog";
+import { notifyPendingProductsChanged } from "../api/pending-products-events";
 import { useShopScope } from "../auth/ShopScopeProvider";
 
 interface EditingState {
   productId: number;
+  brand: string;
+  sizeLabel: string;
   price: string;
   threshold: string;
 }
@@ -67,7 +72,7 @@ export function PendingProductsPage() {
   }, [reload]);
 
   const startEdit = (row: PendingProductRow) => {
-    setEditing({ productId: row.id, price: "", threshold: "" });
+    setEditing({ productId: row.id, brand: row.brand, sizeLabel: row.size_label, price: "", threshold: "" });
     setError(null);
     setInfo(null);
   };
@@ -96,6 +101,11 @@ export function PendingProductsPage() {
     setBusyId(editing.productId);
     setError(null);
     try {
+      await updateProduct(editing.productId, {
+        brand: editing.brand.trim(),
+        size_label: editing.sizeLabel.trim(),
+        low_stock_threshold: thresholdNum,
+      });
       await activateProduct(editing.productId, {
         price: priceNum.toFixed(2),
         low_stock_threshold: thresholdNum,
@@ -106,6 +116,7 @@ export function PendingProductsPage() {
       setInfo("Product activated — now sellable at checkout.");
       setEditing(null);
       await reload();
+      notifyPendingProductsChanged();
     } catch (e) {
       if (e instanceof ApiError) {
         setError(e.detail || "Activation failed.");
@@ -117,10 +128,27 @@ export function PendingProductsPage() {
     }
   };
 
+  const submitReject = async (row: PendingProductRow) => {
+    setBusyId(row.id);
+    setError(null);
+    setInfo(null);
+    try {
+      await rejectProduct(row.id);
+      invalidateCache();
+      setInfo("Pending product rejected.");
+      await reload();
+      notifyPendingProductsChanged();
+    } catch (e) {
+      setError(e instanceof ApiError ? e.detail : "Reject failed.");
+    } finally {
+      setBusyId(null);
+    }
+  };
+
   return (
     <div className="flex flex-col gap-gutter">
       <header className="flex flex-wrap items-center justify-between gap-stack-gap">
-        <h1 className="text-headline-lg text-primary">Pending Products</h1>
+        <h1 className="text-headline-lg text-primary">Pending</h1>
         <div className="flex items-center gap-stack-gap text-label-md text-on-surface-variant">
           <span>
             {rows.length === 0
@@ -192,13 +220,23 @@ export function PendingProductsPage() {
                 </div>
               </div>
               {!editing || editing.productId !== row.id ? (
-                <button
-                  type="button"
-                  onClick={() => startEdit(row)}
-                  className="min-h-touchTarget-sm rounded-md bg-accent px-gutter text-label-md text-on-accent"
-                >
-                  Set price
-                </button>
+                <div className="flex gap-stack-gap">
+                  <button
+                    type="button"
+                    onClick={() => startEdit(row)}
+                    className="min-h-touchTarget-sm rounded-md bg-action px-gutter text-label-md text-on-action"
+                  >
+                    Edit
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => void submitReject(row)}
+                    disabled={busyId === row.id}
+                    className="min-h-touchTarget-sm rounded-md bg-error px-gutter text-label-md text-on-error disabled:opacity-50"
+                  >
+                    Reject
+                  </button>
+                </div>
               ) : null}
             </div>
             {editing && editing.productId === row.id && (
@@ -207,6 +245,31 @@ export function PendingProductsPage() {
                 className="mt-stack-gap flex flex-col gap-stack-gap rounded-md bg-surface p-stack-gap"
               >
                 <div className="grid gap-stack-gap md:grid-cols-2">
+                  <label className="flex flex-col gap-1 text-label-md">
+                    Brand/name
+                    <input
+                      type="text"
+                      required
+                      value={editing.brand}
+                      onChange={(e) =>
+                        setEditing({ ...editing, brand: e.target.value })
+                      }
+                      autoFocus
+                      className="min-h-touchTarget-sm rounded-md border border-outline bg-surface px-stack-gap text-body-md"
+                    />
+                  </label>
+                  <label className="flex flex-col gap-1 text-label-md">
+                    ML/Mg/size
+                    <input
+                      type="text"
+                      required
+                      value={editing.sizeLabel}
+                      onChange={(e) =>
+                        setEditing({ ...editing, sizeLabel: e.target.value })
+                      }
+                      className="min-h-touchTarget-sm rounded-md border border-outline bg-surface px-stack-gap text-body-md"
+                    />
+                  </label>
                   <label className="flex flex-col gap-1 text-label-md">
                     Price (₹)
                     <input
@@ -248,7 +311,7 @@ export function PendingProductsPage() {
                   </button>
                   <button
                     type="submit"
-                    className="min-h-touchTarget-sm flex-1 rounded-md bg-accent text-label-md text-on-accent disabled:opacity-50"
+                    className="min-h-touchTarget-sm flex-1 rounded-md bg-action text-label-md text-on-action disabled:opacity-50"
                     disabled={busyId === row.id}
                   >
                     {busyId === row.id ? "Activating…" : "Activate"}
