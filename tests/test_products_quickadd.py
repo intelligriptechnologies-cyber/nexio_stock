@@ -134,15 +134,33 @@ async def test_cashier_quick_add_creates_pending_product(
 
 
 @pytest.mark.usefixtures("owner", "receiver", "cashier")
-async def test_superadmin_cannot_quick_add(superadmin_client: AsyncClient) -> None:
-    """D-v2-10 + scope discipline: quick-add is for shop-scoped users only;
-    superadmin creating provisional products would skip the owner-completion
-    notification surface."""
+async def test_superadmin_quick_add_requires_shop_id(superadmin_client: AsyncClient) -> None:
     r = await superadmin_client.post(
         "/products/quick-add",
         json={"barcode": "8900000000104", "brand": "X", "size_label": "750ml"},
     )
-    assert r.status_code == 403
+    assert r.status_code == 400
+    assert r.json()["detail"] == "Select a shop before adding this product."
+
+
+@pytest.mark.usefixtures("owner", "receiver", "cashier")
+async def test_superadmin_quick_add_with_shop_id_creates_pending_product(
+    superadmin_client: AsyncClient,
+    shop,
+) -> None:
+    r = await superadmin_client.post(
+        "/products/quick-add",
+        json={
+            "barcode": "8900000000104",
+            "brand": "Super Brand",
+            "size_label": "750ml",
+            "shop_id": shop.id,
+        },
+    )
+    assert r.status_code == 201, r.text
+    body = r.json()
+    assert body["status"] == "pending"
+    assert body["shop_id"] == shop.id
 
 
 @pytest.mark.usefixtures("owner", "receiver", "cashier")

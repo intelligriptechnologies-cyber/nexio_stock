@@ -85,7 +85,7 @@ export default function App() {
       <Route
         path="/inventory"
         element={
-          <Protected allow={["owner", "superadmin"]}>
+          <Protected allow={["receiver_user", "cashier_user", "owner", "superadmin"]}>
             <AuthedShell>
               <InventoryPage />
             </AuthedShell>

@@ -1,17 +1,17 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Api, ApiError } from "../api/client";
-import { useAuth, homePathFor, type AuthUser, type Role } from "../auth/AuthProvider";
+import { homePathFor, type AuthUser, type Role, useAuth } from "../auth/AuthProvider";
 import { PinPad } from "../components/PinPad";
 
-// Issue #24 — login flow is two stages:
-//   1. PICKER — render a tap-list of staff names + roles fetched from
+// Issue #24 - login flow is two stages:
+//   1. PICKER - render a tap-list of staff names + roles fetched from
 //      GET /auth/shop-staff (D-v2-16). The picker returns
 //      {id, full_name, role} only; the LoginPage keeps the picked row's
 //      id in state for the second stage.
-//   2. PIN    — identical to the previous PIN pad; on submit, POST
+//   2. PIN - identical to the previous PIN pad; on submit, POST
 //      /auth/login with {staff_id, password} instead of {phone, password}
-//      (the backend's LoginRequest accepts either identifier — see
+//      (the backend's LoginRequest accepts either identifier - see
 //      app/schemas/auth.py).
 //
 // Superadmin login is unaffected (separate route + page).
@@ -25,8 +25,6 @@ interface StaffRow {
 }
 
 function roleLabel(r: string): string {
-  // The picker's role strings are UserRole .values: "owner",
-  // "receiver_user", "cashier_user". Render them human-readable.
   if (r === "owner") return "Owner";
   if (r === "receiver_user") return "Receiver";
   if (r === "cashier_user") return "Cashier";
@@ -43,8 +41,6 @@ export function LoginPage() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
-  // Stage 1 — fetch the staff list on mount. If the backend is
-  // unreachable, show a friendly message rather than a blank screen.
   useEffect(() => {
     let cancelled = false;
     setLoading(true);
@@ -58,7 +54,7 @@ export function LoginPage() {
         if (cancelled) return;
         if (e instanceof ApiError) {
           if (e.status === 0) {
-            setError("Network error — is the backend reachable?");
+            setError("Network error - is the backend reachable?");
           } else {
             setError(e.detail);
           }
@@ -105,13 +101,9 @@ export function LoginPage() {
       setError("Enter your password/PIN (4+ digits).");
       return;
     }
-    if (!picked) return; // type-narrowing; shouldn't happen
+    if (!picked) return;
     setLoading(true);
     try {
-      // The picker intentionally doesn't expose phone (D-v2-16); the
-      // backend's LoginRequest accepts staff_id as the alternative
-      // identifier for shop login. Either identifier is fine; the
-      // backend's role gate (owner/receiver/cashier) is unchanged.
       const json = await Api.loginShop({ staff_id: picked.id }, password);
       const raw = json.user as Record<string, unknown>;
       const user: AuthUser = {
@@ -127,7 +119,7 @@ export function LoginPage() {
     } catch (e) {
       if (e instanceof ApiError) {
         if (e.status === 401) setError("Invalid PIN.");
-        else if (e.status === 0) setError("Network error — is the backend reachable?");
+        else if (e.status === 0) setError("Network error - is the backend reachable?");
         else setError(e.detail);
       } else {
         setError("Unexpected error.");
@@ -137,127 +129,134 @@ export function LoginPage() {
     }
   };
 
-  // -------- Render --------
-
   if (stage === "picker") {
     return (
-      <div className="flex min-h-full flex-col items-center justify-center bg-surface p-stack-gap">
-        <h1 className="mb-stack-gap text-headline-lg text-primary">Barstock</h1>
-        <p className="mb-stack-gap text-body-md text-on-surface-variant">
-          Tap your name to sign in
-        </p>
-
-        {loading && staff.length === 0 && (
-          <div
-            role="status"
-            className="mb-stack-gap w-full max-w-xs rounded-md bg-surface-container px-stack-gap py-3 text-center text-label-md text-on-surface-variant"
-          >
-            Loading staff…
+      <div className="flex min-h-full items-center justify-center bg-primary p-stack-gap">
+        <section className="w-full max-w-[400px] rounded-lg border border-white/80 bg-white/95 px-gutter py-section-gap shadow-2xl shadow-primary/20 ring-1 ring-primary/10">
+          <div className="mb-section-gap text-center">
+            <h1 className="text-headline-lg text-primary">Barstock</h1>
+            <p className="mt-2 text-body-md text-on-surface-variant">
+              Tap your name to sign in
+            </p>
           </div>
-        )}
 
-        {!loading && staff.length === 0 && !error && (
-          <div
-            role="status"
-            className="mb-stack-gap w-full max-w-xs rounded-md bg-surface-container px-stack-gap py-3 text-center text-label-md text-on-surface-variant"
-          >
-            No active staff on this shop. Ask your owner to create an account.
+          {loading && staff.length === 0 && (
+            <div
+              role="status"
+              className="mb-stack-gap w-full rounded-md border border-outline bg-surface-container px-stack-gap py-3 text-center text-label-md text-on-surface-variant"
+            >
+              Loading staff...
+            </div>
+          )}
+
+          {!loading && staff.length === 0 && !error && (
+            <div
+              role="status"
+              className="mb-stack-gap w-full rounded-md border border-outline bg-surface-container px-stack-gap py-3 text-center text-label-md text-on-surface-variant"
+            >
+              No active staff on this shop. Ask your owner to create an account.
+            </div>
+          )}
+
+          <ul className="mb-stack-gap flex w-full flex-col gap-stack-gap">
+            {staff.map((row) => (
+              <li key={row.id}>
+                <button
+                  type="button"
+                  onClick={() => handlePick(row)}
+                  className="min-h-touchTarget flex w-full items-center justify-between rounded-md border border-outline bg-surface-container px-stack-gap py-3 text-left shadow-sm transition hover:-translate-y-0.5 hover:border-primary/30 hover:bg-white hover:shadow-md focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                  data-testid="staff-row"
+                  data-staff-id={row.id}
+                  data-staff-role={row.role}
+                >
+                  <span className="text-label-xl text-on-surface">{row.full_name}</span>
+                  <span className="ml-stack-gap rounded-sm bg-primary/10 px-2 py-1 text-label-md text-primary">
+                    {roleLabel(row.role)}
+                  </span>
+                </button>
+              </li>
+            ))}
+          </ul>
+
+          {error && (
+            <div
+              role="alert"
+              className="mb-stack-gap w-full rounded-md border border-red-200 bg-error px-stack-gap py-3 text-on-error"
+            >
+              {error}
+            </div>
+          )}
+
+          <div className="mt-stack-gap flex w-full justify-center text-label-md text-on-surface-variant">
+            <button
+              type="button"
+              onClick={() => navigate("/login/superadmin")}
+              className="min-h-touchTarget-sm rounded-md border border-primary/20 bg-primary px-stack-gap text-on-primary shadow-sm transition hover:bg-primary-container focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+            >
+              Superadmin login
+            </button>
           </div>
-        )}
+        </section>
+      </div>
+    );
+  }
 
-        <ul className="mb-stack-gap flex w-full max-w-xs flex-col gap-stack-gap">
-          {staff.map((row) => (
-            <li key={row.id}>
-              <button
-                type="button"
-                onClick={() => handlePick(row)}
-                className="min-h-touchTarget flex w-full items-center justify-between rounded-md bg-surface-container px-stack-gap py-3 text-left hover:bg-surface-container-high"
-                data-testid="staff-row"
-                data-staff-id={row.id}
-                data-staff-role={row.role}
-              >
-                <span className="text-label-xl text-on-surface">{row.full_name}</span>
-                <span className="text-label-md text-on-surface-variant">
-                  {roleLabel(row.role)}
-                </span>
-              </button>
-            </li>
-          ))}
-        </ul>
+  const maskedPw = "*".repeat(password.length);
+  return (
+    <div className="flex min-h-full items-center justify-center bg-primary p-stack-gap">
+      <section className="w-full max-w-[400px] rounded-lg border border-white/80 bg-white/95 px-gutter py-section-gap shadow-2xl shadow-primary/20 ring-1 ring-primary/10">
+        <div className="mb-section-gap text-center">
+          <h1 className="text-headline-lg text-primary">Barstock</h1>
+          <p className="mt-2 text-body-md text-on-surface-variant">Enter your PIN</p>
+        </div>
+
+        <div className="mb-stack-gap w-full rounded-md border border-outline bg-surface-container px-stack-gap py-3 text-center text-label-xl text-on-surface">
+          <span className="text-on-surface-variant">Signed in as </span>
+          <span className="font-medium">{picked?.full_name}</span>
+          {picked ? (
+            <span className="ml-2 text-on-surface-variant">({roleLabel(picked.role)})</span>
+          ) : null}
+        </div>
+
+        <div className="mb-stack-gap min-h-touchTarget w-full rounded-md border border-primary/20 bg-white px-stack-gap py-3 text-center font-mono text-headline-md tracking-widest text-on-surface shadow-inner">
+          {maskedPw || "-"}
+        </div>
+
+        <PinPad
+          onDigit={handleDigit}
+          onBackspace={handleBackspace}
+          onClear={handleClear}
+          onSubmit={handleSubmit}
+          disabled={loading}
+          accentLabel={loading ? "SIGNING IN..." : "LOGIN"}
+        />
 
         {error && (
           <div
             role="alert"
-            className="mb-stack-gap w-full max-w-xs rounded-md bg-error px-stack-gap py-3 text-on-error"
+            className="mt-stack-gap w-full rounded-md border border-red-200 bg-error px-stack-gap py-3 text-on-error"
           >
             {error}
           </div>
         )}
 
-        <div className="mt-stack-gap flex w-full max-w-xs justify-between text-label-md text-on-surface-variant">
+        <div className="mt-stack-gap flex w-full justify-between gap-stack-gap text-label-md text-on-surface-variant">
+          <button
+            type="button"
+            onClick={handleBackToPicker}
+            className="min-h-touchTarget-sm rounded-md border border-outline bg-surface-container px-stack-gap hover:bg-surface-container-high"
+          >
+            Back
+          </button>
           <button
             type="button"
             onClick={() => navigate("/login/superadmin")}
-            className="underline"
+            className="min-h-touchTarget-sm rounded-md border border-primary/20 bg-primary px-stack-gap text-on-primary shadow-sm transition hover:bg-primary-container"
           >
             Superadmin login
           </button>
         </div>
-      </div>
-    );
-  }
-
-  // stage === "pin"
-  const maskedPw = "•".repeat(password.length);
-  return (
-    <div className="flex min-h-full flex-col items-center justify-center bg-surface p-stack-gap">
-      <h1 className="mb-stack-gap text-headline-lg text-primary">Barstock</h1>
-      <p className="mb-stack-gap text-body-md text-on-surface-variant">
-        Enter your PIN
-      </p>
-
-      <div className="mb-stack-gap w-full max-w-xs rounded-md bg-surface-container px-stack-gap py-3 text-center text-label-xl text-on-surface">
-        <span className="text-on-surface-variant">Signed in as </span>
-        <span className="font-medium">{picked?.full_name}</span>
-        {picked ? (
-          <span className="ml-2 text-on-surface-variant">({roleLabel(picked.role)})</span>
-        ) : null}
-      </div>
-
-      <div className="mb-stack-gap min-h-touchTarget w-full max-w-xs rounded-md bg-surface px-stack-gap py-3 text-center font-mono text-headline-md tracking-widest text-on-surface">
-        {maskedPw || "—"}
-      </div>
-
-      <PinPad
-        onDigit={handleDigit}
-        onBackspace={handleBackspace}
-        onClear={handleClear}
-        onSubmit={handleSubmit}
-        disabled={loading}
-        accentLabel={loading ? "SIGNING IN…" : "LOGIN"}
-      />
-
-      {error && (
-        <div
-          role="alert"
-          className="mt-stack-gap w-full max-w-xs rounded-md bg-error px-stack-gap py-3 text-on-error"
-        >
-          {error}
-        </div>
-      )}
-
-      <div className="mt-stack-gap flex w-full max-w-xs justify-between text-label-md text-on-surface-variant">
-        <button type="button" onClick={handleBackToPicker} className="underline">
-          Back
-        </button>
-        <button
-          type="button"
-          onClick={() => navigate("/login/superadmin")}
-          className="underline"
-        >
-          Superadmin login
-        </button>
-      </div>
+      </section>
     </div>
   );
 }

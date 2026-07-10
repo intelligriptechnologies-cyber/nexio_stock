@@ -22,6 +22,7 @@ export interface ProductQuickAddPayload {
   barcode: string;
   brand: string;
   size_label: string;
+  shop_id?: number;
 }
 
 export interface PendingProductRow {
@@ -99,11 +100,11 @@ export function createProduct(
  */
 export function quickAddProduct(
   payload: ProductQuickAddPayload,
-  opts: { idempotencyKey: string; origin: "receiving" | "checkout" }
+  opts: { idempotencyKey: string; origin: "receiving" | "checkout"; shopId?: number | null }
 ): Promise<Product> {
   return api<Product>("/products/quick-add", {
     method: "POST",
-    json: payload,
+    json: withShopId(payload, opts.shopId),
     headers: {
       "Idempotency-Key": opts.idempotencyKey,
       "X-Quick-Add-Origin": opts.origin,

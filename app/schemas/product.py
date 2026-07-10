@@ -55,9 +55,9 @@ class ProductQuickAdd(BaseModel):
 
     Captures brand + size_label only — no price, no threshold. The new
     product is ``status='pending'`` and unsellable until the owner
-    completes it (sets a price, issue #25). The quick-add endpoint that
-    consumes this schema is open to receiver_user, cashier_user, and
-    owner (D-v2-10).
+    completes it (sets a price, issue #25). The quick-add endpoint is
+    open to receiver_user, cashier_user, owner, and shop-scoped
+    superadmin writes (D-v2-10 plus acting-shop scope).
 
     The frontend sends an ``Idempotency-Key`` header so a double-tap on
     "Add" is a no-op, not a duplicate-error (D-v2-12). The DB-level
@@ -70,6 +70,7 @@ class ProductQuickAdd(BaseModel):
     barcode: str = Field(min_length=1, max_length=64)
     brand: str = Field(min_length=1, max_length=200)
     size_label: str = Field(min_length=1, max_length=64)
+    shop_id: int | None = Field(default=None)
 
     @field_validator("barcode")
     @classmethod

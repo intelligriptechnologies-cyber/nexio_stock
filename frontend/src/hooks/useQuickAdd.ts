@@ -96,7 +96,7 @@ export function useQuickAdd(options: UseQuickAddOptions): UseQuickAddReturn {
             brand: params.brand.trim(),
             size_label: params.size.trim(),
           },
-          { idempotencyKey: idemKey, origin }
+          { idempotencyKey: idemKey, origin, shopId: actingShopId }
         );
         // Catalog refresh so the next scan/search of this barcode
         // resolves locally. Both pages depend on this.
@@ -117,6 +117,10 @@ export function useQuickAdd(options: UseQuickAddOptions): UseQuickAddReturn {
             setQuickAdd(null);
           } else if (e.status === 0) {
             setError("Network error — quick-add failed. Try again.");
+          } else if (e.status === 400 && e.detail.includes("shop")) {
+            setError("Select a shop before adding this product.");
+          } else if (e.status === 403) {
+            setError("You do not have permission to add products.");
           } else {
             setError(e.detail);
           }

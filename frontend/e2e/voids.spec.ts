@@ -11,9 +11,25 @@ async function loginAsCashier(page: Page) {
 test.describe("void — owner queue + cashier request", () => {
   test("owner sees the void approvals page", async ({ page }) => {
     await loginAsOwner(page);
+    await expect(page.getByRole("link", { name: /Approvals \(\d+\)/ })).toBeVisible();
     await page.goto("/admin/voids");
     await expect(page.getByRole("heading", { name: "Void approvals" })).toBeVisible();
     await expect(page.getByRole("button", { name: "Refresh" })).toBeVisible();
+  });
+
+  test("owner sidebar shows NEW when void approvals are pending", async ({ page }) => {
+    await page.route("**/dashboard/void-queue**", async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({ invoices: [{}] }),
+      });
+    });
+
+    await loginAsOwner(page);
+    const approvalsLink = page.getByRole("link", { name: /Approvals \(1\)/ });
+    await expect(approvalsLink).toBeVisible();
+    await expect(approvalsLink.getByText("NEW")).toBeVisible();
   });
 
   test("cashier sees the invoice lookup page", async ({ page }) => {

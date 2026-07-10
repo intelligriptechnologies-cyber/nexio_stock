@@ -320,7 +320,7 @@ export function ReceivingPage() {
                 <button
                   type="button"
                   onClick={() => changeQty(l.lineId, -1)}
-                  className="h-14 w-14 rounded-md bg-surface-container-high text-display-lg text-on-surface"
+                  className="flex h-14 w-14 items-center justify-center rounded-md bg-surface-container-high text-[32px] font-black leading-none text-on-surface"
                   aria-label="Decrease quantity"
                 >
                   −
@@ -331,6 +331,7 @@ export function ReceivingPage() {
                   min={1}
                   value={l.quantity}
                   onChange={(e) => setLineQty(l.lineId, Number(e.target.value))}
+                  onFocus={(e) => e.currentTarget.select()}
                   onKeyDown={(e) => {
                     if (e.key === "Enter" && lines.length > 0 && !busy) {
                       e.preventDefault();
@@ -343,7 +344,7 @@ export function ReceivingPage() {
                 <button
                   type="button"
                   onClick={() => changeQty(l.lineId, +1)}
-                  className="h-14 w-14 rounded-md bg-surface-container-high text-display-lg text-on-surface"
+                  className="flex h-14 w-14 items-center justify-center rounded-md bg-surface-container-high text-[32px] font-black leading-none text-on-surface"
                   aria-label="Increase quantity"
                 >
                   +
@@ -351,7 +352,7 @@ export function ReceivingPage() {
                 <button
                   type="button"
                   onClick={() => removeLine(l.lineId)}
-                  className="h-14 w-14 rounded-md bg-error text-display-lg text-on-error"
+                  className="flex h-14 w-14 items-center justify-center rounded-md bg-error text-[32px] font-black leading-none text-on-error"
                   aria-label="Remove line"
                 >
                   ×
@@ -400,9 +401,9 @@ export function ReceivingPage() {
           type="button"
           onClick={save}
           disabled={lines.length === 0 || busy}
-          className="min-h-touchTarget rounded-md bg-action text-display-lg text-on-action disabled:opacity-50"
+          className="min-h-touchTarget rounded-md bg-action text-headline-md font-bold text-on-action disabled:opacity-50"
         >
-          {busy ? "SAVING…" : "SAVE STOCK"}
+          {busy ? "Saving..." : "Save stock"}
         </button>
 
         {error && (
@@ -454,7 +455,7 @@ export function ReceivingPage() {
               <button
                 type="button"
                 onClick={() => setLastLot(null)}
-                className="h-12 w-12 rounded-md bg-error text-display-lg text-on-error"
+                className="flex h-12 w-12 items-center justify-center rounded-md bg-error text-[28px] font-black leading-none text-on-error"
                 aria-label="Close"
               >
                 ×

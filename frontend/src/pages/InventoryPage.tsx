@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { toUserMessage } from "../api/client";
 import { listProducts, type Product } from "../api/products";
+import { useAuth } from "../auth/AuthProvider";
 import { useShopScope, useShopScopeGuard } from "../auth/ShopScopeProvider";
 
 type StockFilter = "all" | "in_stock" | "low_stock" | "out_of_stock";
@@ -40,6 +41,7 @@ function money(price: string | null): string {
 }
 
 export function InventoryPage() {
+  const { user } = useAuth();
   const { actingShopId } = useShopScope();
   const shopScopeGuard = useShopScopeGuard();
   const [items, setItems] = useState<Product[] | null>(null);
@@ -101,6 +103,11 @@ export function InventoryPage() {
       );
     });
   }, [items, query, sortMode, stockFilter]);
+
+  const canReceive =
+    user?.role === "receiver_user" || user?.role === "owner" || user?.role === "superadmin";
+  const canCheckout = user?.role === "cashier_user";
+  const canEditProduct = user?.role === "owner" || user?.role === "superadmin";
 
   return (
     <div className="flex flex-col gap-stack-gap">
@@ -210,18 +217,30 @@ export function InventoryPage() {
                     </td>
                     <td className="px-stack-gap py-2">
                       <div className="flex justify-end gap-2">
-                        <Link
-                          to="/receiving"
-                          className="rounded-md bg-action px-stack-gap py-1 text-label-md text-on-action"
-                        >
-                          Receive
-                        </Link>
-                        <Link
-                          to="/admin/products"
-                          className="rounded-md bg-primary px-stack-gap py-1 text-label-md text-on-primary"
-                        >
-                          Edit product
-                        </Link>
+                        {canReceive && (
+                          <Link
+                            to="/receiving"
+                            className="rounded-md bg-action px-stack-gap py-1 text-label-md text-on-action"
+                          >
+                            Receive
+                          </Link>
+                        )}
+                        {canCheckout && (
+                          <Link
+                            to="/checkout"
+                            className="rounded-md bg-action px-stack-gap py-1 text-label-md text-on-action"
+                          >
+                            Checkout
+                          </Link>
+                        )}
+                        {canEditProduct && (
+                          <Link
+                            to="/admin/products"
+                            className="rounded-md bg-primary px-stack-gap py-1 text-label-md text-on-primary"
+                          >
+                            Edit product
+                          </Link>
+                        )}
                       </div>
                     </td>
                   </tr>

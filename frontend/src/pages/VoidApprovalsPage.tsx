@@ -1,7 +1,8 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { toUserMessage } from "../api/client";
 import { getInvoice, type InvoicePublic } from "../api/checkout";
 import { approveVoid, listPendingVoids, rejectVoid } from "../api/voids";
+import { notifyVoidApprovalsChanged } from "../api/void-approvals-events";
 import { useShopScope, useShopScopeGuard } from "../auth/ShopScopeProvider";
 
 function moneyFmt(s: string): string {
@@ -16,7 +17,7 @@ export function VoidApprovalsPage() {
   const [busyId, setBusyId] = useState<number | null>(null);
   const [info, setInfo] = useState<string | null>(null);
 
-  const reload = async () => {
+  const reload = useCallback(async () => {
     if (shopScopeGuard.blocked) {
       setItems(null);
       return;
@@ -28,11 +29,11 @@ export function VoidApprovalsPage() {
     } catch (e) {
       setError(toUserMessage(e, "Load failed."));
     }
-  };
+  }, [actingShopId, shopScopeGuard.blocked]);
 
   useEffect(() => {
     void reload();
-  }, [actingShopId]);
+  }, [reload]);
 
   const act = async (id: number, fn: () => Promise<unknown>, label: string) => {
     setBusyId(id);
@@ -42,6 +43,7 @@ export function VoidApprovalsPage() {
       await fn();
       setInfo(`${label} on invoice #${id} succeeded.`);
       await reload();
+      notifyVoidApprovalsChanged();
     } catch (e) {
       setError(`${label} failed: ${toUserMessage(e, "unknown error")}`);
     } finally {

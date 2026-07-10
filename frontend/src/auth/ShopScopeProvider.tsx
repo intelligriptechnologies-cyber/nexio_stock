@@ -12,6 +12,8 @@ const KEY = "barstock.actingShopId";
 interface ShopScopeValue {
   actingShopId: number | null;
   setActingShopId: (id: number | null) => void;
+  shopsVersion: number;
+  refreshShops: () => void;
 }
 
 const Ctx = createContext<ShopScopeValue | undefined>(undefined);
@@ -25,6 +27,7 @@ function readStored(): number | null {
 
 export function ShopScopeProvider({ children }: { children: ReactNode }) {
   const [actingShopId, setActingShopIdState] = useState<number | null>(readStored);
+  const [shopsVersion, setShopsVersion] = useState(0);
 
   const setActingShopId = useCallback((id: number | null) => {
     if (id === null) sessionStorage.removeItem(KEY);
@@ -32,7 +35,14 @@ export function ShopScopeProvider({ children }: { children: ReactNode }) {
     setActingShopIdState(id);
   }, []);
 
-  const value = useMemo(() => ({ actingShopId, setActingShopId }), [actingShopId, setActingShopId]);
+  const refreshShops = useCallback(() => {
+    setShopsVersion((version) => version + 1);
+  }, []);
+
+  const value = useMemo(
+    () => ({ actingShopId, setActingShopId, shopsVersion, refreshShops }),
+    [actingShopId, setActingShopId, shopsVersion, refreshShops]
+  );
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }

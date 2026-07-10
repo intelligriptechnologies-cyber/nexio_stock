@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { listProducts, type Product } from "../api/products";
 import { toUserMessage } from "../api/client";
@@ -24,12 +24,20 @@ const STATUS_FILTERS = ["all", "active", "inactive"] as const;
 
 type RoleFilter = (typeof ROLE_FILTERS)[number];
 type StatusFilter = (typeof STATUS_FILTERS)[number];
+type ShopTab = "details" | "users" | "inventory";
+
+const TABS: Array<{ id: ShopTab; label: string }> = [
+  { id: "details", label: "Shop Details" },
+  { id: "users", label: "Allotted Users" },
+  { id: "inventory", label: "Quick Inventory Check" },
+];
 
 export function ShopMaintenancePage() {
   const navigate = useNavigate();
-  const { actingShopId, setActingShopId } = useShopScope();
+  const { actingShopId, setActingShopId, refreshShops } = useShopScope();
   const [shops, setShops] = useState<ShopSummary[]>([]);
   const [selectedShopId, setSelectedShopId] = useState<number | null>(actingShopId);
+  const [activeTab, setActiveTab] = useState<ShopTab>("details");
   const [shopDetails, setShopDetails] = useState<ShopPublic | null>(null);
   const [users, setUsers] = useState<ShopUser[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
@@ -41,14 +49,28 @@ export function ShopMaintenancePage() {
   const [message, setMessage] = useState<string | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);
 
+  const loadShops = useCallback(
+    async (nextSelectedShopId?: number | null) => {
+      const rows = await listShops();
+      setShops(rows);
+      setSelectedShopId((current) => {
+        if (nextSelectedShopId !== undefined) return nextSelectedShopId;
+        if (current != null && rows.some((shop) => shop.id === current)) return current;
+        if (actingShopId != null && rows.some((shop) => shop.id === actingShopId)) return actingShopId;
+        return rows[0]?.id ?? null;
+      });
+    },
+    [actingShopId]
+  );
+
+  const refreshPageData = useCallback(() => {
+    setRefreshKey((key) => key + 1);
+    refreshShops();
+  }, [refreshShops]);
+
   useEffect(() => {
-    listShops()
-      .then((rows) => {
-        setShops(rows);
-        setSelectedShopId((current) => current ?? actingShopId ?? rows[0]?.id ?? null);
-      })
-      .catch((e) => setError(toUserMessage(e, "Could not load shops.")));
-  }, [actingShopId, refreshKey]);
+    loadShops().catch((e) => setError(toUserMessage(e, "Could not load shops.")));
+  }, [loadShops, refreshKey]);
 
   useEffect(() => {
     if (selectedShopId == null) return;
@@ -99,7 +121,12 @@ export function ShopMaintenancePage() {
       }),
     [users, roleFilter, statusFilter]
   );
-  const reload = () => setRefreshKey((key) => key + 1);
+  const selectShop = (shopId: number) => {
+    setSelectedShopId(shopId);
+    setActingShopId(shopId);
+  };
+
+  const reload = () => refreshPageData();
 
   return (
     <div className="flex flex-col gap-stack-gap">
@@ -128,67 +155,117 @@ export function ShopMaintenancePage() {
       <div className="grid gap-stack-gap lg:grid-cols-[280px_1fr]">
         <aside className="flex flex-col gap-stack-gap rounded-lg bg-surface-container p-stack-gap">
           <CreateShopForm
-            onCreated={(shop) => {
+            onCreated={async (shop) => {
               setMessage("Shop created.");
+              setActiveTab("details");
+              setActingShopId(shop.id);
               setSelectedShopId(shop.id);
-              reload();
+              refreshShops();
+              setRefreshKey((key) => key + 1);
+              await loadShops(shop.id);
             }}
             onError={setError}
           />
           <div className="border-t border-outline pt-stack-gap">
             <h2 className="mb-2 text-headline-md text-primary">Shops</h2>
-            <div className="flex flex-col gap-1">
+            <div className="flex max-h-[calc(100vh-24rem)] min-h-32 flex-col gap-2 overflow-y-auto pr-1">
               {shops.map((shop) => (
                 <button
                   key={shop.id}
                   type="button"
-                  onClick={() => setSelectedShopId(shop.id)}
-                  className={`rounded-md px-stack-gap py-2 text-left text-label-md ${
+                  onClick={() => selectShop(shop.id)}
+                  className={`min-h-touchTarget rounded-md border px-stack-gap py-3 text-left transition ${
                     shop.id === selectedShopId
-                      ? "bg-primary text-on-primary"
-                      : "bg-surface text-on-surface"
+                      ? "border-primary bg-primary text-on-primary shadow-sm"
+                      : "border-outline bg-surface text-on-surface hover:border-primary hover:bg-surface-container-high"
                   }`}
+                  aria-current={shop.id === selectedShopId ? "true" : undefined}
                 >
-                  <div className="font-bold">{shop.name}</div>
-                  <div className="font-mono text-label-md">{shop.code}</div>
+                  <div className="text-body-md font-bold leading-tight">{shop.name}</div>
+                  <div
+                    className={`mt-1 font-mono text-label-md ${
+                      shop.id === selectedShopId ? "text-on-primary" : "text-on-surface-variant"
+                    }`}
+                  >
+                    {shop.code}
+                  </div>
                 </button>
               ))}
+              {shops.length === 0 && (
+                <div className="rounded-md bg-surface px-stack-gap py-4 text-label-md text-on-surface-variant">
+                  No shops yet.
+                </div>
+              )}
             </div>
           </div>
         </aside>
 
         {selectedShop && shopDetails ? (
-          <main className="flex flex-col gap-stack-gap">
-            <EditShopForm
-              shop={shopDetails}
-              fallbackSummary={selectedShop}
-              onSaved={() => {
-                setMessage("Shop updated.");
-                reload();
-              }}
-              onError={setError}
-            />
-            <UserPanel
-              shopId={selectedShop.id}
-              users={filteredUsers}
-              roleFilter={roleFilter}
-              statusFilter={statusFilter}
-              onRoleFilter={setRoleFilter}
-              onStatusFilter={setStatusFilter}
-              onChanged={() => {
-                setMessage("User updated.");
-                reload();
-              }}
-              onError={setError}
-            />
-            <InventoryPanel
-              products={products}
-              query={productQuery}
-              includeInactive={includeInactiveProducts}
-              onQuery={setProductQuery}
-              onIncludeInactive={setIncludeInactiveProducts}
-              onOpenProducts={() => navigate("/admin/products")}
-            />
+          <main className="flex min-w-0 flex-col rounded-lg bg-surface-container">
+            <div className="border-b border-outline px-gutter pt-gutter">
+              <div className="mb-3">
+                <div className="text-label-md text-on-surface-variant">Selected shop</div>
+                <h2 className="text-headline-md text-primary">{selectedShop.name}</h2>
+              </div>
+              <div className="flex flex-wrap gap-2" role="tablist" aria-label="Shop management tabs">
+                {TABS.map((tab) => (
+                  <button
+                    key={tab.id}
+                    type="button"
+                    role="tab"
+                    aria-selected={activeTab === tab.id}
+                    onClick={() => setActiveTab(tab.id)}
+                    className={`min-h-touchTarget-sm rounded-t-md border border-b-0 px-stack-gap text-label-md transition ${
+                      activeTab === tab.id
+                        ? "border-primary bg-action text-on-action"
+                        : "border-outline bg-surface text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface"
+                    }`}
+                  >
+                    {tab.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div className="max-h-[calc(100vh-14rem)] overflow-y-auto p-gutter">
+              {activeTab === "details" && (
+                <EditShopForm
+                  shop={shopDetails}
+                  fallbackSummary={selectedShop}
+                  onSaved={async () => {
+                    setMessage("Shop updated.");
+                    refreshShops();
+                    setRefreshKey((key) => key + 1);
+                    await loadShops(selectedShop.id);
+                  }}
+                  onError={setError}
+                />
+              )}
+              {activeTab === "users" && (
+                <UserPanel
+                  shopId={selectedShop.id}
+                  users={filteredUsers}
+                  roleFilter={roleFilter}
+                  statusFilter={statusFilter}
+                  onRoleFilter={setRoleFilter}
+                  onStatusFilter={setStatusFilter}
+                  onChanged={() => {
+                    setMessage("User updated.");
+                    reload();
+                  }}
+                  onError={setError}
+                />
+              )}
+              {activeTab === "inventory" && (
+                <InventoryPanel
+                  products={products}
+                  query={productQuery}
+                  includeInactive={includeInactiveProducts}
+                  onQuery={setProductQuery}
+                  onIncludeInactive={setIncludeInactiveProducts}
+                  onOpenProducts={() => navigate("/admin/products")}
+                />
+              )}
+            </div>
           </main>
         ) : (
           <div className="rounded-md bg-surface-container p-gutter text-on-surface-variant">
@@ -204,7 +281,7 @@ function CreateShopForm({
   onCreated,
   onError,
 }: {
-  onCreated: (shop: ShopPublic) => void;
+  onCreated: (shop: ShopPublic) => void | Promise<void>;
   onError: (message: string | null) => void;
 }) {
   const [name, setName] = useState("");
@@ -219,7 +296,7 @@ function CreateShopForm({
       const shop = await createShop({ name: name.trim(), code: code.trim() });
       setName("");
       setCode("");
-      onCreated(shop);
+      await onCreated(shop);
     } catch (err) {
       onError(toUserMessage(err, "Create shop failed."));
     } finally {
@@ -251,7 +328,7 @@ function EditShopForm({
 }: {
   shop: ShopPublic;
   fallbackSummary: ShopSummary;
-  onSaved: () => void;
+  onSaved: () => void | Promise<void>;
   onError: (message: string | null) => void;
 }) {
   const [name, setName] = useState(shop.name);
@@ -284,7 +361,7 @@ function EditShopForm({
         gstin: gstin.trim() || null,
         excise_duty_rate: dutyRate.trim() || null,
       });
-      onSaved();
+      await onSaved();
     } catch (err) {
       onError(toUserMessage(err, "Update shop failed."));
     } finally {
@@ -293,7 +370,7 @@ function EditShopForm({
   };
 
   return (
-    <form onSubmit={submit} className="flex flex-col gap-stack-gap rounded-lg bg-surface-container p-gutter">
+    <form onSubmit={submit} className="flex flex-col gap-stack-gap">
       <h2 className="text-headline-md text-primary">Shop details</h2>
       <div className="grid gap-stack-gap md:grid-cols-2">
         <Field label="Name" value={name} onChange={setName} required />
@@ -390,7 +467,7 @@ function UserPanel({
   };
 
   return (
-    <section className="flex flex-col gap-stack-gap rounded-lg bg-surface-container p-gutter">
+    <section className="flex flex-col gap-stack-gap">
       <div className="flex flex-wrap items-center justify-between gap-stack-gap">
         <h2 className="text-headline-md text-primary">Allotted users</h2>
         <div className="flex flex-wrap gap-stack-gap">
@@ -426,7 +503,7 @@ function UserPanel({
         </button>
       </form>
 
-      <div className="overflow-x-auto rounded-md bg-surface">
+      <div className="max-h-[22rem] overflow-auto rounded-md bg-surface">
         <table className="w-full border-collapse">
           <thead>
             <tr className="border-b border-outline text-label-md text-on-surface-variant">
@@ -496,7 +573,7 @@ function InventoryPanel({
   onOpenProducts: () => void;
 }) {
   return (
-    <section className="flex flex-col gap-stack-gap rounded-lg bg-surface-container p-gutter">
+    <section className="flex flex-col gap-stack-gap">
       <div className="flex flex-wrap items-center justify-between gap-stack-gap">
         <h2 className="text-headline-md text-primary">Quick inventory check</h2>
         <button
@@ -524,7 +601,7 @@ function InventoryPanel({
           Include inactive
         </label>
       </div>
-      <div className="overflow-x-auto rounded-md bg-surface">
+      <div className="max-h-[24rem] overflow-auto rounded-md bg-surface">
         <table className="w-full border-collapse">
           <thead>
             <tr className="border-b border-outline text-label-md text-on-surface-variant">

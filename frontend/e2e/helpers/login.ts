@@ -35,7 +35,7 @@ export async function loginAsRole(page: Page, role: Role, pin: string) {
   for (const d of pin) {
     await page.getByRole("button", { name: `Digit ${d}` }).click();
   }
-  await page.getByRole("button", { name: "LOGIN" }).click();
+  await page.getByRole("button", { name: "LOGIN", exact: true }).click();
   await expect(page).toHaveURL(ROLE_TO_HOME[role]);
 }
 

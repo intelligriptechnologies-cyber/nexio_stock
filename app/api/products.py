@@ -74,13 +74,10 @@ log = get_logger(__name__)
 # flows (#3 receiving, #4 checkout). Owner and superadmin have it too.
 _lookup_roles = (UserRole.OWNER, UserRole.RECEIVER_USER, UserRole.CASHIER_USER, UserRole.SUPERADMIN)
 _write_roles = (UserRole.OWNER, UserRole.SUPERADMIN)
-# Quick-add is intentionally broader than /products POST — receiver and
+# Quick-add is intentionally broader than /products POST: receiver and
 # cashier are the primary users (D-v2-1); owner is a superset of both
-# (D-v2-10). Superadmin is NOT in this set: superadmin creating
-# provisional products in a shop they're not operating in would skip
-# the owner-completion notification surface. If a future ticket needs
-# superadmin quick-add, add it then with the appropriate origin header.
-_quick_add_roles = (UserRole.OWNER, UserRole.RECEIVER_USER, UserRole.CASHIER_USER)
+# (D-v2-10). Superadmin may quick-add only with an explicit acting shop.
+_quick_add_roles = (UserRole.OWNER, UserRole.RECEIVER_USER, UserRole.CASHIER_USER, UserRole.SUPERADMIN)
 _pending_roles = (UserRole.OWNER, UserRole.SUPERADMIN)
 
 _PRODUCT_ERROR_CODE_TO_STATUS: dict[str, int] = {
@@ -228,8 +225,15 @@ async def quick_add_product(
     idempotency namespace.
     """
     actor_id = _user.id
-    actor_shop_id = _user.shop_id
-    assert actor_shop_id is not None, "shop-scoped user must have shop_id"
+    try:
+        actor_shop_id = await resolve_write_shop_id(db, _user, payload.shop_id)
+    except HTTPException as exc:
+        if _user.role == UserRole.SUPERADMIN and payload.shop_id is None and exc.status_code == 400:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Select a shop before adding this product.",
+            ) from exc
+        raise
     # The origin header is the source of truth for both the audit-log
     # table choice below and the pending-row origin recorded by the
     # service (issue #31) — defaults to "receiving" for the in-scope

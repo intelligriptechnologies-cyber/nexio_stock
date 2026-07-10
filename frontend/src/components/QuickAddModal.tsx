@@ -38,20 +38,19 @@ export function QuickAddModal({
       }}
       className="flex w-full max-w-md flex-col gap-stack-gap rounded-lg bg-surface-container p-gutter"
     >
-      <header className="flex items-start justify-between">
+      <header className="flex items-center justify-between gap-stack-gap">
         <div>
-          <h2 className="text-headline-md text-primary">Quick-add new product</h2>
+          <h2 id="quick-add-title" className="text-headline-md text-primary">
+            Register new catalog item
+          </h2>
           <p className="mt-1 text-label-md text-on-surface-variant">
-            This barcode isn't in the catalog. Register it as
-            <strong> pending</strong> &mdash; the owner will set the
-            price later. The new product can't be sold until priced
-            and stock-received.
+            No catalog item matches this barcode. Add a pending product request now; the owner can set the price later. It can be received into stock, but cannot be sold until priced.
           </p>
         </div>
         <button
           type="button"
           onClick={onCancel}
-          className="h-12 w-12 rounded-md bg-error text-display-lg text-on-error"
+          className="flex h-12 w-12 shrink-0 items-center justify-center rounded-md bg-error text-label-xl leading-none text-on-error"
           aria-label="Cancel quick-add"
         >
           &times;
@@ -106,10 +105,10 @@ export function QuickAddModal({
         </button>
         <button
           type="submit"
-          className="min-h-touchTarget flex-1 rounded-md bg-action text-display-lg text-on-action disabled:opacity-50"
+          className="min-h-touchTarget flex-1 rounded-md bg-action text-label-xl text-on-action disabled:opacity-50"
           disabled={busy}
         >
-          {busy ? "ADDING\u2026" : "ADD"}
+          {busy ? "Adding..." : "Add product"}
         </button>
       </div>
     </form>

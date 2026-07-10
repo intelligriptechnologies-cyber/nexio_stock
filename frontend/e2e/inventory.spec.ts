@@ -1,6 +1,6 @@
 import { expect, test, type Page } from "@playwright/test";
 
-type Role = "owner" | "cashier_user" | "superadmin";
+type Role = "owner" | "receiver_user" | "cashier_user" | "superadmin";
 
 const products = [
   {
@@ -49,20 +49,29 @@ const products = [
 
 function tokenFor(role: Role): string {
   const header = Buffer.from(JSON.stringify({ alg: "none", typ: "JWT" })).toString("base64url");
-  const payload = Buffer.from(
-    JSON.stringify({
-      sub: "1",
-      shop_id: role === "superadmin" ? null : 1,
-      role,
-      exp: Math.floor(Date.now() / 1000) + 3600,
-    })
-  ).toString("base64url");
+  const payloadBody: {
+    sub: string;
+    shop_id: number | null;
+    role: Role;
+    exp: number;
+    test_pad?: string;
+  } = {
+    sub: "1",
+    shop_id: role === "superadmin" ? null : 1,
+    role,
+    exp: Math.floor(Date.now() / 1000) + 3600,
+  };
+  let payload = Buffer.from(JSON.stringify(payloadBody)).toString("base64url");
+  while (payload.length % 4 !== 0) {
+    payloadBody.test_pad = `${payloadBody.test_pad ?? ""}x`;
+    payload = Buffer.from(JSON.stringify(payloadBody)).toString("base64url");
+  }
   return `${header}.${payload}.signature`;
 }
 
-async function seedSession(page: Page, role: Role) {
+async function seedSession(page: Page, role: Role, actingShopId: number | null = null) {
   await page.addInitScript(
-    ({ role: seededRole, token }) => {
+    ({ role: seededRole, token, actingShopId: seededActingShopId }) => {
       const storage = (
         globalThis as unknown as { sessionStorage: { setItem: (key: string, value: string) => void } }
       ).sessionStorage;
@@ -78,8 +87,11 @@ async function seedSession(page: Page, role: Role) {
           phone: "0000000000",
         })
       );
+      if (seededActingShopId !== null) {
+        storage.setItem("barstock.actingShopId", String(seededActingShopId));
+      }
     },
-    { role, token: tokenFor(role) }
+    { role, token: tokenFor(role), actingShopId }
   );
 }
 
@@ -115,6 +127,12 @@ async function mockShellApis(page: Page) {
   await page.route("**/products?**", async (route) => {
     await route.fulfill({ contentType: "application/json", body: JSON.stringify(products) });
   });
+  await page.route(/\/shops(?:\?.*)?$/, async (route) => {
+    await route.fulfill({
+      contentType: "application/json",
+      body: JSON.stringify([{ id: 1, name: "Shop One", code: "shop1", is_active: true }]),
+    });
+  });
 }
 
 test.describe("inventory", () => {
@@ -126,17 +144,49 @@ test.describe("inventory", () => {
 
     await expect(page.getByRole("heading", { name: "Inventory" })).toBeVisible();
     await expect(page.getByRole("table", { name: "Inventory table" })).toBeVisible();
+    await expect(page.getByRole("link", { name: "Inventory" })).toBeVisible();
     await expect(page.getByText("Healthy Brand")).toBeVisible();
-    await expect(page.getByText("Available stock")).toBeVisible();
+    await expect(page.getByRole("columnheader", { name: "Available stock" })).toBeVisible();
   });
 
-  test("cashier is redirected from inventory to forbidden", async ({ page }) => {
-    await seedSession(page, "cashier_user");
+  test("receiver can open inventory and only sees receiving shortcuts", async ({ page }) => {
+    await seedSession(page, "receiver_user");
+    await mockShellApis(page);
 
     await page.goto("/inventory");
 
-    await expect(page).toHaveURL(/\/forbidden$/);
-    await expect(page.getByRole("heading", { name: /403/ })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Inventory" })).toBeVisible();
+    await expect(page.getByRole("table", { name: "Inventory table" })).toBeVisible();
+    await expect(page.getByRole("link", { name: "Inventory" })).toBeVisible();
+    await expect(page.getByRole("link", { name: "Receive" })).toHaveCount(products.length);
+    await expect(page.getByRole("link", { name: "Checkout" })).toHaveCount(0);
+    await expect(page.getByRole("link", { name: "Edit product" })).toHaveCount(0);
+  });
+
+  test("cashier can open inventory and only sees checkout shortcuts", async ({ page }) => {
+    await seedSession(page, "cashier_user");
+    await mockShellApis(page);
+
+    await page.goto("/inventory");
+
+    await expect(page.getByRole("heading", { name: "Inventory" })).toBeVisible();
+    const table = page.getByRole("table", { name: "Inventory table" });
+    await expect(table).toBeVisible();
+    await expect(page.getByRole("link", { name: "Inventory" })).toBeVisible();
+    await expect(table.getByRole("link", { name: "Checkout" })).toHaveCount(products.length);
+    await expect(page.getByRole("link", { name: "Receive" })).toHaveCount(0);
+    await expect(page.getByRole("link", { name: "Edit product" })).toHaveCount(0);
+  });
+
+  test("superadmin can open inventory with a selected acting shop", async ({ page }) => {
+    await seedSession(page, "superadmin", 1);
+    await mockShellApis(page);
+
+    await page.goto("/inventory");
+
+    await expect(page.getByRole("heading", { name: "Inventory" })).toBeVisible();
+    await expect(page.getByRole("table", { name: "Inventory table" })).toBeVisible();
+    await expect(page.getByRole("link", { name: "Inventory" })).toBeVisible();
   });
 
   test("search filters by brand, size, and barcode", async ({ page }) => {

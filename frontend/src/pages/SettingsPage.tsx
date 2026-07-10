@@ -185,10 +185,13 @@ export function SettingsPage() {
             value={form.menuActiveTextColor}
             onChange={(v) => setField("menuActiveTextColor", v)}
           />
-          <div className="md:col-span-2 flex items-center gap-stack-gap">
+          <div className="md:col-span-2 flex flex-wrap items-center gap-stack-gap">
             <div
               className="flex min-h-touchTarget-sm items-center rounded-md px-gutter text-label-md"
-              style={{ backgroundColor: form.actionColor, color: previewTextColor(form.actionColor) }}
+              style={{
+                backgroundColor: form.actionColor,
+                color: previewTextColor(form.actionColor),
+              }}
             >
               Action preview
             </div>
@@ -201,14 +204,31 @@ export function SettingsPage() {
             >
               Active tab preview
             </div>
-            <div className="flex min-h-touchTarget-sm items-center gap-3 rounded-md bg-sidebar-active px-gutter text-label-md">
-              <span style={{ color: form.menuActiveTextColor }}>Active menu text</span>
-              <span style={{ color: form.menuInactiveTextColor }}>Inactive menu text</span>
+            <div className="flex min-h-touchTarget-sm flex-wrap items-center gap-4 rounded-md border border-outline bg-surface px-stack-gap text-label-md">
+              <span className="text-on-surface-variant">Menu text preview</span>
+              <span className="inline-flex items-center gap-2">
+                <span
+                  aria-hidden="true"
+                  className="h-4 w-4 rounded-sm border border-outline"
+                  style={{ backgroundColor: form.menuActiveTextColor }}
+                />
+                <span style={{ color: form.menuActiveTextColor }}>Active</span>
+              </span>
+              <span className="inline-flex items-center gap-2">
+                <span
+                  aria-hidden="true"
+                  className="h-4 w-4 rounded-sm border border-outline"
+                  style={{ backgroundColor: form.menuInactiveTextColor }}
+                />
+                <span style={{ color: form.menuInactiveTextColor }}>Inactive</span>
+              </span>
             </div>
+          </div>
+          <div className="mt-[50px] flex md:col-span-2">
             <button
               type="submit"
               disabled={busy}
-              className="min-h-touchTarget rounded-md bg-action px-gutter text-label-xl text-on-action disabled:opacity-50"
+              className="min-h-touchTarget rounded-lg bg-action px-gutter text-label-xl text-on-action shadow-sm transition hover:brightness-95 disabled:opacity-50"
             >
               {busy ? "Saving..." : "Save"}
             </button>

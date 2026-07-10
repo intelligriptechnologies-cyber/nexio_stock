@@ -34,6 +34,11 @@ interface PaymentSplit {
   amount: string;
 }
 
+interface LineValidation {
+  message: string;
+  invalid: boolean;
+}
+
 interface CheckoutDraft {
   id: string;
   label: string;
@@ -62,6 +67,25 @@ function formatPaymentLabel(m: PaymentMode): string {
   return { cash: "Cash", upi: "UPI", card: "Card" }[m];
 }
 
+function stockValidationMessage(
+  availableQuantity: number,
+  requestedQuantity: number
+): LineValidation | null {
+  if (availableQuantity <= 0) {
+    return { message: "Out of stock", invalid: true };
+  }
+  if (requestedQuantity > availableQuantity) {
+    return {
+      message: `Only ${availableQuantity} available; reduce quantity or remove this item.`,
+      invalid: true,
+    };
+  }
+  if (availableQuantity <= 3) {
+    return { message: `Last ${availableQuantity} remaining`, invalid: false };
+  }
+  return null;
+}
+
 export function CheckoutPage() {
   const online = useOnlineStatus();
   const { actingShopId } = useShopScope();
@@ -78,6 +102,7 @@ export function CheckoutPage() {
 
   const [cart, setCart] = useState<CartLine[]>([]);
   const [drafts, setDrafts] = useState<CheckoutDraft[]>([]);
+  const [lineValidation, setLineValidation] = useState<Record<string, LineValidation>>({});
   const [barcode, setBarcode] = useState("");
   const [payments, setPayments] = useState<PaymentSplit[]>([{ mode: "cash", amount: "0.00" }]);
   const [note, setNote] = useState("");
@@ -109,6 +134,7 @@ export function CheckoutPage() {
     },
   });
   const idempotencyKeyRef = useRef<string>(uid());
+  const draftMinuteCountersRef = useRef<Record<string, number>>({});
   const [queuedSnapshot, setQueuedSnapshot] = useState(() => listQueued());
 
   useEffect(() => {
@@ -231,8 +257,18 @@ export function CheckoutPage() {
     setInfo(`Added: ${product.brand} ${product.size_label}`);
   }, []);
 
+  const clearLineValidation = (lineId: string) => {
+    setLineValidation((prev) => {
+      if (!(lineId in prev)) return prev;
+      const next = { ...prev };
+      delete next[lineId];
+      return next;
+    });
+  };
+
   const removeLine = (lineId: string) => {
     setCart((prev) => prev.filter((l) => l.lineId !== lineId));
+    clearLineValidation(lineId);
     setError(null);
   };
 
@@ -243,40 +279,68 @@ export function CheckoutPage() {
           l.lineId === lineId ? { ...l, quantity: Math.max(1, l.quantity + delta) } : l
         )
     );
+    clearLineValidation(lineId);
   };
 
   const validateLineQuantity = async (lineId: string, nextQty: number) => {
     const line = cart.find((l) => l.lineId === lineId);
     if (!line) return;
     const requested = Math.max(1, Math.floor(nextQty || 1));
-    setCart((prev) => prev.map((l) => (l.lineId === lineId ? { ...l, quantity: requested } : l)));
+    if (line.quantity !== requested) {
+      setCart((prev) => prev.map((l) => (l.lineId === lineId ? { ...l, quantity: requested } : l)));
+    }
     try {
       const result = await validateCheckoutCart(
         [{ barcode: line.product.barcode, quantity: requested }],
         actingShopId
       );
       const checked = result.lines[0];
-      if (checked.adjusted) {
-        setCart((prev) =>
-          prev.map((l) =>
-            l.lineId === lineId ? { ...l, quantity: Math.max(1, checked.accepted_quantity) } : l
-          )
-        );
-        setError(
-          `${line.product.brand} ${line.product.size_label}: only ${checked.available_quantity} in stock. Quantity reduced.`
-        );
-      }
+      const message = stockValidationMessage(
+        checked.available_quantity,
+        checked.requested_quantity
+      );
+      setLineValidation((prev) => {
+        const next = { ...prev };
+        if (message) next[lineId] = message;
+        else delete next[lineId];
+        return next;
+      });
     } catch (e) {
       setError(toUserMessage(e, "Could not validate stock."));
     }
   };
 
+  useEffect(() => {
+    if (cart.length === 0) return;
+    const timer = window.setTimeout(() => {
+      cart.forEach((line) => {
+        void validateLineQuantity(line.lineId, line.quantity);
+      });
+    }, 350);
+    return () => window.clearTimeout(timer);
+  }, [cart, actingShopId]); // eslint-disable-line react-hooks/exhaustive-deps
+
   const clearActiveCheckout = () => {
     setCart([]);
+    setLineValidation({});
     setPayments([{ mode: "cash", amount: "0.00" }]);
     setNote("");
     setError(null);
     setInfo(null);
+  };
+
+  const nextDraftLabel = () => {
+    const now = new Date();
+    const minuteKey = `${now.getHours()}:${now.getMinutes()}`;
+    const timeLabel = now.toLocaleTimeString([], {
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
+    });
+    const nextCount = (draftMinuteCountersRef.current[minuteKey] ?? 0) + 1;
+    draftMinuteCountersRef.current[minuteKey] = nextCount;
+    const counterLabel = nextCount < 10 ? `0${nextCount}` : String(nextCount);
+    return `Draft ${timeLabel} #${counterLabel}`;
   };
 
   const parkDraft = () => {
@@ -285,13 +349,14 @@ export function CheckoutPage() {
       ...prev,
       {
         id: uid(),
-        label: `Draft ${prev.length + 1}`,
+        label: nextDraftLabel(),
         cart,
         payments,
         note,
       },
     ]);
     setCart([]);
+    setLineValidation({});
     setPayments([{ mode: "cash", amount: "0.00" }]);
     setNote("");
     setInfo("Checkout parked as a draft.");
@@ -300,6 +365,7 @@ export function CheckoutPage() {
   const restoreDraft = (draft: CheckoutDraft) => {
     if (cart.length > 0) parkDraft();
     setCart(draft.cart);
+    setLineValidation({});
     setPayments(draft.payments);
     setNote(draft.note);
     setDrafts((prev) => prev.filter((d) => d.id !== draft.id));
@@ -345,6 +411,37 @@ export function CheckoutPage() {
     onScan: (code) => void addByBarcode(code),
   });
 
+  const validateCartBeforeFinalize = async (): Promise<boolean> => {
+    const result = await validateCheckoutCart(
+      cart.map((l) => ({ barcode: l.product.barcode, quantity: l.quantity })),
+      actingShopId
+    );
+    const checkedByBarcode = new Map(result.lines.map((line) => [line.barcode, line]));
+    const nextValidation: Record<string, LineValidation> = {};
+    const blockingMessages: string[] = [];
+
+    for (const line of cart) {
+      const checked = checkedByBarcode.get(line.product.barcode);
+      if (!checked) continue;
+      const message = stockValidationMessage(
+        checked.available_quantity,
+        checked.requested_quantity
+      );
+      if (!message) continue;
+      nextValidation[line.lineId] = message;
+      if (message.invalid) {
+        blockingMessages.push(`${line.product.brand} ${line.product.size_label}: ${message.message}`);
+      }
+    }
+
+    setLineValidation(nextValidation);
+    if (blockingMessages.length > 0) {
+      setError(blockingMessages.join("\n"));
+      return false;
+    }
+    return true;
+  };
+
   const finalize = async () => {
     setError(null);
     setInfo(null);
@@ -360,6 +457,8 @@ export function CheckoutPage() {
     };
     const idemKey = idempotencyKeyRef.current;
     try {
+      const stockOk = await validateCartBeforeFinalize();
+      if (!stockOk) return;
       const res = await finalizeCheckout(body, idemKey, actingShopId);
       setLastInvoice(res.invoice);
       clearActiveCheckout();
@@ -384,7 +483,12 @@ export function CheckoutPage() {
           );
           void retryQueue.flush();
         } else if (e.status === 409) {
-          setError("Stock changed since scan — refresh the cart.");
+          try {
+            const stockOk = await validateCartBeforeFinalize();
+            if (stockOk) setError(e.detail);
+          } catch {
+            setError(e.detail);
+          }
         } else if (e.status === 400) {
           setError(`Validation error: ${e.detail}`);
         } else {
@@ -492,7 +596,7 @@ export function CheckoutPage() {
                   <button
                     type="button"
                     onClick={() => handleDismissQueued(q.idempotencyKey)}
-                    className="h-12 w-12 rounded-md bg-error text-on-error"
+                    className="flex h-12 w-12 items-center justify-center rounded-md bg-error text-[28px] font-black leading-none text-on-error"
                     aria-label="Dismiss queued sale"
                   >
                     ×
@@ -515,7 +619,7 @@ export function CheckoutPage() {
           className="fixed inset-0 z-30 flex items-center justify-center bg-black/50 p-stack-gap"
           role="dialog"
           aria-modal="true"
-          aria-labelledby="checkout-quick-add-title"
+          aria-labelledby="quick-add-title"
         >
           <QuickAddModal
             barcode={quickAdd.barcode}
@@ -568,32 +672,37 @@ export function CheckoutPage() {
           </button>
         </form>
 
-        <div className="flex flex-wrap gap-stack-gap">
+        <div className="flex flex-wrap items-center gap-stack-gap">
           <button
             type="button"
             onClick={parkDraft}
             disabled={cart.length === 0}
-            className="min-h-touchTarget-sm rounded-md bg-surface-container-high px-stack-gap text-label-md text-on-surface disabled:opacity-50"
+            className="min-h-touchTarget-sm rounded-md bg-warning px-stack-gap text-label-md text-on-warning disabled:opacity-50"
           >
             Park
           </button>
+          <div className="flex flex-wrap items-center gap-2">
+            {drafts.map((draft) => (
+              <span key={draft.id} className="flex items-center gap-2">
+                <span className="text-on-surface-variant">|</span>
+                <button
+                  type="button"
+                  onClick={() => restoreDraft(draft)}
+                  className="min-h-touchTarget-sm rounded-md bg-primary px-stack-gap text-label-md text-on-primary"
+                >
+                  {draft.label} ({draft.cart.length})
+                </button>
+                <span className="text-on-surface-variant">|</span>
+              </span>
+            ))}
+          </div>
           <button
             type="button"
             onClick={clearActiveCheckout}
-            className="min-h-touchTarget-sm rounded-md bg-surface-container-high px-stack-gap text-label-md text-on-surface"
+            className="ml-auto min-h-touchTarget-sm rounded-md bg-surface-container-high px-stack-gap text-label-md text-on-surface"
           >
             All Clear
           </button>
-          {drafts.map((draft) => (
-            <button
-              key={draft.id}
-              type="button"
-              onClick={() => restoreDraft(draft)}
-              className="min-h-touchTarget-sm rounded-md bg-primary px-stack-gap text-label-md text-on-primary"
-            >
-              {draft.label} ({draft.cart.length})
-            </button>
-          ))}
         </div>
 
         {/* Quicksearch (issue #23). Cashier types a brand or barcode
@@ -628,12 +737,21 @@ export function CheckoutPage() {
                                 In stock:{" "}
                                 <span className="font-mono">{l.product.current_stock ?? 0}</span>
                               </span>
+                              {lineValidation[l.lineId] && (
+                                <span
+                                  className={`text-label-md ${
+                                    lineValidation[l.lineId].invalid ? "text-error" : "text-warning"
+                                  }`}
+                                >
+                                  {lineValidation[l.lineId].message}
+                                </span>
+                              )}
                             </div>
               <div className="flex items-center gap-stack-gap">
                 <button
                   type="button"
                   onClick={() => changeQty(l.lineId, -1)}
-                  className="h-12 w-12 rounded-md bg-surface-container-high text-display-lg text-on-surface"
+                  className="flex h-12 w-12 items-center justify-center rounded-md bg-surface-container-high text-[28px] font-black leading-none text-on-surface"
                   aria-label="Decrease quantity"
                 >
                   −
@@ -643,15 +761,17 @@ export function CheckoutPage() {
                   inputMode="numeric"
                   min={1}
                   value={l.quantity}
-                  onChange={(e) =>
+                  onChange={(e) => {
+                    clearLineValidation(l.lineId);
                     setCart((prev) =>
                       prev.map((row) =>
                         row.lineId === l.lineId
                           ? { ...row, quantity: Math.max(1, Number(e.target.value) || 1) }
                           : row
                       )
-                    )
-                  }
+                    );
+                  }}
+                  onFocus={(e) => e.currentTarget.select()}
                   onBlur={(e) => void validateLineQuantity(l.lineId, Number(e.target.value))}
                   onKeyDown={(e) => {
                     if (e.key === "Enter") {
@@ -665,7 +785,7 @@ export function CheckoutPage() {
                 <button
                   type="button"
                   onClick={() => changeQty(l.lineId, +1)}
-                  className="h-12 w-12 rounded-md bg-surface-container-high text-display-lg text-on-surface"
+                  className="flex h-12 w-12 items-center justify-center rounded-md bg-surface-container-high text-[28px] font-black leading-none text-on-surface"
                   aria-label="Increase quantity"
                 >
                   +
@@ -677,7 +797,7 @@ export function CheckoutPage() {
                 <button
                   type="button"
                   onClick={() => removeLine(l.lineId)}
-                  className="h-12 w-12 rounded-md bg-error text-display-lg text-on-error"
+                  className="flex h-12 w-12 items-center justify-center rounded-md bg-error text-[28px] font-black leading-none text-on-error"
                   aria-label="Remove line"
                 >
                   ×
@@ -727,6 +847,7 @@ export function CheckoutPage() {
                 min="0"
                 value={p.amount}
                 onChange={(e) => setPaymentAmount(idx, e.target.value)}
+                onFocus={(e) => e.currentTarget.select()}
                 className="min-h-touchTarget-sm w-32 rounded-md border border-outline bg-surface px-stack-gap text-right font-mono text-body-md"
                 aria-label="Payment amount"
               />
@@ -734,7 +855,7 @@ export function CheckoutPage() {
                 <button
                   type="button"
                   onClick={() => removePayment(idx)}
-                  className="h-12 w-12 rounded-md bg-error text-display-lg text-on-error"
+                  className="flex h-12 w-12 items-center justify-center rounded-md bg-error text-[28px] font-black leading-none text-on-error"
                   aria-label="Remove payment"
                 >
                   ×
@@ -768,9 +889,9 @@ export function CheckoutPage() {
           type="button"
           onClick={finalize}
           disabled={!canFinalize}
-          className="min-h-touchTarget rounded-md bg-action text-display-lg text-on-action disabled:opacity-50"
+          className="min-h-touchTarget rounded-md bg-action text-label-xl text-on-action disabled:opacity-50"
         >
-          {busy ? "FINISHING…" : "FINISH & PAY"}
+          {busy ? "Finishing..." : "Finish & pay"}
         </button>
 
         {error && (
@@ -815,7 +936,7 @@ export function CheckoutPage() {
                 <button
                   type="button"
                   onClick={() => setLastInvoice(null)}
-                  className="h-12 w-12 rounded-md bg-error text-display-lg text-on-error"
+                  className="flex h-12 w-12 items-center justify-center rounded-md bg-error text-[28px] font-black leading-none text-on-error"
                   aria-label="Close"
                 >
                   ×

@@ -5,7 +5,6 @@ import {
   getEodTotals,
   getLowStock,
   getStockOverview,
-  signOffEod,
   type EodTotalsResponse,
   type LowStockResponse,
   type SignOffResponse,
@@ -31,8 +30,6 @@ export function DashboardPage() {
   // renders nothing in those cases.
   const [stockOverview, setStockOverview] = useState<StockOverviewResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [info, setInfo] = useState<string | null>(null);
-  const [busy, setBusy] = useState(false);
 
   const reload = async () => {
     if (shopScopeGuard.blocked) {
@@ -44,7 +41,6 @@ export function DashboardPage() {
       return;
     }
     setError(null);
-    setInfo(null);
     try {
       // Issue #41 — stock overview is owner/superadmin only; for
       // other roles the call 403s and we render an empty section.
@@ -73,24 +69,6 @@ export function DashboardPage() {
   useEffect(() => {
     void reload();
   }, [actingShopId]);
-
-  const signOff = async () => {
-    if (!today) return;
-    if (!confirm(`Mark ${today.business_date} as end-of-day? This locks the day's sales.`)) return;
-    setBusy(true);
-    setError(null);
-    setInfo(null);
-    try {
-      const res = await signOffEod(today.business_date, actingShopId);
-      setInfo(`Signed off ${res.business_date} — ${res.invoices_signed_off} invoices locked.`);
-      await reload();
-    } catch (e) {
-      setError(`EOD sign-off failed: ${toUserMessage(e, "unknown error")}`);
-    } finally {
-      setBusy(false);
-    }
-  };
-
   return (
     <div className="flex flex-col gap-gutter">
       <header className="flex flex-wrap items-center justify-between gap-stack-gap">
@@ -114,12 +92,6 @@ export function DashboardPage() {
           {error}
         </div>
       )}
-      {info && (
-        <div role="status" className="rounded-md bg-success px-stack-gap py-3 text-on-secondary">
-          {info}
-        </div>
-      )}
-
       {/* Pending Products badge (issue #25). Surfaces the count of
           products awaiting a price; clicking jumps to the activation
           screen. Hidden when the count is zero (no need to nag) and
@@ -127,7 +99,7 @@ export function DashboardPage() {
       {pendingCount != null && pendingCount > 0 && (
         <Link
           to="/admin/pending"
-          className="flex items-center justify-between rounded-md bg-warning px-gutter py-3 text-on-warning shadow-sm"
+          className="flex items-center justify-between rounded-md border border-amber-200 bg-amber-50 px-gutter py-3 text-amber-950 shadow-sm transition hover:bg-amber-100"
           data-testid="pending-badge"
           role="status"
         >
@@ -275,25 +247,6 @@ export function DashboardPage() {
           </div>
         </section>
       )}
-
-      {/* Mark day end */}
-      <section className="flex items-center justify-between rounded-lg bg-surface-container p-gutter">
-        <div>
-          <h2 className="text-headline-md text-primary">Mark day end</h2>
-          <p className="text-label-md text-on-surface-variant">
-            Closes out today&apos;s sales. Subsequent same-day invoices are rejected.
-          </p>
-        </div>
-        <button
-          type="button"
-          onClick={() => void signOff()}
-          disabled={!today || today.signed_off || busy}
-          className="min-h-touchTarget rounded-md bg-primary px-gutter text-label-xl text-on-primary disabled:opacity-50"
-        >
-          {busy ? "Signing off…" : today?.signed_off ? "Already signed off" : "MARK DAY END"}
-        </button>
-      </section>
-
       {/* Past sign-offs */}
       <section className="rounded-lg bg-surface-container p-gutter">
         <h2 className="mb-stack-gap text-headline-md text-primary">Past sign-offs</h2>
@@ -339,10 +292,10 @@ function KpiCard({
 }) {
   const bg =
     accent === "success"
-      ? "bg-success text-on-secondary"
+      ? "border border-emerald-200 bg-emerald-50 text-emerald-950"
       : accent === "warning"
-      ? "bg-warning text-on-warning"
-      : "bg-primary text-on-primary";
+        ? "border border-amber-200 bg-amber-50 text-amber-950"
+        : "border border-outline bg-surface text-on-surface shadow-sm";
   return (
     <div className={`flex flex-col gap-1 rounded-lg p-gutter ${bg}`}>
       <div className="text-label-md uppercase opacity-90">{title}</div>
