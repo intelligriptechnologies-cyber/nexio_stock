@@ -144,6 +144,7 @@ async def request_void(
     await _write_void_log(
         db,
         actor_id=actor_id,
+        actor_name=_user.full_name,
         shop_id=actor_shop_id,
         invoice=updated,
         event_type=event_type,
@@ -202,6 +203,7 @@ async def approve_void(
     await _write_void_log(
         db,
         actor_id=actor_id,
+        actor_name=_user.full_name,
         shop_id=actor_shop_id,
         invoice=result.invoice,
         event_type="invoice.void_approved",
@@ -259,6 +261,7 @@ async def reject_void(
     await _write_void_log(
         db,
         actor_id=actor_id,
+        actor_name=_user.full_name,
         shop_id=actor_shop_id,
         invoice=updated,
         event_type="invoice.void_rejected",
@@ -314,6 +317,7 @@ async def _write_void_log(
     db: AsyncSession,
     *,
     actor_id: int,
+    actor_name: str | None,
     shop_id: int,
     invoice: Invoice | PastInvoice,
     event_type: str,
@@ -336,6 +340,7 @@ async def _write_void_log(
         InvoicingLog,
         event_type=event_type,
         actor_id=actor_id,
+        actor_name=actor_name,
         shop_id=shop_id,
         payload=payload,
     )

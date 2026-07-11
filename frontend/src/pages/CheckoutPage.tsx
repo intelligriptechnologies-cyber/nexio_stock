@@ -34,6 +34,7 @@ import {
 } from "../api/offline-session-store";
 import { QuickSearch } from "../components/QuickSearch";
 import { QuickAddModal } from "../components/QuickAddModal";
+import { ScanSuccessOverlay } from "../components/ScanSuccessOverlay";
 import { useBarcodeScanner } from "../hooks/useBarcodeScanner";
 import { useQuickAdd } from "../hooks/useQuickAdd";
 import { useOnlineStatus } from "../hooks/useOnlineStatus";
@@ -62,6 +63,16 @@ interface CheckoutDraft {
   cart: CartLine[];
   payments: PaymentSplit[];
   note: string;
+}
+
+interface AddByBarcodeOptions {
+  showScanOverlay?: boolean;
+}
+
+interface ScanOverlayProduct {
+  id: string;
+  brand: string;
+  sizeLabel: string;
 }
 
 const PAYMENT_MODES: PaymentMode[] = ["cash", "upi", "card"];
@@ -140,6 +151,7 @@ export function CheckoutPage() {
   const [offlineSession, setOfflineSession] = useState<StoredOfflineSession | null>(null);
   const [offlineReceiptCount, setOfflineReceiptCount] = useState(0);
   const [timerNow, setTimerNow] = useState(Date.now());
+  const [scanOverlay, setScanOverlay] = useState<ScanOverlayProduct | null>(null);
   // Architecture review Candidate A: the quick-add modal + state +
   // submission is shared with the receiving flow via the
   // useQuickAdd hook. The checkout's onResolved shows the
@@ -246,7 +258,7 @@ export function CheckoutPage() {
   }, [totalCents]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const addByBarcode = useCallback(
-    async (raw: string) => {
+    async (raw: string, options: AddByBarcodeOptions = {}) => {
       const code = raw.trim();
       if (!code) return;
       setError(null);
@@ -272,6 +284,13 @@ export function CheckoutPage() {
           return [...prev, { lineId: uid(), product, quantity: 1 }];
         });
         setInfo(`Added: ${product.brand} ${product.size_label}`);
+        if (options.showScanOverlay) {
+          setScanOverlay({
+            id: uid(),
+            brand: product.brand,
+            sizeLabel: product.size_label,
+          });
+        }
         return;
       }
       try {
@@ -299,6 +318,13 @@ export function CheckoutPage() {
           return [...prev, { lineId: uid(), product, quantity: 1 }];
         });
         setInfo(`Added: ${product.brand} ${product.size_label}`);
+        if (options.showScanOverlay) {
+          setScanOverlay({
+            id: uid(),
+            brand: product.brand,
+            sizeLabel: product.size_label,
+          });
+        }
       } catch (e) {
         if (e instanceof ApiError) {
           if (e.status === 404) {
@@ -508,8 +534,12 @@ export function CheckoutPage() {
 
   useBarcodeScanner({
     enabled: catalogReady && !quickAdd && !lastInvoice && !offlineExpired,
-    onScan: (code) => void addByBarcode(code),
+    onScan: (code) => void addByBarcode(code, { showScanOverlay: true }),
   });
+
+  const dismissScanOverlay = useCallback(() => {
+    setScanOverlay(null);
+  }, []);
 
   const validateCartBeforeFinalize = async (): Promise<boolean> => {
     if (offlineSession) {
@@ -762,6 +792,15 @@ export function CheckoutPage() {
 
   return (
     <div className="grid gap-gutter">
+      {scanOverlay && (
+        <ScanSuccessOverlay
+          key={scanOverlay.id}
+          brand={scanOverlay.brand}
+          sizeLabel={scanOverlay.sizeLabel}
+          onDone={dismissScanOverlay}
+        />
+      )}
+
       {/* Connectivity + queue banner */}
       <div className="flex flex-col gap-stack-gap" aria-live="polite">
         {!online && (

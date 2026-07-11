@@ -44,6 +44,7 @@ from app.services.eod import (
     list_signoff_history,
     sign_off_day,
 )
+from app.services.log_files import append_log_line, closing_text
 from app.services.stock_overview import build_stock_overview, now_utc
 
 router = APIRouter(prefix="/dashboard", tags=["dashboard"])
@@ -100,6 +101,32 @@ async def sign_off(
         business_date=payload.business_date.isoformat(),
         invoices_signed_off=result.invoices_signed_off,
     )
+    totals = await get_day_totals(
+        db, shop_id=actor_shop_id, business_date=payload.business_date
+    )
+    try:
+        append_log_line(
+            "closing",
+            shop_id=actor_shop_id,
+            text=closing_text(
+                business_date=payload.business_date,
+                signer_id=actor_id,
+                signer_name=_user.full_name,
+                invoice_count=totals.invoice_count,
+                revenue=totals.revenue,
+                payments_by_mode=totals.payments_by_mode,
+                voided_count=totals.voided_count,
+                reversal_count=totals.reversal_count,
+                invoices_signed_off=result.invoices_signed_off,
+            ),
+        )
+    except OSError as exc:
+        log.error(
+            "log_file.write_failed",
+            log_type="closing",
+            shop_id=actor_shop_id,
+            error=str(exc),
+        )
     return SignOffResponse(
         business_date=result.sign_off.business_date,
         signed_off_at=result.sign_off.signed_off_at,

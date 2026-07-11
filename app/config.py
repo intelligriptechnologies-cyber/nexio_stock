@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 from functools import lru_cache
+from pathlib import Path
 from typing import Literal
 
 from pydantic import Field
@@ -35,6 +36,10 @@ class Settings(BaseSettings):
     cors_allow_origins: list[str] = Field(default_factory=list)
     # Background-task knobs (#7)
     low_stock_interval_min: int = 5
+
+    # Daily human-readable operational log files. In production this
+    # should point at a persistent mounted directory.
+    log_files_dir: Path = Path("runtime/logs")
 
 
 @lru_cache(maxsize=1)

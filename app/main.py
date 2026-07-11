@@ -3,11 +3,13 @@ from __future__ import annotations
 
 import asyncio
 import contextlib
+import traceback
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from sqlalchemy import select
 
 from app.api import (
@@ -31,6 +33,8 @@ from app.api import (
 from app.config import get_settings
 from app.db import get_engine
 from app.logging_config import configure_logging, get_logger
+from app.security.jwt import TokenError, decode_access_token
+from app.services.log_files import append_log_line, exception_text
 
 DEPLOYMENT_FRONTEND_ORIGINS = (
     "https://frontend-production-d1b9.up.railway.app",
@@ -137,6 +141,39 @@ def create_app() -> FastAPI:
             allow_credentials=True,
             allow_methods=["*"],
             allow_headers=["*"],
+        )
+
+    @app.exception_handler(Exception)
+    async def unhandled_exception_handler(request: Request, exc: Exception) -> JSONResponse:
+        user_id: int | None = None
+        shop_id: int | None = None
+        auth = request.headers.get("authorization", "")
+        if auth.lower().startswith("bearer "):
+            try:
+                claims = decode_access_token(auth.split(" ", 1)[1])
+                user_id = int(claims["sub"]) if "sub" in claims else None
+                raw_shop_id = claims.get("shop_id")
+                shop_id = int(raw_shop_id) if raw_shop_id is not None else None
+            except (TokenError, TypeError, ValueError):
+                pass
+        tb = "".join(traceback.format_exception(type(exc), exc, exc.__traceback__))
+        with contextlib.suppress(OSError):
+            append_log_line(
+                "exceptions",
+                shop_id=shop_id,
+                system=shop_id is None,
+                text=exception_text(
+                    method=request.method,
+                    path=request.url.path,
+                    user_id=user_id,
+                    shop_id=shop_id,
+                    exc=exc,
+                    traceback_text=tb,
+                ),
+            )
+        return JSONResponse(
+            status_code=500,
+            content={"detail": "Internal server error"},
         )
 
     app.include_router(health.router)

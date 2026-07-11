@@ -124,7 +124,7 @@ async def _truncate_tables(test_db_dsn: str) -> AsyncIterator[None]:
         await session.execute(
             text(
                 "TRUNCATE TABLE offline_sessions, eod_signoffs, idempotency_keys, past_payments, past_invoice_lines, past_invoices, payments, invoice_lines, invoices, lot_lines, lots, products, master_products, invoicing_logs, stockin_logs, "
-                "users, shops RESTART IDENTITY CASCADE"
+                "log_file_retention_settings, users, shops RESTART IDENTITY CASCADE"
             )
         )
     yield

@@ -23,7 +23,7 @@ async function loginAsCashier(page: Page) {
   for (const d of "1111") {
     await page.getByRole("button", { name: `Digit ${d}` }).click();
   }
-  await page.getByRole("button", { name: "LOGIN" }).click();
+  await page.getByRole("button", { name: "LOGIN", exact: true }).click();
   await expect(page).toHaveURL(/\/checkout$/);
 }
 
@@ -71,6 +71,7 @@ test.describe("checkout flow — quicksearch (issue #23)", () => {
     await expect(option).toBeVisible({ timeout: 5000 });
     await option.click();
     await expect(page.getByText(/Added:/)).toBeVisible({ timeout: 5000 });
+    await expect(page.getByTestId("scan-success-overlay")).toHaveCount(0);
     // Search cleared, cart line is present.
     await expect(search).toHaveValue("");
   });
@@ -82,6 +83,7 @@ test.describe("checkout flow — quicksearch (issue #23)", () => {
     await page.getByRole("button", { name: "ADD" }).click();
     // Wait for the catalog lookup + state update
     await expect(page.getByText(/Added:/)).toBeVisible({ timeout: 5000 });
+    await expect(page.getByTestId("scan-success-overlay")).toHaveCount(0);
     // Cart line is now rendered with the product's brand
     await expect(page.getByText(/8901234567890/)).toBeVisible();
   });
@@ -91,7 +93,12 @@ test.describe("checkout flow — quicksearch (issue #23)", () => {
     await page.getByLabel("Note (optional)").focus();
     await page.keyboard.type("8901234567890", { delay: 1 });
     await page.keyboard.press("Enter");
+    const overlay = page.getByTestId("scan-success-overlay");
+    await expect(overlay).toBeVisible({ timeout: 5000 });
+    await expect(overlay).toContainText("Royal Stag");
     await expect(page.getByText(/Added:/)).toBeVisible({ timeout: 5000 });
+    await expect(page.getByText(/8901234567890/)).toBeVisible();
+    await expect(overlay).not.toBeVisible({ timeout: 2500 });
     await expect(page.getByText(/8901234567890/)).toBeVisible();
   });
 
@@ -110,6 +117,7 @@ test.describe("checkout flow — quicksearch (issue #23)", () => {
     const dialog = page.getByRole("dialog", { name: "Quick-add new product" });
     await expect(dialog).toBeVisible({ timeout: 5000 });
     await expect(dialog).toContainText(barcode);
+    await expect(page.getByTestId("scan-success-overlay")).toHaveCount(0);
   });
 
   test("split payment across two modes is supported", async ({ page }) => {

@@ -131,7 +131,7 @@ export function ShopMaintenancePage() {
   return (
     <div className="flex flex-col gap-stack-gap">
       <header className="flex flex-wrap items-center justify-between gap-stack-gap">
-        <h1 className="text-headline-lg text-primary">Shop Management</h1>
+        <h1 className="text-headline-lg text-primary">Shop Master</h1>
         <button
           type="button"
           onClick={reload}

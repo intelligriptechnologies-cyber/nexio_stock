@@ -4,6 +4,7 @@ import { invalidateCache, prefetchCatalog, type CatalogProduct } from "../api/ca
 import { createLotSafe, type LotPublic } from "../api/lots";
 import { QuickSearch } from "../components/QuickSearch";
 import { QuickAddModal } from "../components/QuickAddModal";
+import { ScanSuccessOverlay } from "../components/ScanSuccessOverlay";
 import { useBarcodeScanner } from "../hooks/useBarcodeScanner";
 import { useQuickAdd } from "../hooks/useQuickAdd";
 import { useAuth } from "../auth/AuthProvider";
@@ -19,6 +20,16 @@ interface ReceivingLine {
   // from the catalog at scan time. ``undefined`` for entries that
   // predated the catalog refresh; falls back to '—' in the render.
   currentStock?: number;
+}
+
+interface AddByBarcodeOptions {
+  showScanOverlay?: boolean;
+}
+
+interface ScanOverlayProduct {
+  id: string;
+  brand: string;
+  sizeLabel: string;
 }
 
 function uid(): string {
@@ -39,6 +50,7 @@ export function ReceivingPage() {
   const [busy, setBusy] = useState(false);
   const [catalogReady, setCatalogReady] = useState(false);
   const [lastLot, setLastLot] = useState<LotPublic | null>(null);
+  const [scanOverlay, setScanOverlay] = useState<ScanOverlayProduct | null>(null);
   // quick-add is wired via useQuickAdd. After a successful
   // quick-add the hook calls onResolved, which adds the new product
   // to the lot lines. On a 409 race (same barcode), the hook calls
@@ -89,7 +101,7 @@ export function ReceivingPage() {
   }, [info]);
 
   const addByBarcode = useCallback(
-    async (raw: string) => {
+    async (raw: string, options: AddByBarcodeOptions = {}) => {
       const code = raw.trim();
       if (!code) return;
       setError(null);
@@ -117,6 +129,13 @@ export function ReceivingPage() {
           ];
         });
         setInfo(`Added: ${product.brand} ${product.size_label}`);
+        if (options.showScanOverlay) {
+          setScanOverlay({
+            id: uid(),
+            brand: product.brand,
+            sizeLabel: product.size_label,
+          });
+        }
       } catch (e) {
         if (e instanceof ApiError) {
           if (e.status === 404) {
@@ -176,8 +195,12 @@ export function ReceivingPage() {
 
   useBarcodeScanner({
     enabled: catalogReady && !quickAdd && !lastLot,
-    onScan: (code) => void addByBarcode(code),
+    onScan: (code) => void addByBarcode(code, { showScanOverlay: true }),
   });
+
+  const dismissScanOverlay = useCallback(() => {
+    setScanOverlay(null);
+  }, []);
 
   const changeQty = (lineId: string, delta: number) => {
     setLines((prev) =>
@@ -256,6 +279,15 @@ export function ReceivingPage() {
 
   return (
     <div className="grid gap-gutter lg:grid-cols-[2fr_1fr]">
+      {scanOverlay && (
+        <ScanSuccessOverlay
+          key={scanOverlay.id}
+          brand={scanOverlay.brand}
+          sizeLabel={scanOverlay.sizeLabel}
+          onDone={dismissScanOverlay}
+        />
+      )}
+
       {/* LEFT — incoming lines */}
       <section className="flex flex-col gap-stack-gap rounded-lg bg-surface-container p-gutter">
         <header className="flex items-center justify-between">

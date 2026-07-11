@@ -204,6 +204,7 @@ async def finalize(
         InvoicingLog,
         event_type="invoice.finalized",
         actor_id=actor_id,
+        actor_name=_user.full_name,
         shop_id=actor_shop_id,
         payload={
             "invoice_id": invoice.id,
@@ -351,6 +352,7 @@ async def edit_invoice(
                 InvoicingLog,
                 event_type="invoice.edited",
                 actor_id=_user.id,
+                actor_name=_user.full_name,
                 shop_id=existing.shop_id,
                 payload={"before": result.before, "after": result.after},
             )

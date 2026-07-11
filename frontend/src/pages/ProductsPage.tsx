@@ -669,9 +669,17 @@ function ImportTab() {
     <div className="flex flex-col gap-stack-gap rounded-lg bg-surface-container p-gutter">
       <h2 className="text-headline-md text-primary">Bulk CSV import</h2>
       <p className="text-label-md text-on-surface-variant">
-        CSV columns: <code>barcode,brand,size_label,price[,low_stock_threshold]</code>. One row per
-        product. The backend reports per-row errors so you can fix only the bad rows.
+        Required columns: <code>barcode</code>, <code>brand</code>, <code>size_label</code>,{" "}
+        <code>price</code>. Optional column: <code>low_stock_threshold</code>. Blank optional
+        thresholds are accepted.
       </p>
+      <a
+        href="/templates/product-import-template.csv"
+        download="product-import-template.csv"
+        className="inline-flex min-h-touchTarget-sm w-fit items-center rounded-md bg-surface px-stack-gap text-label-md text-primary underline-offset-4 hover:underline"
+      >
+        Download sample CSV
+      </a>
       <input
         type="file"
         accept=".csv,text/csv"

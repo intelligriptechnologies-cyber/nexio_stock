@@ -16,7 +16,7 @@ async function loginAsReceiver(page: Page) {
   for (const d of "2222") {
     await page.getByRole("button", { name: `Digit ${d}` }).click();
   }
-  await page.getByRole("button", { name: "LOGIN" }).click();
+  await page.getByRole("button", { name: "LOGIN", exact: true }).click();
   await expect(page).toHaveURL(/\/receiving$/);
 }
 
@@ -33,6 +33,7 @@ test.describe("stock receiving — new lot", () => {
     await page.getByPlaceholder("Scan or enter barcode").fill("8901234567890");
     await page.getByRole("button", { name: "ADD" }).click();
     await expect(page.getByText(/Added:/)).toBeVisible({ timeout: 5000 });
+    await expect(page.getByTestId("scan-success-overlay")).toHaveCount(0);
     // The quantity input defaults to 1.
     await expect(page.getByLabel("Quantity")).toHaveValue("1");
   });
@@ -42,7 +43,12 @@ test.describe("stock receiving — new lot", () => {
     await page.getByLabel("Reference (optional)").focus();
     await page.keyboard.type("8901234567890", { delay: 1 });
     await page.keyboard.press("Enter");
+    const overlay = page.getByTestId("scan-success-overlay");
+    await expect(overlay).toBeVisible({ timeout: 5000 });
+    await expect(overlay).toContainText("Royal Stag");
     await expect(page.getByText(/Added:/)).toBeVisible({ timeout: 5000 });
+    await expect(page.getByLabel("Quantity")).toHaveValue("1");
+    await expect(overlay).not.toBeVisible({ timeout: 2500 });
     await expect(page.getByLabel("Quantity")).toHaveValue("1");
   });
 
@@ -91,6 +97,7 @@ test.describe("stock receiving — quick-add new product (issue #22)", () => {
     const dialog = page.getByRole("dialog", { name: "Quick-add new product" });
     await expect(dialog).toBeVisible({ timeout: 5000 });
     await expect(dialog).toContainText(barcode);
+    await expect(page.getByTestId("scan-success-overlay")).toHaveCount(0);
   });
 
   test("submitting the quick-add form adds the line and closes the modal", async ({
@@ -175,6 +182,7 @@ test.describe("stock receiving — quicksearch (issue #23)", () => {
     // Line added to the panel.
     await expect(page.getByLabel("Quantity")).toHaveValue("1");
     await expect(page.getByText(/Added:/)).toBeVisible();
+    await expect(page.getByTestId("scan-success-overlay")).toHaveCount(0);
     // Search dropdown cleared.
     await expect(search).toHaveValue("");
   });

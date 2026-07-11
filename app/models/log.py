@@ -25,7 +25,9 @@ from sqlalchemy import (
     DateTime,
     ForeignKey,
     Index,
+    Integer,
     String,
+    UniqueConstraint,
     func,
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -88,3 +90,28 @@ class AdminLog(_BaseLog):
 
     shop: Mapped[Shop | None] = relationship()
     actor_user: Mapped[User | None] = relationship()
+
+
+class LogFileRetentionSetting(Base):
+    """Per-shop retention setting for daily text log files."""
+
+    __tablename__ = "log_file_retention_settings"
+    __table_args__ = (
+        UniqueConstraint("shop_id", "log_type", name="uq_log_file_retention_shop_type"),
+        Index("ix_log_file_retention_shop_type", "shop_id", "log_type"),
+    )
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    shop_id: Mapped[int | None] = mapped_column(
+        ForeignKey("shops.id", ondelete="cascade"),
+        nullable=True,
+        index=True,
+    )
+    log_type: Mapped[str] = mapped_column(String(32), nullable=False)
+    retention_days: Mapped[int] = mapped_column(Integer, nullable=False, default=10)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False
+    )

@@ -19,7 +19,7 @@ from app.models.invoice import (
     Payment,
     PaymentMode,
 )
-from app.models.log import AdminLog, InvoicingLog, StockinLog
+from app.models.log import AdminLog, InvoicingLog, LogFileRetentionSetting, StockinLog
 from app.models.lot import Lot, LotLine
 from app.models.offline_session import (
     LOCKING_OFFLINE_STATES,
@@ -40,6 +40,7 @@ __all__ = [
     "InvoiceLine",
     "InvoiceStatus",
     "InvoicingLog",
+    "LogFileRetentionSetting",
     "Lot",
     "LotLine",
     "MasterProduct",

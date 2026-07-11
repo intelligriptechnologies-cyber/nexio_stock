@@ -136,6 +136,7 @@ async def create_lot(
             StockinLog,
             event_type="lot.received",
             actor_id=actor_id,
+            actor_name=_user.full_name,
             shop_id=actor_shop_id,
             payload=log_payload,
         )

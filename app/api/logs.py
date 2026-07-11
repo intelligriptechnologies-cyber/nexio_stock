@@ -4,10 +4,11 @@ from __future__ import annotations
 import csv
 import io
 import json
-from datetime import datetime
+from datetime import date, datetime
 from typing import Annotated, Literal
 
-from fastapi import APIRouter, Depends, Query, Response
+from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
+from fastapi.responses import FileResponse
 from pydantic import BaseModel
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
@@ -15,6 +16,15 @@ from sqlalchemy.orm import selectinload
 from app.api.deps import DbSession, require_role, resolve_read_shop_id
 from app.models.log import AdminLog, InvoicingLog, StockinLog
 from app.models.user import User, UserRole
+from app.services.log_files import (
+    LogFileType,
+    cleanup_all_expired_files,
+    cleanup_expired_files,
+    get_retention_days,
+    list_log_files,
+    resolve_download_path,
+    set_retention_days,
+)
 
 router = APIRouter(prefix="/logs", tags=["logs"])
 
@@ -41,6 +51,31 @@ class BusinessLogResponse(BaseModel):
     logs: list[BusinessLogRow]
 
 
+class LogFileRow(BaseModel):
+    filename: str
+    relative_path: str
+    size_bytes: int
+    modified_at: datetime
+    file_date: date
+    age_days: int
+    expires_in_days: int
+
+
+class LogFileListResponse(BaseModel):
+    log_type: LogFileType
+    retention_days: int
+    files: list[LogFileRow]
+
+
+class RetentionUpdateRequest(BaseModel):
+    retention_days: int
+
+
+class RetentionResponse(BaseModel):
+    log_type: LogFileType
+    retention_days: int
+
+
 def _row_to_public(row) -> BusinessLogRow:
     return BusinessLogRow(
         id=row.id,
@@ -52,6 +87,145 @@ def _row_to_public(row) -> BusinessLogRow:
         event_type=row.event_type,
         payload=row.payload,
     )
+
+
+def _ensure_file_log_access(log_type: LogFileType, user: User) -> None:
+    if log_type == "exceptions" and user.role != UserRole.SUPERADMIN:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="exception logs are superadmin-only",
+        )
+
+
+def _file_row_to_public(row) -> LogFileRow:
+    return LogFileRow(
+        filename=row.filename,
+        relative_path=row.relative_path,
+        size_bytes=row.size_bytes,
+        modified_at=row.modified_at,
+        file_date=row.file_date,
+        age_days=row.age_days,
+        expires_in_days=row.expires_in_days,
+    )
+
+
+async def _resolve_file_scope(
+    *,
+    db,
+    user: User,
+    log_type: LogFileType,
+    shop_id: int | None,
+    require_shop_for_non_exception: bool = False,
+) -> int | None:
+    if user.role == UserRole.SUPERADMIN and shop_id is not None:
+        from app.models.shop import Shop
+
+        shop = await db.get(Shop, shop_id)
+        if shop is None:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="shop not found")
+    scoped_shop_id = resolve_read_shop_id(user, shop_id)
+    if require_shop_for_non_exception and log_type != "exceptions" and scoped_shop_id is None:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="shop_id is required")
+    return scoped_shop_id
+
+
+@router.get("/files/{log_type}", response_model=LogFileListResponse)
+async def list_log_files_endpoint(
+    log_type: LogFileType,
+    db: DbSession,
+    _user: User = Depends(require_role(*_owner_only)),
+    shop_id: Annotated[int | None, Query(description="Superadmin only")] = None,
+) -> LogFileListResponse:
+    _ensure_file_log_access(log_type, _user)
+    scoped_shop_id = await _resolve_file_scope(
+        db=db,
+        user=_user,
+        log_type=log_type,
+        shop_id=shop_id,
+    )
+    include_all = _user.role == UserRole.SUPERADMIN and scoped_shop_id is None
+    retention_scope = scoped_shop_id
+    retention_days = await get_retention_days(db, log_type=log_type, shop_id=retention_scope)
+    if include_all:
+        cleanup_all_expired_files(log_type, retention_days=retention_days)
+    else:
+        cleanup_expired_files(log_type, shop_id=scoped_shop_id, retention_days=retention_days)
+    return LogFileListResponse(
+        log_type=log_type,
+        retention_days=retention_days,
+        files=[
+            _file_row_to_public(row)
+            for row in list_log_files(
+                log_type,
+                shop_id=scoped_shop_id,
+                retention_days=retention_days,
+                include_all_scopes=include_all,
+            )
+        ],
+    )
+
+
+@router.get("/files/{log_type}/{filename}/download")
+async def download_log_file_endpoint(
+    log_type: LogFileType,
+    filename: str,
+    db: DbSession,
+    _user: User = Depends(require_role(*_owner_only)),
+    shop_id: Annotated[int | None, Query(description="Superadmin only")] = None,
+) -> FileResponse:
+    _ensure_file_log_access(log_type, _user)
+    scoped_shop_id = await _resolve_file_scope(
+        db=db,
+        user=_user,
+        log_type=log_type,
+        shop_id=shop_id,
+    )
+    include_all = _user.role == UserRole.SUPERADMIN and scoped_shop_id is None
+    retention_days = await get_retention_days(db, log_type=log_type, shop_id=scoped_shop_id)
+    if include_all:
+        cleanup_all_expired_files(log_type, retention_days=retention_days)
+    else:
+        cleanup_expired_files(log_type, shop_id=scoped_shop_id, retention_days=retention_days)
+    path = resolve_download_path(
+        log_type,
+        filename=filename,
+        shop_id=scoped_shop_id,
+        include_all_scopes=include_all,
+    )
+    if path is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="log file not found")
+    return FileResponse(path, media_type="text/plain", filename=filename)
+
+
+@router.patch("/files/{log_type}/retention", response_model=RetentionResponse)
+async def update_log_file_retention_endpoint(
+    log_type: LogFileType,
+    payload: RetentionUpdateRequest,
+    db: DbSession,
+    _user: User = Depends(require_role(*_owner_only)),
+    shop_id: Annotated[int | None, Query(description="Superadmin only")] = None,
+) -> RetentionResponse:
+    _ensure_file_log_access(log_type, _user)
+    if payload.retention_days < 1 or payload.retention_days > 3650:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="retention_days must be between 1 and 3650",
+        )
+    scoped_shop_id = await _resolve_file_scope(
+        db=db,
+        user=_user,
+        log_type=log_type,
+        shop_id=shop_id,
+        require_shop_for_non_exception=True,
+    )
+    retention_days = await set_retention_days(
+        db,
+        log_type=log_type,
+        shop_id=scoped_shop_id,
+        retention_days=payload.retention_days,
+    )
+    cleanup_expired_files(log_type, shop_id=scoped_shop_id, retention_days=retention_days)
+    return RetentionResponse(log_type=log_type, retention_days=retention_days)
 
 
 async def _query_logs(

@@ -170,7 +170,9 @@ test.describe("shop maintenance", () => {
 
     await page.goto("/admin/shops");
 
-    await expect(page.getByRole("heading", { name: "Shop Management" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Shop Master" })).toBeVisible();
+    await expect(page.getByRole("link", { name: "Shop Master" })).toBeVisible();
+    await expect(page.getByRole("link", { name: "Staff" })).toHaveCount(0);
     await expect(page.getByRole("tab", { name: "Shop Details" })).toBeVisible();
     await expect(page.getByRole("tab", { name: "Allotted Users" })).toBeVisible();
     await expect(page.getByRole("tab", { name: "Quick Inventory Check" })).toBeVisible();
