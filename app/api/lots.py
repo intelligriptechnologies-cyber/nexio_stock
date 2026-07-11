@@ -27,7 +27,12 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api._logs import write_business_log
-from app.api.deps import DbSession, require_role, resolve_write_shop_id
+from app.api.deps import (
+    DbSession,
+    require_no_offline_session_lock,
+    require_role,
+    resolve_write_shop_id,
+)
 from app.db import unit_of_work
 from app.logging_config import get_logger
 from app.models.log import StockinLog
@@ -60,6 +65,9 @@ async def create_lot(
     # the time we'd otherwise read these).
     actor_id = _user.id
     actor_shop_id = await resolve_write_shop_id(db, _user, payload.shop_id)
+    await require_no_offline_session_lock(
+        db, shop_id=actor_shop_id, action="stock receiving"
+    )
 
     # Resolve every barcode to a product in the receiver's shop, in one
     # round-trip rather than N queries.

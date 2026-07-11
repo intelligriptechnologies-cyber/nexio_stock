@@ -113,6 +113,21 @@ async def sign_off_day(
             f"business_date {business_date.isoformat()} is already signed off",
         )
 
+    pending_void = (
+        await db.execute(
+            select(Invoice.id).where(
+                Invoice.shop_id == shop_id,
+                Invoice.business_date == business_date,
+                Invoice.status == InvoiceStatus.PENDING_VOID,
+            )
+        )
+    ).first()
+    if pending_void is not None:
+        raise EodError(
+            "pending_void_approvals_exist",
+            "pending void approvals must be resolved before EOD sign-off",
+        )
+
     now = datetime.now(UTC)
     shop = (
         await db.execute(select(Shop).where(Shop.id == shop_id).with_for_update())
@@ -292,19 +307,36 @@ async def list_pending_voids(
     *,
     shop_id: int,
     limit: int = 50,
-) -> list[Invoice]:
+) -> list[Invoice | PastInvoice]:
     """Invoices waiting for the owner to approve or reject a post-EOD
     void request (R-26 dashboard widget)."""
-    stmt = (
-        select(Invoice)
-        .where(
-            Invoice.shop_id == shop_id,
-            Invoice.status == InvoiceStatus.PENDING_VOID,
+    current_rows = list(
+        (
+            await db.execute(
+                select(Invoice).where(
+                    Invoice.shop_id == shop_id,
+                    Invoice.status == InvoiceStatus.PENDING_VOID,
+                )
+            )
         )
-        .order_by(Invoice.void_requested_at.asc().nulls_last())
-        .limit(limit)
+        .scalars()
+        .all()
     )
-    return list((await db.execute(stmt)).scalars().all())
+    past_rows = list(
+        (
+            await db.execute(
+                select(PastInvoice).where(
+                    PastInvoice.shop_id == shop_id,
+                    PastInvoice.status == InvoiceStatus.PENDING_VOID,
+                )
+            )
+        )
+        .scalars()
+        .all()
+    )
+    rows = [*current_rows, *past_rows]
+    rows.sort(key=lambda row: row.void_requested_at or datetime.max.replace(tzinfo=UTC))
+    return rows[:limit]
 
 
 __all__ = [

@@ -17,6 +17,7 @@ from fastapi import APIRouter, Depends, Query, status
 from app.api._errors import map_error_to_http
 from app.api.deps import (
     DbSession,
+    require_no_offline_session_lock,
     require_role,
     resolve_write_shop_id,
     today_local_date,  # issue #37: shared "today" helper
@@ -55,6 +56,7 @@ _read_roles = (UserRole.OWNER, UserRole.RECEIVER_USER, UserRole.CASHIER_USER, Us
 _EOD_CODE_TO_STATUS: dict[str, int] = {
     "already_signed_off": status.HTTP_409_CONFLICT,
     "future_date": status.HTTP_400_BAD_REQUEST,
+    "pending_void_approvals_exist": status.HTTP_409_CONFLICT,
 }
 
 
@@ -71,6 +73,9 @@ async def sign_off(
 ) -> SignOffResponse:
     actor_id = _user.id
     actor_shop_id = await resolve_write_shop_id(db, _user, payload.shop_id)
+    await require_no_offline_session_lock(
+        db, shop_id=actor_shop_id, action="EOD sign-off"
+    )
 
     try:
         async with unit_of_work(db):
@@ -190,7 +195,7 @@ async def eod_history(
 )
 async def void_queue(
     db: DbSession,
-    _user: User = Depends(require_role(*_read_roles)),
+    _user: User = Depends(require_role(*_owner_only)),
     limit: Annotated[int, Query(ge=1, le=200)] = 50,
     shop_id: Annotated[
         int | None, Query(description="Superadmin-only (D-65): target shop")

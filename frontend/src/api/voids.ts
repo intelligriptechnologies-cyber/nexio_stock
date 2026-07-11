@@ -2,9 +2,8 @@
 // app/api/dashboard.py). All three mutation endpoints are POST and are
 // described in the backend's docstring:
 //
-//   POST /invoices/{id}/void            request a void
-//                                        pre-EOD: voids directly
-//                                        post-EOD: creates PENDING_VOID
+//   POST /invoices/{id}/void            cashier requests approval;
+//                                        owner/superadmin fully voids
 //   POST /invoices/{id}/void/approve    owner only — creates REVERSAL
 //   POST /invoices/{id}/void/reject     owner only — reverts to FINALIZED
 //

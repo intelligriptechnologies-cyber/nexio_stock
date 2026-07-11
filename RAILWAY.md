@@ -83,7 +83,7 @@ railway variable set -s backend \
 Notes:
 - `DATABASE_URL` uses `${{Postgres.VAR}}` syntax to reference the Postgres service's own variables live — you never need to copy/paste the password.
 - The `+asyncpg` in the scheme is required; Railway's own `DATABASE_URL` default (`postgresql://…`) will NOT work with this app's SQLAlchemy async driver.
-- `CORS_ALLOW_ORIGINS` must be updated (and the backend redeployed — see step 8) any time the frontend's domain changes.
+- `CORS_ALLOW_ORIGINS` must be updated (and the backend redeployed — see step 8) any time the frontend's domain changes. If both apex and `www` custom domains are usable, include both exact origins (for example, `https://barstock-dev.nexiohyper.com` and `https://www.barstock-dev.nexiohyper.com`). Do not use `*`; credential-capable CORS requires explicit origins.
 
 **`frontend`** service variables:
 
@@ -164,7 +164,7 @@ Two files at the repo root exist specifically to make Railway deploys work — *
 Setting a variable does **not** restart the running container by itself:
 
 ```
-railway variable set -s backend 'CORS_ALLOW_ORIGINS=["https://new-domain"]'
+railway variable set -s backend 'CORS_ALLOW_ORIGINS=["https://new-domain","https://www.new-domain"]'
 ```
 
 `railway redeploy -s backend -y` is unreliable for services deployed via CLI upload (as opposed to a GitHub-connected deploy) — it may silently no-op. The reliable way to pick up new env vars is to force a fresh deploy the same way you deployed originally:

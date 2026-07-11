@@ -21,11 +21,17 @@ from app.models.invoice import (
 )
 from app.models.log import AdminLog, InvoicingLog, StockinLog
 from app.models.lot import Lot, LotLine
+from app.models.offline_session import (
+    LOCKING_OFFLINE_STATES,
+    OfflineSession,
+    OfflineSessionState,
+)
 from app.models.product import MasterProduct, Product, ProductStatus
 from app.models.shop import Shop
 from app.models.user import User, UserRole
 
 __all__ = [
+    "LOCKING_OFFLINE_STATES",
     "STATUSES_COUNTING_AS_SOLD",
     "AdminLog",
     "EodSignOff",
@@ -37,6 +43,8 @@ __all__ = [
     "Lot",
     "LotLine",
     "MasterProduct",
+    "OfflineSession",
+    "OfflineSessionState",
     "PastInvoice",
     "PastInvoiceLine",
     "PastPayment",

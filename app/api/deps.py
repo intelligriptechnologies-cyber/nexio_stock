@@ -14,12 +14,14 @@ from typing import Annotated
 
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db import get_db
 from app.models.shop import Shop
 from app.models.user import SHOP_SCOPED_ROLES, User, UserRole
 from app.security.jwt import TokenError, decode_access_token
+from app.services.offline_sessions import OfflineSessionError, ensure_shop_not_offline_locked
 
 # auto_error=False so we can return our own 401 with a consistent body.
 _bearer = HTTPBearer(auto_error=False)
@@ -51,6 +53,12 @@ async def get_current_user(
             detail=f"invalid token: {exc}",
             headers={"WWW-Authenticate": "Bearer"},
         ) from exc
+    if claims.get("token_type") == "offline_session":
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="offline-session token is only valid for offline-session sync/status",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
 
     user_id = int(claims["sub"])
     user = await db.get(User, user_id)
@@ -153,6 +161,19 @@ def require_shop_scope(user: User) -> None:
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="shop-scoped user has no shop_id — data integrity violation",
         )
+
+
+async def require_no_offline_session_lock(
+    db: AsyncSession, *, shop_id: int, action: str
+) -> None:
+    await db.execute(select(Shop.id).where(Shop.id == shop_id).with_for_update())
+    try:
+        await ensure_shop_not_offline_locked(db, shop_id=shop_id, action=action)
+    except OfflineSessionError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail={"code": exc.code, "message": exc.message},
+        ) from exc
 
 
 def today_local_date(now: datetime | None = None) -> date_cls:

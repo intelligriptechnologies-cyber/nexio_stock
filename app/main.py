@@ -18,6 +18,7 @@ from app.api import (
     health,
     logs,
     lots,
+    offline_sessions,
     products,
     shops,
     staff,
@@ -34,6 +35,7 @@ from app.logging_config import configure_logging, get_logger
 DEPLOYMENT_FRONTEND_ORIGINS = (
     "https://frontend-production-d1b9.up.railway.app",
     "https://barstock-dev.nexiohyper.com",
+    "https://www.barstock-dev.nexiohyper.com",
 )
 
 
@@ -143,6 +145,7 @@ def create_app() -> FastAPI:
     app.include_router(users.router)
     app.include_router(products.router)
     app.include_router(lots.router)
+    app.include_router(offline_sessions.router)
     app.include_router(checkout.router)
     app.include_router(voids.router)
     app.include_router(logs.router)

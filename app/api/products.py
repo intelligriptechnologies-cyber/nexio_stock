@@ -26,7 +26,13 @@ from typing import Annotated, Literal
 from fastapi import APIRouter, Depends, File, Form, Header, HTTPException, Query, UploadFile, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.api.deps import DbSession, require_role, resolve_read_shop_id, resolve_write_shop_id
+from app.api.deps import (
+    DbSession,
+    require_no_offline_session_lock,
+    require_role,
+    resolve_read_shop_id,
+    resolve_write_shop_id,
+)
 from app.logging_config import get_logger
 from app.models.product import Product, ProductStatus
 from app.models.user import User, UserRole
@@ -150,6 +156,9 @@ async def create_product(
     # Owner/receiver/cashier create in their own shop; superadmin must
     # name the target shop explicitly (D-64/D-65).
     actor_shop_id = await resolve_write_shop_id(db, _user, payload.shop_id)
+    await require_no_offline_session_lock(
+        db, shop_id=actor_shop_id, action="product creation"
+    )
 
     try:
         product = await create_product_row(
@@ -239,6 +248,9 @@ async def quick_add_product(
     # service (issue #31) — defaults to "receiving" for the in-scope
     # #22 caller. Checkout is added in #26.
     origin = x_quick_add_origin or "receiving"
+    await require_no_offline_session_lock(
+        db, shop_id=actor_shop_id, action="quick-add product creation"
+    )
 
     try:
         product = await products_svc.quick_add_product(
@@ -266,6 +278,9 @@ async def quick_add_product(
         ) from exc
     except ProductError as exc:
         raise _error_to_http(exc) from exc
+    await require_no_offline_session_lock(
+        db, shop_id=product.shop_id, action="product update"
+    )
     await db.refresh(product)
 
     # Audit-log to the right domain table (D-v2-13): receiving ->
@@ -471,6 +486,9 @@ async def reject_product(
         )
     except ProductError as exc:
         raise _error_to_http(exc) from exc
+    await require_no_offline_session_lock(
+        db, shop_id=product.shop_id, action="pending product rejection"
+    )
     reject_pending_product(product)
     await db.commit()
     await db.refresh(product)
@@ -495,6 +513,9 @@ async def activate_product(
         )
     except ProductError as exc:
         raise _error_to_http(exc) from exc
+    await require_no_offline_session_lock(
+        db, shop_id=product.shop_id, action="pending product activation"
+    )
 
     try:
         was_pending = activate_pending_product(
@@ -544,6 +565,9 @@ async def import_products_csv(
     # triggers a lazy load on a closed session.
     actor_id = _user.id
     actor_shop_id = await resolve_write_shop_id(db, _user, shop_id)
+    await require_no_offline_session_lock(
+        db, shop_id=actor_shop_id, action="product CSV import"
+    )
 
     raw = await file.read()
     try:

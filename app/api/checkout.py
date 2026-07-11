@@ -28,7 +28,13 @@ from sqlalchemy.orm import selectinload
 
 from app.api._errors import map_error_to_http
 from app.api._logs import write_business_log
-from app.api.deps import DbSession, require_role, resolve_read_shop_id, resolve_write_shop_id
+from app.api.deps import (
+    DbSession,
+    require_no_offline_session_lock,
+    require_role,
+    resolve_read_shop_id,
+    resolve_write_shop_id,
+)
 from app.db import unit_of_work
 from app.logging_config import get_logger
 from app.models.invoice import Invoice, InvoiceStatus, PastInvoice, PaymentMode
@@ -100,6 +106,9 @@ async def validate_checkout_cart(
     _user: User = Depends(require_role(*_checkout_roles)),
 ) -> CartValidationResponse:
     actor_shop_id = await resolve_write_shop_id(db, _user, payload.shop_id)
+    await require_no_offline_session_lock(
+        db, shop_id=actor_shop_id, action="checkout validation"
+    )
     try:
         rows = await validate_cart_quantities(
             db,
@@ -148,6 +157,9 @@ async def finalize(
     # don't trigger lazy loads on a detached User.
     actor_id = _user.id
     actor_shop_id = await resolve_write_shop_id(db, _user, payload.shop_id)
+    await require_no_offline_session_lock(
+        db, shop_id=actor_shop_id, action="checkout finalize"
+    )
 
     cart = [
         CartLine(barcode=line.barcode, quantity=line.quantity)
@@ -320,6 +332,9 @@ async def edit_invoice(
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="cashier can edit only their own current invoices")
     if _user.role != UserRole.SUPERADMIN and existing.shop_id != _user.shop_id:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="invoice not found")
+    await require_no_offline_session_lock(
+        db, shop_id=existing.shop_id, action="invoice edit"
+    )
 
     try:
         async with unit_of_work(db):
@@ -365,6 +380,9 @@ async def get_invoice(
     invoice = await _load_invoice_or_404(db, invoice_id)
     if actor_role != UserRole.SUPERADMIN and invoice.shop_id != actor_shop_id:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="invoice not found")
+    await require_no_offline_session_lock(
+        db, shop_id=invoice.shop_id, action="invoice PDF download"
+    )
     # Issue #38: backfill snapshot for any pre-migration line.
     await resolve_missing_snapshots(db, list(invoice.lines))
     return InvoicePublic.model_validate(invoice)

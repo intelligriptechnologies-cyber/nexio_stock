@@ -140,6 +140,18 @@ export function invalidateCache(): void {
 }
 
 // Test/diagnostic helper — read-only.
+export function hydrateCatalog(
+  items: CatalogProduct[],
+  shopId?: number | null
+): void {
+  const m = new Map<string, CatalogProduct>();
+  for (const p of items) m.set(p.barcode, p);
+  cache = m;
+  cacheItems = items;
+  cacheShopId = shopId ?? null;
+  inflight = null;
+}
+
 export function cacheSize(): number {
   return cache?.size ?? 0;
 }

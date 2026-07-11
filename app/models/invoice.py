@@ -61,10 +61,15 @@ class InvoiceStatus(str, enum.Enum):
 # nets out instead of fully reverses), add it here AND update the
 # queries that consume this set.
 #
+# PENDING_VOID still counts as sold: until an owner/superadmin approves
+# the request, stock and revenue must remain financially active.
+#
 # Lives at module level (not on the InvoiceStatus class) because
 # `InvoiceStatus(str, enum.Enum)` coerces any plain class attribute
 # to a string at class-construction time.
-STATUSES_COUNTING_AS_SOLD: frozenset[InvoiceStatus] = frozenset({InvoiceStatus.FINALIZED})
+STATUSES_COUNTING_AS_SOLD: frozenset[InvoiceStatus] = frozenset(
+    {InvoiceStatus.FINALIZED, InvoiceStatus.PENDING_VOID}
+)
 
 
 class PaymentMode(str, enum.Enum):

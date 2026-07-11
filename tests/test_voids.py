@@ -7,7 +7,7 @@ import pytest
 from httpx import AsyncClient
 from sqlalchemy import select
 
-from app.models.invoice import Invoice, InvoiceStatus
+from app.models.invoice import Invoice, InvoiceStatus, PastInvoice
 from app.models.log import InvoicingLog
 from app.models.lot import LotLine
 from app.models.product import Product
@@ -59,7 +59,7 @@ async def _finalize(
 
 
 @pytest.mark.usefixtures("owner", "receiver", "cashier")
-async def test_cashier_can_directly_void_a_pre_eod_invoice(
+async def test_cashier_request_on_own_current_invoice_returns_pending_void(
     cashier_client: AsyncClient, owner_client: AsyncClient, receiver_client: AsyncClient
 ) -> None:
     await _seed_product(owner_client, "8902000000001", price="100.00")
@@ -71,11 +71,11 @@ async def test_cashier_can_directly_void_a_pre_eod_invoice(
     resp = await cashier_client.post(f"/invoices/{inv['id']}/void")
     assert resp.status_code == 200, resp.text
     body = resp.json()
-    assert body["status"] == "voided"
+    assert body["status"] == "pending_void"
 
 
 @pytest.mark.usefixtures("owner", "receiver", "cashier")
-async def test_pre_eod_void_restores_stock(
+async def test_pending_void_still_counts_as_sold_until_approved(
     cashier_client: AsyncClient, owner_client: AsyncClient, receiver_client: AsyncClient, db_session
 ) -> None:
     await _seed_product(owner_client, "8902000000002", price="100.00")
@@ -95,20 +95,71 @@ async def test_pre_eod_void_restores_stock(
     ).scalar_one()
     assert received == 5
 
-    # Now void. Stock should be back to 5 (the voided invoice no
-    # longer counts as "sold").
+    # Cashier request leaves stock financially active.
     void = await cashier_client.post(f"/invoices/{inv['id']}/void")
     assert void.status_code == 200
 
-    # Verify via derived-stock: received(5) - sold(0) = 5. We can't
-    # run the service's stock query directly from a test, but we
-    # can check the voided invoice is excluded.
-    voided = (
+    pending = (
         await db_session.execute(
             select(Invoice).where(Invoice.id == inv["id"])
         )
     ).scalar_one()
-    assert voided.status == InvoiceStatus.VOIDED
+    assert pending.status == InvoiceStatus.PENDING_VOID
+
+    from app.services.stock import compute_derived_stock
+
+    stock = await compute_derived_stock(db_session, product_ids=[product_id])
+    assert stock[product_id] == 2
+
+
+@pytest.mark.usefixtures("owner", "receiver", "cashier")
+async def test_cashier_cannot_request_void_for_another_users_invoice(
+    cashier_client: AsyncClient, owner_client: AsyncClient, receiver_client: AsyncClient
+) -> None:
+    await _seed_product(owner_client, "8902000000012", price="100.00")
+    await _seed_lot(receiver_client, items=[("8902000000012", 5)])
+    inv = await _finalize(
+        owner_client, barcode="8902000000012", quantity=1, amount="100.00"
+    )
+
+    resp = await cashier_client.post(f"/invoices/{inv['id']}/void")
+    assert resp.status_code == 403
+    assert resp.json()["detail"]["code"] == "cashier_not_invoice_owner"
+
+
+@pytest.mark.usefixtures("owner", "receiver", "cashier")
+async def test_owner_direct_voids_current_invoice(
+    cashier_client: AsyncClient, owner_client: AsyncClient, receiver_client: AsyncClient
+) -> None:
+    await _seed_product(owner_client, "8902000000013", price="100.00")
+    await _seed_lot(receiver_client, items=[("8902000000013", 5)])
+    inv = await _finalize(
+        cashier_client, barcode="8902000000013", quantity=1, amount="100.00"
+    )
+
+    resp = await owner_client.post(f"/invoices/{inv['id']}/void")
+    assert resp.status_code == 200, resp.text
+    assert resp.json()["status"] == "voided"
+
+
+@pytest.mark.usefixtures("owner", "receiver", "cashier")
+async def test_approving_current_pending_void_marks_original_voided(
+    cashier_client: AsyncClient, owner_client: AsyncClient, receiver_client: AsyncClient, db_session
+) -> None:
+    await _seed_product(owner_client, "8902000000014", price="100.00")
+    await _seed_lot(receiver_client, items=[("8902000000014", 5)])
+    inv = await _finalize(
+        cashier_client, barcode="8902000000014", quantity=1, amount="100.00"
+    )
+    await cashier_client.post(f"/invoices/{inv['id']}/void")
+
+    approve = await owner_client.post(f"/invoices/{inv['id']}/void/approve")
+    assert approve.status_code == 200
+    assert approve.json()["status"] == "voided"
+    reversals = (
+        await db_session.execute(select(PastInvoice).where(PastInvoice.status == InvoiceStatus.REVERSAL))
+    ).scalars().all()
+    assert reversals == []
 
 
 @pytest.mark.usefixtures("owner", "receiver", "cashier")
@@ -120,9 +171,9 @@ async def test_voiding_a_voided_invoice_returns_409(
     inv = await _finalize(
         cashier_client, barcode="8902000000003", quantity=1, amount="100.00"
     )
-    first = await cashier_client.post(f"/invoices/{inv['id']}/void")
+    first = await owner_client.post(f"/invoices/{inv['id']}/void")
     assert first.status_code == 200
-    second = await cashier_client.post(f"/invoices/{inv['id']}/void")
+    second = await owner_client.post(f"/invoices/{inv['id']}/void")
     assert second.status_code == 409
     assert second.json()["detail"]["code"] == "already_voided"
 
@@ -140,15 +191,15 @@ async def test_session_usable_after_void_error_rejects_a_later_unrelated_void(
     first_inv = await _finalize(
         cashier_client, barcode="8902000000010", quantity=1, amount="100.00"
     )
-    already_voided = await cashier_client.post(f"/invoices/{first_inv['id']}/void")
-    assert already_voided.status_code == 200
+    pending = await cashier_client.post(f"/invoices/{first_inv['id']}/void")
+    assert pending.status_code == 200
 
-    # This second void of the SAME invoice hits the VoidError("already_voided")
+    # This second void of the SAME invoice hits the VoidError("already_pending")
     # path and its rollback -- the failure this test is pinning.
     failing = await cashier_client.post(f"/invoices/{first_inv['id']}/void")
     assert failing.status_code == 409
 
-    # An unrelated invoice's direct void must still succeed afterward.
+    # An unrelated invoice's approval request must still succeed afterward.
     second_inv = await _finalize(
         cashier_client, barcode="8902000000010", quantity=1, amount="100.00"
     )
@@ -170,13 +221,13 @@ async def test_pre_eod_void_writes_invoicing_log(
     logs = (
         await db_session.execute(
             select(InvoicingLog).where(
-                InvoicingLog.event_type == "invoice.voided"
+                InvoicingLog.event_type == "invoice.void_requested"
             )
         )
     ).scalars().all()
     assert len(logs) == 1
     assert logs[0].payload["from_status"] == "finalized"
-    assert logs[0].payload["to_status"] == "voided"
+    assert logs[0].payload["to_status"] == "pending_void"
     assert logs[0].payload["invoice_id"] == inv["id"]
 
 
@@ -271,12 +322,12 @@ async def test_owner_approving_pending_void_creates_reversal(
     body = approve.json()
     assert body["status"] == "voided"
 
-    # The reversal is a separate invoice with reverses_invoice_id set.
+    # The reversal is a separate archived invoice with negative totals.
     from sqlalchemy import select as sa_select
 
     reversals = (
         await db_session.execute(
-            sa_select(Invoice).where(Invoice.reverses_invoice_id == inv["id"])
+            sa_select(PastInvoice).where(PastInvoice.status == InvoiceStatus.REVERSAL)
         )
     ).scalars().all()
     assert len(reversals) == 1

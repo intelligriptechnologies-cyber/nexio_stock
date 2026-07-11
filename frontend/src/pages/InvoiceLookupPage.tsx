@@ -17,6 +17,7 @@ import {
 } from "../api/checkout";
 import { listShops, type ShopSummary } from "../api/shops";
 import { requestVoid } from "../api/voids";
+import { notifyVoidApprovalsChanged } from "../api/void-approvals-events";
 
 type Source = "current" | "past";
 
@@ -37,6 +38,9 @@ export function InvoiceLookupPage() {
   const [eodTotals, setEodTotals] = useState<EodTotalsResponse | null>(null);
   const [summaryOpen, setSummaryOpen] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
+  const [voidTarget, setVoidTarget] = useState<InvoicePublic | null>(null);
+  const [voidReason, setVoidReason] = useState("");
+  const [voidConfirmationText, setVoidConfirmationText] = useState("");
   const [confirmationText, setConfirmationText] = useState("");
   const [closeNotes, setCloseNotes] = useState("");
   const [closeBusy, setCloseBusy] = useState(false);
@@ -150,6 +154,19 @@ export function InvoiceLookupPage() {
       user?.role === "superadmin" ||
       (user?.role === "cashier_user" && invoice.cashier_user_id === user.id));
 
+  const canRequestVoid = (invoice: InvoicePublic) =>
+    invoice.status === "finalized" &&
+    (user?.role === "owner" ||
+      user?.role === "superadmin" ||
+      (user?.role === "cashier_user" && invoice.cashier_user_id === user.id));
+
+  const openVoidDialog = (invoice: InvoicePublic) => {
+    if (!canRequestVoid(invoice)) return;
+    setVoidTarget(invoice);
+    setVoidReason("");
+    setVoidConfirmationText("");
+  };
+
   const beginEdit = (invoice: InvoicePublic) => {
     setSelected(invoice);
     setEditNote(invoice.note ?? "");
@@ -220,18 +237,20 @@ export function InvoiceLookupPage() {
     }
   };
 
-  const requestVoidForInvoice = async (invoice: InvoicePublic) => {
+  const requestVoidForInvoice = async (invoice: InvoicePublic, reason?: string) => {
     setBusy(true);
     setError(null);
     try {
-      const updated = await requestVoid(invoice.id);
+      const updated = await requestVoid(invoice.id, reason);
       setSelected(updated);
       setInfo(
         updated.status === "voided"
           ? `Invoice #${updated.invoice_number} voided.`
-          : `Void requested for invoice #${updated.invoice_number}.`
+          : `Approval request sent for invoice #${updated.invoice_number}.`
       );
+      if (updated.status === "pending_void") notifyVoidApprovalsChanged();
       await reload();
+      setVoidTarget(null);
     } catch (e) {
       setError(e instanceof ApiError ? e.detail : "Void request failed.");
     } finally {
@@ -276,7 +295,12 @@ export function InvoiceLookupPage() {
           `${result.invoices_signed_off} invoice(s) moved to Past Invoices.`
       );
     } catch (e) {
-      setError(e instanceof ApiError ? e.detail : "Could not close today.");
+      const detail = e instanceof ApiError ? e.detail : "Could not close today.";
+      setError(
+        detail.includes("pending_void_approvals_exist")
+          ? "Resolve pending void approvals before closing EOD. Open Approvals from the sidebar."
+          : detail
+      );
     } finally {
       setCloseBusy(false);
     }
@@ -446,7 +470,11 @@ export function InvoiceLookupPage() {
                   <tr
                     key={invoice.id}
                     className={`border-b border-outline/60 ${
-                      selected?.id === invoice.id ? "bg-action-muted/60" : "bg-surface"
+                      invoice.status === "pending_void"
+                        ? "bg-surface-container text-on-surface-variant opacity-75"
+                        : selected?.id === invoice.id
+                          ? "bg-action-muted/60"
+                          : "bg-surface"
                     }`}
                   >
                     <td className="px-3 py-3 align-top">
@@ -489,10 +517,18 @@ export function InvoiceLookupPage() {
                         >
                           {canEdit(invoice) ? "Edit" : "View"}
                         </button>
-                        {invoice.status === "finalized" ? (
+                        {invoice.status === "pending_void" ? (
                           <button
                             type="button"
-                            onClick={() => void requestVoidForInvoice(invoice)}
+                            disabled
+                            className="min-h-touchTarget-sm rounded-md bg-surface-container-high px-2 text-label-md text-on-surface-variant opacity-80"
+                          >
+                            Approval sent
+                          </button>
+                        ) : canRequestVoid(invoice) ? (
+                          <button
+                            type="button"
+                            onClick={() => openVoidDialog(invoice)}
                             className="min-h-touchTarget-sm rounded-md bg-error px-2 text-label-md text-on-error"
                           >
                             Void
@@ -637,10 +673,10 @@ export function InvoiceLookupPage() {
             </div>
 
             <footer className="flex flex-wrap justify-end gap-stack-gap border-t border-outline bg-surface-container px-gutter py-stack-gap">
-              {selected.status === "finalized" && (
+              {canRequestVoid(selected) && (
                 <button
                   type="button"
-                  onClick={() => void requestVoidForInvoice(selected)}
+                  onClick={() => openVoidDialog(selected)}
                   className="min-h-touchTarget-sm rounded-md bg-error px-gutter text-label-md text-on-error"
                 >
                   Void
@@ -691,6 +727,20 @@ export function InvoiceLookupPage() {
           onNotes={setCloseNotes}
           onCancel={closeSettlementModals}
           onConfirm={() => void closeToday()}
+        />
+      )}
+
+      {voidTarget && (
+        <VoidConfirmDialog
+          invoice={voidTarget}
+          role={user?.role}
+          reason={voidReason}
+          confirmationText={voidConfirmationText}
+          busy={busy}
+          onReason={setVoidReason}
+          onConfirmationText={setVoidConfirmationText}
+          onCancel={() => setVoidTarget(null)}
+          onConfirm={() => void requestVoidForInvoice(voidTarget, voidReason.trim() || undefined)}
         />
       )}
     </div>
@@ -758,6 +808,91 @@ function SettlementSummaryDialog({
             className="min-h-touchTarget-sm rounded-md bg-action px-gutter text-label-md text-on-action"
           >
             Mark Reviewed and Close
+          </button>
+        </footer>
+      </section>
+    </div>
+  );
+}
+
+function VoidConfirmDialog({
+  invoice,
+  role,
+  reason,
+  confirmationText,
+  busy,
+  onReason,
+  onConfirmationText,
+  onCancel,
+  onConfirm,
+}: {
+  invoice: InvoicePublic;
+  role?: string;
+  reason: string;
+  confirmationText: string;
+  busy: boolean;
+  onReason: (value: string) => void;
+  onConfirmationText: (value: string) => void;
+  onCancel: () => void;
+  onConfirm: () => void;
+}) {
+  const isCashier = role === "cashier_user";
+  const canConfirm = isCashier || confirmationText === "VOID";
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-stack-gap"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="void-confirm-title"
+    >
+      <section className="flex w-full max-w-lg flex-col gap-stack-gap rounded-md bg-surface p-gutter shadow-xl">
+        <header>
+          <h2 id="void-confirm-title" className="text-headline-md text-primary">
+            Invoice #{invoice.invoice_number}
+          </h2>
+          <p className="text-label-md text-on-surface-variant">
+            {isCashier
+              ? "Send this invoice to Approvals. It will still count until approved."
+              : "This will fully void the invoice."}
+          </p>
+        </header>
+        <label className="flex flex-col gap-1 text-label-md">
+          Reason
+          <textarea
+            value={reason}
+            onChange={(e) => onReason(e.target.value)}
+            rows={3}
+            maxLength={200}
+            className="rounded-md border border-outline bg-surface px-stack-gap py-2"
+          />
+        </label>
+        {!isCashier && (
+          <label className="flex flex-col gap-1 text-label-md">
+            Type VOID to confirm
+            <input
+              value={confirmationText}
+              onChange={(e) => onConfirmationText(e.target.value)}
+              className="min-h-touchTarget-sm rounded-md border border-outline bg-surface px-stack-gap"
+              autoFocus
+            />
+          </label>
+        )}
+        <footer className="flex justify-end gap-stack-gap">
+          <button
+            type="button"
+            onClick={onCancel}
+            disabled={busy}
+            className="min-h-touchTarget-sm rounded-md bg-surface-container-high px-gutter text-label-md"
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            onClick={onConfirm}
+            disabled={!canConfirm || busy}
+            className="min-h-touchTarget-sm rounded-md bg-error px-gutter text-label-md text-on-error disabled:opacity-50"
+          >
+            {busy ? "Working..." : isCashier ? "Send Approval Request" : "Void Invoice"}
           </button>
         </footer>
       </section>

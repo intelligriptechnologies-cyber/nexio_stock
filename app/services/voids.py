@@ -79,7 +79,7 @@ async def _load_invoice_for_void(
     return past
 
 
-async def direct_void(
+async def request_void_approval(
     db: AsyncSession,
     *,
     invoice_id: int,
@@ -87,8 +87,7 @@ async def direct_void(
     actor_user_id: int,
     reason: str | None = None,
 ) -> Invoice | PastInvoice:
-    """Pre-EOD direct void. Allowed for cashier + owner; rejected for
-    signed-off invoices (caller must use request_post_eod_void)."""
+    """Cashier request flow. The caller enforces invoice ownership."""
     invoice = await _load_invoice_for_void(
         db, invoice_id=invoice_id, shop_id=shop_id
     )
@@ -96,53 +95,12 @@ async def direct_void(
         raise VoidError("already_voided", "invoice is already voided")
     if invoice.status == InvoiceStatus.REVERSAL:
         raise VoidError("is_reversal", "cannot void a reversal entry")
-    if invoice.eod_signed_off:
-        raise VoidError(
-            "post_eod_requires_approval",
-            "this invoice has been EOD-signed-off; the void must be "
-            "requested and approved by the owner instead",
-        )
+    if invoice.status == InvoiceStatus.PENDING_VOID:
+        raise VoidError("already_pending", "invoice already has a pending void request")
     if invoice.status != InvoiceStatus.FINALIZED:
         raise VoidError(
             "bad_status",
-            f"cannot void from status {invoice.status.value}",
-        )
-
-    invoice.status = InvoiceStatus.VOIDED
-    invoice.void_requested_at = datetime.now(UTC)
-    invoice.void_requested_by_user_id = actor_user_id
-    if reason:
-        invoice.note = (
-            (invoice.note or "")
-            + ("" if not invoice.note else " | ")
-            + f"[void] {reason}"
-        )
-    return invoice
-
-
-async def request_post_eod_void(
-    db: AsyncSession,
-    *,
-    invoice_id: int,
-    shop_id: int,
-    actor_user_id: int,
-    reason: str | None = None,
-) -> Invoice:
-    """Mark a signed-off invoice PENDING_VOID. The original line items
-    remain visible in `confirmed_sales`; the owner reviews via the
-    dashboard (#6) and either approves or rejects."""
-    invoice = await _load_invoice_for_void(
-        db, invoice_id=invoice_id, shop_id=shop_id
-    )
-    if isinstance(invoice, Invoice) and not invoice.eod_signed_off:
-        raise VoidError(
-            "use_direct_void",
-            "invoice is not EOD-signed-off; use the direct void flow",
-        )
-    if invoice.status != InvoiceStatus.FINALIZED:
-        raise VoidError(
-            "already_pending",
-            f"invoice is in status {invoice.status.value}; cannot request void",
+            f"cannot request void from status {invoice.status.value}",
         )
 
     invoice.status = InvoiceStatus.PENDING_VOID
@@ -178,10 +136,18 @@ async def approve_post_eod_void(
             f"invoice is in status {invoice.status.value}; cannot approve",
         )
     if isinstance(invoice, Invoice) and not invoice.eod_signed_off:
-        raise VoidError(
-            "not_signed_off",
-            "original invoice isn't EOD-signed-off; use direct void",
+        invoice.status = InvoiceStatus.VOIDED
+        invoice.void_requested_at = invoice.void_requested_at or datetime.now(UTC)
+        invoice.void_requested_by_user_id = (
+            invoice.void_requested_by_user_id or owner_user_id
         )
+        if reason:
+            invoice.note = (
+                (invoice.note or "")
+                + ("" if not invoice.note else " | ")
+                + f"[void approved] {reason}"
+            )
+        return VoidResult(invoice=invoice, reversal=None)
 
     # Allocate a fresh invoice number for the reversal. We reuse the
     # same shop counter — reversal rows get a real number in the same
@@ -280,11 +246,100 @@ async def reject_post_eod_void(
     return invoice
 
 
+async def direct_void_or_reversal(
+    db: AsyncSession,
+    *,
+    invoice_id: int,
+    shop_id: int,
+    actor_user_id: int,
+    reason: str | None = None,
+) -> VoidResult:
+    """Owner/superadmin direct full void.
+
+    Current, unsigned invoices are marked VOIDED. Signed-off or archived
+    invoices get a reversal row and the original is marked VOIDED.
+    """
+    invoice = await _load_invoice_for_void(
+        db, invoice_id=invoice_id, shop_id=shop_id
+    )
+    if invoice.status == InvoiceStatus.VOIDED:
+        raise VoidError("already_voided", "invoice is already voided")
+    if invoice.status == InvoiceStatus.REVERSAL:
+        raise VoidError("is_reversal", "cannot void a reversal entry")
+    if invoice.status == InvoiceStatus.PENDING_VOID:
+        raise VoidError("already_pending", "invoice already has a pending void request")
+    if invoice.status != InvoiceStatus.FINALIZED:
+        raise VoidError(
+            "bad_status",
+            f"cannot void from status {invoice.status.value}",
+        )
+
+    if isinstance(invoice, Invoice) and not invoice.eod_signed_off:
+        invoice.status = InvoiceStatus.VOIDED
+        invoice.void_requested_at = datetime.now(UTC)
+        invoice.void_requested_by_user_id = actor_user_id
+        if reason:
+            invoice.note = (
+                (invoice.note or "")
+                + ("" if not invoice.note else " | ")
+                + f"[void] {reason}"
+            )
+        return VoidResult(invoice=invoice, reversal=None)
+
+    shop = (
+        await db.execute(
+            select(Shop).where(Shop.id == shop_id).with_for_update()
+        )
+    ).scalar_one()
+    next_number = (shop.last_invoice_number or 0) + 1
+    shop.last_invoice_number = next_number
+
+    await db.refresh(invoice, attribute_names=["lines", "payments"])
+    is_past = isinstance(invoice, PastInvoice)
+    reversal = PastInvoice(
+        shop_id=shop_id,
+        cashier_user_id=actor_user_id,
+        invoice_number=next_number,
+        status=InvoiceStatus.REVERSAL,
+        total_amount=(-invoice.total_amount),
+        finalized_at=datetime.now(UTC),
+        business_date=invoice.business_date,
+        eod_signed_off_at=datetime.now(UTC),
+        eod_signed_off_by_user_id=actor_user_id,
+        note=f"Reversal of invoice {invoice.invoice_number}. " + (reason or ""),
+        reverses_past_invoice_id=invoice.id if is_past else None,
+    )
+    db.add(reversal)
+    await db.flush()
+
+    for line in invoice.lines:
+        db.add(
+            PastInvoiceLine(
+                invoice_id=reversal.id,
+                product_id=line.product_id,
+                quantity=line.quantity,
+                unit_price=line.unit_price,
+                line_total=-line.line_total,
+                product_brand=line.product_brand,
+                product_size_label=line.product_size_label,
+            )
+        )
+    for p in invoice.payments:
+        db.add(PastPayment(invoice_id=reversal.id, mode=p.mode, amount=-p.amount))
+
+    invoice.status = InvoiceStatus.VOIDED
+    invoice.void_requested_at = invoice.void_requested_at or datetime.now(UTC)
+    invoice.void_requested_by_user_id = (
+        invoice.void_requested_by_user_id or actor_user_id
+    )
+    return VoidResult(invoice=invoice, reversal=reversal)
+
+
 __all__ = [
     "VoidError",
     "VoidResult",
     "approve_post_eod_void",
-    "direct_void",
+    "direct_void_or_reversal",
     "reject_post_eod_void",
-    "request_post_eod_void",
+    "request_void_approval",
 ]

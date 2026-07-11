@@ -12,6 +12,7 @@ import {
 } from "../api/dashboard";
 import { toUserMessage } from "../api/client";
 import { listPendingProducts } from "../api/products";
+import { listPendingVoids } from "../api/voids";
 import { useShopScope, useShopScopeGuard } from "../auth/ShopScopeProvider";
 
 function moneyFmt(s: string): string {
@@ -25,6 +26,7 @@ export function DashboardPage() {
   const [lowStock, setLowStock] = useState<LowStockResponse | null>(null);
   const [history, setHistory] = useState<SignOffResponse[] | null>(null);
   const [pendingCount, setPendingCount] = useState<number | null>(null);
+  const [voidApprovalCount, setVoidApprovalCount] = useState<number | null>(null);
   // Issue #41 — cross-shop stock overview (owner/superadmin only).
   // null while loading or for non-authorized roles; the section
   // renders nothing in those cases.
@@ -37,6 +39,7 @@ export function DashboardPage() {
       setLowStock(null);
       setHistory(null);
       setPendingCount(null);
+      setVoidApprovalCount(null);
       setStockOverview(null);
       return;
     }
@@ -46,7 +49,7 @@ export function DashboardPage() {
       // other roles the call 403s and we render an empty section.
       // The catch keeps the rest of the batch alive (mirrors how
       // listPendingProducts is wrapped below).
-      const [t, l, h, p, so] = await Promise.all([
+      const [t, l, h, p, v, so] = await Promise.all([
         getEodTotals(undefined, actingShopId),
         getLowStock(undefined, actingShopId),
         getEodHistory(20, actingShopId),
@@ -54,12 +57,14 @@ export function DashboardPage() {
         // alongside the other dashboard data so the badge appears
         // immediately when the dashboard mounts.
         listPendingProducts(actingShopId).catch(() => []),
+        listPendingVoids(actingShopId).catch(() => ({ invoices: [] })),
         getStockOverview().catch(() => null),
       ]);
       setToday(t);
       setLowStock(l);
       setHistory(h.signoffs);
       setPendingCount(p.length);
+      setVoidApprovalCount(v.invoices.length);
       setStockOverview(so);
     } catch (e) {
       setError(toUserMessage(e, "Load failed."));
@@ -112,6 +117,23 @@ export function DashboardPage() {
             </div>
           </div>
           <span aria-hidden="true" className="text-headline-lg">→</span>
+        </Link>
+      )}
+      {voidApprovalCount != null && voidApprovalCount > 0 && (
+        <Link
+          to="/admin/voids"
+          className="flex items-center justify-between rounded-md border border-amber-200 bg-amber-50 px-gutter py-3 text-amber-950 shadow-sm transition hover:bg-amber-100"
+          role="status"
+        >
+          <div>
+            <div className="text-label-xl">
+              {voidApprovalCount} void approval{voidApprovalCount === 1 ? "" : "s"} pending
+            </div>
+            <div className="text-label-md">
+              Resolve approvals before closing EOD.
+            </div>
+          </div>
+          <span aria-hidden="true" className="text-headline-lg">â†’</span>
         </Link>
       )}
 

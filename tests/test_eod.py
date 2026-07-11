@@ -8,7 +8,7 @@ import pytest
 from httpx import AsyncClient
 from sqlalchemy import select
 
-from app.models.invoice import EodSignOff, Invoice, PastInvoice
+from app.models.invoice import EodSignOff, Invoice, InvoiceStatus, PastInvoice
 
 # --- helpers ---
 
@@ -217,8 +217,8 @@ async def test_eod_totals_excludes_voided_and_reversal_from_revenue(
     await _seed_lot(receiver_client, items=[("8903000000006", 5)])
     inv1 = await _finalize(cashier_client, barcode="8903000000006", quantity=1, amount="100.00")
     await _finalize(cashier_client, barcode="8903000000006", quantity=1, amount="100.00")
-    # Direct-void the first.
-    await cashier_client.post(f"/invoices/{inv1['id']}/void")
+    # Owner direct-voids the first.
+    await owner_client.post(f"/invoices/{inv1['id']}/void")
 
     today = date.today().isoformat()
     await owner_client.post(
@@ -234,6 +234,56 @@ async def test_eod_totals_excludes_voided_and_reversal_from_revenue(
     assert body["revenue"] == "100.00"
     assert body["voided_count"] == 1
     assert body["reversal_count"] == 0
+
+
+@pytest.mark.usefixtures("owner", "receiver", "cashier")
+async def test_eod_signoff_blocked_when_pending_void_exists(
+    owner_client: AsyncClient,
+    receiver_client: AsyncClient,
+    cashier_client: AsyncClient,
+) -> None:
+    await _seed_product(owner_client, "8903000000014")
+    await _seed_lot(receiver_client, items=[("8903000000014", 5)])
+    inv = await _finalize(
+        cashier_client, barcode="8903000000014", quantity=1, amount="100.00"
+    )
+    requested = await cashier_client.post(f"/invoices/{inv['id']}/void")
+    assert requested.status_code == 200
+    assert requested.json()["status"] == "pending_void"
+
+    today = date.today().isoformat()
+    resp = await owner_client.post(
+        "/dashboard/eod/sign-off", json={"business_date": today}
+    )
+    assert resp.status_code == 409
+    assert resp.json()["detail"]["code"] == "pending_void_approvals_exist"
+
+
+@pytest.mark.usefixtures("owner", "receiver", "cashier")
+async def test_eod_totals_include_pending_void_as_revenue(
+    owner_client: AsyncClient,
+    receiver_client: AsyncClient,
+    cashier_client: AsyncClient,
+    db_session,
+) -> None:
+    await _seed_product(owner_client, "8903000000015")
+    await _seed_lot(receiver_client, items=[("8903000000015", 5)])
+    inv = await _finalize(
+        cashier_client, barcode="8903000000015", quantity=1, amount="100.00"
+    )
+    await cashier_client.post(f"/invoices/{inv['id']}/void")
+
+    row = (
+        await db_session.execute(select(Invoice).where(Invoice.id == inv["id"]))
+    ).scalar_one()
+    assert row.status == InvoiceStatus.PENDING_VOID
+
+    totals = await owner_client.get(
+        "/dashboard/eod-totals", params={"business_date": date.today().isoformat()}
+    )
+    body = totals.json()
+    assert body["invoice_count"] == 1
+    assert body["revenue"] == "100.00"
 
 
 # --- history ---

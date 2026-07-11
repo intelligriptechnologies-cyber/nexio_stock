@@ -1,10 +1,11 @@
 import { useEffect, useMemo, useState, useCallback, useRef } from "react";
-import { ApiError, toUserMessage, withShopId } from "../api/client";
+import { ApiError, toUserMessage } from "../api/client";
 import {
   prefetchCatalog,
   resolveBarcode,
   type CatalogProduct,
   invalidateCache,
+  hydrateCatalog,
 } from "../api/catalog";
 import {
   finalizeCheckout,
@@ -14,7 +15,23 @@ import {
   type PaymentMode,
   type InvoicePublic,
 } from "../api/checkout";
-import { enqueueFinalize, listQueued, clearQueued } from "../api/finalize-queue";
+import { listQueued, clearQueued } from "../api/finalize-queue";
+import {
+  extendOfflineSession,
+  offlineItemToCatalogProduct,
+  startOfflineSession,
+  syncOfflineSession,
+} from "../api/offline-sessions";
+import {
+  addOfflineReceipt,
+  clearOfflineSessionData,
+  listOfflineReceipts,
+  loadOpenOfflineSession,
+  saveStartedOfflineSession,
+  saveStoredOfflineSession,
+  updateStoredOfflineSession,
+  type StoredOfflineSession,
+} from "../api/offline-session-store";
 import { QuickSearch } from "../components/QuickSearch";
 import { QuickAddModal } from "../components/QuickAddModal";
 import { useBarcodeScanner } from "../hooks/useBarcodeScanner";
@@ -67,6 +84,15 @@ function formatPaymentLabel(m: PaymentMode): string {
   return { cash: "Cash", upi: "UPI", card: "Card" }[m];
 }
 
+function formatRemaining(ms: number): string {
+  const clamped = Math.max(0, ms);
+  const totalSeconds = Math.floor(clamped / 1000);
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
+  return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+}
+
 function stockValidationMessage(
   availableQuantity: number,
   requestedQuantity: number
@@ -111,6 +137,9 @@ export function CheckoutPage() {
   const [busy, setBusy] = useState(false);
   const [catalogReady, setCatalogReady] = useState(false);
   const [lastInvoice, setLastInvoice] = useState<InvoicePublic | null>(null);
+  const [offlineSession, setOfflineSession] = useState<StoredOfflineSession | null>(null);
+  const [offlineReceiptCount, setOfflineReceiptCount] = useState(0);
+  const [timerNow, setTimerNow] = useState(Date.now());
   // Architecture review Candidate A: the quick-add modal + state +
   // submission is shared with the receiving flow via the
   // useQuickAdd hook. The checkout's onResolved shows the
@@ -143,6 +172,35 @@ export function CheckoutPage() {
     return () => window.clearTimeout(timer);
   }, [info]);
 
+  const applyOfflineCatalog = useCallback(
+    (record: StoredOfflineSession) => {
+      hydrateCatalog(record.catalog.map(offlineItemToCatalogProduct), actingShopId);
+      setCatalogReady(true);
+    },
+    [actingShopId]
+  );
+
+  useEffect(() => {
+    let cancelled = false;
+    loadOpenOfflineSession()
+      .then(async (record) => {
+        if (!record || cancelled) return;
+        setOfflineSession(record);
+        applyOfflineCatalog(record);
+        const receipts = await listOfflineReceipts(record.session.id);
+        if (!cancelled) setOfflineReceiptCount(receipts.length);
+      })
+      .catch((e) => setError(`Offline session restore failed: ${toUserMessage(e, "unknown error")}`));
+    return () => {
+      cancelled = true;
+    };
+  }, [applyOfflineCatalog]);
+
+  useEffect(() => {
+    const timer = window.setInterval(() => setTimerNow(Date.now()), 1000);
+    return () => window.clearInterval(timer);
+  }, []);
+
   const refreshQueueSnapshot = useCallback(() => {
     setQueuedSnapshot(listQueued());
   }, []);
@@ -155,11 +213,15 @@ export function CheckoutPage() {
   // Prefetch the catalog on mount, and again if the acting shop changes
   // (superadmin, D-66) so the cache doesn't serve another shop's products.
   useEffect(() => {
+    if (offlineSession) {
+      applyOfflineCatalog(offlineSession);
+      return;
+    }
     setCatalogReady(false);
     prefetchCatalog(actingShopId)
       .then(() => setCatalogReady(true))
       .catch((e) => setError(`Catalog load failed: ${toUserMessage(e, "unknown error")}`));
-  }, [actingShopId]);
+  }, [actingShopId, offlineSession, applyOfflineCatalog]);
 
   const totalCents = useMemo(
     () =>
@@ -171,6 +233,10 @@ export function CheckoutPage() {
   );
 
   const totalLabel = useMemo(() => `₹${moneyString(totalCents)}`, [totalCents]);
+  const offlineRemainingMs = offlineSession
+    ? new Date(offlineSession.session.expires_at).getTime() - timerNow
+    : 0;
+  const offlineExpired = Boolean(offlineSession && offlineRemainingMs <= 0);
 
   // When total changes, snap the default payment amount to match (single-mode).
   useEffect(() => {
@@ -185,6 +251,29 @@ export function CheckoutPage() {
       if (!code) return;
       setError(null);
       setInfo(null);
+      if (offlineSession) {
+        const item = offlineSession.catalog.find((p) => p.barcode === code);
+        if (!item) {
+          setError(`Offline catalog does not contain barcode: ${code}`);
+          return;
+        }
+        if (item.current_stock <= 0) {
+          setError(`Out of offline baseline stock: ${item.brand} ${item.size_label}`);
+          return;
+        }
+        const product = offlineItemToCatalogProduct(item);
+        setCart((prev) => {
+          const existing = prev.find((l) => l.product.barcode === code);
+          if (existing) {
+            return prev.map((l) =>
+              l.lineId === existing.lineId ? { ...l, quantity: l.quantity + 1 } : l
+            );
+          }
+          return [...prev, { lineId: uid(), product, quantity: 1 }];
+        });
+        setInfo(`Added: ${product.brand} ${product.size_label}`);
+        return;
+      }
       try {
         const product = await resolveBarcode(code, actingShopId);
         // Issue #26 (D-v2-7): a pending product is unsellable. The
@@ -227,7 +316,7 @@ export function CheckoutPage() {
         }
       }
     },
-    [actingShopId, openQuickAdd]
+    [actingShopId, offlineSession, openQuickAdd]
   );
 
   // Quicksearch (issue #23) — taps on a search-result dropdown add the
@@ -288,6 +377,16 @@ export function CheckoutPage() {
     const requested = Math.max(1, Math.floor(nextQty || 1));
     if (line.quantity !== requested) {
       setCart((prev) => prev.map((l) => (l.lineId === lineId ? { ...l, quantity: requested } : l)));
+    }
+    if (offlineSession) {
+      const message = stockValidationMessage(line.product.current_stock ?? 0, requested);
+      setLineValidation((prev) => {
+        const next = { ...prev };
+        if (message) next[lineId] = message;
+        else delete next[lineId];
+        return next;
+      });
+      return;
     }
     try {
       const result = await validateCheckoutCart(
@@ -398,7 +497,8 @@ export function CheckoutPage() {
     cart.length > 0 &&
     payments.length > 0 &&
     paymentsCents === totalCents &&
-    !busy;
+    !busy &&
+    !offlineExpired;
 
   const handleSubmitBarcode = (e: React.FormEvent) => {
     e.preventDefault();
@@ -407,11 +507,29 @@ export function CheckoutPage() {
   };
 
   useBarcodeScanner({
-    enabled: catalogReady && !quickAdd && !lastInvoice,
+    enabled: catalogReady && !quickAdd && !lastInvoice && !offlineExpired,
     onScan: (code) => void addByBarcode(code),
   });
 
   const validateCartBeforeFinalize = async (): Promise<boolean> => {
+    if (offlineSession) {
+      const nextValidation: Record<string, LineValidation> = {};
+      const blockingMessages: string[] = [];
+      for (const line of cart) {
+        const message = stockValidationMessage(line.product.current_stock ?? 0, line.quantity);
+        if (!message) continue;
+        nextValidation[line.lineId] = message;
+        if (message.invalid) {
+          blockingMessages.push(`${line.product.brand} ${line.product.size_label}: ${message.message}`);
+        }
+      }
+      setLineValidation(nextValidation);
+      if (blockingMessages.length > 0) {
+        setError(blockingMessages.join("\n"));
+        return false;
+      }
+      return true;
+    }
     const result = await validateCheckoutCart(
       cart.map((l) => ({ barcode: l.product.barcode, quantity: l.quantity })),
       actingShopId
@@ -446,7 +564,7 @@ export function CheckoutPage() {
     setError(null);
     setInfo(null);
     if (!canFinalize) {
-      setError("Payments must equal the cart total.");
+      setError(offlineExpired ? "Offline session expired. Temporary receipts cannot be edited." : "Payments must equal the cart total.");
       return;
     }
     setBusy(true);
@@ -459,6 +577,40 @@ export function CheckoutPage() {
     try {
       const stockOk = await validateCartBeforeFinalize();
       if (!stockOk) return;
+      if (offlineSession) {
+        const nextNumber = offlineReceiptCount + 1;
+        const tempReceiptId = `OFF-${offlineSession.session.id}-${String(nextNumber).padStart(4, "0")}`;
+        await addOfflineReceipt(offlineSession.session.id, {
+          temp_receipt_id: tempReceiptId,
+          idempotency_key: `offline-${offlineSession.session.id}-${tempReceiptId}`,
+          lines: body.lines,
+          payments: body.payments,
+          note: body.note,
+          created_at: new Date().toISOString(),
+        });
+        const nextCatalog = offlineSession.catalog.map((item) => {
+          const sold = cart.find((line) => line.product.barcode === item.barcode)?.quantity ?? 0;
+          return sold > 0 ? { ...item, current_stock: Math.max(0, item.current_stock - sold) } : item;
+        });
+        const nextSession: StoredOfflineSession = {
+          ...offlineSession,
+          catalog: nextCatalog,
+          session: {
+            ...offlineSession.session,
+            receipt_counter: nextNumber,
+            receipt_count: nextNumber,
+            gross_total: moneyString(parseMoney(offlineSession.session.gross_total) + totalCents),
+          },
+        };
+        await saveStoredOfflineSession(nextSession);
+        setOfflineSession(nextSession);
+        setOfflineReceiptCount(nextNumber);
+        applyOfflineCatalog(nextSession);
+        clearActiveCheckout();
+        idempotencyKeyRef.current = uid();
+        setInfo(`Saved temporary receipt ${tempReceiptId}. Sync required for official invoice number.`);
+        return;
+      }
       const res = await finalizeCheckout(body, idemKey, actingShopId);
       setLastInvoice(res.invoice);
       clearActiveCheckout();
@@ -470,18 +622,11 @@ export function CheckoutPage() {
         // cleared so the cashier can keep ringing; on a successful retry
         // we display the resulting invoice via the queue hook below.
         if (e.status === 0 || e.status === 408 || e.status === 429) {
-          enqueueFinalize({
-            idempotencyKey: idemKey,
-            body: withShopId(body, actingShopId),
-          });
-          clearActiveCheckout();
-          idempotencyKeyRef.current = uid();
-          setInfo(
+          setError(
             online
-              ? "Network blip — finalize queued for automatic retry."
-              : "Offline — finalize queued. It will retry automatically when you're back online."
+              ? "Network error. Retry, or start Work offline while connected if an outage is expected."
+              : "Offline finalizing is locked unless Work offline was started online first."
           );
-          void retryQueue.flush();
         } else if (e.status === 409) {
           try {
             const stockOk = await validateCartBeforeFinalize();
@@ -506,6 +651,79 @@ export function CheckoutPage() {
 
   // (online status + retry queue wired at the top of the component.)
 
+  const beginOfflineSession = async () => {
+    setBusy(true);
+    setError(null);
+    setInfo(null);
+    try {
+      const started = await startOfflineSession(actingShopId);
+      const stored = await saveStartedOfflineSession(started);
+      setOfflineSession(stored);
+      setOfflineReceiptCount(0);
+      applyOfflineCatalog(stored);
+      clearActiveCheckout();
+      setInfo("Offline session started. Temporary receipts must be synced before normal checkout resumes.");
+    } catch (e) {
+      setError(toUserMessage(e, "Could not start offline session."));
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const extendCurrentOfflineSession = async () => {
+    if (!offlineSession) return;
+    setBusy(true);
+    setError(null);
+    try {
+      const extended = await extendOfflineSession(offlineSession.session.id);
+      const stored = await updateStoredOfflineSession(
+        extended.session,
+        extended.offline_token
+      );
+      setOfflineSession(stored);
+      setInfo("Offline session extended.");
+    } catch (e) {
+      setError(toUserMessage(e, "Could not extend offline session."));
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const syncCurrentOfflineSession = async () => {
+    if (!offlineSession) return;
+    setBusy(true);
+    setError(null);
+    setInfo(null);
+    try {
+      const receipts = await listOfflineReceipts(offlineSession.session.id);
+      if (receipts.length === 0) {
+        setError("No offline receipts to sync. Ask an owner to discard this session.");
+        return;
+      }
+      const result = await syncOfflineSession(
+        offlineSession.session.id,
+        receipts,
+        offlineSession.offlineToken
+      );
+      await clearOfflineSessionData(offlineSession.session.id);
+      setOfflineSession(null);
+      setOfflineReceiptCount(0);
+      invalidateCache();
+      void prefetchCatalog(actingShopId).then(() => setCatalogReady(true));
+      setInfo(
+        `Synced ${result.mappings.length} receipt(s). Official invoice numbers: ${result.mappings
+          .map((m) => `#${m.invoice_number}`)
+          .join(", ")}.`
+      );
+    } catch (e) {
+      setError(toUserMessage(e, "Offline sync failed. Checkout remains locked until sync or owner discard."));
+      const refreshed = await loadOpenOfflineSession();
+      if (refreshed) setOfflineSession(refreshed);
+    } finally {
+      setBusy(false);
+    }
+  };
+
   const handleDismissQueued = (key: string) => {
     clearQueued(key);
     refreshQueueSnapshot();
@@ -513,6 +731,10 @@ export function CheckoutPage() {
 
   const downloadPdf = async () => {
     if (!lastInvoice) return;
+    if (offlineSession) {
+      setError("PDF download is blocked during an offline session.");
+      return;
+    }
     try {
       const blob = await downloadInvoicePdf(lastInvoice.id);
       const url = URL.createObjectURL(blob);
@@ -551,7 +773,7 @@ export function CheckoutPage() {
             <div className="flex-1">
               <div className="text-label-xl">You&apos;re offline</div>
               <div className="text-label-md">
-                Sales will be queued locally and retry when connectivity returns.
+                Offline sales require an active Work offline session started while online.
               </div>
             </div>
           </div>
@@ -606,6 +828,59 @@ export function CheckoutPage() {
             </ul>
           </div>
         )}
+        {offlineSession ? (
+          <div
+            role="region"
+            aria-label="Offline session"
+            className="flex flex-col gap-stack-gap rounded-md bg-surface-container p-stack-gap"
+          >
+            <div className="flex flex-wrap items-center justify-between gap-stack-gap">
+              <div>
+                <div className="text-label-xl text-primary">Offline session #{offlineSession.session.id}</div>
+                <div className="text-label-md text-on-surface-variant">
+                  {offlineReceiptCount} temporary receipt(s) saved · sync required for official invoice numbers
+                </div>
+              </div>
+              <div className={`font-mono text-headline-md ${offlineExpired ? "text-error" : "text-on-surface"}`}>
+                {formatRemaining(offlineRemainingMs)}
+              </div>
+            </div>
+            {offlineSession.session.failure_reason?.message && (
+              <div role="alert" className="rounded-md bg-error px-stack-gap py-2 text-on-error">
+                {offlineSession.session.failure_reason.message}
+              </div>
+            )}
+            <div className="flex flex-wrap gap-stack-gap">
+              <button
+                type="button"
+                onClick={extendCurrentOfflineSession}
+                disabled={busy || offlineSession.session.extension_count >= 1 || offlineExpired}
+                className="min-h-touchTarget-sm rounded-md bg-warning px-stack-gap text-label-md text-on-warning disabled:opacity-50"
+              >
+                Extend 2h
+              </button>
+              <button
+                type="button"
+                onClick={syncCurrentOfflineSession}
+                disabled={busy || !online || offlineReceiptCount === 0}
+                className="min-h-touchTarget-sm rounded-md bg-action px-stack-gap text-label-md text-on-action disabled:opacity-50"
+              >
+                Sync receipts
+              </button>
+            </div>
+          </div>
+        ) : (
+          <div className="flex justify-end">
+            <button
+              type="button"
+              onClick={beginOfflineSession}
+              disabled={busy || !online}
+              className="min-h-touchTarget-sm rounded-md bg-primary px-stack-gap text-label-md text-on-primary disabled:opacity-50"
+            >
+              Work offline
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Quick-add modal (issue #26). Same UI as the receiving flow,
@@ -647,7 +922,8 @@ export function CheckoutPage() {
                 setCatalogReady(false);
                 void prefetchCatalog(actingShopId).then(() => setCatalogReady(true));
               }}
-              className="rounded-md bg-surface-container-high px-stack-gap py-1 text-on-surface-variant"
+              disabled={Boolean(offlineSession)}
+              className="rounded-md bg-surface-container-high px-stack-gap py-1 text-on-surface-variant disabled:opacity-50"
             >
               Refresh
             </button>
@@ -891,7 +1167,7 @@ export function CheckoutPage() {
           disabled={!canFinalize}
           className="min-h-touchTarget rounded-md bg-action text-label-xl text-on-action disabled:opacity-50"
         >
-          {busy ? "Finishing..." : "Finish & pay"}
+          {busy ? "Finishing..." : offlineSession ? "Save temporary receipt" : "Finish & pay"}
         </button>
 
         {error && (
@@ -929,7 +1205,8 @@ export function CheckoutPage() {
                 <button
                   type="button"
                   onClick={downloadPdf}
-                  className="rounded-md bg-primary px-stack-gap py-2 text-label-md text-on-primary"
+                  disabled={Boolean(offlineSession)}
+                  className="rounded-md bg-primary px-stack-gap py-2 text-label-md text-on-primary disabled:opacity-50"
                 >
                   PDF
                 </button>

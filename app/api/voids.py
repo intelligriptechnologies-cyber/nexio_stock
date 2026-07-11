@@ -1,9 +1,8 @@
 """Void & reversal routes (D-18, D-37, R-8, R-41).
 
 Endpoints (all require a bearer token):
-  POST /invoices/{id}/void            request a void
-                                       - pre-EOD: voids directly
-                                       - post-EOD: creates PENDING_VOID
+  POST /invoices/{id}/void            cashier requests approval;
+                                       owner/superadmin fully voids
   POST /invoices/{id}/void/approve    owner approves a pending void,
                                        creates the REVERSAL invoice
   POST /invoices/{id}/void/reject     owner rejects a pending void
@@ -23,7 +22,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api._errors import map_error_to_http
 from app.api._logs import write_business_log
-from app.api.deps import DbSession, require_role
+from app.api.deps import DbSession, require_no_offline_session_lock, require_role
 from app.db import unit_of_work
 from app.logging_config import get_logger
 from app.models.invoice import Invoice, InvoiceStatus, PastInvoice
@@ -33,9 +32,9 @@ from app.schemas.checkout import InvoicePublic
 from app.services.voids import (
     VoidError,
     approve_post_eod_void,
-    direct_void,
+    direct_void_or_reversal,
     reject_post_eod_void,
-    request_post_eod_void,
+    request_void_approval,
 )
 
 router = APIRouter(prefix="/invoices", tags=["invoices"])
@@ -81,13 +80,14 @@ _VOID_CODE_TO_STATUS: dict[str, int] = {
     "post_eod_requires_approval": status.HTTP_409_CONFLICT,
     "not_signed_off": status.HTTP_409_CONFLICT,
     "bad_status": status.HTTP_409_CONFLICT,
+    "cashier_not_invoice_owner": status.HTTP_403_FORBIDDEN,
 }
 
 
 @router.post(
     "/{invoice_id}/void",
     response_model=InvoicePublic,
-    summary="Request a void (pre-EOD: voids directly; post-EOD: PENDING_VOID)",
+    summary="Request or perform a void based on actor role",
 )
 async def request_void(
     invoice_id: int,
@@ -97,15 +97,26 @@ async def request_void(
 ) -> InvoicePublic:
     actor_id = _user.id
     actor_shop_id = await _resolve_void_shop_id(db, _user, invoice_id)
+    await require_no_offline_session_lock(
+        db, shop_id=actor_shop_id, action="invoice void"
+    )
 
     invoice = await _load_invoice(db, invoice_id, actor_shop_id)
     was_eod_signed_off = invoice.eod_signed_off
     original_status = invoice.status
+    if _user.role == UserRole.CASHIER_USER and invoice.cashier_user_id != actor_id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail={
+                "code": "cashier_not_invoice_owner",
+                "message": "cashier can request void only for their own invoice",
+            },
+        )
 
     try:
         async with unit_of_work(db):
-            if was_eod_signed_off:
-                updated = await request_post_eod_void(
+            if _user.role == UserRole.CASHIER_USER:
+                updated = await request_void_approval(
                     db,
                     invoice_id=invoice_id,
                     shop_id=actor_shop_id,
@@ -114,13 +125,14 @@ async def request_void(
                 )
                 event_type = "invoice.void_requested"
             else:
-                updated = await direct_void(
+                result = await direct_void_or_reversal(
                     db,
                     invoice_id=invoice_id,
                     shop_id=actor_shop_id,
                     actor_user_id=actor_id,
                     reason=reason,
                 )
+                updated = result.invoice
                 event_type = "invoice.voided"
     except VoidError as exc:
         raise map_error_to_http(
@@ -167,6 +179,9 @@ async def approve_void(
 ) -> InvoicePublic:
     actor_id = _user.id
     actor_shop_id = await _resolve_void_shop_id(db, _user, invoice_id)
+    await require_no_offline_session_lock(
+        db, shop_id=actor_shop_id, action="void approval"
+    )
 
     try:
         async with unit_of_work(db):
@@ -221,6 +236,9 @@ async def reject_void(
 ) -> InvoicePublic:
     actor_id = _user.id
     actor_shop_id = await _resolve_void_shop_id(db, _user, invoice_id)
+    await require_no_offline_session_lock(
+        db, shop_id=actor_shop_id, action="void rejection"
+    )
 
     try:
         async with unit_of_work(db):
@@ -297,7 +315,7 @@ async def _write_void_log(
     *,
     actor_id: int,
     shop_id: int,
-    invoice: Invoice,
+    invoice: Invoice | PastInvoice,
     event_type: str,
     from_status: InvoiceStatus,
     to_status: InvoiceStatus,
