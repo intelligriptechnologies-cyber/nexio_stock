@@ -26,6 +26,7 @@ from typing import Annotated, Literal
 from fastapi import APIRouter, Depends, File, Form, Header, HTTPException, Query, UploadFile, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.api._logs import write_business_log
 from app.api.deps import (
     DbSession,
     require_no_offline_session_lock,
@@ -34,9 +35,12 @@ from app.api.deps import (
     resolve_write_shop_id,
 )
 from app.logging_config import get_logger
+from app.models.log import AdminLog
 from app.models.product import Product, ProductStatus
 from app.models.user import User, UserRole
 from app.schemas.product import (
+    ProductActionConfirmation,
+    ProductDeleteResponse,
     PendingProductRow,
     ProductActivate,
     ProductCreate,
@@ -62,12 +66,16 @@ from app.services.product_lifecycle import ProductLifecycleError
 from app.services.products import (
     ProductError,
     QuickAddConflictError,
+    archive_product,
     activate_pending_product,
     count_pending_products,
     get_product_for_write,
     lookup_product_by_barcode,
+    permanent_delete_blockers,
+    permanent_delete_eligible_ids,
     quick_add_log_entry,
     reject_pending_product,
+    restore_product,
     update_product_fields,
 )
 from app.services.stock import compute_derived_stock
@@ -89,6 +97,11 @@ _pending_roles = (UserRole.OWNER, UserRole.SUPERADMIN)
 _PRODUCT_ERROR_CODE_TO_STATUS: dict[str, int] = {
     "not_found": status.HTTP_404_NOT_FOUND,
     "deactivated": status.HTTP_400_BAD_REQUEST,
+    "already_active": status.HTTP_400_BAD_REQUEST,
+    "already_inactive": status.HTTP_400_BAD_REQUEST,
+    "confirmation_mismatch": status.HTTP_400_BAD_REQUEST,
+    "permanent_delete_requires_inactive": status.HTTP_400_BAD_REQUEST,
+    "permanent_delete_blocked": status.HTTP_409_CONFLICT,
     "empty_csv": status.HTTP_400_BAD_REQUEST,
     "missing_columns": status.HTTP_400_BAD_REQUEST,
     "conflict_row_missing": status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -126,7 +139,9 @@ async def _public_with_stock(
     # One round-trip for the whole batch; no extra wrapper module —
     # the call site is small enough that an indirection would add
     # noise without value. (Architecture-pass review, 2026-07-08.)
-    stock = await compute_derived_stock(db, product_ids=[r.id for r in rows])
+    product_ids = [r.id for r in rows]
+    stock = await compute_derived_stock(db, product_ids=product_ids)
+    eligible_ids = await permanent_delete_eligible_ids(db, product_ids=product_ids)
     out: list[ProductPublic] = []
     for r in rows:
         # model_validate picks up the schema-default current_stock=0;
@@ -134,6 +149,7 @@ async def _public_with_stock(
         # computed value without the "multiple values for keyword" error.
         data = ProductPublic.model_validate(r).model_dump()
         data["current_stock"] = stock.get(r.id, 0)
+        data["can_permanently_delete"] = r.id in eligible_ids and not r.is_active
         out.append(ProductPublic(**data))
     return out
 
@@ -412,6 +428,193 @@ async def update_product(
         changed_fields=sorted(data.keys()),
     )
     return ProductPublic.model_validate(product)
+
+
+async def _confirm_destructive_action(payload: ProductActionConfirmation, expected: str) -> None:
+    if payload.confirmation_text != expected:
+        raise ProductError(
+            "confirmation_mismatch",
+            f"Type {expected} to confirm this action.",
+        )
+
+
+@router.post(
+    "/{product_id}/archive",
+    response_model=ProductPublic,
+    summary="Owner archives a product by marking it inactive",
+)
+async def archive_product_action(
+    product_id: int,
+    payload: ProductActionConfirmation,
+    db: DbSession,
+    _user: User = Depends(require_role(*_write_roles)),
+) -> ProductPublic:
+    actor_id = _user.id
+    try:
+        product = await get_product_for_write(
+            db, product_id=product_id, actor_role=_user.role, actor_shop_id=_user.shop_id
+        )
+    except ProductError as exc:
+        raise _error_to_http(exc) from exc
+
+    await require_no_offline_session_lock(db, shop_id=product.shop_id, action="product archive")
+    try:
+        await _confirm_destructive_action(payload, "DELETE")
+        if not archive_product(product):
+            raise ProductError("already_inactive", "product is already inactive")
+    except ProductError as exc:
+        raise _error_to_http(exc) from exc
+
+    write_business_log(
+        db,
+        AdminLog,
+        event_type="product.archived",
+        actor_id=actor_id,
+        actor_name=_user.full_name,
+        shop_id=product.shop_id,
+        payload={
+            "product_id": product.id,
+            "barcode": product.barcode,
+            "brand": product.brand,
+            "size_label": product.size_label,
+        },
+    )
+    await db.commit()
+    await db.refresh(product)
+    log.info(
+        "product.archived",
+        actor_user_id=actor_id,
+        shop_id=product.shop_id,
+        product_id=product.id,
+        barcode=product.barcode,
+    )
+    return ProductPublic.model_validate(product)
+
+
+@router.post(
+    "/{product_id}/restore",
+    response_model=ProductPublic,
+    summary="Owner restores an inactive product",
+)
+async def restore_product_action(
+    product_id: int,
+    payload: ProductActionConfirmation,
+    db: DbSession,
+    _user: User = Depends(require_role(*_write_roles)),
+) -> ProductPublic:
+    actor_id = _user.id
+    try:
+        product = await get_product_for_write(
+            db, product_id=product_id, actor_role=_user.role, actor_shop_id=_user.shop_id
+        )
+    except ProductError as exc:
+        raise _error_to_http(exc) from exc
+
+    await require_no_offline_session_lock(db, shop_id=product.shop_id, action="product restore")
+    try:
+        await _confirm_destructive_action(payload, "RESTORE")
+        if not restore_product(product):
+            raise ProductError("already_active", "product is already active")
+    except ProductError as exc:
+        raise _error_to_http(exc) from exc
+
+    write_business_log(
+        db,
+        AdminLog,
+        event_type="product.restored",
+        actor_id=actor_id,
+        actor_name=_user.full_name,
+        shop_id=product.shop_id,
+        payload={
+            "product_id": product.id,
+            "barcode": product.barcode,
+            "brand": product.brand,
+            "size_label": product.size_label,
+        },
+    )
+    await db.commit()
+    await db.refresh(product)
+    log.info(
+        "product.restored",
+        actor_user_id=actor_id,
+        shop_id=product.shop_id,
+        product_id=product.id,
+        barcode=product.barcode,
+    )
+    return ProductPublic.model_validate(product)
+
+
+@router.post(
+    "/{product_id}/permanent-delete",
+    response_model=ProductDeleteResponse,
+    summary="Superadmin permanently deletes an inactive product with no blocking history",
+)
+async def permanent_delete_product(
+    product_id: int,
+    payload: ProductActionConfirmation,
+    db: DbSession,
+    _user: User = Depends(require_role(UserRole.SUPERADMIN)),
+) -> ProductDeleteResponse:
+    actor_id = _user.id
+    try:
+        product = await get_product_for_write(
+            db, product_id=product_id, actor_role=_user.role, actor_shop_id=_user.shop_id
+        )
+    except ProductError as exc:
+        raise _error_to_http(exc) from exc
+
+    await require_no_offline_session_lock(
+        db, shop_id=product.shop_id, action="product permanent delete"
+    )
+    try:
+        await _confirm_destructive_action(payload, "PERMANENT DELETE")
+        if product.is_active:
+            raise ProductError(
+                "permanent_delete_requires_inactive",
+                "deactivate the product before permanently deleting it",
+            )
+        blockers = await permanent_delete_blockers(db, product_id=product.id)
+        if blockers:
+            raise ProductError(
+                "permanent_delete_blocked",
+                "cannot permanently delete product with lot or invoice history",
+            )
+    except ProductError as exc:
+        raise _error_to_http(exc) from exc
+
+    product_id_value = product.id
+    shop_id_value = product.shop_id
+    barcode_value = product.barcode
+    payload_data = {
+        "product_id": product_id_value,
+        "barcode": barcode_value,
+        "brand": product.brand,
+        "size_label": product.size_label,
+    }
+    write_business_log(
+        db,
+        AdminLog,
+        event_type="product.permanently_deleted",
+        actor_id=actor_id,
+        actor_name=_user.full_name,
+        shop_id=shop_id_value,
+        payload=payload_data,
+    )
+    await db.delete(product)
+    await db.commit()
+    log.info(
+        "product.permanently_deleted",
+        actor_user_id=actor_id,
+        shop_id=shop_id_value,
+        product_id=product_id_value,
+        barcode=barcode_value,
+    )
+    return ProductDeleteResponse(
+        id=product_id_value,
+        shop_id=shop_id_value,
+        barcode=barcode_value,
+        action="permanently_deleted",
+    )
 
 
 # --- Issue #25: Pending Products list + activation ---------------------

@@ -16,6 +16,7 @@ import { StaffPage } from "./pages/StaffPage";
 import { SettingsPage } from "./pages/SettingsPage";
 import { PendingProductsPage } from "./pages/PendingProductsPage";
 import { ShopMaintenancePage } from "./pages/ShopMaintenancePage";
+import { VendorsPage } from "./pages/VendorsPage";
 import { LogsPage } from "./pages/LogsPage";
 import { InventoryPage } from "./pages/InventoryPage";
 
@@ -118,6 +119,16 @@ export default function App() {
           <Protected allow={["owner", "superadmin"]}>
             <AuthedShell>
               <ProductsPage />
+            </AuthedShell>
+          </Protected>
+        }
+      />
+      <Route
+        path="/admin/vendors"
+        element={
+          <Protected allow={["owner", "superadmin"]}>
+            <AuthedShell>
+              <VendorsPage />
             </AuthedShell>
           </Protected>
         }

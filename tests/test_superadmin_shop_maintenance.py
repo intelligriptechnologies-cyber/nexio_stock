@@ -15,11 +15,16 @@ async def test_superadmin_can_create_update_shop_and_manage_users(
 
     updated = await superadmin_client.patch(
         f"/shops/{shop_id}",
-        json={"name": "Second Shop Updated", "code": "shop-2"},
+        json={
+            "name": "Second Shop Updated",
+            "code": "shop-2",
+            "allowed_login_cidrs": ["203.0.113.0/24"],
+        },
     )
     assert updated.status_code == 200, updated.text
     assert updated.json()["name"] == "Second Shop Updated"
     assert updated.json()["code"] == "shop-2"
+    assert updated.json()["allowed_login_cidrs"] == ["203.0.113.0/24"]
 
     user = await superadmin_client.post(
         f"/shops/{shop_id}/users",

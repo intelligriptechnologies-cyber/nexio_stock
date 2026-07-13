@@ -6,7 +6,8 @@ from decimal import Decimal
 import pytest
 from httpx import AsyncClient
 
-from app.models.product import Product
+from app.models.lot import Lot, LotLine
+from app.models.product import MasterProduct, Product, ProductStatus
 from app.models.shop import Shop
 
 SAMPLE_PRODUCT = {
@@ -192,6 +193,127 @@ async def test_owner_updates_price_and_threshold(owner_client: AsyncClient) -> N
     body = resp.json()
     assert body["price"] == "400.00"
     assert body["low_stock_threshold"] == 5
+
+
+@pytest.mark.usefixtures("owner", "receiver", "cashier")
+async def test_owner_can_archive_restore_and_list_inactive_products(
+    owner_client: AsyncClient,
+) -> None:
+    cr = await owner_client.post("/products", json=SAMPLE_PRODUCT)
+    product_id = cr.json()["id"]
+
+    archived = await owner_client.post(
+        f"/products/{product_id}/archive",
+        json={"confirmation_text": "DELETE"},
+    )
+    assert archived.status_code == 200
+    assert archived.json()["is_active"] is False
+
+    active_list = await owner_client.get("/products")
+    assert [row["id"] for row in active_list.json()] == []
+
+    inactive_list = await owner_client.get("/products", params={"active_only": "false"})
+    inactive_rows = inactive_list.json()
+    assert [row["id"] for row in inactive_rows] == [product_id]
+    assert inactive_rows[0]["can_permanently_delete"] is True
+
+    restored = await owner_client.post(
+        f"/products/{product_id}/restore",
+        json={"confirmation_text": "RESTORE"},
+    )
+    assert restored.status_code == 200
+    assert restored.json()["is_active"] is True
+
+
+@pytest.mark.usefixtures("owner", "receiver", "cashier")
+async def test_superadmin_can_permanently_delete_eligible_product(
+    db_session,
+    shop,
+    superadmin_client: AsyncClient,
+) -> None:
+    master = MasterProduct(barcode="8905555555555", brand="Temp", size_label="750ml")
+    db_session.add(master)
+    await db_session.flush()
+    product = Product(
+        shop_id=shop.id,
+        master_product_id=master.id,
+        price=Decimal("250.00"),
+        is_active=True,
+        status=ProductStatus.ACTIVE,
+    )
+    db_session.add(product)
+    await db_session.commit()
+
+    archived = await superadmin_client.post(
+        f"/products/{product.id}/archive",
+        json={"confirmation_text": "DELETE"},
+    )
+    assert archived.status_code == 200
+
+    deleted = await superadmin_client.post(
+        f"/products/{product.id}/permanent-delete",
+        json={"confirmation_text": "PERMANENT DELETE"},
+    )
+    assert deleted.status_code == 200
+    assert deleted.json()["action"] == "permanently_deleted"
+
+    inactive_list = await superadmin_client.get("/products", params={"active_only": "false"})
+    assert all(row["id"] != product.id for row in inactive_list.json())
+
+
+@pytest.mark.usefixtures("owner", "receiver", "cashier")
+async def test_permanent_delete_blocks_rows_with_lot_history(
+    db_session,
+    owner,
+    owner_client: AsyncClient,
+    superadmin_client: AsyncClient,
+) -> None:
+    master = MasterProduct(barcode="8906666666666", brand="Blocked", size_label="750ml")
+    db_session.add(master)
+    await db_session.flush()
+    product = Product(
+        shop_id=owner.shop_id,
+        master_product_id=master.id,
+        price=Decimal("200.00"),
+        is_active=True,
+        status=ProductStatus.ACTIVE,
+    )
+    db_session.add(product)
+    await db_session.flush()
+    lot = Lot(shop_id=owner.shop_id, received_by_user_id=owner.id)
+    db_session.add(lot)
+    await db_session.flush()
+    db_session.add(LotLine(lot_id=lot.id, product_id=product.id, quantity=2))
+    await db_session.commit()
+
+    archived = await owner_client.post(
+        f"/products/{product.id}/archive",
+        json={"confirmation_text": "DELETE"},
+    )
+    assert archived.status_code == 200
+
+    eligible = await owner_client.get("/products", params={"active_only": "false"})
+    blocked_row = next(row for row in eligible.json() if row["id"] == product.id)
+    assert blocked_row["can_permanently_delete"] is False
+
+    deleted = await superadmin_client.post(
+        f"/products/{product.id}/permanent-delete",
+        json={"confirmation_text": "PERMANENT DELETE"},
+    )
+    assert deleted.status_code == 409
+    assert "history" in deleted.json()["detail"].lower()
+
+
+@pytest.mark.usefixtures("owner", "receiver", "cashier")
+async def test_delete_requires_typed_confirmation(owner_client: AsyncClient) -> None:
+    cr = await owner_client.post("/products", json=SAMPLE_PRODUCT)
+    product_id = cr.json()["id"]
+    resp = await owner_client.post(
+        f"/products/{product_id}/archive",
+        json={"confirmation_text": "delete"},
+    )
+    assert resp.status_code == 400
+    assert "Type DELETE" in resp.json()["detail"]
 
 
 # --- CSV import ---

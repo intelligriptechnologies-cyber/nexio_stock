@@ -7,6 +7,7 @@ type Shop = {
   gstin: string | null;
   excise_duty_rate: string | null;
   low_stock_threshold_default: number | null;
+  allowed_login_cidrs: string[];
 };
 
 const baseShop: Shop = {
@@ -16,6 +17,7 @@ const baseShop: Shop = {
   gstin: null,
   excise_duty_rate: null,
   low_stock_threshold_default: 5,
+  allowed_login_cidrs: [],
 };
 
 function tokenForSuperadmin(): string {
@@ -68,6 +70,7 @@ async function mockShopMaintenanceApis(page: Page) {
         active_tab_color: "#5a5148",
         sidebar_menu_inactive_text_color: "#535353cf",
         sidebar_menu_active_text_color: "#ffffff",
+        allowed_login_cidrs: [],
         email_enabled: false,
         smtp_host: null,
         smtp_port: null,
@@ -158,7 +161,9 @@ async function mockShopMaintenanceApis(page: Page) {
 
     await route.fulfill({
       contentType: "application/json",
-      body: JSON.stringify(shops.map(({ id, name, code }) => ({ id, name, code }))),
+      body: JSON.stringify(
+        shops.map(({ id, name, code }) => ({ id, name, code }))
+      ),
     });
   });
 }

@@ -1,17 +1,48 @@
 import { test, expect, type Page } from "@playwright/test";
 
-// Issue #24 — login flow is now PICKER + PIN. The loginAsReceiver
-// helper picks the receiver from the staff picker, then enters the PIN.
+// The receiving flow now needs an active vendor before the review modal
+// can submit. This helper logs in as owner, creates a vendor, logs out,
+// then logs back in as receiver so each spec starts with the right data.
 async function loginAsReceiver(page: Page) {
   await page.goto("/login");
   await expect(page.getByText("Tap your name to sign in")).toBeVisible({
     timeout: 5000,
   });
-  const row = page.locator(
+
+  const ownerRow = page.locator('[data-testid="staff-row"][data-staff-role="owner"]');
+  await expect(ownerRow).toBeVisible({ timeout: 5000 });
+  await ownerRow.click();
+  await expect(page.getByText("Enter your PIN")).toBeVisible();
+  for (const d of "3333") {
+    await page.getByRole("button", { name: `Digit ${d}` }).click();
+  }
+  await page.getByRole("button", { name: "LOGIN", exact: true }).click();
+  await expect(page).toHaveURL(/\/dashboard$/);
+
+  await page.goto("/admin/vendors");
+  await expect(page.getByRole("heading", { name: "Vendors" })).toBeVisible({ timeout: 5000 });
+  await page.getByLabel("Name").fill("E2E Vendor");
+  await page.getByLabel("GSTIN").fill("21ABCDE1234F1Z5");
+  await page.getByLabel("Address").fill("Test address");
+  await page.getByLabel("Email").fill("vendor@example.com");
+  await page.getByLabel("Phone").fill("+15555550004");
+  await page.getByRole("button", { name: "Create vendor" }).click();
+  await expect(page.getByRole("status").filter({ hasText: "Vendor created." })).toBeVisible({
+    timeout: 5000,
+  });
+
+  await page.getByRole("button", { name: "Logout" }).click();
+  await expect(page).toHaveURL(/\/login$/);
+
+  await page.goto("/login");
+  await expect(page.getByText("Tap your name to sign in")).toBeVisible({
+    timeout: 5000,
+  });
+  const receiverRow = page.locator(
     '[data-testid="staff-row"][data-staff-role="receiver_user"]'
   );
-  await expect(row).toBeVisible({ timeout: 5000 });
-  await row.click();
+  await expect(receiverRow).toBeVisible({ timeout: 5000 });
+  await receiverRow.click();
   await expect(page.getByText("Enter your PIN")).toBeVisible();
   for (const d of "2222") {
     await page.getByRole("button", { name: `Digit ${d}` }).click();
@@ -24,7 +55,7 @@ test.describe("stock receiving — new lot", () => {
   test("renders the receiving panel for a receiver", async ({ page }) => {
     await loginAsReceiver(page);
     await expect(page.getByRole("heading", { name: "Stock Receiving" })).toBeVisible();
-    await expect(page.getByRole("button", { name: "SAVE STOCK" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "REVIEW & SAVE" })).toBeVisible();
     await expect(page.getByText("No items yet")).toBeVisible();
   });
 
@@ -34,8 +65,7 @@ test.describe("stock receiving — new lot", () => {
     await page.getByRole("button", { name: "ADD" }).click();
     await expect(page.getByText(/Added:/)).toBeVisible({ timeout: 5000 });
     await expect(page.getByTestId("scan-success-overlay")).toHaveCount(0);
-    // The quantity input defaults to 1.
-    await expect(page.getByLabel("Quantity")).toHaveValue("1");
+    await expect(page.getByText("Received qty: 1")).toBeVisible();
   });
 
   test("global scanner adds a line even when another field is focused", async ({ page }) => {
@@ -47,21 +77,19 @@ test.describe("stock receiving — new lot", () => {
     await expect(overlay).toBeVisible({ timeout: 5000 });
     await expect(overlay).toContainText("Royal Stag");
     await expect(page.getByText(/Added:/)).toBeVisible({ timeout: 5000 });
-    await expect(page.getByLabel("Quantity")).toHaveValue("1");
+    await expect(page.getByText("Received qty: 1")).toBeVisible();
     await expect(overlay).not.toBeVisible({ timeout: 2500 });
-    await expect(page.getByLabel("Quantity")).toHaveValue("1");
+    await expect(page.getByText("Received qty: 1")).toBeVisible();
   });
 
-  test("quantity +/- buttons adjust the line", async ({ page }) => {
+  test("scanned lines remain read-only until review", async ({ page }) => {
     await loginAsReceiver(page);
     await page.getByPlaceholder("Scan or enter barcode").fill("8901234567890");
     await page.getByRole("button", { name: "ADD" }).click();
     await expect(page.getByText(/Added:/)).toBeVisible({ timeout: 5000 });
-    await page.getByRole("button", { name: "Increase quantity" }).click();
-    await page.getByRole("button", { name: "Increase quantity" }).click();
-    await expect(page.getByLabel("Quantity")).toHaveValue("3");
-    await page.getByRole("button", { name: "Decrease quantity" }).click();
-    await expect(page.getByLabel("Quantity")).toHaveValue("2");
+    await expect(page.getByText("Received qty: 1")).toBeVisible();
+    await expect(page.getByRole("button", { name: "Increase quantity" })).toHaveCount(0);
+    await expect(page.getByRole("button", { name: "Decrease quantity" })).toHaveCount(0);
   });
 
   test("unknown barcode surfaces a clear error", async ({ page }) => {
@@ -72,9 +100,9 @@ test.describe("stock receiving — new lot", () => {
   });
 });
 
-// --- Issue #22 — quick-add new product on the spot. -------------------
+// --- Issue #22 â€” quick-add new product on the spot. -------------------
 
-test.describe("stock receiving — quick-add new product (issue #22)", () => {
+test.describe("stock receiving â€” quick-add new product (issue #22)", () => {
   test("unknown barcode opens the quick-add modal", async ({ page }) => {
     await loginAsReceiver(page);
     await page.getByPlaceholder("Scan or enter barcode").fill("QUICKADD-NEW-001");
@@ -82,8 +110,6 @@ test.describe("stock receiving — quick-add new product (issue #22)", () => {
     await expect(
       page.getByRole("dialog", { name: "Quick-add new product" })
     ).toBeVisible({ timeout: 5000 });
-    // The barcode we tried to scan should be displayed in the modal so
-    // the receiver can confirm they're quick-adding the right thing.
     await expect(
       page.getByRole("dialog", { name: "Quick-add new product" })
     ).toContainText("QUICKADD-NEW-001");
@@ -113,14 +139,9 @@ test.describe("stock receiving — quick-add new product (issue #22)", () => {
     await dialog.getByPlaceholder("e.g. 750ml").fill("750ml");
     await dialog.getByRole("button", { name: "ADD" }).click();
     await expect(dialog).not.toBeVisible({ timeout: 10000 });
-    // The new product should now be in the lines panel as a normal
-    // receivable line (D-v2-6).
     await expect(page.getByText("Quick Brand")).toBeVisible();
     await expect(page.getByText("750ml")).toBeVisible();
-    // The receiver was told the item is pending — owner needs to set the price.
-    await expect(
-      page.getByRole("status").filter({ hasText: /pending/i })
-    ).toBeVisible();
+    await expect(page.getByRole("status").filter({ hasText: /pending/i })).toBeVisible();
   });
 
   test("cancel button closes the quick-add modal without adding a line", async ({
@@ -137,20 +158,17 @@ test.describe("stock receiving — quick-add new product (issue #22)", () => {
   });
 });
 
-// --- Issue #23 — quicksearch by name or barcode. --------------------------
+// --- Issue #23 â€” quicksearch by name or barcode. --------------------------
 
-test.describe("stock receiving — quicksearch (issue #23)", () => {
+test.describe("stock receiving â€” quicksearch (issue #23)", () => {
   test("typing a brand substring shows matching products in a dropdown", async ({
     page,
   }) => {
     await loginAsReceiver(page);
-    // The test seed ships a product with brand "Royal Stag" — searching
-    // for "stag" should surface it.
     const search = page.getByRole("combobox", {
       name: "Quick-search products by name or barcode",
     });
     await search.fill("stag");
-    // Dropdown should appear with the matching product.
     const option = page.getByRole("option").filter({ hasText: "Royal Stag" });
     await expect(option).toBeVisible({ timeout: 5000 });
   });
@@ -163,7 +181,6 @@ test.describe("stock receiving — quicksearch (issue #23)", () => {
       name: "Quick-search products by name or barcode",
     });
     await search.fill("8901234");
-    // The seed barcode "8901234567890" should match the partial.
     const option = page.getByRole("option").filter({ hasText: "8901234567890" });
     await expect(option).toBeVisible({ timeout: 5000 });
   });
@@ -179,11 +196,9 @@ test.describe("stock receiving — quicksearch (issue #23)", () => {
     const option = page.getByRole("option").filter({ hasText: "Royal Stag" });
     await expect(option).toBeVisible({ timeout: 5000 });
     await option.click();
-    // Line added to the panel.
-    await expect(page.getByLabel("Quantity")).toHaveValue("1");
+    await expect(page.getByText("Received qty: 1")).toBeVisible();
     await expect(page.getByText(/Added:/)).toBeVisible();
     await expect(page.getByTestId("scan-success-overlay")).toHaveCount(0);
-    // Search dropdown cleared.
     await expect(search).toHaveValue("");
   });
 
@@ -196,5 +211,25 @@ test.describe("stock receiving — quicksearch (issue #23)", () => {
     });
     await search.fill("zzznomatchstringzzz");
     await expect(page.getByText("No matches.")).toBeVisible({ timeout: 5000 });
+  });
+
+  test("review modal collects vendor and condition counts before save", async ({
+    page,
+  }) => {
+    await loginAsReceiver(page);
+    await page.getByPlaceholder("Scan or enter barcode").fill("8901234567890");
+    await page.getByRole("button", { name: "ADD" }).click();
+    await page.getByRole("button", { name: "REVIEW & SAVE" }).click();
+    const dialog = page.getByRole("dialog", { name: "Review purchase details" });
+    await expect(dialog).toBeVisible({ timeout: 5000 });
+    await expect(
+      dialog.getByText("Good-condition quantity is the only editable line-level field.")
+    ).toBeVisible();
+    await dialog.getByLabel("Vendor").selectOption({ label: "E2E Vendor" });
+    await dialog.getByLabel("Vendor invoice number").fill("E2E-INV-1");
+    await dialog.getByLabel("Invoice value").fill("100.00");
+    await dialog.getByRole("button", { name: "Confirm save" }).click();
+    await expect(page.getByRole("dialog", { name: "Review purchase details" })).toHaveCount(0);
+    await expect(page.getByText(/Lot #\d+ saved/)).toBeVisible({ timeout: 5000 });
   });
 });

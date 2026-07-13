@@ -36,8 +36,12 @@ if str(_PROJECT_ROOT) not in sys.path:
 
 # Defer the app imports to first use so the path tweak above is in effect.
 from app.models.shop import Shop  # noqa: E402
+from app.models.device import DeviceBinding  # noqa: E402
 from app.models.user import User, UserRole  # noqa: E402
+from app.models.vendor import Vendor  # noqa: E402
 from app.security.passwords import hash_password  # noqa: E402
+
+TEST_DEVICE_KEY = "test-terminal-01"
 
 
 def _make_test_dsn() -> str:
@@ -123,7 +127,7 @@ async def _truncate_tables(test_db_dsn: str) -> AsyncIterator[None]:
         # then users, then shops.
         await session.execute(
             text(
-                "TRUNCATE TABLE offline_sessions, eod_signoffs, idempotency_keys, past_payments, past_invoice_lines, past_invoices, payments, invoice_lines, invoices, lot_lines, lots, products, master_products, invoicing_logs, stockin_logs, "
+                "TRUNCATE TABLE offline_sessions, eod_signoffs, idempotency_keys, past_payments, past_invoice_lines, past_invoices, payments, invoice_lines, invoices, lot_lines, lots, vendors, products, master_products, invoicing_logs, stockin_logs, "
                 "log_file_retention_settings, users, shops RESTART IDENTITY CASCADE"
             )
         )
@@ -210,6 +214,44 @@ async def _make_user(
     return user
 
 
+async def _make_vendor(session: AsyncSession, *, shop_id: int, name: str = "Vendor One") -> Vendor:
+    vendor = Vendor(
+        shop_id=shop_id,
+        name=name,
+        gstin=None,
+        address="Test address",
+        email="vendor@example.com",
+        phone="+15555550004",
+        is_active=True,
+    )
+    session.add(vendor)
+    await session.flush()
+    await session.commit()
+    return vendor
+
+
+async def _make_device_binding(
+    session: AsyncSession,
+    *,
+    shop_id: int,
+    device_key: str = TEST_DEVICE_KEY,
+    counter_name: str = "Front counter",
+    is_active: bool = True,
+    registered_by_user_id: int | None = None,
+) -> DeviceBinding:
+    binding = DeviceBinding(
+        shop_id=shop_id,
+        device_key=device_key,
+        counter_name=counter_name,
+        is_active=is_active,
+        registered_by_user_id=registered_by_user_id,
+    )
+    session.add(binding)
+    await session.flush()
+    await session.commit()
+    return binding
+
+
 @pytest_asyncio.fixture
 async def shop(db_session: AsyncSession) -> Shop:
     return await _make_shop(db_session)
@@ -217,6 +259,7 @@ async def shop(db_session: AsyncSession) -> Shop:
 
 @pytest_asyncio.fixture
 async def owner(db_session: AsyncSession, shop: Shop) -> User:
+    await _make_vendor(db_session, shop_id=shop.id)
     return await _make_user(
         db_session,
         shop_id=shop.id,
@@ -230,6 +273,7 @@ async def owner(db_session: AsyncSession, shop: Shop) -> User:
 
 @pytest_asyncio.fixture
 async def receiver(db_session: AsyncSession, shop: Shop) -> User:
+    await _make_vendor(db_session, shop_id=shop.id)
     return await _make_user(
         db_session,
         shop_id=shop.id,
@@ -251,6 +295,15 @@ async def cashier(db_session: AsyncSession, shop: Shop) -> User:
         phone="+15555550003",
         password="cashpass",
         full_name="Cashier One",
+    )
+
+
+@pytest_asyncio.fixture
+async def device_binding(db_session: AsyncSession, shop: Shop, owner: User) -> DeviceBinding:
+    return await _make_device_binding(
+        db_session,
+        shop_id=shop.id,
+        registered_by_user_id=owner.id,
     )
 
 
@@ -285,35 +338,50 @@ async def _make_logged_in_client(
 
 
 @pytest_asyncio.fixture
-async def owner_client(owner: User) -> AsyncClient:
+async def owner_client(owner: User, device_binding: DeviceBinding) -> AsyncClient:
     from app.main import app
 
     return await _make_logged_in_client(
         app,
         path="/auth/login",
-        payload={"phone": owner.phone, "password": "ownerpass"},
+        payload={
+            "role": "owner",
+            "username": owner.username,
+            "password": "ownerpass",
+            "device_key": TEST_DEVICE_KEY,
+        },
     )
 
 
 @pytest_asyncio.fixture
-async def receiver_client(receiver: User) -> AsyncClient:
+async def receiver_client(receiver: User, device_binding: DeviceBinding) -> AsyncClient:
     from app.main import app
 
     return await _make_logged_in_client(
         app,
         path="/auth/login",
-        payload={"phone": receiver.phone, "password": "recvpass"},
+        payload={
+            "role": "receiver_user",
+            "username": receiver.username,
+            "password": "recvpass",
+            "device_key": TEST_DEVICE_KEY,
+        },
     )
 
 
 @pytest_asyncio.fixture
-async def cashier_client(cashier: User) -> AsyncClient:
+async def cashier_client(cashier: User, device_binding: DeviceBinding) -> AsyncClient:
     from app.main import app
 
     return await _make_logged_in_client(
         app,
         path="/auth/login",
-        payload={"phone": cashier.phone, "password": "cashpass"},
+        payload={
+            "role": "cashier_user",
+            "username": cashier.username,
+            "password": "cashpass",
+            "device_key": TEST_DEVICE_KEY,
+        },
     )
 
 

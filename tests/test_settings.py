@@ -18,6 +18,7 @@ async def test_owner_can_read_and_update_own_settings(
     assert resp.json()["active_tab_color"] == "#5a5148"
     assert resp.json()["sidebar_menu_inactive_text_color"] == "#535353cf"
     assert resp.json()["sidebar_menu_active_text_color"] == "#ffffff"
+    assert resp.json()["allowed_login_cidrs"] == []
 
     resp = await owner_client.patch(
         "/settings/me",
@@ -38,6 +39,7 @@ async def test_owner_can_read_and_update_own_settings(
             "gstin": "21ABCDE1234F1Z5",
             "excise_duty_rate": "12.50",
             "low_stock_threshold_default": 4,
+            "allowed_login_cidrs": ["203.0.113.0/24", "198.51.100.10"],
         },
     )
     assert resp.status_code == 200, resp.text
@@ -52,6 +54,7 @@ async def test_owner_can_read_and_update_own_settings(
     assert body["gstin"] == "21ABCDE1234F1Z5"
     assert body["excise_duty_rate"] == "12.50"
     assert body["low_stock_threshold_default"] == 4
+    assert body["allowed_login_cidrs"] == ["203.0.113.0/24", "198.51.100.10/32"]
 
     shop = (await db_session.execute(select(Shop).where(Shop.id == 1))).scalar_one()
     assert shop.smtp_password == "secret-pass"
@@ -142,6 +145,7 @@ async def test_smtp_password_is_write_only_and_blank_update_preserves_it(
         {"excise_duty_rate": "-1.00"},
         {"excise_duty_rate": "100.01"},
         {"low_stock_threshold_default": -1},
+        {"allowed_login_cidrs": ["not-a-cidr"]},
     ],
 )
 async def test_invalid_settings_values_are_rejected(

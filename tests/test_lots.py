@@ -19,6 +19,21 @@ async def _create_product(client: AsyncClient, barcode: str, brand: str = "Test"
     return resp.json()
 
 
+async def _create_vendor(client: AsyncClient, name: str = "Supplier A") -> dict:
+    resp = await client.post(
+        "/vendors",
+        json={
+            "name": name,
+            "gstin": "21ABCDE1234F1Z5",
+            "address": "Test address",
+            "email": "vendor@example.com",
+            "phone": "+15555550004",
+        },
+    )
+    assert resp.status_code == 201, resp.text
+    return resp.json()
+
+
 @pytest.mark.usefixtures("owner", "receiver", "cashier")
 async def test_receiver_creates_lot_with_one_line(
     receiver_client: AsyncClient, owner_client: AsyncClient
@@ -164,6 +179,44 @@ async def test_receiving_writes_a_stockin_log(
     assert len(rows[0].payload["lines"]) == 1
     assert rows[0].payload["lines"][0]["barcode"] == "8900000000008"
     assert rows[0].payload["lines"][0]["quantity"] == 4
+
+
+@pytest.mark.usefixtures("owner", "receiver", "cashier")
+async def test_receiving_persists_vendor_and_condition_breakdown(
+    receiver_client: AsyncClient, owner_client: AsyncClient, db_session
+) -> None:
+    vendor = await _create_vendor(owner_client, name="Acme Distributors")
+    await _create_product(owner_client, "8911111111111", brand="Gold Label")
+    resp = await receiver_client.post(
+        "/lots",
+        json={
+            "vendor_id": vendor["id"],
+            "purchase_date": "2026-07-13",
+            "vendor_invoice_number": "INV-99",
+            "invoice_value": "1234.50",
+            "lines": [
+                {
+                    "barcode": "8911111111111",
+                    "quantity": 10,
+                    "good_condition_quantity": 8,
+                }
+            ],
+        },
+    )
+    assert resp.status_code == 201, resp.text
+    body = resp.json()
+    assert body["vendor"]["name"] == "Acme Distributors"
+    assert body["purchase_date"] == "2026-07-13"
+    assert body["invoice_value"] == "1234.50"
+    assert body["lines"][0]["good_condition_quantity"] == 8
+    assert body["lines"][0]["breakage_quantity"] == 2
+
+    rows = (await db_session.execute(select(StockinLog))).scalars().all()
+    assert len(rows) == 1
+    assert rows[0].payload["vendor_name"] == "Acme Distributors"
+    assert rows[0].payload["vendor_invoice_number"] == "INV-99"
+    assert rows[0].payload["lines"][0]["good_condition_quantity"] == 8
+    assert rows[0].payload["lines"][0]["breakage_quantity"] == 2
 
 
 @pytest.mark.usefixtures("owner", "receiver", "cashier")

@@ -19,6 +19,7 @@ from app.models.invoice import (
     Payment,
     PaymentMode,
 )
+from app.models.device import DeviceBinding
 from app.models.log import AdminLog, InvoicingLog, LogFileRetentionSetting, StockinLog
 from app.models.lot import Lot, LotLine
 from app.models.offline_session import (
@@ -29,6 +30,7 @@ from app.models.offline_session import (
 from app.models.product import MasterProduct, Product, ProductStatus
 from app.models.shop import Shop
 from app.models.user import User, UserRole
+from app.models.vendor import Vendor
 
 __all__ = [
     "LOCKING_OFFLINE_STATES",
@@ -36,6 +38,7 @@ __all__ = [
     "AdminLog",
     "EodSignOff",
     "IdempotencyKey",
+    "DeviceBinding",
     "Invoice",
     "InvoiceLine",
     "InvoiceStatus",
@@ -57,4 +60,5 @@ __all__ = [
     "StockinLog",
     "User",
     "UserRole",
+    "Vendor",
 ]

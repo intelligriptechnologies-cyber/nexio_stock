@@ -21,7 +21,7 @@ export interface StaffMember {
 
 export interface StaffCreatePayload {
   role: StaffRole;
-  username: string;
+  username?: string | null;
   full_name: string;
   phone: string;
   password: string;

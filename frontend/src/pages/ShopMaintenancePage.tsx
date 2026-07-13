@@ -1,17 +1,21 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { listProducts, type Product } from "../api/products";
-import { toUserMessage } from "../api/client";
+import { getOrCreateDeviceKey, toUserMessage } from "../api/client";
 import {
   createShop,
   createShopUser,
   getMyShop,
   listShopUsers,
+  listShopDevices,
   listShops,
   resetShopUserPassword,
   setShopUserActive,
+  upsertShopDevice,
+  updateShopDevice,
   updateShop,
   type ShopPublic,
+  type ShopDevice,
   type ShopSummary,
   type ShopUser,
   type ShopUserRole,
@@ -24,11 +28,12 @@ const STATUS_FILTERS = ["all", "active", "inactive"] as const;
 
 type RoleFilter = (typeof ROLE_FILTERS)[number];
 type StatusFilter = (typeof STATUS_FILTERS)[number];
-type ShopTab = "details" | "users" | "inventory";
+type ShopTab = "details" | "users" | "devices" | "inventory";
 
 const TABS: Array<{ id: ShopTab; label: string }> = [
   { id: "details", label: "Shop Details" },
   { id: "users", label: "Allotted Users" },
+  { id: "devices", label: "Devices" },
   { id: "inventory", label: "Quick Inventory Check" },
 ];
 
@@ -40,6 +45,7 @@ export function ShopMaintenancePage() {
   const [activeTab, setActiveTab] = useState<ShopTab>("details");
   const [shopDetails, setShopDetails] = useState<ShopPublic | null>(null);
   const [users, setUsers] = useState<ShopUser[]>([]);
+  const [devices, setDevices] = useState<ShopDevice[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [productQuery, setProductQuery] = useState("");
   const [includeInactiveProducts, setIncludeInactiveProducts] = useState(false);
@@ -82,6 +88,7 @@ export function ShopMaintenancePage() {
     if (selectedShopId == null) {
       setShopDetails(null);
       setUsers([]);
+      setDevices([]);
       setProducts([]);
       return;
     }
@@ -89,16 +96,18 @@ export function ShopMaintenancePage() {
     Promise.all([
       getMyShop(selectedShopId),
       listShopUsers(selectedShopId),
+      listShopDevices(selectedShopId),
       listProducts({
         shopId: selectedShopId,
         q: productQuery.trim() || undefined,
         includeInactive: includeInactiveProducts,
       }),
     ])
-      .then(([details, userRows, productRows]) => {
+      .then(([details, userRows, deviceRows, productRows]) => {
         if (cancelled) return;
         setShopDetails(details);
         setUsers(userRows);
+        setDevices(deviceRows);
         setProducts(productRows);
       })
       .catch((e) => {
@@ -255,6 +264,17 @@ export function ShopMaintenancePage() {
                   onError={setError}
                 />
               )}
+              {activeTab === "devices" && (
+                <DevicePanel
+                  shopId={selectedShop.id}
+                  devices={devices}
+                  onChanged={() => {
+                    setMessage("Device binding updated.");
+                    reload();
+                  }}
+                  onError={setError}
+                />
+              )}
               {activeTab === "inventory" && (
                 <InventoryPanel
                   products={products}
@@ -338,6 +358,9 @@ function EditShopForm({
   );
   const [gstin, setGstin] = useState(shop.gstin ?? "");
   const [dutyRate, setDutyRate] = useState(shop.excise_duty_rate ?? "");
+  const [allowedLoginCidrs, setAllowedLoginCidrs] = useState(
+    shop.allowed_login_cidrs?.join("\n") ?? ""
+  );
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
@@ -346,6 +369,7 @@ function EditShopForm({
     setThreshold(shop.low_stock_threshold_default == null ? "" : String(shop.low_stock_threshold_default));
     setGstin(shop.gstin ?? "");
     setDutyRate(shop.excise_duty_rate ?? "");
+    setAllowedLoginCidrs(shop.allowed_login_cidrs?.join("\n") ?? "");
   }, [shop, fallbackSummary]);
 
   const submit = async (e: React.FormEvent) => {
@@ -360,6 +384,10 @@ function EditShopForm({
         low_stock_threshold_default: nextThreshold ? Number(nextThreshold) : null,
         gstin: gstin.trim() || null,
         excise_duty_rate: dutyRate.trim() || null,
+        allowed_login_cidrs: allowedLoginCidrs
+          .split(/\r?\n|,/)
+          .map((value) => value.trim())
+          .filter((value) => value.length > 0),
       });
       await onSaved();
     } catch (err) {
@@ -383,6 +411,12 @@ function EditShopForm({
           onChange={setThreshold}
           type="number"
           min="0"
+        />
+        <TextAreaField
+          label="Allowed login IPs/CIDRs"
+          value={allowedLoginCidrs}
+          onChange={setAllowedLoginCidrs}
+          placeholder="One per line, e.g. 203.0.113.10 or 203.0.113.0/24"
         />
       </div>
       <button
@@ -429,7 +463,7 @@ function UserPanel({
     try {
       await createShopUser(shopId, {
         role,
-        username: username.trim(),
+        username: username.trim() || undefined,
         full_name: fullName.trim(),
         phone: phone.trim(),
         password,
@@ -490,7 +524,12 @@ function UserPanel({
             ))}
           </select>
         </label>
-        <Field label="Username" value={username} onChange={setUsername} required />
+        <Field
+          label="Username"
+          value={username}
+          onChange={setUsername}
+          placeholder="Leave blank to auto-generate"
+        />
         <Field label="Full name" value={fullName} onChange={setFullName} required />
         <Field label="Phone" value={phone} onChange={setPhone} required />
         <Field label="Password/PIN" value={password} onChange={setPassword} required type="password" />
@@ -554,6 +593,165 @@ function UserPanel({
         </table>
       </div>
     </section>
+  );
+}
+
+function DevicePanel({
+  shopId,
+  devices,
+  onChanged,
+  onError,
+}: {
+  shopId: number;
+  devices: ShopDevice[];
+  onChanged: () => void;
+  onError: (message: string | null) => void;
+}) {
+  const [deviceKey, setDeviceKey] = useState(() => getOrCreateDeviceKey());
+  const [counterName, setCounterName] = useState("");
+  const [busy, setBusy] = useState(false);
+
+  const registerCurrentDevice = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setBusy(true);
+    onError(null);
+    try {
+      await upsertShopDevice(
+        {
+          device_key: deviceKey.trim(),
+          counter_name: counterName.trim() || null,
+          is_active: true,
+        },
+        shopId
+      );
+      onChanged();
+    } catch (err) {
+      onError(toUserMessage(err, "Device registration failed."));
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const saveDevice = async (device: ShopDevice, changes: { counter_name?: string | null; is_active?: boolean | null }) => {
+    setBusy(true);
+    onError(null);
+    try {
+      await updateShopDevice(device.id, changes, shopId);
+      onChanged();
+    } catch (err) {
+      onError(toUserMessage(err, "Device update failed."));
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <section className="flex flex-col gap-stack-gap">
+      <div className="flex flex-wrap items-center justify-between gap-stack-gap">
+        <h2 className="text-headline-md text-primary">Device bindings</h2>
+        <div className="text-label-md text-on-surface-variant">
+          Bind each tablet or PC to this shop and counter.
+        </div>
+      </div>
+
+      <form onSubmit={registerCurrentDevice} className="grid gap-stack-gap md:grid-cols-[1.4fr_1fr_auto]">
+        <Field label="Device key" value={deviceKey} onChange={setDeviceKey} required />
+        <Field
+          label="Counter name"
+          value={counterName}
+          onChange={setCounterName}
+          placeholder="Front counter"
+        />
+        <button
+          type="submit"
+          disabled={busy}
+          className="min-h-touchTarget-sm self-end rounded-md bg-action px-stack-gap text-label-md text-on-action disabled:opacity-50"
+        >
+          {busy ? "Saving..." : "Bind current device"}
+        </button>
+      </form>
+
+      <div className="max-h-[24rem] overflow-auto rounded-md bg-surface">
+        <table className="w-full border-collapse">
+          <thead>
+            <tr className="border-b border-outline text-label-md text-on-surface-variant">
+              <th className="px-stack-gap py-2 text-left">Device key</th>
+              <th className="px-stack-gap py-2 text-left">Counter</th>
+              <th className="px-stack-gap py-2 text-left">Status</th>
+              <th className="px-stack-gap py-2 text-right">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {devices.map((device) => (
+              <DeviceRow
+                key={device.id}
+                device={device}
+                onSave={saveDevice}
+                busy={busy}
+              />
+            ))}
+            {devices.length === 0 && (
+              <tr>
+                <td className="px-stack-gap py-4 text-on-surface-variant" colSpan={4}>
+                  No device bindings yet.
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+    </section>
+  );
+}
+
+function DeviceRow({
+  device,
+  onSave,
+  busy,
+}: {
+  device: ShopDevice;
+  onSave: (
+    device: ShopDevice,
+    changes: { counter_name?: string | null; is_active?: boolean | null }
+  ) => Promise<void>;
+  busy: boolean;
+}) {
+  const [counterName, setCounterName] = useState(device.counter_name ?? "");
+  useEffect(() => {
+    setCounterName(device.counter_name ?? "");
+  }, [device.counter_name]);
+  return (
+    <tr className="border-b border-outline/40">
+      <td className="px-stack-gap py-2 font-mono text-label-md">{device.device_key}</td>
+      <td className="px-stack-gap py-2">
+        <input
+          value={counterName}
+          onChange={(e) => setCounterName(e.target.value)}
+          className="min-h-touchTarget-sm w-full rounded-md border border-outline bg-surface px-2 text-body-md"
+        />
+      </td>
+      <td className="px-stack-gap py-2">{device.is_active ? "Active" : "Inactive"}</td>
+      <td className="px-stack-gap py-2 text-right">
+        <div className="flex justify-end gap-2">
+          <button
+            type="button"
+            disabled={busy}
+            onClick={() => void onSave(device, { counter_name: counterName.trim() || null })}
+            className="rounded-md bg-surface-container-high px-stack-gap py-1 text-label-md disabled:opacity-50"
+          >
+            Save
+          </button>
+          <button
+            type="button"
+            disabled={busy}
+            onClick={() => void onSave(device, { is_active: !device.is_active })}
+            className="rounded-md bg-primary px-stack-gap py-1 text-label-md text-on-primary disabled:opacity-50"
+          >
+            {device.is_active ? "Disable" : "Enable"}
+          </button>
+        </div>
+      </td>
+    </tr>
   );
 }
 
@@ -693,6 +891,7 @@ function Field({
   required = false,
   step,
   min,
+  placeholder,
 }: {
   label: string;
   value: string;
@@ -701,6 +900,7 @@ function Field({
   required?: boolean;
   step?: string;
   min?: string;
+  placeholder?: string;
 }) {
   return (
     <label className="flex flex-col gap-1 text-label-md">
@@ -712,7 +912,33 @@ function Field({
         required={required}
         step={step}
         min={min}
+        placeholder={placeholder}
         className="min-h-touchTarget-sm rounded-md border border-outline bg-surface px-stack-gap text-body-md"
+      />
+    </label>
+  );
+}
+
+function TextAreaField({
+  label,
+  value,
+  onChange,
+  placeholder,
+}: {
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+  placeholder?: string;
+}) {
+  return (
+    <label className="flex flex-col gap-1 text-label-md md:col-span-2">
+      {label}
+      <textarea
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder}
+        rows={4}
+        className="min-h-[7rem] rounded-md border border-outline bg-surface px-stack-gap py-2 text-body-md"
       />
     </label>
   );

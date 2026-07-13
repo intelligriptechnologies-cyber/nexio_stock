@@ -55,7 +55,7 @@ export function StaffPage() {
       await reload();
     } catch (e) {
       if (e instanceof ApiError && e.status === 409) {
-        setError("That username or phone is already used in this shop.");
+        setError("That username or phone is already used.");
       } else if (e instanceof ApiError) {
         setError(e.detail);
       } else {
@@ -202,7 +202,7 @@ function CreateCard({
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
     if (
-      username.trim().length < 3 ||
+      (username.trim().length > 0 && username.trim().length < 3) ||
       fullName.trim().length === 0 ||
       phoneError !== undefined ||
       password.length < 4
@@ -211,7 +211,7 @@ function CreateCard({
     }
     onSubmit({
       role,
-      username: username.trim(),
+      username: username.trim() || undefined,
       full_name: fullName.trim(),
       phone: trimmedPhone,
       password,
@@ -239,7 +239,12 @@ function CreateCard({
           <option value="receiver_user">Receiver</option>
         </select>
       </label>
-      <Field label="Username" value={username} onChange={setUsername} required minLength={3} />
+      <Field
+        label="Username"
+        value={username}
+        onChange={setUsername}
+        placeholder="Leave blank to auto-generate"
+      />
       <Field label="Full name" value={fullName} onChange={setFullName} required />
       <Field
         label="Phone"
@@ -269,6 +274,7 @@ function Field({
   required = false,
   minLength,
   error,
+  placeholder,
 }: {
   label: string;
   value: string;
@@ -279,6 +285,7 @@ function Field({
   // Issue #39 — inline validation message rendered under the input.
   // Empty string / undefined means "no error to show".
   error?: string;
+  placeholder?: string;
 }) {
   return (
     <label className="flex flex-col gap-1 text-label-md">
@@ -289,6 +296,7 @@ function Field({
         onChange={(e) => onChange(e.target.value)}
         required={required}
         minLength={minLength}
+        placeholder={placeholder}
         // Issue #39 — wire aria-invalid + aria-describedby so the live
         // error is announced to screen readers when the field is invalid.
         aria-invalid={Boolean(error)}

@@ -11,6 +11,7 @@ export function ShopConfigPage() {
   const [gstin, setGstin] = useState("");
   const [dutyRate, setDutyRate] = useState("");
   const [threshold, setThreshold] = useState("");
+  const [allowedLoginCidrs, setAllowedLoginCidrs] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [info, setInfo] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -30,6 +31,7 @@ export function ShopConfigPage() {
       setThreshold(
         s.low_stock_threshold_default === null ? "" : String(s.low_stock_threshold_default)
       );
+      setAllowedLoginCidrs(s.allowed_login_cidrs?.join("\n") ?? "");
     } catch (e) {
       setError(e instanceof Error ? e.message : "Load failed.");
     }
@@ -53,10 +55,15 @@ export function ShopConfigPage() {
         gstin: string | null;
         excise_duty_rate: string | null;
         low_stock_threshold_default: number | null;
+        allowed_login_cidrs: string[];
       } = {
         gstin: gstin.trim() ? gstin.trim() : null,
         excise_duty_rate: dutyRate.trim() ? dutyRate.trim() : null,
         low_stock_threshold_default: threshold.trim() ? Number(threshold.trim()) : null,
+        allowed_login_cidrs: allowedLoginCidrs
+          .split(/\r?\n|,/)
+          .map((value) => value.trim())
+          .filter((value) => value.length > 0),
       };
       const updated = await updateMyShop(payload, actingShopId);
       setShop(updated);
@@ -126,6 +133,12 @@ export function ShopConfigPage() {
           min="0"
           placeholder="Per-product overrides win"
         />
+        <TextAreaField
+          label="Allowed login IPs/CIDRs"
+          value={allowedLoginCidrs}
+          onChange={setAllowedLoginCidrs}
+          placeholder={'One per line, e.g. 203.0.113.10 or 203.0.113.0/24\nLeave blank to allow shop login from anywhere'}
+        />
         <button
           type="submit"
           disabled={busy}
@@ -183,6 +196,31 @@ function Field({
         maxLength={maxLength}
         placeholder={placeholder}
         className="min-h-touchTarget-sm rounded-md border border-outline bg-surface px-stack-gap text-body-md"
+      />
+    </label>
+  );
+}
+
+function TextAreaField({
+  label,
+  value,
+  onChange,
+  placeholder,
+}: {
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+  placeholder?: string;
+}) {
+  return (
+    <label className="flex flex-col gap-1 text-label-md md:col-span-2">
+      {label}
+      <textarea
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder}
+        rows={4}
+        className="min-h-[7rem] rounded-md border border-outline bg-surface px-stack-gap py-2 text-body-md"
       />
     </label>
   );

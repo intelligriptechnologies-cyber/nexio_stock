@@ -22,9 +22,11 @@ from sqlalchemy.exc import IntegrityError
 from app.api._errors import is_unique_violation
 from app.api.deps import DbSession, require_role, resolve_write_shop_id
 from app.logging_config import get_logger
+from app.models.shop import Shop
 from app.models.user import User, UserRole
 from app.schemas.auth import StaffCreate, StaffPasswordReset, StaffUpdate, UserPublic
 from app.security.passwords import hash_password
+from app.services.usernames import next_default_username
 
 router = APIRouter(prefix="/staff", tags=["staff"])
 log = get_logger(__name__)
@@ -58,11 +60,18 @@ async def create_staff(
 
     actor_shop_id = await resolve_write_shop_id(db, user, payload.shop_id)
     actor_id = user.id
+    shop = await db.get(Shop, actor_shop_id)
+    if shop is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="shop not found",
+        )
+    username = payload.username or await next_default_username(db, shop=shop, role=payload.role)
 
     new_user = User(
         shop_id=actor_shop_id,
         role=payload.role,
-        username=payload.username,
+        username=username,
         full_name=payload.full_name,
         phone=payload.phone,
         password_hash=hash_password(payload.password),
@@ -78,15 +87,14 @@ async def create_staff(
             log.info(
                 "staff.created.duplicate",
                 shop_id=actor_shop_id,
-                username=payload.username,
+                username=username,
                 phone=payload.phone,
             )
             await db.rollback()
             raise HTTPException(
                 status_code=status.HTTP_409_CONFLICT,
                 detail=(
-                    "username already exists in this shop, or phone is "
-                    "already registered (phone must be unique across all shops)"
+                    "username already exists or phone is already registered"
                 ),
             ) from exc
         raise

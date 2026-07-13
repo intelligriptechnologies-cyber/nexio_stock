@@ -5,6 +5,7 @@ import csv
 import io
 import json
 from datetime import date, datetime
+from pathlib import Path
 from typing import Annotated, Literal
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
@@ -194,7 +195,8 @@ async def download_log_file_endpoint(
     )
     if path is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="log file not found")
-    return FileResponse(path, media_type="text/plain", filename=filename)
+    media_type = "text/csv" if Path(filename).suffix == ".csv" else "text/plain"
+    return FileResponse(path, media_type=media_type, filename=filename)
 
 
 @router.patch("/files/{log_type}/retention", response_model=RetentionResponse)

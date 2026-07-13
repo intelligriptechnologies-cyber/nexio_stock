@@ -25,6 +25,8 @@ from sqlalchemy import func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api._logs import write_business_log
+from app.models.invoice import InvoiceLine, PastInvoiceLine
+from app.models.lot import LotLine
 from app.models.log import InvoicingLog, StockinLog
 from app.models.product import Product, ProductStatus
 from app.models.user import User, UserRole
@@ -41,7 +43,6 @@ class ProductError(Exception):
         super().__init__(message)
         self.code = code
         self.message = message
-
 
 # --- shared shop-scoping (list / lookup / pending) ----------------------
 #
@@ -81,6 +82,43 @@ async def list_products(
         )
     stmt = stmt.order_by(Product.brand, Product.size_label).limit(limit).offset(offset)
     return (await db.execute(stmt)).scalars().all()
+
+
+async def permanent_delete_eligible_ids(
+    db: AsyncSession, *, product_ids: list[int]
+) -> set[int]:
+    if not product_ids:
+        return set()
+
+    blocked: set[int] = set()
+    for line_model in (LotLine, InvoiceLine, PastInvoiceLine):
+        stmt = (
+            select(line_model.product_id)
+            .where(line_model.product_id.in_(product_ids))
+            .group_by(line_model.product_id)
+        )
+        blocked.update((await db.execute(stmt)).scalars().all())
+    return set(product_ids) - blocked
+
+
+async def permanent_delete_blockers(db: AsyncSession, *, product_id: int) -> list[str]:
+    blockers: list[str] = []
+    checks = (
+        ("lot history", select(func.count(LotLine.id)).where(LotLine.product_id == product_id)),
+        (
+            "invoice history",
+            select(func.count(InvoiceLine.id)).where(InvoiceLine.product_id == product_id),
+        ),
+        (
+            "archived invoice history",
+            select(func.count(PastInvoiceLine.id)).where(PastInvoiceLine.product_id == product_id),
+        ),
+    )
+    for label, stmt in checks:
+        count = int((await db.execute(stmt)).scalar_one())
+        if count > 0:
+            blockers.append(label)
+    return blockers
 
 
 async def lookup_product_by_barcode(
@@ -305,6 +343,20 @@ def reject_pending_product(product: Product) -> bool:
     return True
 
 
+def archive_product(product: Product) -> bool:
+    if not product.is_active:
+        return False
+    product.is_active = False
+    return True
+
+
+def restore_product(product: Product) -> bool:
+    if product.is_active:
+        return False
+    product.is_active = True
+    return True
+
+
 # --- CSV bulk import -----------------------------------------------------
 
 CSV_REQUIRED_COLUMNS = ("barcode", "brand", "size_label", "price")
@@ -446,6 +498,7 @@ __all__ = [
     "PendingProductInfo",
     "ProductError",
     "QuickAddConflictError",
+    "archive_product",
     "activate_pending_product",
     "count_pending_products",
     "get_product_for_write",
@@ -453,8 +506,11 @@ __all__ = [
     "list_pending_products",
     "list_products",
     "lookup_product_by_barcode",
+    "permanent_delete_blockers",
+    "permanent_delete_eligible_ids",
     "quick_add_log_entry",
     "quick_add_product",
     "reject_pending_product",
+    "restore_product",
     "update_product_fields",
 ]

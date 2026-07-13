@@ -22,11 +22,15 @@ from sqlalchemy.exc import IntegrityError
 from app.api._errors import is_unique_violation
 from app.api.deps import DbSession, require_role, resolve_write_shop_id
 from app.logging_config import get_logger
+from app.models.device import DeviceBinding
 from app.models.product import Product, ProductStatus
 from app.models.shop import Shop
 from app.models.user import User, UserRole
 from app.schemas.auth import UserPublic
 from app.schemas.shop import (
+    DeviceBindingCreate,
+    DeviceBindingPublic,
+    DeviceBindingUpdate,
     ProductCopyRequest,
     ProductCopyResponse,
     ShopCreate,
@@ -40,6 +44,7 @@ from app.schemas.shop import (
     SkippedProduct,
 )
 from app.security.passwords import hash_password
+from app.services.usernames import next_default_username
 
 router = APIRouter(prefix="/shops", tags=["shops"])
 log = get_logger(__name__)
@@ -76,6 +81,7 @@ async def create_shop(
         name=payload.name,
         code=payload.code,
         low_stock_threshold_default=payload.low_stock_threshold_default,
+        allowed_login_cidrs=payload.allowed_login_cidrs,
     )
     db.add(shop)
     try:
@@ -161,10 +167,11 @@ async def create_shop_user(
     shop = await db.get(Shop, shop_id)
     if shop is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="shop not found")
+    username = payload.username or await next_default_username(db, shop=shop, role=payload.role)
     user = User(
         shop_id=shop_id,
         role=payload.role,
-        username=payload.username,
+        username=username,
         full_name=payload.full_name,
         phone=payload.phone,
         password_hash=hash_password(payload.password),
@@ -178,7 +185,7 @@ async def create_shop_user(
         if is_unique_violation(exc):
             raise HTTPException(
                 status_code=status.HTTP_409_CONFLICT,
-                detail="username already exists in this shop, or phone is already registered",
+                detail="username already exists or phone is already registered",
             ) from exc
         raise
     await db.refresh(user)
@@ -303,6 +310,103 @@ async def copy_products_from_shop(
         skipped=len(skipped_products),
         skipped_products=skipped_products,
     )
+
+
+@router.get(
+    "/me/devices",
+    response_model=list[DeviceBindingPublic],
+    summary="List the device bindings for the selected shop",
+)
+async def list_shop_devices(
+    db: DbSession,
+    user: User = Depends(require_role(UserRole.OWNER, UserRole.SUPERADMIN)),
+    shop_id: Annotated[
+        int | None,
+        Query(description="Superadmin-only: selected shop to list devices for"),
+    ] = None,
+) -> list[DeviceBindingPublic]:
+    actor_shop_id = await resolve_write_shop_id(db, user, shop_id)
+    rows = (
+        await db.execute(
+            select(DeviceBinding)
+            .where(DeviceBinding.shop_id == actor_shop_id)
+            .order_by(DeviceBinding.id.asc())
+        )
+    ).scalars().all()
+    return [DeviceBindingPublic.model_validate(row) for row in rows]
+
+
+@router.post(
+    "/me/devices",
+    response_model=DeviceBindingPublic,
+    summary="Register or rebind a device to the selected shop",
+)
+async def upsert_shop_device(
+    payload: DeviceBindingCreate,
+    db: DbSession,
+    user: User = Depends(require_role(UserRole.OWNER, UserRole.SUPERADMIN)),
+    shop_id: Annotated[
+        int | None,
+        Query(description="Superadmin-only: selected shop to bind this device to"),
+    ] = None,
+) -> DeviceBindingPublic:
+    actor_shop_id = await resolve_write_shop_id(db, user, shop_id)
+    binding = (
+        await db.execute(
+            select(DeviceBinding).where(DeviceBinding.device_key == payload.device_key)
+        )
+    ).scalar_one_or_none()
+    if binding is None:
+        binding = DeviceBinding(
+            device_key=payload.device_key,
+            shop_id=actor_shop_id,
+            counter_name=payload.counter_name,
+            is_active=payload.is_active,
+            registered_by_user_id=user.id,
+        )
+        db.add(binding)
+    else:
+        binding.shop_id = actor_shop_id
+        binding.counter_name = payload.counter_name
+        binding.is_active = payload.is_active
+        binding.registered_by_user_id = user.id
+    await db.commit()
+    await db.refresh(binding)
+    return DeviceBindingPublic.model_validate(binding)
+
+
+@router.patch(
+    "/me/devices/{device_id:int}",
+    response_model=DeviceBindingPublic,
+    summary="Update a device binding for the selected shop",
+)
+async def update_shop_device(
+    device_id: int,
+    payload: DeviceBindingUpdate,
+    db: DbSession,
+    user: User = Depends(require_role(UserRole.OWNER, UserRole.SUPERADMIN)),
+    shop_id: Annotated[
+        int | None,
+        Query(description="Superadmin-only: selected shop to update devices for"),
+    ] = None,
+) -> DeviceBindingPublic:
+    actor_shop_id = await resolve_write_shop_id(db, user, shop_id)
+    binding = (
+        await db.execute(
+            select(DeviceBinding).where(
+                DeviceBinding.id == device_id,
+                DeviceBinding.shop_id == actor_shop_id,
+            )
+        )
+    ).scalar_one_or_none()
+    if binding is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="device not found")
+    data = payload.model_dump(exclude_unset=True)
+    for field_name, value in data.items():
+        setattr(binding, field_name, value)
+    await db.commit()
+    await db.refresh(binding)
+    return DeviceBindingPublic.model_validate(binding)
 
 
 @router.get(

@@ -9,8 +9,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.models.user import User, UserRole
 from app.security.passwords import hash_password
 
+TEST_DEVICE_KEY = "test-terminal-01"
 
-@pytest.mark.usefixtures("owner", "receiver", "cashier", "superadmin")
+
+@pytest.mark.usefixtures("owner", "receiver", "cashier", "device_binding", "superadmin")
 async def test_superadmin_login_returns_token(superadmin_client: AsyncClient) -> None:
     resp = await superadmin_client.get("/users/me")
     assert resp.status_code == 200
@@ -19,31 +21,36 @@ async def test_superadmin_login_returns_token(superadmin_client: AsyncClient) ->
     assert body["shop_id"] is None
 
 
-@pytest.mark.usefixtures("owner")
-async def test_owner_login_with_phone_returns_token(owner_client: AsyncClient) -> None:
+@pytest.mark.usefixtures("owner", "receiver", "cashier", "device_binding")
+async def test_owner_login_with_username_returns_token(owner_client: AsyncClient) -> None:
     resp = await owner_client.get("/users/me")
     assert resp.status_code == 200
-    body = resp.json()
-    assert body["role"] == "owner"
+    assert resp.json()["role"] == "owner"
 
 
-@pytest.mark.usefixtures("receiver")
-async def test_receiver_login_with_phone_returns_token(receiver_client: AsyncClient) -> None:
+@pytest.mark.usefixtures("receiver", "device_binding")
+async def test_receiver_login_with_username_returns_token(receiver_client: AsyncClient) -> None:
     resp = await receiver_client.get("/users/me")
     assert resp.status_code == 200
     assert resp.json()["role"] == "receiver_user"
 
 
-@pytest.mark.usefixtures("cashier")
-async def test_cashier_login_with_phone_returns_token(cashier_client: AsyncClient) -> None:
+@pytest.mark.usefixtures("cashier", "device_binding")
+async def test_cashier_login_with_username_returns_token(cashier_client: AsyncClient) -> None:
     resp = await cashier_client.get("/users/me")
     assert resp.status_code == 200
     assert resp.json()["role"] == "cashier_user"
 
 
-async def test_shop_login_with_wrong_password(client: AsyncClient, owner) -> None:
+async def test_shop_login_with_wrong_password(client: AsyncClient, owner, device_binding) -> None:
     resp = await client.post(
-        "/auth/login", json={"phone": owner.phone, "password": "wrong"}
+        "/auth/login",
+        json={
+            "role": "owner",
+            "username": owner.username,
+            "password": "wrong",
+            "device_key": TEST_DEVICE_KEY,
+        },
     )
     assert resp.status_code == 401
 
@@ -73,16 +80,24 @@ async def test_invalid_token_returns_401(client: AsyncClient) -> None:
 async def test_superadmin_token_cannot_be_used_for_shop_login(
     client: AsyncClient, superadmin
 ) -> None:
-    """Sanity: a superadmin doesn't have a real phone; shop login rejects them."""
+    """Sanity: an unregistered terminal blocks shop login before credentials."""
     resp = await client.post(
-        "/auth/login", json={"phone": superadmin.phone, "password": "rootpass1"}
+        "/auth/login",
+        json={
+            "role": "owner",
+            "username": superadmin.username,
+            "password": "rootpass1",
+            "device_key": TEST_DEVICE_KEY,
+        },
     )
-    assert resp.status_code == 401
+    assert resp.status_code == 403
 
 
-async def test_shop_login_requires_phone_and_password(client: AsyncClient) -> None:
-    resp = await client.post("/auth/login", json={"phone": "+15555550001"})
-    assert resp.status_code == 422  # missing password
+async def test_shop_login_requires_username_role_password_and_device_key(
+    client: AsyncClient,
+) -> None:
+    resp = await client.post("/auth/login", json={"username": "owner1"})
+    assert resp.status_code == 422
 
 
 async def test_superadmin_login_requires_username_and_password(client: AsyncClient) -> None:
@@ -94,11 +109,7 @@ async def test_superadmin_login_requires_username_and_password(client: AsyncClie
 async def test_superadmin_username_must_be_globally_unique(
     superadmin: User, db_session: AsyncSession
 ) -> None:
-    """Regression: shop_id is NULL for every superadmin, and a unique
-    constraint on (shop_id, username) is a no-op across NULL shop_ids —
-    so without a dedicated constraint, two superadmins could share a
-    username and login-by-username would crash with MultipleResultsFound.
-    """
+    """Regression: username is now the primary login identifier for every role."""
     dupe = User(
         shop_id=None,
         role=UserRole.SUPERADMIN,

@@ -50,6 +50,17 @@ export interface ProductUpdatePayload {
   is_active?: boolean;
 }
 
+export interface ProductActionConfirmationPayload {
+  confirmation_text: string;
+}
+
+export interface ProductDeleteResponse {
+  id: number;
+  shop_id: number;
+  barcode: string;
+  action: string;
+}
+
 export interface ProductImportError {
   row: number;
   barcode: string | null;
@@ -141,6 +152,30 @@ export function rejectProduct(id: number): Promise<Product> {
 
 export function updateProduct(id: number, payload: ProductUpdatePayload): Promise<Product> {
   return api<Product>(`/products/${id}`, { method: "PATCH", json: payload });
+}
+
+export function archiveProduct(
+  id: number,
+  payload: ProductActionConfirmationPayload
+): Promise<Product> {
+  return api<Product>(`/products/${id}/archive`, { method: "POST", json: payload });
+}
+
+export function restoreProduct(
+  id: number,
+  payload: ProductActionConfirmationPayload
+): Promise<Product> {
+  return api<Product>(`/products/${id}/restore`, { method: "POST", json: payload });
+}
+
+export function permanentlyDeleteProduct(
+  id: number,
+  payload: ProductActionConfirmationPayload
+): Promise<ProductDeleteResponse> {
+  return api<ProductDeleteResponse>(`/products/${id}/permanent-delete`, {
+    method: "POST",
+    json: payload,
+  });
 }
 
 export async function importProductsCsv(

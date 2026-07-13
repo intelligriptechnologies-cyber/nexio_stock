@@ -8,7 +8,9 @@ import type {
 export interface StoredOfflineSession {
   session: OfflineSessionPublic;
   offlineToken: string;
+  catalogBase: OfflineCatalogItem[];
   catalog: OfflineCatalogItem[];
+  nextReceiptNumber: number;
 }
 
 interface StoredReceipt extends OfflineReceiptPayload {
@@ -19,6 +21,82 @@ const DB_NAME = "barstock-offline-sessions";
 const DB_VERSION = 1;
 const SESSION_STORE = "sessions";
 const RECEIPT_STORE = "receipts";
+
+function moneyString(cents: number): string {
+  return (Math.max(0, cents) / 100).toFixed(2);
+}
+
+function parseMoney(value: string): number {
+  const n = Number.parseFloat(value);
+  if (!Number.isFinite(n) || n < 0) return 0;
+  return Math.round(n * 100);
+}
+
+function cloneCatalog(catalog: OfflineCatalogItem[]): OfflineCatalogItem[] {
+  return catalog.map((item) => ({ ...item }));
+}
+
+export function buildOfflineReceiptId(sessionId: number, receiptNumber: number): string {
+  return `OFF-${sessionId}-${String(receiptNumber).padStart(4, "0")}`;
+}
+
+function parseOfflineReceiptNumber(tempReceiptId: string): number {
+  const match = /^OFF-\d+-(\d+)$/.exec(tempReceiptId);
+  return match ? Number(match[1]) : 0;
+}
+
+function receiptTotalCents(
+  receipt: OfflineReceiptPayload,
+  priceByBarcode: Map<string, number>
+): number {
+  return receipt.lines.reduce(
+    (acc, line) => acc + (priceByBarcode.get(line.barcode) ?? 0) * line.quantity,
+    0
+  );
+}
+
+export function recalculateStoredOfflineSession(
+  record: StoredOfflineSession,
+  receipts: OfflineReceiptPayload[]
+): StoredOfflineSession {
+  const catalogBase = record.catalogBase?.length ? cloneCatalog(record.catalogBase) : cloneCatalog(record.catalog);
+  const priceByBarcode = new Map(catalogBase.map((item) => [item.barcode, parseMoney(item.price)]));
+  const currentStockByBarcode = new Map(catalogBase.map((item) => [item.barcode, item.current_stock]));
+  const existingReceiptCounter = record.session.receipt_counter ?? 0;
+  const existingNextReceiptNumber = record.nextReceiptNumber ?? existingReceiptCounter + 1;
+
+  let grossTotal = 0;
+  let highestAssigned = Math.max(existingReceiptCounter, existingNextReceiptNumber - 1);
+
+  for (const receipt of receipts) {
+    highestAssigned = Math.max(highestAssigned, parseOfflineReceiptNumber(receipt.temp_receipt_id));
+    grossTotal += receiptTotalCents(receipt, priceByBarcode);
+    for (const line of receipt.lines) {
+      currentStockByBarcode.set(
+        line.barcode,
+        Math.max(0, (currentStockByBarcode.get(line.barcode) ?? 0) - line.quantity)
+      );
+    }
+  }
+
+  const nextReceiptNumber = Math.max(existingNextReceiptNumber, highestAssigned + 1);
+
+  return {
+    ...record,
+    catalogBase,
+    catalog: catalogBase.map((item) => ({
+      ...item,
+      current_stock: currentStockByBarcode.get(item.barcode) ?? item.current_stock,
+    })),
+    nextReceiptNumber,
+    session: {
+      ...record.session,
+      receipt_count: receipts.length,
+      receipt_counter: Math.max(highestAssigned, nextReceiptNumber - 1),
+      gross_total: moneyString(grossTotal),
+    },
+  };
+}
 
 function openDb(): Promise<IDBDatabase> {
   return new Promise((resolve, reject) => {
@@ -71,7 +149,9 @@ export async function saveStartedOfflineSession(
   const record: StoredOfflineSession = {
     session: response.session,
     offlineToken: response.offline_token,
+    catalogBase: cloneCatalog(response.catalog),
     catalog: response.catalog,
+    nextReceiptNumber: 1,
   };
   await tx([SESSION_STORE], "readwrite", (_db, transaction) => {
     transaction.objectStore(SESSION_STORE).put(record);
@@ -121,6 +201,23 @@ export async function addOfflineReceipt(
   });
 }
 
+export async function upsertOfflineReceipt(
+  sessionId: number,
+  receipt: OfflineReceiptPayload
+): Promise<void> {
+  await addOfflineReceipt(sessionId, receipt);
+}
+
+export async function deleteOfflineReceipt(
+  _sessionId: number,
+  tempReceiptId: string
+): Promise<void> {
+  await tx([RECEIPT_STORE], "readwrite", (_db, transaction) => {
+    const store = transaction.objectStore(RECEIPT_STORE);
+    store.delete(tempReceiptId);
+  });
+}
+
 export async function listOfflineReceipts(sessionId: number): Promise<OfflineReceiptPayload[]> {
   const db = await openDb();
   try {
@@ -137,6 +234,17 @@ export async function listOfflineReceipts(sessionId: number): Promise<OfflineRec
         note: row.note,
         created_at: row.created_at,
       }));
+  } finally {
+    db.close();
+  }
+}
+
+export async function listStoredOfflineReceipts(sessionId: number): Promise<StoredReceipt[]> {
+  const db = await openDb();
+  try {
+    const transaction = db.transaction([RECEIPT_STORE], "readonly");
+    const index = transaction.objectStore(RECEIPT_STORE).index("session_id");
+    return await reqToPromise<StoredReceipt[]>(index.getAll(sessionId));
   } finally {
     db.close();
   }

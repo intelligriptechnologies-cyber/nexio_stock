@@ -269,7 +269,13 @@ async def test_two_concurrent_finalizes_for_last_unit_only_one_wins(
     async def cashier_call() -> int:
         async with HttpxClient(transport=ASGITransport(app=app), base_url="http://t") as c:
             login = await c.post(
-                "/auth/login", json={"phone": "+15555550003", "password": "cashpass"}
+                "/auth/login",
+                json={
+                    "role": "cashier_user",
+                    "username": "cashier1",
+                    "password": "cashpass",
+                    "device_key": "test-terminal-01",
+                },
             )
             assert login.status_code == 200
             c.headers["Authorization"] = f"Bearer {login.json()['access_token']}"

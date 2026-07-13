@@ -11,6 +11,7 @@ import {
 } from "../api/dashboard";
 import {
   editInvoice,
+  downloadInvoicePdf,
   listInvoices,
   type InvoicePublic,
   type PaymentMode,
@@ -52,6 +53,7 @@ export function InvoiceLookupPage() {
   const [error, setError] = useState<string | null>(null);
   const [info, setInfo] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [downloadingInvoiceId, setDownloadingInvoiceId] = useState<number | null>(null);
   const [editNote, setEditNote] = useState("");
   const [editPayments, setEditPayments] = useState<{ mode: PaymentMode; amount: string }[]>([]);
   const [editLines, setEditLines] = useState<
@@ -255,6 +257,24 @@ export function InvoiceLookupPage() {
       setError(e instanceof ApiError ? e.detail : "Void request failed.");
     } finally {
       setBusy(false);
+    }
+  };
+
+  const downloadInvoiceForRow = async (invoice: InvoicePublic) => {
+    setError(null);
+    setDownloadingInvoiceId(invoice.id);
+    try {
+      const blob = await downloadInvoicePdf(invoice.id);
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `invoice-${invoice.invoice_number}.pdf`;
+      a.click();
+      window.setTimeout(() => URL.revokeObjectURL(url), 0);
+    } catch (e) {
+      setError(e instanceof ApiError ? e.detail : "PDF download failed.");
+    } finally {
+      setDownloadingInvoiceId(null);
     }
   };
 
@@ -509,7 +529,7 @@ export function InvoiceLookupPage() {
                       {invoice.eod_signed_off ? "Archived" : "Open"}
                     </td>
                     <td className="px-3 py-3 align-top">
-                      <div className="grid min-w-[180px] grid-cols-2 gap-2">
+                      <div className="grid min-w-[220px] grid-cols-2 gap-2">
                         <button
                           type="button"
                           onClick={() => beginEdit(invoice)}
@@ -517,11 +537,19 @@ export function InvoiceLookupPage() {
                         >
                           {canEdit(invoice) ? "Edit" : "View"}
                         </button>
+                        <button
+                          type="button"
+                          onClick={() => void downloadInvoiceForRow(invoice)}
+                          disabled={downloadingInvoiceId === invoice.id}
+                          className="min-h-touchTarget-sm rounded-md bg-surface-container-high px-2 text-label-md disabled:opacity-50"
+                        >
+                          {downloadingInvoiceId === invoice.id ? "Downloading..." : "Download PDF"}
+                        </button>
                         {invoice.status === "pending_void" ? (
                           <button
                             type="button"
                             disabled
-                            className="min-h-touchTarget-sm rounded-md bg-surface-container-high px-2 text-label-md text-on-surface-variant opacity-80"
+                            className="col-span-2 min-h-touchTarget-sm rounded-md bg-surface-container-high px-2 text-label-md text-on-surface-variant opacity-80"
                           >
                             Approval sent
                           </button>
@@ -529,7 +557,7 @@ export function InvoiceLookupPage() {
                           <button
                             type="button"
                             onClick={() => openVoidDialog(invoice)}
-                            className="min-h-touchTarget-sm rounded-md bg-error px-2 text-label-md text-on-error"
+                            className="col-span-2 min-h-touchTarget-sm rounded-md bg-error px-2 text-label-md text-on-error"
                           >
                             Void
                           </button>
@@ -537,7 +565,7 @@ export function InvoiceLookupPage() {
                           <button
                             type="button"
                             disabled
-                            className="min-h-touchTarget-sm rounded-md bg-surface-container-high px-2 text-label-md text-on-surface-variant opacity-60"
+                            className="col-span-2 min-h-touchTarget-sm rounded-md bg-surface-container-high px-2 text-label-md text-on-surface-variant opacity-60"
                           >
                             Locked
                           </button>

@@ -18,6 +18,32 @@ class SuperAdminLoginRequest(BaseModel):
     password: str = Field(min_length=4, max_length=128)
 
 
+class ShopLoginByUsername(BaseModel):
+    """Shop login via username + role + password + device binding."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    role: UserRole
+    username: str = Field(min_length=1, max_length=64)
+    password: str = Field(min_length=4, max_length=128)
+    device_key: str = Field(min_length=8, max_length=64)
+
+    @field_validator("role")
+    @classmethod
+    def _shop_role(cls, v: UserRole) -> UserRole:
+        if v not in (UserRole.OWNER, UserRole.RECEIVER_USER, UserRole.CASHIER_USER):
+            raise ValueError("role must be owner, receiver_user, or cashier_user")
+        return v
+
+    @field_validator("username", "device_key")
+    @classmethod
+    def _trim_login_identifiers(cls, v: str) -> str:
+        value = v.strip()
+        if not value:
+            raise ValueError("value must not be blank")
+        return value
+
+
 class ShopLoginByPhone(BaseModel):
     """Shop login via phone (R-22) — the legacy path, still used by any
     client that hasn't migrated to the issue #24 picker flow."""
@@ -47,12 +73,8 @@ class ShopLoginByStaffId(BaseModel):
     password: str = Field(min_length=4, max_length=128)
 
 
-# Issue #36 — each shape's own required field makes "exactly one
-# identifier" a type-level fact (and `extra="forbid"` means a body
-# carrying fields from the other shape fails that shape's own
-# validation) instead of two optional sibling fields juggled by hand
-# in the route.
-ShopLoginRequest = ShopLoginByPhone | ShopLoginByStaffId
+# Shop login now uses username + role + device_key.
+ShopLoginRequest = ShopLoginByUsername
 
 
 class TokenResponse(BaseModel):
@@ -91,13 +113,54 @@ class ShopStaffMember(BaseModel):
     role: UserRole
 
 
+class DeviceContext(BaseModel):
+    """Pre-auth device binding status for the login screen."""
+
+    device_key: str
+    is_registered: bool
+    can_login: bool
+    shop_id: int | None
+    shop_name: str | None
+    shop_code: str | None
+    counter_name: str | None
+    message: str
+
+
+class DeviceBindingBase(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    device_key: str = Field(min_length=8, max_length=64)
+    counter_name: str | None = Field(default=None, max_length=80)
+    is_active: bool = True
+
+
+class DeviceBindingCreate(DeviceBindingBase):
+    """Register or rebind a device to the selected shop."""
+
+
+class DeviceBindingUpdate(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    counter_name: str | None = Field(default=None, max_length=80)
+    is_active: bool | None = None
+
+
+class DeviceBindingPublic(DeviceBindingBase):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    shop_id: int
+    created_at: datetime
+    updated_at: datetime
+
+
 class StaffCreate(BaseModel):
     """Owner (or superadmin, D-64/D-65) creates a receiver_user or cashier_user (D-27, R-4)."""
 
     model_config = ConfigDict(extra="forbid")
 
     role: UserRole
-    username: str = Field(min_length=3, max_length=64)
+    username: str | None = Field(default=None, max_length=64)
     full_name: str = Field(min_length=1, max_length=200)
     phone: str = Field(min_length=7, max_length=20)
     password: str = Field(min_length=4, max_length=128)
@@ -121,6 +184,14 @@ class StaffCreate(BaseModel):
         if not _PHONE_RE.match(v):
             raise ValueError("phone must be 7-15 digits, optional leading +")
         return v
+
+    @field_validator("username")
+    @classmethod
+    def _username_trim(cls, v: str | None) -> str | None:
+        if v is None:
+            return v
+        value = v.strip()
+        return value or None
 
 
 class StaffPasswordReset(BaseModel):

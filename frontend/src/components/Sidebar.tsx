@@ -7,6 +7,7 @@ import { VOID_APPROVALS_CHANGED_EVENT } from "../api/void-approvals-events";
 import { useAuth, type Role } from "../auth/AuthProvider";
 import { useShopScope } from "../auth/ShopScopeProvider";
 import { useSettingsTheme } from "../theme/settingsThemeContext";
+import { useConnectivityStatus } from "../hooks/useOnlineStatus";
 import { ShopPicker } from "./ShopPicker";
 
 interface NavItem {
@@ -27,6 +28,7 @@ const ITEMS: NavItem[] = [
   },
   { to: "/admin/shops", label: "Shop Master", roles: ["superadmin"] },
   { to: "/admin/products", label: "Products", roles: ["owner", "superadmin"] },
+  { to: "/admin/vendors", label: "Vendors", roles: ["owner", "superadmin"] },
   { to: "/admin/pending", label: "Pending", roles: ["owner", "superadmin"] },
   { to: "/admin/staff", label: "Staff", roles: ["owner"] },
   { to: "/admin/settings", label: "Settings", roles: ["owner", "superadmin"] },
@@ -40,6 +42,7 @@ export function Sidebar() {
   const { user, logout } = useAuth();
   const { actingShopId } = useShopScope();
   const { displayName } = useSettingsTheme();
+  const connectivity = useConnectivityStatus();
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
   const [pendingCount, setPendingCount] = useState(0);
@@ -89,6 +92,18 @@ export function Sidebar() {
   const items = ITEMS.filter((i) => i.roles.includes(user.role));
   const mainItems = items.filter((i) => !ADMIN_SUPPORT_PATHS.has(i.to));
   const adminSupportItems = items.filter((i) => ADMIN_SUPPORT_PATHS.has(i.to));
+  const connectivityLabel =
+    connectivity.status === "online"
+      ? "Online"
+      : connectivity.status === "offline"
+        ? "No network"
+        : "Checking";
+  const connectivityDotClass =
+    connectivity.status === "online"
+      ? "bg-success"
+      : connectivity.status === "offline"
+        ? "bg-error"
+        : "bg-warning";
   const renderNavItem = (it: NavItem) => (
     <NavLink
       key={it.to}
@@ -158,6 +173,10 @@ export function Sidebar() {
           )}
         </nav>
         <div className="shrink-0 border-t border-outline p-stack-gap">
+          <div className="mb-stack-gap flex items-center gap-2 text-label-md">
+            <span className={`h-2.5 w-2.5 rounded-full ${connectivityDotClass}`} aria-hidden="true" />
+            <span>{connectivityLabel}</span>
+          </div>
           <div className="text-label-md">{user.fullName}</div>
           <div className="text-label-md text-on-sidebar-muted">{user.role}</div>
           <button

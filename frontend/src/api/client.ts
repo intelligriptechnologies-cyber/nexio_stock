@@ -2,8 +2,10 @@
 // Reads the base URL from VITE_API_BASE (build-time env) and injects
 // the Bearer token from sessionStorage on every request.
 
-const BASE = (import.meta.env.VITE_API_BASE as string | undefined) ?? "http://127.0.0.1:8000";
+export const API_BASE =
+  (import.meta.env.VITE_API_BASE as string | undefined) ?? "http://127.0.0.1:8000";
 const TOKEN_KEY = "barstock.token";
+const DEVICE_KEY = "barstock.deviceKey";
 
 // The one place that reads/writes the session token (issue #29). Every
 // other module -- AuthProvider's login/logout, and the two call sites
@@ -19,6 +21,21 @@ export function setToken(token: string): void {
 
 export function clearToken(): void {
   sessionStorage.removeItem(TOKEN_KEY);
+}
+
+export function getOrCreateDeviceKey(): string {
+  const stored = localStorage.getItem(DEVICE_KEY);
+  if (stored) return stored;
+  const generated =
+    globalThis.crypto && "randomUUID" in globalThis.crypto
+      ? globalThis.crypto.randomUUID()
+      : `device-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
+  localStorage.setItem(DEVICE_KEY, generated);
+  return generated;
+}
+
+export function setDeviceKey(deviceKey: string): void {
+  localStorage.setItem(DEVICE_KEY, deviceKey);
 }
 
 export class ApiError extends Error {
@@ -83,7 +100,7 @@ export async function api<T = unknown>(
 
   let res: Response;
   try {
-    res = await fetch(`${BASE}${path}`, { ...init, headers, body });
+    res = await fetch(`${API_BASE}${path}`, { ...init, headers, body });
   } catch (e) {
     throw new ApiError(
       0,
@@ -121,20 +138,30 @@ export const Api = {
       "/auth/login/superadmin",
       { method: "POST", json: { username, password } }
     ),
-  loginShop: (identifier: { phone: string } | { staff_id: number }, password: string) =>
+  loginShop: (payload: {
+    role: "owner" | "receiver_user" | "cashier_user";
+    username: string;
+    password: string;
+    device_key: string;
+  }) =>
     api<{ access_token: string; token_type: string; expires_in: number; user: unknown }>(
       "/auth/login",
-      { method: "POST", json: { ...identifier, password } }
+      { method: "POST", json: payload }
     ),
-  // Public pre-auth staff picker (issue #24, D-v2-16). Returns
-  // {id, full_name, role} for the one existing shop's active
-  // shop-scoped users. No phone, no password hash — the LoginPage
-  // keeps the picked row's phone in component state for the second
-  // stage (PIN pad) since the picker intentionally doesn't return it.
+  getDeviceContext: (deviceKey: string) =>
+    api<{
+      device_key: string;
+      is_registered: boolean;
+      can_login: boolean;
+      shop_id: number | null;
+      shop_name: string | null;
+      shop_code: string | null;
+      counter_name: string | null;
+      message: string;
+    }>(`/auth/device-context?device_key=${encodeURIComponent(deviceKey)}`),
+  // Public pre-auth staff picker (legacy compatibility for older tests).
   listShopStaff: () =>
-    api<Array<{ id: number; full_name: string; role: string }>>(
-      "/auth/shop-staff"
-    ),
+    api<Array<{ id: number; full_name: string; role: string }>>("/auth/shop-staff"),
   me: () => api("/users/me"),
   logout: () => sessionStorage.clear(),
 };

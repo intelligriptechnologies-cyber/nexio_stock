@@ -1,35 +1,29 @@
-"""Auth routes: login for the four roles.
+"""Auth routes for superadmin and shop-scoped login.
 
-Login differs by role:
+Login now differs by role:
   - superadmin : username + password (no shop; cross-shop)
-  - owner / receiver / cashier : phone + password (shop-scoped)
+  - owner / receiver / cashier : username + password + device_key
 
-Returns a JWT access token + the public user record. The token carries
-{ sub, shop_id, role, exp } and is verified by `app.api.deps.get_current_user`.
-
-The staff-picker endpoint (``GET /auth/shop-staff``, issue #24, D-v2-16)
-sits in this router because it's a public, pre-auth read endpoint. It
-returns the one existing shop's active shop-scoped users as
-``{id, full_name, role}`` only — no phone, no password hash. The
-``LoginPage`` uses it to render a tap-list before the PIN pad. The
-underlying ``/auth/login`` endpoint stays unchanged; the frontend
-passes the picked staff member's phone through to it exactly as before.
+The shop-scoped login contract is device-bound. The frontend stores a
+stable device key in local storage, the login screen preflights that key
+against ``GET /auth/device-context``, and the actual ``POST /auth/login``
+request refuses to authenticate unless the device is registered to a
+shop/counter.
 """
 from __future__ import annotations
 
-from fastapi import APIRouter, Body, HTTPException, status
-from fastapi.exceptions import RequestValidationError
-from pydantic import ValidationError
+from fastapi import APIRouter, HTTPException, Request, status
 from sqlalchemy import select
 
 from app.api.deps import DbSession
 from app.config import get_settings
 from app.logging_config import get_logger
+from app.models.device import DeviceBinding
 from app.models.shop import Shop
 from app.models.user import SHOP_SCOPED_ROLES, User, UserRole
 from app.schemas.auth import (
-    ShopLoginByPhone,
-    ShopLoginByStaffId,
+    DeviceContext,
+    ShopLoginByUsername,
     ShopStaffMember,
     SuperAdminLoginRequest,
     TokenResponse,
@@ -37,6 +31,7 @@ from app.schemas.auth import (
 )
 from app.security.jwt import create_access_token
 from app.security.passwords import verify_password
+from app.services.ip_allowlist import client_ip_is_allowed, resolve_client_ip
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 log = get_logger(__name__)
@@ -96,6 +91,58 @@ async def _authenticate(
     return user
 
 
+def _deny_shop_network(request: Request, *, shop: Shop | None, endpoint: str) -> None:
+    client_ip = resolve_client_ip(request)
+    log.warning(
+        "login.blocked_ip",
+        endpoint=endpoint,
+        shop_id=shop.id if shop is not None else None,
+        client_ip=client_ip,
+        allowed_login_cidrs=shop.allowed_login_cidrs if shop is not None else [],
+    )
+    raise HTTPException(
+        status_code=status.HTTP_403_FORBIDDEN,
+        detail="login allowed only from the shop network",
+    )
+
+
+def _require_shop_network(request: Request, *, shop: Shop | None, endpoint: str) -> None:
+    if shop is None:
+        return
+    client_ip = resolve_client_ip(request)
+    if not client_ip_is_allowed(client_ip, shop.allowed_login_cidrs):
+        _deny_shop_network(request, shop=shop, endpoint=endpoint)
+
+
+async def _get_device_binding(db: DbSession, device_key: str) -> DeviceBinding | None:
+    return (
+        await db.execute(
+            select(DeviceBinding).where(DeviceBinding.device_key == device_key)
+        )
+    ).scalar_one_or_none()
+
+
+def _device_context_message(binding: DeviceBinding | None, shop: Shop | None) -> str:
+    if binding is None:
+        return "This device is not registered yet. Ask an owner or superadmin to assign it to a shop and counter."
+    if not binding.is_active:
+        return "This device is registered but disabled. Ask an owner or superadmin to reactivate it."
+    if shop is None:
+        return "This device is registered, but the shop record is missing."
+    suffix = f" for counter {binding.counter_name}" if binding.counter_name else ""
+    return f"Registered to {shop.name} ({shop.code}){suffix}."
+
+
+async def _resolve_device_context(
+    db: DbSession, *, device_key: str
+) -> tuple[DeviceBinding | None, Shop | None]:
+    binding = await _get_device_binding(db, device_key)
+    if binding is None:
+        return None, None
+    shop = await db.get(Shop, binding.shop_id)
+    return binding, shop
+
+
 @router.post(
     "/login/superadmin",
     response_model=TokenResponse,
@@ -125,65 +172,31 @@ async def login_superadmin(payload: SuperAdminLoginRequest, db: DbSession) -> To
 @router.post(
     "/login",
     response_model=TokenResponse,
-    summary="Shop login (phone + password OR staff_id + password, owner / receiver_user / cashier_user)",
+    summary="Shop login (username + password + device_key, owner / receiver_user / cashier_user)",
 )
-async def login_shop(db: DbSession, raw: dict = Body(...)) -> TokenResponse:
-    # Issue #24 — support both the legacy phone-path and the new
-    # picker-path (staff_id). The picker doesn't return phone by design
-    # (D-v2-16), so the LoginPage's second stage sends staff_id instead
-    # of phone to authenticate.
-    #
-    # Issue #36 — which of the two shapes (ShopLoginByPhone /
-    # ShopLoginByStaffId) applies is resolved here, from the raw body,
-    # since that's what picks a member out of the union of untyped
-    # JSON — it isn't itself the "juggle two optional siblings"
-    # imperative logic this issue removes. Once resolved, the shape
-    # guarantees its one identifier field non-None by construction, so
-    # nothing downstream re-checks for it, and both paths route through
-    # the same _authenticate helper below.
-    has_phone = raw.get("phone") is not None
-    has_staff_id = raw.get("staff_id") is not None
-    if has_phone and has_staff_id:
+async def login_shop(request: Request, db: DbSession, payload: ShopLoginByUsername) -> TokenResponse:
+    binding, shop = await _resolve_device_context(db, device_key=payload.device_key)
+    if binding is None or shop is None or not binding.is_active:
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="shop login accepts phone OR staff_id, not both",
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=_device_context_message(binding, shop),
         )
-    if not has_phone and not has_staff_id:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="shop login requires (phone or staff_id) + password",
-        )
-    try:
-        if has_phone:
-            shape: ShopLoginByPhone | ShopLoginByStaffId = ShopLoginByPhone.model_validate(raw)
-            identifier_field, identifier_value = "phone", shape.phone
-        else:
-            shape = ShopLoginByStaffId.model_validate(raw)
-            identifier_field, identifier_value = "id", shape.staff_id
-    except ValidationError as exc:
-        # Field-level errors (e.g. missing password, malformed phone)
-        # surface exactly as they would have for a FastAPI-bound Body
-        # model — a 422 with the usual error-list shape — rather than
-        # collapsing into the 400s above, which are reserved for the
-        # "which shape" ambiguity that can't be expressed as a single
-        # Pydantic model.
-        raise RequestValidationError(exc.errors()) from exc
-
+    _require_shop_network(request, shop=shop, endpoint="/auth/login")
     user = await _authenticate(
         db,
-        shop_id=None,  # phone is globally unique across all shops (UNIQUE(phone));
-        # staff_id is globally unique by primary key — both lookups are
-        # unambiguous without scoping to a shop. The role gate below
-        # enforces that the user is a shop-scoped role (not superadmin).
-        identifier_field=identifier_field,
-        identifier_value=identifier_value,
-        password=shape.password,
-        allowed_roles=(UserRole.OWNER, UserRole.RECEIVER_USER, UserRole.CASHIER_USER),
+        shop_id=shop.id,
+        identifier_field="username",
+        identifier_value=payload.username,
+        password=payload.password,
+        allowed_roles=(payload.role,),
     )
+    if user.role != payload.role:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="invalid credentials",
+        )
     settings = get_settings()
-    token = create_access_token(
-        sub=str(user.id), shop_id=user.shop_id, role=user.role.value
-    )
+    token = create_access_token(sub=str(user.id), shop_id=user.shop_id, role=user.role.value)
     log.info("login.shop", user_id=user.id, role=user.role.value)
     return TokenResponse(
         access_token=token,
@@ -193,11 +206,37 @@ async def login_shop(db: DbSession, raw: dict = Body(...)) -> TokenResponse:
 
 
 @router.get(
+    "/device-context",
+    response_model=DeviceContext,
+    summary="Resolve the pre-auth device binding for the login screen",
+)
+async def device_context(
+    request: Request,
+    db: DbSession,
+    device_key: str,
+) -> DeviceContext:
+    binding, shop = await _resolve_device_context(db, device_key=device_key)
+    if shop is not None:
+        _require_shop_network(request, shop=shop, endpoint="/auth/device-context")
+    message = _device_context_message(binding, shop)
+    return DeviceContext(
+        device_key=device_key,
+        is_registered=binding is not None,
+        can_login=binding is not None and shop is not None and binding.is_active,
+        shop_id=shop.id if shop is not None else None,
+        shop_name=shop.name if shop is not None else None,
+        shop_code=shop.code if shop is not None else None,
+        counter_name=binding.counter_name if binding is not None else None,
+        message=message,
+    )
+
+
+@router.get(
     "/shop-staff",
     response_model=list[ShopStaffMember],
     summary="Public pre-auth staff picker (issue #24, D-v2-16)",
 )
-async def list_shop_staff(db: DbSession) -> list[ShopStaffMember]:
+async def list_shop_staff(request: Request, db: DbSession) -> list[ShopStaffMember]:
     """Return the one existing shop's active shop-scoped users as
     ``{id, full_name, role}`` so the ``LoginPage`` can render a tap-list
     before any credential is entered.
@@ -221,6 +260,7 @@ async def list_shop_staff(db: DbSession) -> list[ShopStaffMember]:
     ).scalar_one_or_none()
     if shop is None:
         return []
+    _require_shop_network(request, shop=shop, endpoint="/auth/shop-staff")
     stmt = (
         select(User)
         .where(

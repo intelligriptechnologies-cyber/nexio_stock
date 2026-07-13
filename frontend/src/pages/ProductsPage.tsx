@@ -1,10 +1,13 @@
 import { useCallback, useEffect, useState } from "react";
 import { ApiError, toUserMessage } from "../api/client";
 import {
+  archiveProduct,
   createProduct,
   copyProductsFromShop,
   importProductsCsv,
   listProducts,
+  permanentlyDeleteProduct,
+  restoreProduct,
   updateProduct,
   type Product,
   type ProductImportResponse,
@@ -21,6 +24,13 @@ type Tab = "list" | "create" | "import" | "copy";
 interface InitialBarcode {
   value: string;
   token: number;
+}
+
+type ProductActionKind = "archive" | "restore" | "permanent-delete";
+
+interface ActionDialogState {
+  product: Product;
+  kind: ProductActionKind;
 }
 
 export function ProductsPage() {
@@ -114,12 +124,16 @@ function ListTab({
   const { user } = useAuth();
   const { actingShopId } = useShopScope();
   const isSuperadmin = user?.role === "superadmin";
+  const canManage = user?.role === "owner" || user?.role === "superadmin";
   const [items, setItems] = useState<Product[] | null>(null);
   const [shops, setShops] = useState<ShopSummary[]>([]);
   const [selectedShopId, setSelectedShopId] = useState<number | null>(actingShopId);
   const [includeInactive, setIncludeInactive] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);
+  const [actionDialog, setActionDialog] = useState<ActionDialogState | null>(null);
+  const [actionConfirmation, setActionConfirmation] = useState("");
+  const [actionBusy, setActionBusy] = useState(false);
 
   useEffect(() => {
     if (!isSuperadmin) return;
@@ -156,6 +170,42 @@ function ListTab({
 
   const reload = useCallback(() => setRefreshKey((k) => k + 1), []);
   const shopById = new Map(shops.map((shop) => [shop.id, shop]));
+  const closeActionDialog = useCallback(() => {
+    setActionDialog(null);
+    setActionConfirmation("");
+    setActionBusy(false);
+  }, []);
+  const openActionDialog = useCallback((product: Product, kind: ProductActionKind) => {
+    setActionDialog({ product, kind });
+    setActionConfirmation("");
+    setError(null);
+  }, []);
+  const runAction = async () => {
+    if (!actionDialog) return;
+    const expected = actionExpectedText(actionDialog.kind);
+    if (actionConfirmation !== expected) {
+      setError(`Type ${expected} to confirm.`);
+      return;
+    }
+    setActionBusy(true);
+    setError(null);
+    try {
+      if (actionDialog.kind === "archive") {
+        await archiveProduct(actionDialog.product.id, { confirmation_text: expected });
+      } else if (actionDialog.kind === "restore") {
+        await restoreProduct(actionDialog.product.id, { confirmation_text: expected });
+      } else {
+        await permanentlyDeleteProduct(actionDialog.product.id, { confirmation_text: expected });
+      }
+      invalidateCache();
+      closeActionDialog();
+      reload();
+    } catch (e) {
+      setError(toUserMessage(e, "Action failed."));
+    } finally {
+      setActionBusy(false);
+    }
+  };
 
   return (
     <div className="flex flex-col gap-stack-gap">
@@ -259,13 +309,44 @@ function ListTab({
                     </td>
                     <td className="px-stack-gap py-2">{p.is_active ? "yes" : "no"}</td>
                     <td className="px-stack-gap py-2 text-right">
-                      <button
-                        type="button"
-                        onClick={() => onEditingIdChange(p.id)}
-                        className="rounded-md bg-primary px-stack-gap py-1 text-label-md text-on-primary"
-                      >
-                        Edit
-                      </button>
+                      <div className="flex flex-wrap justify-end gap-2">
+                        <button
+                          type="button"
+                          onClick={() => onEditingIdChange(p.id)}
+                          className="rounded-md bg-primary px-stack-gap py-1 text-label-md text-on-primary"
+                        >
+                          Edit
+                        </button>
+                        {canManage && p.is_active && (
+                          <button
+                            type="button"
+                            onClick={() => openActionDialog(p, "archive")}
+                            className="rounded-md bg-error px-stack-gap py-1 text-label-md text-on-error"
+                          >
+                            Delete
+                          </button>
+                        )}
+                        {canManage && !p.is_active && (
+                          <>
+                            <button
+                              type="button"
+                              onClick={() => openActionDialog(p, "restore")}
+                              className="rounded-md bg-action px-stack-gap py-1 text-label-md text-on-action"
+                            >
+                              Restore
+                            </button>
+                            {isSuperadmin && p.can_permanently_delete && (
+                              <button
+                                type="button"
+                                onClick={() => openActionDialog(p, "permanent-delete")}
+                                className="rounded-md bg-surface-container-high px-stack-gap py-1 text-label-md text-error"
+                              >
+                                Permanently delete
+                              </button>
+                            )}
+                          </>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 )
@@ -274,6 +355,17 @@ function ListTab({
           </table>
         </div>
       )}
+      {actionDialog && (
+        <DestructiveActionDialog
+          product={actionDialog.product}
+          kind={actionDialog.kind}
+          confirmationText={actionConfirmation}
+          busy={actionBusy}
+          onConfirmationTextChange={setActionConfirmation}
+          onCancel={closeActionDialog}
+          onSubmit={runAction}
+        />
+      )}
     </div>
   );
 }
@@ -281,6 +373,102 @@ function ListTab({
 function formatShopLabel(shopId: number, shopById: Map<number, ShopSummary>): string {
   const shop = shopById.get(shopId);
   return shop ? `${shop.name} (${shop.code})` : `Shop ${shopId}`;
+}
+
+function actionExpectedText(kind: ProductActionKind): string {
+  if (kind === "archive") return "DELETE";
+  if (kind === "restore") return "RESTORE";
+  return "PERMANENT DELETE";
+}
+
+function actionTitle(kind: ProductActionKind): string {
+  if (kind === "archive") return "Delete product";
+  if (kind === "restore") return "Restore product";
+  return "Permanently delete product";
+}
+
+function actionButtonLabel(kind: ProductActionKind): string {
+  if (kind === "archive") return "Delete";
+  if (kind === "restore") return "Restore";
+  return "Permanently delete";
+}
+
+function DestructiveActionDialog({
+  product,
+  kind,
+  confirmationText,
+  busy,
+  onConfirmationTextChange,
+  onCancel,
+  onSubmit,
+}: {
+  product: Product;
+  kind: ProductActionKind;
+  confirmationText: string;
+  busy: boolean;
+  onConfirmationTextChange: (value: string) => void;
+  onCancel: () => void;
+  onSubmit: () => void;
+}) {
+  const expected = actionExpectedText(kind);
+  const canSubmit = confirmationText === expected && !busy;
+  return (
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="product-action-title"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/55 px-stack-gap"
+    >
+      <div className="w-full max-w-lg rounded-xl bg-surface-container p-gutter shadow-xl">
+        <h2 id="product-action-title" className="text-headline-md text-primary">
+          {actionTitle(kind)}
+        </h2>
+        <div className="mt-stack-gap flex flex-col gap-2 text-body-md text-on-surface">
+          <p>
+            {kind === "archive"
+              ? "This will hide the product from the active catalog."
+              : kind === "restore"
+                ? "This will make the product active again."
+                : "This will permanently remove the row if nothing references it."}
+          </p>
+          <p className="text-on-surface-variant">
+            <span className="font-semibold text-on-surface">{product.brand}</span>{" "}
+            <span>· {product.size_label}</span>{" "}
+            <span className="font-mono">({product.barcode})</span>
+          </p>
+          <label className="flex flex-col gap-1 text-label-md">
+            Type <span className="font-semibold">{expected}</span> to confirm
+            <input
+              value={confirmationText}
+              onChange={(e) => onConfirmationTextChange(e.target.value)}
+              autoFocus
+              className="min-h-touchTarget-sm rounded-md border border-outline bg-surface px-stack-gap text-body-md"
+            />
+          </label>
+        </div>
+        <div className="mt-gutter flex justify-end gap-stack-gap">
+          <button
+            type="button"
+            onClick={onCancel}
+            className="rounded-md bg-surface-container-high px-stack-gap py-2 text-label-md"
+            disabled={busy}
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            onClick={onSubmit}
+            disabled={!canSubmit}
+            className={`rounded-md px-stack-gap py-2 text-label-md text-on-action disabled:opacity-50 ${
+              kind === "permanent-delete" ? "bg-error" : "bg-action"
+            }`}
+          >
+            {busy ? "Working…" : actionButtonLabel(kind)}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
 }
 
 function CopyTab() {

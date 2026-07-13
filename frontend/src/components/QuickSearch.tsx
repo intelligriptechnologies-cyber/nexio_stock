@@ -21,6 +21,8 @@ interface QuickSearchProps {
   ariaLabel?: string;
   /** Auto-focus when mounted (true on receiving/checkout, false in modals). */
   autoFocus?: boolean;
+  /** Disable the control while the parent is in a blocking transition. */
+  disabled?: boolean;
 }
 
 export function QuickSearch({
@@ -28,6 +30,7 @@ export function QuickSearch({
   placeholder = "Search by name or barcode",
   ariaLabel = "Search products by name or barcode",
   autoFocus = false,
+  disabled = false,
 }: QuickSearchProps) {
   const { actingShopId } = useShopScope();
   const [query, setQuery] = useState("");
@@ -68,7 +71,9 @@ export function QuickSearch({
           setQuery(e.target.value);
           setOpen(true);
         }}
-        onFocus={() => setOpen(true)}
+        onFocus={() => {
+          if (!disabled) setOpen(true);
+        }}
         onBlur={() => {
           // Delay close so a tap on a result registers before the
           // dropdown unmounts.
@@ -81,6 +86,7 @@ export function QuickSearch({
         role="combobox"
         aria-expanded={open && results.length > 0}
         aria-autocomplete="list"
+        disabled={disabled}
       />
       {open && results.length > 0 && (
         <ul
@@ -97,6 +103,7 @@ export function QuickSearch({
                 onMouseDown={(e) => e.preventDefault()}
                 onClick={() => handlePick(p)}
                 className="flex w-full items-center justify-between px-stack-gap py-2 text-left hover:bg-surface-container-high"
+                disabled={disabled}
               >
                 <span className="flex flex-col">
                   <span className="text-label-md text-on-surface">

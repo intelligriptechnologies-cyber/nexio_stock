@@ -25,6 +25,7 @@ from app.api import (
     shops,
     staff,
     users,
+    vendors,
     voids,
 )
 from app.api import (
@@ -182,6 +183,7 @@ def create_app() -> FastAPI:
     app.include_router(users.router)
     app.include_router(products.router)
     app.include_router(lots.router)
+    app.include_router(vendors.router)
     app.include_router(offline_sessions.router)
     app.include_router(checkout.router)
     app.include_router(voids.router)

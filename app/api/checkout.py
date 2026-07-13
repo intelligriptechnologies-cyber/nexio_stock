@@ -39,6 +39,8 @@ from app.db import unit_of_work
 from app.logging_config import get_logger
 from app.models.invoice import Invoice, InvoiceStatus, PastInvoice, PaymentMode
 from app.models.log import InvoicingLog
+from app.models.product import Product
+from app.models.shop import Shop
 from app.models.user import User, UserRole
 from app.schemas.checkout import (
     CartValidationLine,
@@ -195,6 +197,20 @@ async def finalize(
     # the snapshot migration (no-op for rows created after it). New
     # rows already carry their snapshot from the write path.
     await resolve_missing_snapshots(db, list(invoice.lines))
+    product_rows = (
+        await db.execute(
+            select(Product.id, Product.barcode).where(
+                Product.id.in_([line.product_id for line in invoice.lines])
+            )
+        )
+    ).all()
+    barcode_by_product_id = {row.id: row.barcode for row in product_rows}
+    shop = await db.get(Shop, actor_shop_id)
+    cashier = await db.get(User, actor_id)
+
+    def _snapshot_name(brand: str | None, size_label: str | None) -> str:
+        parts = [part for part in (brand, size_label) if part]
+        return " ".join(parts) if parts else "unknown product"
 
     # Write the invoicing_logs row for this finalize (R-37, D-47). One
     # log entry per finalized invoice; the payload is rich enough to
@@ -204,22 +220,32 @@ async def finalize(
         InvoicingLog,
         event_type="invoice.finalized",
         actor_id=actor_id,
-        actor_name=_user.full_name,
+        actor_name=cashier.full_name if cashier is not None else _user.full_name,
         shop_id=actor_shop_id,
         payload={
+            "shop_id": actor_shop_id,
+            "shop_name": shop.name if shop is not None else None,
             "invoice_id": invoice.id,
             "invoice_number": invoice.invoice_number,
             "total_amount": str(invoice.total_amount),
+            "actor_name": cashier.full_name if cashier is not None else _user.full_name,
             "payments": [{"mode": p.mode.value, "amount": str(p.amount)} for p in invoice.payments],
             "lines": [
                 {
                     "product_id": line.product_id,
+                    "barcode": barcode_by_product_id.get(line.product_id),
+                    "product_brand": line.product_brand,
+                    "product_size_label": line.product_size_label,
+                    "product_name_snapshot": _snapshot_name(
+                        line.product_brand, line.product_size_label
+                    ),
                     "quantity": line.quantity,
                     "unit_price": str(line.unit_price),
                     "line_total": str(line.line_total),
                 }
                 for line in invoice.lines
             ],
+            "source": "checkout",
         },
     )
     await db.commit()

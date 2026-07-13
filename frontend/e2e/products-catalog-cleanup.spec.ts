@@ -21,6 +21,7 @@ const products = [
     created_at: "2026-01-01T00:00:00Z",
     updated_at: "2026-01-01T00:00:00Z",
     current_stock: 12,
+    can_permanently_delete: false,
   },
   {
     id: 2,
@@ -30,11 +31,12 @@ const products = [
     size_label: "1L",
     price: "650.00",
     low_stock_threshold: 4,
-    is_active: true,
+    is_active: false,
     status: "active",
     created_at: "2026-01-01T00:00:00Z",
     updated_at: "2026-01-01T00:00:00Z",
     current_stock: 3,
+    can_permanently_delete: true,
   },
 ];
 
@@ -201,5 +203,39 @@ test.describe("product catalog cleanup", () => {
     await page.getByRole("button", { name: "Copy products" }).click();
     await page.getByRole("button", { name: "Copy into selected shop" }).click();
     await expect(page.getByRole("alert")).toContainText("Pick a shop first");
+  });
+
+  test("product actions require typed confirmation and show hard delete only when eligible", async ({
+    page,
+  }) => {
+    await seedSession(page, "superadmin");
+    await mockShellApis(page);
+
+    let archiveBody: Record<string, unknown> | null = null;
+    await page.route("**/products/1/archive", async (route) => {
+      archiveBody = route.request().postDataJSON() as Record<string, unknown>;
+      products[0].is_active = false;
+      products[0].can_permanently_delete = true;
+      await route.fulfill({ contentType: "application/json", body: JSON.stringify(products[0]) });
+    });
+
+    await page.goto("/admin/products");
+
+    const activeRow = page.locator("tbody tr").filter({ hasText: "Central Brand" });
+    const inactiveRow = page.locator("tbody tr").filter({ hasText: "North Brand" });
+
+    await expect(activeRow.getByRole("button", { name: "Delete" })).toBeVisible();
+    await expect(inactiveRow.getByRole("button", { name: "Restore" })).toBeVisible();
+    await expect(inactiveRow.getByRole("button", { name: "Permanently delete" })).toBeVisible();
+
+    await activeRow.getByRole("button", { name: "Delete" }).click();
+    const dialog = page.getByRole("dialog", { name: "Delete product" });
+    await expect(dialog).toBeVisible();
+    await expect(dialog.getByRole("button", { name: "Delete" })).toBeDisabled();
+    await dialog.getByRole("textbox").fill("DELETE");
+    await dialog.getByRole("button", { name: "Delete" }).click();
+
+    await expect.poll(() => archiveBody?.confirmation_text).toBe("DELETE");
+    await expect(dialog).not.toBeVisible({ timeout: 10000 });
   });
 });

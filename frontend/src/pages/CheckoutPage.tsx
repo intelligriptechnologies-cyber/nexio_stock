@@ -19,25 +19,30 @@ import { listQueued, clearQueued } from "../api/finalize-queue";
 import {
   extendOfflineSession,
   offlineItemToCatalogProduct,
+  type OfflineReceiptPayload,
   startOfflineSession,
   syncOfflineSession,
 } from "../api/offline-sessions";
 import {
-  addOfflineReceipt,
+  buildOfflineReceiptId,
   clearOfflineSessionData,
+  deleteOfflineReceipt,
   listOfflineReceipts,
   loadOpenOfflineSession,
+  recalculateStoredOfflineSession,
   saveStartedOfflineSession,
   saveStoredOfflineSession,
   updateStoredOfflineSession,
+  upsertOfflineReceipt,
   type StoredOfflineSession,
 } from "../api/offline-session-store";
+import { OfflineReceiptEditorModal } from "../components/OfflineReceiptEditorModal";
 import { QuickSearch } from "../components/QuickSearch";
 import { QuickAddModal } from "../components/QuickAddModal";
 import { ScanSuccessOverlay } from "../components/ScanSuccessOverlay";
 import { useBarcodeScanner } from "../hooks/useBarcodeScanner";
 import { useQuickAdd } from "../hooks/useQuickAdd";
-import { useOnlineStatus } from "../hooks/useOnlineStatus";
+import { probeHealthz, useConnectivityStatus } from "../hooks/useOnlineStatus";
 import { useRetryQueue } from "../hooks/useRetryQueue";
 import { useShopScope } from "../auth/ShopScopeProvider";
 
@@ -124,7 +129,8 @@ function stockValidationMessage(
 }
 
 export function CheckoutPage() {
-  const online = useOnlineStatus();
+  const connectivity = useConnectivityStatus();
+  const online = connectivity.online;
   const { actingShopId } = useShopScope();
   const retryQueue = useRetryQueue({
     onFlush: (outcomes) => {
@@ -149,7 +155,9 @@ export function CheckoutPage() {
   const [catalogReady, setCatalogReady] = useState(false);
   const [lastInvoice, setLastInvoice] = useState<InvoicePublic | null>(null);
   const [offlineSession, setOfflineSession] = useState<StoredOfflineSession | null>(null);
+  const [offlineReceipts, setOfflineReceipts] = useState<OfflineReceiptPayload[]>([]);
   const [offlineReceiptCount, setOfflineReceiptCount] = useState(0);
+  const [editingReceiptId, setEditingReceiptId] = useState<string | null>(null);
   const [timerNow, setTimerNow] = useState(Date.now());
   const [scanOverlay, setScanOverlay] = useState<ScanOverlayProduct | null>(null);
   // Architecture review Candidate A: the quick-add modal + state +
@@ -197,10 +205,12 @@ export function CheckoutPage() {
     loadOpenOfflineSession()
       .then(async (record) => {
         if (!record || cancelled) return;
-        setOfflineSession(record);
-        applyOfflineCatalog(record);
         const receipts = await listOfflineReceipts(record.session.id);
-        if (!cancelled) setOfflineReceiptCount(receipts.length);
+        if (cancelled) return;
+        setOfflineSession(record);
+        setOfflineReceipts(receipts);
+        setOfflineReceiptCount(receipts.length);
+        applyOfflineCatalog(record);
       })
       .catch((e) => setError(`Offline session restore failed: ${toUserMessage(e, "unknown error")}`));
     return () => {
@@ -249,6 +259,15 @@ export function CheckoutPage() {
     ? new Date(offlineSession.session.expires_at).getTime() - timerNow
     : 0;
   const offlineExpired = Boolean(offlineSession && offlineRemainingMs <= 0);
+  const checkoutLocked = busy;
+  const offlinePriceByBarcode = useMemo(
+    () => new Map((offlineSession?.catalog ?? []).map((item) => [item.barcode, parseMoney(item.price)])),
+    [offlineSession]
+  );
+  const editingReceipt =
+    editingReceiptId != null
+      ? offlineReceipts.find((receipt) => receipt.temp_receipt_id === editingReceiptId) ?? null
+      : null;
 
   // When total changes, snap the default payment amount to match (single-mode).
   useEffect(() => {
@@ -259,6 +278,7 @@ export function CheckoutPage() {
 
   const addByBarcode = useCallback(
     async (raw: string, options: AddByBarcodeOptions = {}) => {
+      if (checkoutLocked) return;
       const code = raw.trim();
       if (!code) return;
       setError(null);
@@ -342,7 +362,7 @@ export function CheckoutPage() {
         }
       }
     },
-    [actingShopId, offlineSession, openQuickAdd]
+    [actingShopId, checkoutLocked, offlineSession, openQuickAdd]
   );
 
   // Quicksearch (issue #23) — taps on a search-result dropdown add the
@@ -352,6 +372,7 @@ export function CheckoutPage() {
   // "Pending — no price yet, contact admin" check as addByBarcode
   // blocks them from the cart (issue #26).
   const addByPick = useCallback((product: CatalogProduct) => {
+    if (checkoutLocked) return;
     setError(null);
     setInfo(null);
     if (product.status === "pending" || product.price === null) {
@@ -370,7 +391,7 @@ export function CheckoutPage() {
       return [...prev, { lineId: uid(), product, quantity: 1 }];
     });
     setInfo(`Added: ${product.brand} ${product.size_label}`);
-  }, []);
+  }, [checkoutLocked]);
 
   const clearLineValidation = (lineId: string) => {
     setLineValidation((prev) => {
@@ -454,6 +475,20 @@ export function CheckoutPage() {
     setInfo(null);
   };
 
+  const persistOfflineReceiptSet = useCallback(
+    async (nextReceipts: OfflineReceiptPayload[]) => {
+      if (!offlineSession) return null;
+      const nextSession = recalculateStoredOfflineSession(offlineSession, nextReceipts);
+      await saveStoredOfflineSession(nextSession);
+      setOfflineSession(nextSession);
+      setOfflineReceipts(nextReceipts);
+      setOfflineReceiptCount(nextReceipts.length);
+      applyOfflineCatalog(nextSession);
+      return nextSession;
+    },
+    [applyOfflineCatalog, offlineSession]
+  );
+
   const nextDraftLabel = () => {
     const now = new Date();
     const minuteKey = `${now.getHours()}:${now.getMinutes()}`;
@@ -469,6 +504,7 @@ export function CheckoutPage() {
   };
 
   const parkDraft = () => {
+    if (checkoutLocked) return;
     if (cart.length === 0) return;
     setDrafts((prev) => [
       ...prev,
@@ -488,6 +524,7 @@ export function CheckoutPage() {
   };
 
   const restoreDraft = (draft: CheckoutDraft) => {
+    if (checkoutLocked) return;
     if (cart.length > 0) parkDraft();
     setCart(draft.cart);
     setLineValidation({});
@@ -608,34 +645,18 @@ export function CheckoutPage() {
       const stockOk = await validateCartBeforeFinalize();
       if (!stockOk) return;
       if (offlineSession) {
-        const nextNumber = offlineReceiptCount + 1;
-        const tempReceiptId = `OFF-${offlineSession.session.id}-${String(nextNumber).padStart(4, "0")}`;
-        await addOfflineReceipt(offlineSession.session.id, {
+        const nextNumber = offlineSession.nextReceiptNumber ?? offlineSession.session.receipt_counter + 1;
+        const tempReceiptId = buildOfflineReceiptId(offlineSession.session.id, nextNumber);
+        const receipt: OfflineReceiptPayload = {
           temp_receipt_id: tempReceiptId,
           idempotency_key: `offline-${offlineSession.session.id}-${tempReceiptId}`,
           lines: body.lines,
           payments: body.payments,
           note: body.note,
           created_at: new Date().toISOString(),
-        });
-        const nextCatalog = offlineSession.catalog.map((item) => {
-          const sold = cart.find((line) => line.product.barcode === item.barcode)?.quantity ?? 0;
-          return sold > 0 ? { ...item, current_stock: Math.max(0, item.current_stock - sold) } : item;
-        });
-        const nextSession: StoredOfflineSession = {
-          ...offlineSession,
-          catalog: nextCatalog,
-          session: {
-            ...offlineSession.session,
-            receipt_counter: nextNumber,
-            receipt_count: nextNumber,
-            gross_total: moneyString(parseMoney(offlineSession.session.gross_total) + totalCents),
-          },
         };
-        await saveStoredOfflineSession(nextSession);
-        setOfflineSession(nextSession);
-        setOfflineReceiptCount(nextNumber);
-        applyOfflineCatalog(nextSession);
+        await upsertOfflineReceipt(offlineSession.session.id, receipt);
+        await persistOfflineReceiptSet([...offlineReceipts, receipt]);
         clearActiveCheckout();
         idempotencyKeyRef.current = uid();
         setInfo(`Saved temporary receipt ${tempReceiptId}. Sync required for official invoice number.`);
@@ -689,13 +710,61 @@ export function CheckoutPage() {
       const started = await startOfflineSession(actingShopId);
       const stored = await saveStartedOfflineSession(started);
       setOfflineSession(stored);
+      setOfflineReceipts([]);
       setOfflineReceiptCount(0);
+      setEditingReceiptId(null);
       applyOfflineCatalog(stored);
       clearActiveCheckout();
       setInfo("Offline session started. Temporary receipts must be synced before normal checkout resumes.");
     } catch (e) {
       setError(toUserMessage(e, "Could not start offline session."));
     } finally {
+      setBusy(false);
+    }
+  };
+
+  const resumeOnline = async () => {
+    if (!offlineSession) return;
+    setBusy(true);
+    setError(null);
+    setInfo(null);
+    const controller = new AbortController();
+    const timeout = window.setTimeout(() => controller.abort(), 2500);
+    try {
+      await probeHealthz(controller.signal);
+      const receipts = await listOfflineReceipts(offlineSession.session.id);
+      if (receipts.length === 0) {
+        setError("No offline receipts to sync. Save a temporary receipt before resuming online.");
+        return;
+      }
+      const result = await syncOfflineSession(
+        offlineSession.session.id,
+        receipts,
+        offlineSession.offlineToken
+      );
+      await clearOfflineSessionData(offlineSession.session.id);
+      setOfflineSession(null);
+      setOfflineReceipts([]);
+      setOfflineReceiptCount(0);
+      setEditingReceiptId(null);
+      clearActiveCheckout();
+      idempotencyKeyRef.current = uid();
+      invalidateCache();
+      void prefetchCatalog(actingShopId).then(() => setCatalogReady(true));
+      setInfo(
+        `Resumed online after syncing ${result.mappings.length} receipt(s). Official invoice numbers: ${result.mappings
+          .map((m) => `#${m.invoice_number}`)
+          .join(", ")}.`
+      );
+    } catch (e) {
+      setError(
+        `Could not resume online. ${toUserMessage(
+          e,
+          "Offline session remains active and receipts were not discarded."
+        )}`
+      );
+    } finally {
+      window.clearTimeout(timeout);
       setBusy(false);
     }
   };
@@ -719,6 +788,57 @@ export function CheckoutPage() {
     }
   };
 
+  const saveEditedOfflineReceipt = async (updated: OfflineReceiptPayload) => {
+    if (!offlineSession) return;
+    setBusy(true);
+    setError(null);
+    setInfo(null);
+    try {
+      const existing = offlineReceipts.find((receipt) => receipt.temp_receipt_id === updated.temp_receipt_id);
+      if (!existing) {
+        setError("Temporary receipt was not found.");
+        return;
+      }
+      await upsertOfflineReceipt(offlineSession.session.id, updated);
+      const nextReceipts = offlineReceipts.map((receipt) =>
+        receipt.temp_receipt_id === updated.temp_receipt_id ? updated : receipt
+      );
+      await persistOfflineReceiptSet(nextReceipts);
+      setEditingReceiptId(null);
+      setInfo(`Updated ${updated.temp_receipt_id}.`);
+    } catch (e) {
+      setError(toUserMessage(e, "Could not update temporary receipt."));
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const deleteEditedOfflineReceipt = async () => {
+    if (!offlineSession || !editingReceiptId) return;
+    const receipt = offlineReceipts.find((row) => row.temp_receipt_id === editingReceiptId);
+    if (!receipt) {
+      setError("Temporary receipt was not found.");
+      return;
+    }
+    if (!window.confirm(`Delete ${receipt.temp_receipt_id}? This cannot be undone before sync.`)) {
+      return;
+    }
+    setBusy(true);
+    setError(null);
+    setInfo(null);
+    try {
+      await deleteOfflineReceipt(offlineSession.session.id, receipt.temp_receipt_id);
+      const nextReceipts = offlineReceipts.filter((row) => row.temp_receipt_id !== receipt.temp_receipt_id);
+      await persistOfflineReceiptSet(nextReceipts);
+      setEditingReceiptId(null);
+      setInfo(`Deleted ${receipt.temp_receipt_id}.`);
+    } catch (e) {
+      setError(toUserMessage(e, "Could not delete temporary receipt."));
+    } finally {
+      setBusy(false);
+    }
+  };
+
   const syncCurrentOfflineSession = async () => {
     if (!offlineSession) return;
     setBusy(true);
@@ -737,7 +857,9 @@ export function CheckoutPage() {
       );
       await clearOfflineSessionData(offlineSession.session.id);
       setOfflineSession(null);
+      setOfflineReceipts([]);
       setOfflineReceiptCount(0);
+      setEditingReceiptId(null);
       invalidateCache();
       void prefetchCatalog(actingShopId).then(() => setCatalogReady(true));
       setInfo(
@@ -748,7 +870,12 @@ export function CheckoutPage() {
     } catch (e) {
       setError(toUserMessage(e, "Offline sync failed. Checkout remains locked until sync or owner discard."));
       const refreshed = await loadOpenOfflineSession();
-      if (refreshed) setOfflineSession(refreshed);
+      if (refreshed) {
+        setOfflineSession(refreshed);
+        const refreshedReceipts = await listOfflineReceipts(refreshed.session.id);
+        setOfflineReceipts(refreshedReceipts);
+        setOfflineReceiptCount(refreshedReceipts.length);
+      }
     } finally {
       setBusy(false);
     }
@@ -803,7 +930,7 @@ export function CheckoutPage() {
 
       {/* Connectivity + queue banner */}
       <div className="flex flex-col gap-stack-gap" aria-live="polite">
-        {!online && (
+        {connectivity.status === "offline" && (
           <div
             role="status"
             className="flex items-center gap-stack-gap rounded-md bg-warning px-stack-gap py-3 text-on-warning"
@@ -812,7 +939,7 @@ export function CheckoutPage() {
             <div className="flex-1">
               <div className="text-label-xl">You&apos;re offline</div>
               <div className="text-label-md">
-                Offline sales require an active Work offline session started while online.
+                The API probe to /healthz failed. Offline sales still require an active Work offline session started while online.
               </div>
             </div>
           </div>
@@ -889,11 +1016,73 @@ export function CheckoutPage() {
                 {offlineSession.session.failure_reason.message}
               </div>
             )}
+            <section className="flex flex-col gap-stack-gap rounded-md bg-surface p-stack-gap">
+              <div className="flex flex-wrap items-center justify-between gap-stack-gap">
+                <div>
+                  <div className="text-label-xl text-primary">Offline receipts</div>
+                  <div className="text-label-md text-on-surface-variant">
+                    {offlineReceipts.length} editable temporary receipt(s) · next temp number {String(
+                      offlineSession.nextReceiptNumber ?? offlineSession.session.receipt_counter + 1
+                    ).padStart(4, "0")}
+                  </div>
+                </div>
+                <div className="text-label-md text-on-surface-variant">
+                  Session total ₹{moneyString(parseMoney(offlineSession.session.gross_total))}
+                </div>
+              </div>
+              <ul className="flex flex-col gap-stack-gap">
+                {offlineReceipts.length === 0 && (
+                  <li className="rounded-md bg-surface-container-high px-stack-gap py-3 text-label-md text-on-surface-variant">
+                    No temporary receipts yet.
+                  </li>
+                )}
+                {offlineReceipts.map((receipt) => {
+                  const totalCents = receipt.lines.reduce(
+                    (acc, line) => acc + (offlinePriceByBarcode.get(line.barcode) ?? 0) * line.quantity,
+                    0
+                  );
+                  return (
+                    <li
+                      key={receipt.temp_receipt_id}
+                      className="flex flex-col gap-3 rounded-md border border-outline/60 bg-surface-container-high p-stack-gap"
+                    >
+                      <div className="flex flex-wrap items-start justify-between gap-stack-gap">
+                        <div className="flex flex-col gap-1">
+                          <div className="text-label-xl text-on-surface">{receipt.temp_receipt_id}</div>
+                          <div className="text-label-md text-on-surface-variant">
+                            {receipt.lines.length} line(s) · {receipt.payments.length} payment split(s)
+                            {receipt.note ? ` · note: ${receipt.note}` : ""}
+                          </div>
+                          <div className="font-mono text-label-md text-on-surface-variant">
+                            Total ₹{moneyString(totalCents)}
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setEditingReceiptId(receipt.temp_receipt_id)}
+                          disabled={checkoutLocked}
+                          className="rounded-md bg-primary px-stack-gap py-2 text-label-md text-on-primary"
+                        >
+                          Edit
+                        </button>
+                      </div>
+                      <div className="flex flex-wrap gap-2 text-label-md text-on-surface-variant">
+                        {receipt.lines.map((line) => (
+                          <span key={`${receipt.temp_receipt_id}-${line.barcode}`} className="rounded-full bg-surface px-3 py-1">
+                            {line.barcode} x{line.quantity}
+                          </span>
+                        ))}
+                      </div>
+                    </li>
+                  );
+                })}
+              </ul>
+            </section>
             <div className="flex flex-wrap gap-stack-gap">
               <button
                 type="button"
                 onClick={extendCurrentOfflineSession}
-                disabled={busy || offlineSession.session.extension_count >= 1 || offlineExpired}
+                disabled={checkoutLocked || offlineSession.session.extension_count >= 1 || offlineExpired}
                 className="min-h-touchTarget-sm rounded-md bg-warning px-stack-gap text-label-md text-on-warning disabled:opacity-50"
               >
                 Extend 2h
@@ -901,10 +1090,20 @@ export function CheckoutPage() {
               <button
                 type="button"
                 onClick={syncCurrentOfflineSession}
-                disabled={busy || !online || offlineReceiptCount === 0}
+                disabled={checkoutLocked || !online || offlineReceiptCount === 0}
                 className="min-h-touchTarget-sm rounded-md bg-action px-stack-gap text-label-md text-on-action disabled:opacity-50"
               >
                 Sync receipts
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  void resumeOnline();
+                }}
+                disabled={checkoutLocked}
+                className="min-h-touchTarget-sm rounded-md bg-primary px-stack-gap text-label-md text-on-primary disabled:opacity-50"
+              >
+                Resume Online
               </button>
             </div>
           </div>
@@ -913,7 +1112,7 @@ export function CheckoutPage() {
             <button
               type="button"
               onClick={beginOfflineSession}
-              disabled={busy || !online}
+              disabled={checkoutLocked || !online}
               className="min-h-touchTarget-sm rounded-md bg-primary px-stack-gap text-label-md text-on-primary disabled:opacity-50"
             >
               Work offline
@@ -921,6 +1120,21 @@ export function CheckoutPage() {
           </div>
         )}
       </div>
+
+      {offlineSession && editingReceipt && (
+        <OfflineReceiptEditorModal
+          receipt={editingReceipt}
+          catalog={offlineSession.catalog}
+          busy={busy}
+          onCancel={() => setEditingReceiptId(null)}
+          onDelete={() => {
+            void deleteEditedOfflineReceipt();
+          }}
+          onSave={(updated) => {
+            void saveEditedOfflineReceipt(updated);
+          }}
+        />
+      )}
 
       {/* Quick-add modal (issue #26). Same UI as the receiving flow,
           opened when a scan misses the catalog at checkout. The newly
@@ -961,7 +1175,7 @@ export function CheckoutPage() {
                 setCatalogReady(false);
                 void prefetchCatalog(actingShopId).then(() => setCatalogReady(true));
               }}
-              disabled={Boolean(offlineSession)}
+              disabled={Boolean(offlineSession) || checkoutLocked}
               className="rounded-md bg-surface-container-high px-stack-gap py-1 text-on-surface-variant disabled:opacity-50"
             >
               Refresh
@@ -977,11 +1191,12 @@ export function CheckoutPage() {
             placeholder="Scan or enter barcode"
             className="min-h-touchTarget flex-1 rounded-md border border-outline bg-surface px-stack-gap text-body-lg"
             autoFocus
+            disabled={checkoutLocked}
           />
           <button
             type="submit"
             className="min-h-touchTarget rounded-md bg-action px-gutter text-label-xl text-on-action"
-            disabled={!catalogReady}
+            disabled={!catalogReady || checkoutLocked}
           >
             ADD
           </button>
@@ -991,7 +1206,7 @@ export function CheckoutPage() {
           <button
             type="button"
             onClick={parkDraft}
-            disabled={cart.length === 0}
+            disabled={checkoutLocked || cart.length === 0}
             className="min-h-touchTarget-sm rounded-md bg-warning px-stack-gap text-label-md text-on-warning disabled:opacity-50"
           >
             Park
@@ -1003,6 +1218,7 @@ export function CheckoutPage() {
                 <button
                   type="button"
                   onClick={() => restoreDraft(draft)}
+                  disabled={checkoutLocked}
                   className="min-h-touchTarget-sm rounded-md bg-primary px-stack-gap text-label-md text-on-primary"
                 >
                   {draft.label} ({draft.cart.length})
@@ -1014,6 +1230,7 @@ export function CheckoutPage() {
           <button
             type="button"
             onClick={clearActiveCheckout}
+            disabled={checkoutLocked}
             className="ml-auto min-h-touchTarget-sm rounded-md bg-surface-container-high px-stack-gap text-label-md text-on-surface"
           >
             All Clear
@@ -1026,6 +1243,7 @@ export function CheckoutPage() {
           onPick={addByPick}
           placeholder="Search by name or barcode"
           ariaLabel="Quick-search products by name or barcode"
+          disabled={checkoutLocked}
         />
 
         <ul className="flex flex-col gap-stack-gap">
@@ -1066,6 +1284,7 @@ export function CheckoutPage() {
                 <button
                   type="button"
                   onClick={() => changeQty(l.lineId, -1)}
+                  disabled={checkoutLocked}
                   className="flex h-12 w-12 items-center justify-center rounded-md bg-surface-container-high text-[28px] font-black leading-none text-on-surface"
                   aria-label="Decrease quantity"
                 >
@@ -1096,10 +1315,12 @@ export function CheckoutPage() {
                   }}
                   className="h-12 w-16 rounded-md border border-outline bg-surface text-center font-mono text-headline-md"
                   aria-label="Quantity"
+                  disabled={checkoutLocked}
                 />
                 <button
                   type="button"
                   onClick={() => changeQty(l.lineId, +1)}
+                  disabled={checkoutLocked}
                   className="flex h-12 w-12 items-center justify-center rounded-md bg-surface-container-high text-[28px] font-black leading-none text-on-surface"
                   aria-label="Increase quantity"
                 >
@@ -1112,6 +1333,7 @@ export function CheckoutPage() {
                 <button
                   type="button"
                   onClick={() => removeLine(l.lineId)}
+                  disabled={checkoutLocked}
                   className="flex h-12 w-12 items-center justify-center rounded-md bg-error text-[28px] font-black leading-none text-on-error"
                   aria-label="Remove line"
                 >
@@ -1133,12 +1355,13 @@ export function CheckoutPage() {
         <div className="flex flex-col gap-stack-gap">
           <div className="flex items-center justify-between">
             <h2 className="text-headline-md text-on-surface">Payment</h2>
-            <button
-              type="button"
-              onClick={addPayment}
-              className="rounded-md bg-surface-container-high px-stack-gap py-1 text-label-md text-on-surface-variant"
-            >
-              + Split
+              <button
+                type="button"
+                onClick={addPayment}
+                disabled={checkoutLocked}
+                className="rounded-md bg-surface-container-high px-stack-gap py-1 text-label-md text-on-surface-variant"
+              >
+                + Split
             </button>
           </div>
 
@@ -1149,6 +1372,7 @@ export function CheckoutPage() {
                 onChange={(e) => setPaymentMode(idx, e.target.value as PaymentMode)}
                 className="min-h-touchTarget-sm flex-1 rounded-md border border-outline bg-surface px-stack-gap text-body-md"
                 aria-label="Payment mode"
+                disabled={checkoutLocked}
               >
                 {PAYMENT_MODES.map((m) => (
                   <option key={m} value={m}>
@@ -1165,11 +1389,13 @@ export function CheckoutPage() {
                 onFocus={(e) => e.currentTarget.select()}
                 className="min-h-touchTarget-sm w-32 rounded-md border border-outline bg-surface px-stack-gap text-right font-mono text-body-md"
                 aria-label="Payment amount"
+                disabled={checkoutLocked}
               />
               {payments.length > 1 && (
                 <button
                   type="button"
                   onClick={() => removePayment(idx)}
+                  disabled={checkoutLocked}
                   className="flex h-12 w-12 items-center justify-center rounded-md bg-error text-[28px] font-black leading-none text-on-error"
                   aria-label="Remove payment"
                 >
@@ -1197,6 +1423,7 @@ export function CheckoutPage() {
             onChange={(e) => setNote(e.target.value)}
             maxLength={200}
             className="min-h-touchTarget-sm rounded-md border border-outline bg-surface px-stack-gap text-body-md"
+            disabled={checkoutLocked}
           />
         </label>
 

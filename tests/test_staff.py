@@ -192,11 +192,23 @@ async def test_owner_resets_staff_password(
 
     # Old password no longer works, new one does.
     stale = await owner_client.post(
-        "/auth/login", json={"phone": receiver.phone, "password": "recvpass"}
+        "/auth/login",
+        json={
+            "role": "receiver_user",
+            "username": receiver.username,
+            "password": "recvpass",
+            "device_key": "test-terminal-01",
+        },
     )
     assert stale.status_code == 401
     fresh = await owner_client.post(
-        "/auth/login", json={"phone": receiver.phone, "password": "newrecvpass"}
+        "/auth/login",
+        json={
+            "role": "receiver_user",
+            "username": receiver.username,
+            "password": "newrecvpass",
+            "device_key": "test-terminal-01",
+        },
     )
     assert fresh.status_code == 200
 

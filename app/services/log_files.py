@@ -1,11 +1,12 @@
-"""Daily plain-text operational log files."""
+"""Daily plain-text and CSV operational log files."""
 from __future__ import annotations
 
+import csv
 import re
 from dataclasses import dataclass
 from datetime import UTC, date, datetime
 from pathlib import Path
-from typing import Any, Literal
+from typing import Any, Literal, Mapping, Sequence
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -14,6 +15,7 @@ from app.config import get_settings
 from app.models.log import LogFileRetentionSetting
 
 LogFileType = Literal["checkout", "receiving", "closing", "exceptions"]
+LogFileExtension = Literal["txt", "csv"]
 
 DEFAULT_RETENTION_DAYS = 10
 SUPPORTED_LOG_TYPES: tuple[LogFileType, ...] = (
@@ -35,7 +37,9 @@ _TYPE_TO_PREFIX: dict[LogFileType, str] = {
     "closing": "closing",
     "exceptions": "exceptions",
 }
-_FILENAME_RE = re.compile(r"^(checkout|receiving|closing|exceptions)-(\d{4}-\d{2}-\d{2})\.txt$")
+_FILENAME_RE = re.compile(
+    r"^(checkout|receiving|closing|exceptions)-(\d{4}-\d{2}-\d{2})\.(txt|csv)$"
+)
 
 
 @dataclass(frozen=True)
@@ -72,9 +76,10 @@ def daily_log_path(
     shop_id: int | None,
     system: bool = False,
     day: date | None = None,
+    extension: LogFileExtension = "txt",
 ) -> Path:
     effective_day = day if day is not None else datetime.now(UTC).astimezone().date()
-    filename = f"{_TYPE_TO_PREFIX[log_type]}-{effective_day.isoformat()}.txt"
+    filename = f"{_TYPE_TO_PREFIX[log_type]}-{effective_day.isoformat()}.{extension}"
     return log_dir(log_type, shop_id=shop_id, system=system) / filename
 
 
@@ -97,6 +102,39 @@ def append_log_line(
     line = f"[{moment.astimezone().isoformat(timespec='seconds')}] {text.strip()}\n"
     with path.open("a", encoding="utf-8") as fh:
         fh.write(line)
+    return path
+
+
+def append_log_csv_rows(
+    log_type: LogFileType,
+    *,
+    shop_id: int | None,
+    rows: Sequence[Mapping[str, Any]],
+    header: Sequence[str],
+    system: bool = False,
+    at: datetime | None = None,
+) -> Path:
+    moment = at if at is not None else datetime.now(UTC)
+    path = daily_log_path(
+        log_type,
+        shop_id=shop_id,
+        system=system,
+        day=moment.astimezone().date(),
+        extension="csv",
+    )
+    path.parent.mkdir(parents=True, exist_ok=True)
+    write_header = not path.exists() or path.stat().st_size == 0
+    with path.open("a", encoding="utf-8", newline="") as fh:
+        writer = csv.DictWriter(
+            fh,
+            fieldnames=list(header),
+            extrasaction="ignore",
+            lineterminator="\n",
+        )
+        if write_header:
+            writer.writeheader()
+        for row in rows:
+            writer.writerow(dict(row))
     return path
 
 
@@ -170,9 +208,11 @@ def cleanup_expired_files(
     for folder in dirs:
         if not folder.exists():
             continue
-        for path in folder.glob(f"{_TYPE_TO_PREFIX[log_type]}-*.txt"):
+        for path in folder.glob(f"{_TYPE_TO_PREFIX[log_type]}-*.*"):
             file_date = _file_date(path.name)
             if file_date is None:
+                continue
+            if path.suffix not in {".txt", ".csv"}:
                 continue
             if (today - file_date).days >= retention_days:
                 path.unlink(missing_ok=True)
@@ -183,9 +223,11 @@ def cleanup_all_expired_files(log_type: LogFileType, *, retention_days: int) -> 
     if not root.exists():
         return
     today = _today()
-    for path in root.glob(f"**/{_TYPE_TO_FOLDER[log_type]}/{_TYPE_TO_PREFIX[log_type]}-*.txt"):
+    for path in root.glob(f"**/{_TYPE_TO_FOLDER[log_type]}/{_TYPE_TO_PREFIX[log_type]}-*.*"):
         file_date = _file_date(path.name)
         if file_date is None:
+            continue
+        if path.suffix not in {".txt", ".csv"}:
             continue
         if (today - file_date).days >= retention_days:
             path.unlink(missing_ok=True)
@@ -200,10 +242,10 @@ def list_log_files(
 ) -> list[LogFileInfo]:
     root = _root()
     if include_all_scopes:
-        candidates = root.glob(f"**/{_TYPE_TO_FOLDER[log_type]}/{_TYPE_TO_PREFIX[log_type]}-*.txt")
+        candidates = root.glob(f"**/{_TYPE_TO_FOLDER[log_type]}/{_TYPE_TO_PREFIX[log_type]}-*.*")
     else:
         folder = log_dir(log_type, shop_id=shop_id, system=shop_id is None)
-        candidates = folder.glob(f"{_TYPE_TO_PREFIX[log_type]}-*.txt")
+        candidates = folder.glob(f"{_TYPE_TO_PREFIX[log_type]}-*.*")
     today = _today()
     files: list[LogFileInfo] = []
     for path in candidates:
@@ -211,6 +253,8 @@ def list_log_files(
             continue
         file_date = _file_date(path.name)
         if file_date is None:
+            continue
+        if path.suffix not in {".txt", ".csv"}:
             continue
         stat = path.stat()
         age_days = max(0, (today - file_date).days)
@@ -237,6 +281,8 @@ def resolve_download_path(
 ) -> Path | None:
     if _file_date(filename) is None or not filename.startswith(f"{_TYPE_TO_PREFIX[log_type]}-"):
         return None
+    if Path(filename).suffix not in {".txt", ".csv"}:
+        return None
     root = _root().resolve()
     if include_all_scopes:
         matches = list(root.glob(f"**/{_TYPE_TO_FOLDER[log_type]}/{filename}"))
@@ -254,6 +300,8 @@ def resolve_download_path(
 
 
 def _fmt_money(value: Any) -> str:
+    if value in (None, ""):
+        return "Rs. unavailable"
     return f"Rs. {value}"
 
 
@@ -261,6 +309,24 @@ def _fmt_actor(actor_id: int | None, actor_name: str | None = None) -> str:
     if actor_name:
         return f"{actor_name} (user #{actor_id})" if actor_id is not None else actor_name
     return f"user #{actor_id}" if actor_id is not None else "system"
+
+
+def _snapshot_name(brand: str | None, size_label: str | None) -> str:
+    parts = [part for part in (brand, size_label) if part]
+    return " ".join(parts) if parts else "unknown product"
+
+
+def _payment_summary(payments: Sequence[Mapping[str, Any]] | Sequence[Any]) -> str:
+    modes: list[str] = []
+    for payment in payments:
+        if isinstance(payment, Mapping):
+            mode = payment.get("mode")
+            if isinstance(mode, str) and mode:
+                modes.append(mode)
+    if not modes:
+        return "no payments listed"
+    unique_modes = list(dict.fromkeys(modes))
+    return unique_modes[0] if len(unique_modes) == 1 else " + ".join(unique_modes) + " split"
 
 
 def checkout_text(
@@ -271,27 +337,30 @@ def checkout_text(
     actor_name: str | None = None,
 ) -> str:
     actor = _fmt_actor(actor_id, actor_name)
+    shop = payload.get("shop_name") or f"shop #{payload.get('shop_id', 'unknown')}"
     invoice_number = payload.get("invoice_number", "unknown")
     invoice_id = payload.get("invoice_id", "unknown")
     source = payload.get("source")
-    prefix = "Offline sync created invoice" if source == "offline_session_sync" else "Invoice event"
+    prefix = "Offline sync created invoice" if source == "offline_session_sync" else "Checkout finalized"
     if event_type == "invoice.finalized":
+        payments_payload = payload.get("payments", [])
         payments = ", ".join(
             f"{p.get('mode', 'unknown')} {_fmt_money(p.get('amount', '0.00'))}"
-            for p in payload.get("payments", [])
+            for p in payments_payload
             if isinstance(p, dict)
         ) or "no payments listed"
         lines = ", ".join(
             (
-                f"product #{line.get('product_id')} x {line.get('quantity')} "
-                f"at {_fmt_money(line.get('unit_price', '0.00'))}"
-            )
+                f"{line.get('product_name_snapshot') or _snapshot_name(line.get('product_brand'), line.get('product_size_label'))} "
+                f"x {line.get('quantity')} at {_fmt_money(line.get('unit_price', '0.00'))}"
+            ).strip()
             for line in payload.get("lines", [])
             if isinstance(line, dict)
         ) or "no lines listed"
         return (
-            f"{prefix} #{invoice_number} (id {invoice_id}) by {actor}; "
+            f"{prefix} for {shop}; invoice #{invoice_number} (id {invoice_id}) by {actor}; "
             f"total {_fmt_money(payload.get('total_amount', '0.00'))}; "
+            f"payment mode {_payment_summary(payments_payload)}; "
             f"payments: {payments}; lines: {lines}."
         )
     if event_type.startswith("invoice.void"):
@@ -311,16 +380,26 @@ def receiving_text(
     *, payload: dict[str, Any], actor_id: int | None, actor_name: str | None = None
 ) -> str:
     actor = _fmt_actor(actor_id, actor_name)
+    shop = payload.get("shop_name") or f"shop #{payload.get('shop_id', 'unknown')}"
+    vendor = payload.get("vendor_name") or f"vendor #{payload.get('vendor_id', 'unknown')}"
     lines = ", ".join(
         (
-            f"{line.get('brand', 'product')} {line.get('size_label', '')} "
-            f"(barcode {line.get('barcode')}) quantity {line.get('quantity')}"
+            f"{line.get('product_name_snapshot') or _snapshot_name(line.get('product_brand'), line.get('product_size_label'))} "
+            f"x {line.get('quantity')} (good {line.get('good_condition_quantity')}, breakage {line.get('breakage_quantity')}) "
+            f"at {_fmt_money(line.get('current_price', '0.00'))}, "
+            f"row total {_fmt_money(line.get('row_total', '0.00'))}"
         ).strip()
         for line in payload.get("lines", [])
         if isinstance(line, dict)
     ) or "no lines listed"
     reference = payload.get("reference") or "no reference"
-    return f"Receiver {actor} recorded lot #{payload.get('lot_id')} ({reference}); products received: {lines}."
+    notes = payload.get("notes") or "no notes"
+    return (
+        f"Receiving lot #{payload.get('lot_id')} for {shop} from {vendor} by {actor}; "
+        f"purchase date {payload.get('purchase_date')}; vendor invoice {payload.get('vendor_invoice_number')}; "
+        f"invoice value {_fmt_money(payload.get('invoice_value'))}; "
+        f"reference {reference}; notes {notes}; products received: {lines}."
+    )
 
 
 def closing_text(
@@ -370,6 +449,7 @@ __all__ = [
     "LogFileInfo",
     "LogFileType",
     "append_log_line",
+    "append_log_csv_rows",
     "checkout_text",
     "cleanup_all_expired_files",
     "cleanup_expired_files",

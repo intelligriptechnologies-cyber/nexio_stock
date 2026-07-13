@@ -1,4 +1,5 @@
-import { test, expect, type Page } from "@playwright/test";
+import { test, expect } from "@playwright/test";
+import { loginAsCashier } from "./helpers/login";
 
 // Smoke + a single happy-path finalize for the cashier checkout flow.
 // Requires:
@@ -7,25 +8,6 @@ import { test, expect, type Page } from "@playwright/test";
 //   - backend running with the test schema
 //
 // One test per AC category; full e2e suite for this slice lives here.
-
-// Issue #24 — login flow is now PICKER + PIN.
-async function loginAsCashier(page: Page) {
-  await page.goto("/login");
-  await expect(page.getByText("Tap your name to sign in")).toBeVisible({
-    timeout: 5000,
-  });
-  const row = page.locator(
-    '[data-testid="staff-row"][data-staff-role="cashier_user"]'
-  );
-  await expect(row).toBeVisible({ timeout: 5000 });
-  await row.click();
-  await expect(page.getByText("Enter your PIN")).toBeVisible();
-  for (const d of "1111") {
-    await page.getByRole("button", { name: `Digit ${d}` }).click();
-  }
-  await page.getByRole("button", { name: "LOGIN", exact: true }).click();
-  await expect(page).toHaveURL(/\/checkout$/);
-}
 
 test.describe("checkout flow", () => {
   test("renders cart + payment panels for a cashier", async ({ page }) => {
@@ -130,5 +112,98 @@ test.describe("checkout flow — quicksearch (issue #23)", () => {
     await page.getByRole("button", { name: "+ Split" }).click();
     const amountInputs = page.getByLabel("Payment amount");
     await expect(amountInputs).toHaveCount(2);
+  });
+});
+
+test.describe("checkout flow â€” offline resume", () => {
+  test("resume online appears only during an active offline session", async ({ page }) => {
+    await loginAsCashier(page);
+    await expect(page.getByRole("button", { name: "Resume Online" })).toHaveCount(0);
+    await expect(page.getByRole("button", { name: "Work offline" })).toBeVisible();
+
+    await page.getByRole("button", { name: "Work offline" }).click();
+    await expect(page.getByRole("region", { name: "Offline session" })).toBeVisible({
+      timeout: 5000,
+    });
+    await expect(page.getByRole("button", { name: "Resume Online" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Work offline" })).toHaveCount(0);
+  });
+
+  test("resume online probes healthz before syncing and clears offline state on success", async ({
+    page,
+  }) => {
+    await loginAsCashier(page);
+    const calls: string[] = [];
+    let capture = false;
+    await page.route("**/healthz", async (route) => {
+      if (capture) calls.push("healthz");
+      await route.continue();
+    });
+    await page.route("**/offline-sessions/**/sync", async (route) => {
+      if (capture) calls.push("sync");
+      await route.continue();
+    });
+
+    await page.getByRole("button", { name: "Work offline" }).click();
+    await expect(page.getByRole("region", { name: "Offline session" })).toBeVisible({
+      timeout: 5000,
+    });
+    await page.getByPlaceholder("Scan or enter barcode").fill("8901234567890");
+    await page.getByRole("button", { name: "ADD" }).click();
+    await expect(page.getByText(/Saved temporary receipt/)).toBeVisible({ timeout: 5000 });
+
+    capture = true;
+    await page.getByRole("button", { name: "Resume Online" }).click();
+    await expect(page.getByRole("button", { name: "Work offline" })).toBeVisible({
+      timeout: 5000,
+    });
+    await expect(page.getByRole("button", { name: "Resume Online" })).toHaveCount(0);
+    await expect(page.getByRole("region", { name: "Offline session" })).toHaveCount(0);
+    expect(calls).toEqual(["healthz", "sync"]);
+  });
+
+  test("resume online keeps the offline session active when the health probe fails", async ({
+    page,
+  }) => {
+    await loginAsCashier(page);
+    await page.route("**/healthz", async (route) => {
+      await route.fulfill({ status: 500, json: { detail: "backend unavailable" } });
+    });
+
+    await page.getByRole("button", { name: "Work offline" }).click();
+    await expect(page.getByRole("region", { name: "Offline session" })).toBeVisible({
+      timeout: 5000,
+    });
+    await page.getByRole("button", { name: "Resume Online" }).click();
+
+    await expect(page.getByRole("alert")).toContainText(/backend unavailable|Could not resume online/i);
+    await expect(page.getByRole("region", { name: "Offline session" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Resume Online" })).toBeVisible();
+  });
+
+  test("resume online keeps receipts and the offline session active when sync fails", async ({
+    page,
+  }) => {
+    await loginAsCashier(page);
+    await page.route("**/healthz", async (route) => {
+      await route.continue();
+    });
+    await page.route("**/offline-sessions/**/sync", async (route) => {
+      await route.fulfill({ status: 500, json: { detail: "sync failed" } });
+    });
+
+    await page.getByRole("button", { name: "Work offline" }).click();
+    await expect(page.getByRole("region", { name: "Offline session" })).toBeVisible({
+      timeout: 5000,
+    });
+    await page.getByPlaceholder("Scan or enter barcode").fill("8901234567890");
+    await page.getByRole("button", { name: "ADD" }).click();
+    await expect(page.getByText(/Saved temporary receipt/)).toBeVisible({ timeout: 5000 });
+
+    await page.getByRole("button", { name: "Resume Online" }).click();
+    await expect(page.getByRole("alert")).toContainText(/sync failed|Could not resume online/i);
+    await expect(page.getByRole("region", { name: "Offline session" })).toBeVisible();
+    await expect(page.getByText(/OFF-/)).toBeVisible();
+    await expect(page.getByRole("button", { name: "Resume Online" })).toBeVisible();
   });
 });

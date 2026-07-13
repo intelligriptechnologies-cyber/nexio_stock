@@ -131,12 +131,33 @@ class ProductPublic(BaseModel):
     low_stock_threshold: int | None
     is_active: bool
     status: ProductStatus
+    # Superadmin-only UI hint: true only when the row is inactive and
+    # has no blocking lot/invoice history, so the frontend can surface
+    # the hard-delete affordance without a per-row lookup.
+    can_permanently_delete: bool = False
     created_at: datetime
     updated_at: datetime
     # Issue #40 — derived stock at the listing shop. Always set by the
     # list/lookup endpoints; default 0 here so the schema also validates
     # in tests that construct ProductPublic directly from a bare row.
     current_stock: int = 0
+
+
+class ProductActionConfirmation(BaseModel):
+    """Typed confirmation gate for destructive product actions."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    confirmation_text: str = Field(min_length=1, max_length=32)
+
+
+class ProductDeleteResponse(BaseModel):
+    """Response returned after a permanent product delete."""
+
+    id: int
+    shop_id: int
+    barcode: str
+    action: str
 
 
 # --- CSV import ---
@@ -222,6 +243,8 @@ __all__ = [
     "ProductImportError",
     "ProductImportResponse",
     "ProductImportRow",
+    "ProductActionConfirmation",
+    "ProductDeleteResponse",
     "ProductPublic",
     "ProductQuickAdd",
     "ProductUpdate",

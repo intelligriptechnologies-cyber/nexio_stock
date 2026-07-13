@@ -26,6 +26,7 @@ export interface CatalogProduct {
   // construct CatalogProduct locally don't break; the cache and the
   // /products endpoint always populate it.
   current_stock?: number;
+  can_permanently_delete?: boolean;
 }
 
 let cache: Map<string, CatalogProduct> | null = null;

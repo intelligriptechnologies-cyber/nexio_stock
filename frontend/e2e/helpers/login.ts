@@ -1,18 +1,23 @@
-// Shared e2e helpers for the picker-based login flow (issue #24).
+// Shared e2e helpers for the new role-first device-bound login flow.
 //
-// The pre-#24 flow was: type phone digits → NEXT → type PIN → LOGIN.
-// The post-#24 flow is: pick a name from the staff-picker tap-list →
-// type PIN → LOGIN. These helpers wrap the new flow so each spec only
-// has to import + call `loginAsRole(page, "Cashier", "1111")`.
+// The flow is: choose role -> type username -> type PIN/password -> login.
+// The helpers seed a stable browser-local device key so the backend sees
+// a deterministic terminal during e2e runs.
 
 import { expect, type Page } from "@playwright/test";
 
 export type Role = "Cashier" | "Receiver" | "Owner";
 
-const ROLE_TO_STAFF_ROLE: Record<Role, string> = {
+const ROLE_TO_API_ROLE: Record<Role, string> = {
   Cashier: "cashier_user",
   Receiver: "receiver_user",
   Owner: "owner",
+};
+
+const ROLE_TO_USERNAME: Record<Role, string> = {
+  Cashier: "cashier1",
+  Receiver: "receiver1",
+  Owner: "owner1",
 };
 
 const ROLE_TO_HOME: Record<Role, RegExp> = {
@@ -21,27 +26,23 @@ const ROLE_TO_HOME: Record<Role, RegExp> = {
   Owner: /\/dashboard$/,
 };
 
+const DEVICE_KEY = "test-terminal-01";
+
 export async function loginAsRole(page: Page, role: Role, pin: string) {
+  await page.addInitScript((deviceKey) => {
+    localStorage.setItem("barstock.deviceKey", deviceKey);
+  }, DEVICE_KEY);
   await page.goto("/login");
-  await expect(page.getByText("Tap your name to sign in")).toBeVisible({
+  await expect(page.getByRole("heading", { name: "Shop login" })).toBeVisible({
     timeout: 5000,
   });
-  const row = page.locator(
-    `[data-testid="staff-row"][data-staff-role="${ROLE_TO_STAFF_ROLE[role]}"]`
-  );
-  await expect(row).toBeVisible({ timeout: 5000 });
-  await row.click();
-  await expect(page.getByText("Enter your PIN")).toBeVisible();
-  for (const d of pin) {
-    await page.getByRole("button", { name: `Digit ${d}` }).click();
-  }
+  await page.getByLabel("Role").selectOption(ROLE_TO_API_ROLE[role]);
+  await page.getByLabel("Username").fill(ROLE_TO_USERNAME[role]);
+  await page.getByLabel("PIN / password").fill(pin);
   await page.getByRole("button", { name: "LOGIN", exact: true }).click();
   await expect(page).toHaveURL(ROLE_TO_HOME[role]);
 }
 
-// Convenience: each spec file's existing inline `loginAsReceiver`,
-// `loginAsCashier` helpers can keep their name by delegating here.
-// Pin defaults to the existing test seed ("1111" cashier, "2222" receiver).
 export async function loginAsReceiver(page: Page) {
   await loginAsRole(page, "Receiver", "2222");
 }

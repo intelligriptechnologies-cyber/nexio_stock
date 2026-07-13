@@ -4,9 +4,14 @@ import { resolveBarcode, type CatalogProduct } from "./catalog";
 export interface LotLineCreate {
   barcode: string;
   quantity: number;
+  good_condition_quantity: number;
 }
 
 export interface LotCreate {
+  vendor_id: number;
+  purchase_date: string;
+  vendor_invoice_number: string;
+  invoice_value: string;
   reference?: string;
   notes?: string;
   lines: LotLineCreate[];
@@ -16,19 +21,38 @@ export interface LotLinePublic {
   id: number;
   product_id: number;
   quantity: number;
-  // Issue #38 — snapshot of brand + size captured at receive time.
+  good_condition_quantity: number;
+  breakage_quantity: number;
   product_brand: string;
   product_size_label: string;
+}
+
+export interface VendorPublic {
+  id: number;
+  shop_id: number;
+  name: string;
+  gstin: string | null;
+  address: string | null;
+  email: string | null;
+  phone: string | null;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface LotPublic {
   id: number;
   shop_id: number;
+  vendor_id: number;
   received_by_user_id: number;
+  purchase_date: string;
+  vendor_invoice_number: string;
+  invoice_value: string;
   reference: string | null;
   notes: string | null;
   received_at: string;
   created_at: string;
+  vendor: VendorPublic;
   lines: LotLinePublic[];
 }
 
@@ -43,9 +67,6 @@ export function listRecentLots(limit = 20): Promise<{ lots: LotPublic[] }> {
   return api<{ lots: LotPublic[] }>(`/lots?limit=${limit}`);
 }
 
-// Resolve barcode via the cached catalog (shared with checkout) and fall
-// back to /products/lookup on a miss. Re-exported so the receiving page
-// doesn't need to import catalog.ts directly.
 export async function resolveForReceiving(
   barcode: string,
   shopId?: number | null
@@ -59,9 +80,6 @@ export class LotValidationError extends Error {
   }
 }
 
-// Wrap createLot so the page only handles ApiError for surface mapping;
-// the backend rejects duplicate barcodes within a single lot with a 400
-// (the model_validator raises ValueError on duplicates).
 export async function createLotSafe(
   payload: LotCreate,
   shopId?: number | null

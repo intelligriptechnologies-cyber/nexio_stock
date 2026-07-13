@@ -1,7 +1,8 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useMemo, useState, useCallback } from "react";
 import { ApiError } from "../api/client";
 import { invalidateCache, prefetchCatalog, type CatalogProduct } from "../api/catalog";
 import { createLotSafe, type LotPublic } from "../api/lots";
+import { listVendors, type VendorPublic } from "../api/vendors";
 import { QuickSearch } from "../components/QuickSearch";
 import { QuickAddModal } from "../components/QuickAddModal";
 import { ScanSuccessOverlay } from "../components/ScanSuccessOverlay";
@@ -16,14 +17,7 @@ interface ReceivingLine {
   brand: string;
   sizeLabel: string;
   quantity: number;
-  // Issue #42 — current derived stock at the receiving shop, snapshotted
-  // from the catalog at scan time. ``undefined`` for entries that
-  // predated the catalog refresh; falls back to '—' in the render.
   currentStock?: number;
-}
-
-interface AddByBarcodeOptions {
-  showScanOverlay?: boolean;
 }
 
 interface ScanOverlayProduct {
@@ -32,10 +26,20 @@ interface ScanOverlayProduct {
   sizeLabel: string;
 }
 
+interface PurchaseReviewState {
+  vendorId: number | "";
+  purchaseDate: string;
+  vendorInvoiceNumber: string;
+  invoiceValue: string;
+  lineConditions: Record<string, number>;
+}
+
 function uid(): string {
-  // Stable, opaque per-tab id used for lineId assignment. Not a
-  // cryptographic context.
   return Math.random().toString(36).slice(2, 10) + Date.now().toString(36);
+}
+
+function localDateInputValue(): string {
+  return new Date().toLocaleDateString("en-CA");
 }
 
 export function ReceivingPage() {
@@ -45,17 +49,15 @@ export function ReceivingPage() {
   const [reference, setReference] = useState("");
   const [notes, setNotes] = useState("");
   const [lines, setLines] = useState<ReceivingLine[]>([]);
+  const [vendors, setVendors] = useState<VendorPublic[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [info, setInfo] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [catalogReady, setCatalogReady] = useState(false);
   const [lastLot, setLastLot] = useState<LotPublic | null>(null);
   const [scanOverlay, setScanOverlay] = useState<ScanOverlayProduct | null>(null);
-  // quick-add is wired via useQuickAdd. After a successful
-  // quick-add the hook calls onResolved, which adds the new product
-  // to the lot lines. On a 409 race (same barcode), the hook calls
-  // onConflict with the barcode so we can re-resolve via addByBarcode
-  // — the receiver keeps going without a manual rescan.
+  const [reviewOpen, setReviewOpen] = useState(false);
+
   const {
     quickAdd,
     openQuickAdd,
@@ -79,11 +81,11 @@ export function ReceivingPage() {
         },
       ]);
       setInfo(
-        `Quick-added (pending — owner needs to set the price): ${product.brand} ${product.size_label}`
+        `Quick-added (pending - owner needs to set the price): ${product.brand} ${product.size_label}`
       );
     },
-    onConflict: (barcode) => {
-      void addByBarcode(barcode);
+    onConflict: (missingBarcode) => {
+      void addByBarcode(missingBarcode);
     },
   });
 
@@ -95,13 +97,25 @@ export function ReceivingPage() {
   }, [actingShopId]);
 
   useEffect(() => {
+    void listVendors(actingShopId)
+      .then((rows) => {
+        setVendors(rows);
+        setError(null);
+      })
+      .catch((e) => {
+        setVendors([]);
+        setError(e instanceof Error ? e.message : "Could not load vendors.");
+      });
+  }, [actingShopId]);
+
+  useEffect(() => {
     if (!info) return;
     const timer = window.setTimeout(() => setInfo(null), 4000);
     return () => window.clearTimeout(timer);
   }, [info]);
 
   const addByBarcode = useCallback(
-    async (raw: string, options: AddByBarcodeOptions = {}) => {
+    async (raw: string, options: { showScanOverlay?: boolean } = {}) => {
       const code = raw.trim();
       if (!code) return;
       setError(null);
@@ -139,13 +153,9 @@ export function ReceivingPage() {
       } catch (e) {
         if (e instanceof ApiError) {
           if (e.status === 404) {
-            // Barcode not in catalog. Offer quick-add (issue #22, AC #5)
-            // rather than flat-rejecting the line — receivers on the
-            // counter need a way to register brand-new stock the owner
-            // hasn't seen yet.
             openQuickAdd(code);
             setError(`Barcode not found in catalog: ${code}. Quick-add it?`);
-          } else if (e.status === 0) setError("Network error — catalog lookup failed.");
+          } else if (e.status === 0) setError("Network error - catalog lookup failed.");
           else setError(e.detail);
         } else {
           setError("Unknown error resolving barcode.");
@@ -155,37 +165,30 @@ export function ReceivingPage() {
     [actingShopId, openQuickAdd]
   );
 
-  // Quicksearch (issue #23) — when the receiver taps a match in the
-  // search dropdown, add it exactly like a scan would. The component
-  // does the filtering; we just normalise the picked product into the
-  // same shape the scan resolver returns.
-  const addByPick = useCallback(
-    (product: CatalogProduct) => {
-      setError(null);
-      setInfo(null);
-      setLines((prev) => {
-        const existing = prev.find((l) => l.barcode === product.barcode);
-        if (existing) {
-          return prev.map((l) =>
-            l.lineId === existing.lineId ? { ...l, quantity: l.quantity + 1 } : l
-          );
-        }
-        return [
-          ...prev,
-          {
-            lineId: uid(),
-            barcode: product.barcode,
-            brand: product.brand,
-            sizeLabel: product.size_label,
-            quantity: 1,
-            currentStock: product.current_stock,
-          },
-        ];
-      });
-      setInfo(`Added: ${product.brand} ${product.size_label}`);
-    },
-    []
-  );
+  const addByPick = useCallback((product: CatalogProduct) => {
+    setError(null);
+    setInfo(null);
+    setLines((prev) => {
+      const existing = prev.find((l) => l.barcode === product.barcode);
+      if (existing) {
+        return prev.map((l) =>
+          l.lineId === existing.lineId ? { ...l, quantity: l.quantity + 1 } : l
+        );
+      }
+      return [
+        ...prev,
+        {
+          lineId: uid(),
+          barcode: product.barcode,
+          brand: product.brand,
+          sizeLabel: product.size_label,
+          quantity: 1,
+          currentStock: product.current_stock,
+        },
+      ];
+    });
+    setInfo(`Added: ${product.brand} ${product.size_label}`);
+  }, []);
 
   const handleSubmitBarcode = (e: React.FormEvent) => {
     e.preventDefault();
@@ -194,29 +197,13 @@ export function ReceivingPage() {
   };
 
   useBarcodeScanner({
-    enabled: catalogReady && !quickAdd && !lastLot,
+    enabled: catalogReady && !quickAdd && !lastLot && !reviewOpen,
     onScan: (code) => void addByBarcode(code, { showScanOverlay: true }),
   });
 
   const dismissScanOverlay = useCallback(() => {
     setScanOverlay(null);
   }, []);
-
-  const changeQty = (lineId: string, delta: number) => {
-    setLines((prev) =>
-      prev.map((l) =>
-        l.lineId === lineId ? { ...l, quantity: Math.max(1, l.quantity + delta) } : l
-      )
-    );
-  };
-
-  const setLineQty = (lineId: string, qty: number) => {
-    setLines((prev) =>
-      prev.map((l) =>
-        l.lineId === lineId ? { ...l, quantity: Math.max(1, Math.floor(qty)) } : l
-      )
-    );
-  };
 
   const removeLine = (lineId: string) => {
     setLines((prev) => prev.filter((l) => l.lineId !== lineId));
@@ -229,14 +216,8 @@ export function ReceivingPage() {
     setBarcode("");
   };
 
-  // quick-add is wired via useQuickAdd (above). After a successful
-  // quick-add the hook calls onResolved, which adds the new product
-  // to the lot lines. On a 409 race (same barcode), the hook calls
-  // onConflict with the barcode so we can re-resolve via addByBarcode
-  // — the receiver keeps going without a manual rescan.
-  const save = async () => {
+  const openReview = () => {
     setError(null);
-    setInfo(null);
     if (lines.length === 0) {
       setError("Scan at least one product before saving.");
       return;
@@ -245,29 +226,45 @@ export function ReceivingPage() {
       setError("Pick a shop first (top of the sidebar).");
       return;
     }
+    if (vendors.length === 0) {
+      setError("Add at least one active vendor before saving a lot.");
+      return;
+    }
+    setReviewOpen(true);
+  };
+
+  const handleFinalSave = async (review: PurchaseReviewState) => {
     setBusy(true);
+    setError(null);
+    setInfo(null);
     try {
       const lot = await createLotSafe(
         {
+          vendor_id: Number(review.vendorId),
+          purchase_date: review.purchaseDate,
+          vendor_invoice_number: review.vendorInvoiceNumber.trim(),
+          invoice_value: review.invoiceValue.trim(),
           reference: reference.trim() || undefined,
           notes: notes.trim() || undefined,
-          lines: lines.map((l) => ({ barcode: l.barcode, quantity: l.quantity })),
+          lines: lines.map((line) => ({
+            barcode: line.barcode,
+            quantity: line.quantity,
+            good_condition_quantity: review.lineConditions[line.lineId] ?? line.quantity,
+          })),
         },
         actingShopId
       );
       setLastLot(lot);
+      setReviewOpen(false);
       resetForm();
-      // Catalog's effective stock now reflects the lot — but the cached
-      // product records don't carry stock (the backend computes it from
-      // lots). Force a refresh so the next /products lookup is fresh.
       invalidateCache();
       void prefetchCatalog(actingShopId).then(() => setCatalogReady(true));
       setInfo(`Lot #${lot.id} saved with ${lot.lines.length} line(s).`);
     } catch (e) {
       if (e instanceof ApiError) {
         if (e.status === 400) setError(`Validation error: ${e.detail}`);
-        else if (e.status === 404) setError("Unknown barcode in one of the lines.");
-        else if (e.status === 0) setError("Network error — save failed.");
+        else if (e.status === 404) setError("Unknown vendor or barcode in one of the lines.");
+        else if (e.status === 0) setError("Network error - save failed.");
         else setError(e.detail);
       } else {
         setError("Unknown error saving lot.");
@@ -276,6 +273,8 @@ export function ReceivingPage() {
       setBusy(false);
     }
   };
+
+  const totalUnits = useMemo(() => lines.reduce((acc, line) => acc + line.quantity, 0), [lines]);
 
   return (
     <div className="grid gap-gutter lg:grid-cols-[2fr_1fr]">
@@ -288,12 +287,11 @@ export function ReceivingPage() {
         />
       )}
 
-      {/* LEFT — incoming lines */}
       <section className="flex flex-col gap-stack-gap rounded-lg bg-surface-container p-gutter">
         <header className="flex items-center justify-between">
           <h1 className="text-headline-md text-primary">Stock Receiving</h1>
           <div className="text-label-md text-on-surface-variant">
-            {catalogReady ? "Catalog cached" : "Loading catalog…"}
+            {catalogReady ? "Catalog cached" : "Loading catalog..."}
           </div>
         </header>
 
@@ -315,8 +313,6 @@ export function ReceivingPage() {
           </button>
         </form>
 
-        {/* Quicksearch (issue #23). Receiver types a brand or barcode
-            substring; tapping a match adds it like a scan. */}
         <QuickSearch
           onPick={addByPick}
           placeholder="Search by name or barcode"
@@ -329,73 +325,35 @@ export function ReceivingPage() {
               No items yet. Scan a barcode to begin.
             </li>
           )}
-          {lines.map((l) => (
+          {lines.map((line) => (
             <li
-              key={l.lineId}
+              key={line.lineId}
               className="flex items-center justify-between rounded-md bg-surface px-stack-gap py-3 shadow-sm"
             >
               <div className="flex flex-col">
-                <span className="text-label-xl text-on-surface">{l.brand}</span>
-                <span className="text-label-md text-on-surface-variant">{l.sizeLabel}</span>
-                <span className="font-mono text-label-md text-on-surface-variant">
-                  {l.barcode}
-                </span>
-                {/* Issue #42 — current stock at the receiving shop,
-                    snapshotted at scan time so the receiver sees what's
-                    already on the shelf before deciding how much to add. */}
+                <span className="text-label-xl text-on-surface">{line.brand}</span>
+                <span className="text-label-md text-on-surface-variant">{line.sizeLabel}</span>
+                <span className="font-mono text-label-md text-on-surface-variant">{line.barcode}</span>
                 <span className="text-label-md text-on-surface-variant">
-                  On shelf:{" "}
-                  <span className="font-mono">{l.currentStock ?? "—"}</span>
+                  Received qty: <span className="font-mono">{line.quantity}</span>
+                </span>
+                <span className="text-label-md text-on-surface-variant">
+                  On shelf: <span className="font-mono">{line.currentStock ?? "—"}</span>
                 </span>
               </div>
-              <div className="flex items-center gap-stack-gap">
-                <button
-                  type="button"
-                  onClick={() => changeQty(l.lineId, -1)}
-                  className="flex h-14 w-14 items-center justify-center rounded-md bg-surface-container-high text-[32px] font-black leading-none text-on-surface"
-                  aria-label="Decrease quantity"
-                >
-                  −
-                </button>
-                <input
-                  type="number"
-                  inputMode="numeric"
-                  min={1}
-                  value={l.quantity}
-                  onChange={(e) => setLineQty(l.lineId, Number(e.target.value))}
-                  onFocus={(e) => e.currentTarget.select()}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" && lines.length > 0 && !busy) {
-                      e.preventDefault();
-                      void save();
-                    }
-                  }}
-                  className="h-14 w-20 rounded-md border border-outline bg-surface text-center font-mono text-headline-md"
-                  aria-label="Quantity"
-                />
-                <button
-                  type="button"
-                  onClick={() => changeQty(l.lineId, +1)}
-                  className="flex h-14 w-14 items-center justify-center rounded-md bg-surface-container-high text-[32px] font-black leading-none text-on-surface"
-                  aria-label="Increase quantity"
-                >
-                  +
-                </button>
-                <button
-                  type="button"
-                  onClick={() => removeLine(l.lineId)}
-                  className="flex h-14 w-14 items-center justify-center rounded-md bg-error text-[32px] font-black leading-none text-on-error"
-                  aria-label="Remove line"
-                >
-                  ×
-                </button>
-              </div>
+              <button
+                type="button"
+                onClick={() => removeLine(line.lineId)}
+                className="flex h-14 w-14 items-center justify-center rounded-md bg-error text-[32px] font-black leading-none text-on-error"
+                aria-label="Remove line"
+              >
+                ×
+              </button>
             </li>
           ))}
         </ul>
       </section>
 
-      {/* RIGHT — save action */}
       <aside className="flex flex-col gap-stack-gap rounded-lg bg-surface-container p-gutter">
         <h2 className="text-headline-md text-primary">Lot</h2>
 
@@ -424,18 +382,16 @@ export function ReceivingPage() {
           <div className="text-label-md uppercase">Lines</div>
           <div className="font-mono text-headline-md">{lines.length}</div>
           <div className="text-label-md uppercase">Total units</div>
-          <div className="font-mono text-headline-md">
-            {lines.reduce((acc, l) => acc + l.quantity, 0)}
-          </div>
+          <div className="font-mono text-headline-md">{totalUnits}</div>
         </div>
 
         <button
           type="button"
-          onClick={save}
+          onClick={openReview}
           disabled={lines.length === 0 || busy}
           className="min-h-touchTarget rounded-md bg-action text-headline-md font-bold text-on-action disabled:opacity-50"
         >
-          {busy ? "Saving..." : "Save stock"}
+          Review & Save
         </button>
 
         {error && (
@@ -450,11 +406,6 @@ export function ReceivingPage() {
         )}
       </aside>
 
-      {/* Quick-add modal (issue #22 + architecture review Candidate A).
-          Shown when a scan misses the catalog so the receiver can
-          register the brand-new product on the spot. The shared
-          <QuickAddModal /> component is rendered; the hook owns the
-          state. */}
       {quickAdd && (
         <div
           className="fixed inset-0 z-30 flex items-center justify-center bg-black/50 p-stack-gap"
@@ -474,14 +425,25 @@ export function ReceivingPage() {
         </div>
       )}
 
-      {/* Lot result modal */}
+      {reviewOpen && (
+        <PurchaseReviewModal
+          vendors={vendors}
+          lines={lines}
+          busy={busy}
+          onCancel={() => setReviewOpen(false)}
+          onSubmit={(review) => {
+            void handleFinalSave(review);
+          }}
+        />
+      )}
+
       {lastLot && (
         <div
           className="fixed inset-0 z-30 flex items-center justify-center bg-black/50 p-stack-gap"
           role="dialog"
           aria-modal="true"
         >
-          <div className="flex max-h-[90vh] w-full max-w-lg flex-col gap-stack-gap overflow-y-auto rounded-lg bg-surface-container p-gutter">
+          <div className="flex max-h-[90vh] w-full max-w-2xl flex-col gap-stack-gap overflow-y-auto rounded-lg bg-surface-container p-gutter">
             <header className="flex items-center justify-between">
               <h2 className="text-headline-md text-primary">Lot #{lastLot.id} saved</h2>
               <button
@@ -493,6 +455,12 @@ export function ReceivingPage() {
                 ×
               </button>
             </header>
+            <div className="grid gap-2 text-label-md text-on-surface-variant md:grid-cols-2">
+              <div>Vendor: {lastLot.vendor.name}</div>
+              <div>Purchase date: {lastLot.purchase_date}</div>
+              <div>Vendor invoice: {lastLot.vendor_invoice_number}</div>
+              <div>Invoice value: Rs {lastLot.invoice_value}</div>
+            </div>
             <div className="text-label-md text-on-surface-variant">
               {new Date(lastLot.received_at).toLocaleString()}
             </div>
@@ -500,15 +468,20 @@ export function ReceivingPage() {
               <thead>
                 <tr className="border-b border-outline text-label-md text-on-surface-variant">
                   <th className="py-2 text-left">Product</th>
-                  <th className="py-2 text-right">Qty</th>
+                  <th className="py-2 text-right">Received</th>
+                  <th className="py-2 text-right">Good</th>
+                  <th className="py-2 text-right">Breakage</th>
                 </tr>
               </thead>
               <tbody>
-                {lastLot.lines.map((l) => (
-                  <tr key={l.id} className="border-b border-outline/40">
-                    {/* Issue #38: render snapshot brand + size instead of raw product_id. */}
-                    <td className="py-2">{l.product_brand} {l.product_size_label}</td>
-                    <td className="py-2 text-right font-mono">{l.quantity}</td>
+                {lastLot.lines.map((line) => (
+                  <tr key={line.id} className="border-b border-outline/40">
+                    <td className="py-2">
+                      {line.product_brand} {line.product_size_label}
+                    </td>
+                    <td className="py-2 text-right font-mono">{line.quantity}</td>
+                    <td className="py-2 text-right font-mono">{line.good_condition_quantity}</td>
+                    <td className="py-2 text-right font-mono">{line.breakage_quantity}</td>
                   </tr>
                 ))}
               </tbody>
@@ -516,6 +489,229 @@ export function ReceivingPage() {
           </div>
         </div>
       )}
+    </div>
+  );
+}
+
+function PurchaseReviewModal({
+  vendors,
+  lines,
+  busy,
+  onCancel,
+  onSubmit,
+}: {
+  vendors: VendorPublic[];
+  lines: ReceivingLine[];
+  busy: boolean;
+  onCancel: () => void;
+  onSubmit: (review: PurchaseReviewState) => void;
+}) {
+  const defaultVendorId = vendors.find((vendor) => vendor.is_active)?.id ?? vendors[0]?.id;
+  const [vendorId, setVendorId] = useState<number | "">(defaultVendorId ?? "");
+  const [purchaseDate, setPurchaseDate] = useState(localDateInputValue());
+  const [vendorInvoiceNumber, setVendorInvoiceNumber] = useState("");
+  const [invoiceValue, setInvoiceValue] = useState("");
+  const [lineConditions, setLineConditions] = useState<Record<string, number>>(() =>
+    Object.fromEntries(lines.map((line) => [line.lineId, line.quantity]))
+  );
+  const [localError, setLocalError] = useState<string | null>(null);
+
+  useEffect(() => {
+    setLineConditions(Object.fromEntries(lines.map((line) => [line.lineId, line.quantity])));
+  }, [lines]);
+
+  useEffect(() => {
+    if (vendorId === "" && defaultVendorId !== undefined) {
+      setVendorId(defaultVendorId);
+    }
+  }, [defaultVendorId, vendorId]);
+
+  const updateCondition = (lineId: string, value: number) => {
+    setLineConditions((current) => ({ ...current, [lineId]: value }));
+  };
+
+  const submit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setLocalError(null);
+    if (vendorId === "") {
+      setLocalError("Pick a vendor.");
+      return;
+    }
+    if (!purchaseDate) {
+      setLocalError("Pick a purchase date.");
+      return;
+    }
+    if (!vendorInvoiceNumber.trim()) {
+      setLocalError("Enter the vendor invoice number.");
+      return;
+    }
+    if (!invoiceValue.trim() || Number(invoiceValue) <= 0) {
+      setLocalError("Enter a valid invoice value.");
+      return;
+    }
+    for (const line of lines) {
+      const good = lineConditions[line.lineId] ?? 0;
+      if (good < 0 || good > line.quantity) {
+        setLocalError("Good-condition quantity cannot exceed received quantity.");
+        return;
+      }
+    }
+    onSubmit({
+      vendorId,
+      purchaseDate,
+      vendorInvoiceNumber,
+      invoiceValue,
+      lineConditions,
+    });
+  };
+
+  return (
+    <div
+      className="fixed inset-0 z-40 flex items-center justify-center bg-black/60 p-stack-gap"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="purchase-review-title"
+    >
+      <form
+        onSubmit={submit}
+        className="flex max-h-[92vh] w-full max-w-4xl flex-col gap-stack-gap overflow-y-auto rounded-lg bg-surface-container p-gutter"
+      >
+        <header className="flex items-center justify-between">
+          <h2 id="purchase-review-title" className="text-headline-md text-primary">
+            Review purchase details
+          </h2>
+          <button
+            type="button"
+            onClick={onCancel}
+            className="flex h-12 w-12 items-center justify-center rounded-md bg-error text-[28px] font-black leading-none text-on-error"
+            aria-label="Close purchase review"
+          >
+            ×
+          </button>
+        </header>
+
+        <div className="grid gap-stack-gap md:grid-cols-2">
+          <label className="flex flex-col gap-1 text-label-md">
+            Vendor
+            <select
+              value={vendorId}
+              onChange={(e) =>
+                setVendorId(e.target.value === "" ? "" : Number.parseInt(e.target.value, 10))
+              }
+              className="min-h-touchTarget-sm rounded-md border border-outline bg-surface px-stack-gap text-body-md"
+            >
+              <option value="">Select vendor</option>
+              {vendors.map((vendor) => (
+                <option key={vendor.id} value={vendor.id}>
+                  {vendor.name}
+                  {!vendor.is_active ? " (inactive)" : ""}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="flex flex-col gap-1 text-label-md">
+            Purchase date
+            <input
+              type="date"
+              value={purchaseDate}
+              onChange={(e) => setPurchaseDate(e.target.value)}
+              className="min-h-touchTarget-sm rounded-md border border-outline bg-surface px-stack-gap text-body-md"
+            />
+          </label>
+          <label className="flex flex-col gap-1 text-label-md">
+            Vendor invoice number
+            <input
+              type="text"
+              value={vendorInvoiceNumber}
+              onChange={(e) => setVendorInvoiceNumber(e.target.value)}
+              className="min-h-touchTarget-sm rounded-md border border-outline bg-surface px-stack-gap text-body-md"
+            />
+          </label>
+          <label className="flex flex-col gap-1 text-label-md">
+            Invoice value
+            <input
+              type="number"
+              min="0"
+              step="0.01"
+              value={invoiceValue}
+              onChange={(e) => setInvoiceValue(e.target.value)}
+              className="min-h-touchTarget-sm rounded-md border border-outline bg-surface px-stack-gap text-body-md"
+            />
+          </label>
+        </div>
+
+        <div className="overflow-hidden rounded-md border border-outline bg-surface">
+          <div className="border-b border-outline px-stack-gap py-2 text-label-md text-on-surface-variant">
+            Good-condition quantity is the only editable line-level field.
+          </div>
+          <table className="w-full border-collapse">
+            <thead>
+              <tr className="border-b border-outline text-label-md text-on-surface-variant">
+                <th className="px-stack-gap py-2 text-left">Product</th>
+                <th className="px-stack-gap py-2 text-right">Received</th>
+                <th className="px-stack-gap py-2 text-right">Good</th>
+                <th className="px-stack-gap py-2 text-right">Breakage</th>
+              </tr>
+            </thead>
+            <tbody>
+              {lines.map((line) => {
+                const good = lineConditions[line.lineId] ?? line.quantity;
+                return (
+                  <tr key={line.lineId} className="border-b border-outline/40">
+                    <td className="px-stack-gap py-2">
+                      <div className="font-medium text-on-surface">{line.brand}</div>
+                      <div className="text-label-md text-on-surface-variant">{line.sizeLabel}</div>
+                      <div className="font-mono text-label-md text-on-surface-variant">
+                        {line.barcode}
+                      </div>
+                    </td>
+                    <td className="px-stack-gap py-2 text-right font-mono">{line.quantity}</td>
+                    <td className="px-stack-gap py-2 text-right">
+                      <input
+                        type="number"
+                        min="0"
+                        max={line.quantity}
+                        value={good}
+                        onChange={(e) =>
+                          updateCondition(
+                            line.lineId,
+                            Math.max(0, Math.floor(Number(e.target.value || 0)))
+                          )
+                        }
+                        className="w-24 rounded-md border border-outline bg-surface px-2 py-1 text-right font-mono"
+                      />
+                    </td>
+                    <td className="px-stack-gap py-2 text-right font-mono">{line.quantity - good}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+
+        {localError && (
+          <div role="alert" className="rounded-md bg-error px-stack-gap py-3 text-on-error">
+            {localError}
+          </div>
+        )}
+
+        <div className="flex flex-wrap justify-end gap-stack-gap">
+          <button
+            type="button"
+            onClick={onCancel}
+            className="min-h-touchTarget-sm rounded-md bg-surface-container-high px-gutter text-label-md"
+          >
+            Cancel
+          </button>
+          <button
+            type="submit"
+            disabled={busy}
+            className="min-h-touchTarget-sm rounded-md bg-action px-gutter text-label-md text-on-action disabled:opacity-50"
+          >
+            {busy ? "Saving..." : "Confirm save"}
+          </button>
+        </div>
+      </form>
     </div>
   );
 }
