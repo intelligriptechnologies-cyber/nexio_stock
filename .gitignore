@@ -262,3 +262,7 @@ openapi.json
 
 # Scratch outputs (architecture reviews, ad hoc reports) — not part of the app.
 /tmp/
+
+# UAT load-test scratch: generated credentials and Locust run output.
+/loadtest/.credentials.json
+/loadtest/results/

@@ -112,3 +112,8 @@ filterwarnings = [
 [tool.coverage.run]
 source = ["app"]
 omit = ["app/cli.py"]
+
+[dependency-groups]
+dev = [
+    "locust>=2.45.0",
+]
