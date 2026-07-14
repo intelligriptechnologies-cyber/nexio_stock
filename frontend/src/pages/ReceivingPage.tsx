@@ -10,7 +10,7 @@ import { useBarcodeScanner } from "../hooks/useBarcodeScanner";
 import { useQuickAdd } from "../hooks/useQuickAdd";
 import { useAuth } from "../auth/AuthProvider";
 import { useShopScope } from "../auth/ShopScopeProvider";
-import { PackagePlus, ScanLine, X, Trash2, CheckCircle2, Save, Receipt, Calendar, FileDigit, IndianRupee } from "lucide-react";
+import { PackagePlus, ScanLine, X, Trash2, CheckCircle2, Save, Calendar, FileDigit, IndianRupee } from "lucide-react";
 
 interface ReceivingLine {
   lineId: string;

@@ -238,6 +238,7 @@ function CreateCard({
       full_name: fullName.trim(),
       phone: trimmedPhone,
       password,
+    });
     setUsername("");
     setFullName("");
     setPhone("");

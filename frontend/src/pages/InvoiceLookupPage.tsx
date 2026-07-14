@@ -19,7 +19,7 @@ import {
 import { listShops, type ShopSummary } from "../api/shops";
 import { requestVoid } from "../api/voids";
 import { notifyVoidApprovalsChanged } from "../api/void-approvals-events";
-import { ReceiptText, RefreshCw, FileText, Download, XOctagon, Edit3, Eye, Calendar, MapPin, Filter, Search } from "lucide-react";
+import { ReceiptText, RefreshCw, Download, XOctagon, Edit3, Eye, Calendar, MapPin, Filter } from "lucide-react";
 
 type Source = "current" | "past";
 

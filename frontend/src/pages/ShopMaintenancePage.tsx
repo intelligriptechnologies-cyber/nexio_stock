@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Store, RefreshCw, Plus, Save, Users, MonitorSmartphone, Package, Key, ShieldAlert, Settings } from "lucide-react";
+import { Store, RefreshCw, Plus, Save, Users, MonitorSmartphone, Package, Key, Settings } from "lucide-react";
 import { listProducts, type Product } from "../api/products";
 import { getOrCreateDeviceKey, toUserMessage } from "../api/client";
 import {
@@ -862,7 +862,7 @@ function InventoryPanel({
                 </td>
                 <td className="px-6 py-4">
                   <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${
-                    product.is_active ? (product.status === "approved" ? "bg-emerald-100 text-emerald-700" : "bg-amber-100 text-amber-700") : "bg-slate-100 text-slate-600"
+                    product.is_active ? (product.status === "active" ? "bg-emerald-100 text-emerald-700" : "bg-amber-100 text-amber-700") : "bg-slate-100 text-slate-600"
                   }`}>
                     {product.status} {!product.is_active && "(inactive)"}
                   </span>
