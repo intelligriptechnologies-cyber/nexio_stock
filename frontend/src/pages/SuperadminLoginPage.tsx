@@ -86,7 +86,7 @@ export function SuperadminLoginPage() {
           {error && (
             <div
               role="alert"
-              className="animate-in fade-in slide-in-from-top-1 rounded-xl border border-red-500/20 bg-red-500/10 p-4 text-sm text-red-400 backdrop-blur-md"
+              className="animate-fade-in rounded-xl border border-red-500/20 bg-red-500/10 p-4 text-sm text-red-400 backdrop-blur-md"
             >
               {error}
             </div>

@@ -172,12 +172,12 @@ export function OfflineReceiptEditorModal({
 
   return (
     <div
-      className="fixed inset-0 z-40 flex items-center justify-center bg-slate-900/40 p-4 backdrop-blur-sm transition-opacity"
+      className="animate-fade-in fixed inset-0 z-40 flex items-center justify-center bg-slate-900/40 p-4 backdrop-blur-sm"
       role="dialog"
       aria-modal="true"
       aria-labelledby="offline-receipt-editor-title"
     >
-      <div className="flex max-h-[90vh] w-full max-w-4xl flex-col gap-6 overflow-y-auto rounded-[24px] bg-white p-8 shadow-[0_20px_60px_rgba(0,0,0,0.1)] ring-1 ring-slate-200/50">
+      <div className="animate-modal-in flex max-h-[90vh] w-full max-w-4xl flex-col gap-6 overflow-y-auto rounded-xl bg-white p-8 shadow-[0_20px_60px_rgba(0,0,0,0.1)] ring-1 ring-slate-200/50">
         <header className="flex items-start justify-between gap-4">
           <div>
             <h2 id="offline-receipt-editor-title" className="text-xl font-light tracking-tight text-slate-900">
@@ -192,7 +192,7 @@ export function OfflineReceiptEditorModal({
               type="button"
               onClick={onDelete}
               disabled={busy}
-              className="flex h-11 items-center justify-center rounded-xl bg-red-50 px-6 text-sm font-bold tracking-wide text-red-600 shadow-sm transition-all duration-200 hover:bg-red-100 active:scale-95 disabled:pointer-events-none disabled:opacity-50"
+              className="flex h-11 items-center justify-center rounded-xl bg-red-50 px-6 text-sm font-bold tracking-wide text-red-600 shadow-sm transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:bg-red-100 active:scale-[0.97] disabled:pointer-events-none disabled:opacity-50"
             >
               Delete
             </button>
@@ -209,7 +209,7 @@ export function OfflineReceiptEditorModal({
         </header>
 
         <div className="grid gap-6 lg:grid-cols-[1.4fr_1fr]">
-          <section className="flex flex-col gap-6 rounded-[24px] border border-slate-200/50 bg-slate-50/50 p-6">
+          <section className="flex flex-col gap-6 rounded-xl border border-slate-200/50 bg-slate-50/50 p-6">
             <div className="flex items-end gap-3">
               <label className="flex flex-1 flex-col gap-1.5 text-xs font-semibold uppercase tracking-wider text-slate-500">
                 Add barcode
@@ -225,7 +225,7 @@ export function OfflineReceiptEditorModal({
                     }
                   }}
                   placeholder="Scan or type barcode"
-                  className="h-11 w-full rounded-xl border border-slate-200 bg-white/50 px-4 text-sm font-medium normal-case text-slate-700 shadow-sm outline-none transition-all hover:bg-white focus:border-action focus:ring-1 focus:ring-action"
+                  className="h-11 w-full rounded-xl border border-slate-200 bg-white/50 px-4 text-sm font-medium normal-case text-slate-700 shadow-sm outline-none transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:bg-white focus:border-action focus:ring-1 focus:ring-action"
                   disabled={busy}
                 />
               </label>
@@ -233,7 +233,7 @@ export function OfflineReceiptEditorModal({
                 type="button"
                 onClick={addLine}
                 disabled={busy}
-                className="flex h-11 items-center justify-center rounded-xl bg-slate-200/50 px-6 text-sm font-bold tracking-wide text-slate-700 shadow-sm transition-all duration-200 hover:bg-slate-200 active:scale-95 disabled:pointer-events-none disabled:opacity-50"
+                className="flex h-11 items-center justify-center rounded-xl bg-slate-200/50 px-6 text-sm font-bold tracking-wide text-slate-700 shadow-sm transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:bg-slate-200 active:scale-[0.97] disabled:pointer-events-none disabled:opacity-50"
               >
                 Add
               </button>
@@ -278,7 +278,7 @@ export function OfflineReceiptEditorModal({
                           step="1"
                           value={line.quantity}
                           onChange={(e) => updateLine(line.barcode, Number(e.target.value))}
-                          className="h-11 w-20 rounded-xl border border-slate-200 bg-white/50 text-center font-mono text-sm font-medium normal-case text-slate-700 shadow-sm outline-none transition-all hover:bg-white focus:border-action focus:ring-1 focus:ring-action"
+                          className="h-11 w-20 rounded-xl border border-slate-200 bg-white/50 text-center font-mono text-sm font-medium normal-case text-slate-700 shadow-sm outline-none transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:bg-white focus:border-action focus:ring-1 focus:ring-action"
                           disabled={busy}
                         />
                       </label>
@@ -297,9 +297,9 @@ export function OfflineReceiptEditorModal({
             </ul>
           </section>
 
-          <aside className="flex flex-col gap-6 rounded-[24px] border border-slate-200/50 bg-slate-50/50 p-6">
-            <div className="relative overflow-hidden rounded-[20px] bg-slate-900 p-6 text-white shadow-lg">
-              <div className="pointer-events-none absolute -right-10 -top-10 h-32 w-32 rounded-full bg-gradient-to-br from-indigo-500/30 to-purple-500/30 blur-2xl" />
+          <aside className="flex flex-col gap-6 rounded-xl border border-slate-200/50 bg-slate-50/50 p-6">
+            <div className="relative overflow-hidden rounded-xl bg-slate-900 p-6 text-white shadow-lg">
+              <div className="pointer-events-none absolute -right-10 -top-10 h-32 w-32 rounded-full bg-gradient-to-br from-action/20 to-white/5 blur-2xl" />
               <div className="relative z-10 text-xs font-bold uppercase tracking-widest text-slate-400">Receipt total</div>
               <div className="relative z-10 mt-2 font-mono text-4xl font-light tracking-tight">₹{moneyString(lineTotalCents)}</div>
             </div>
@@ -310,7 +310,7 @@ export function OfflineReceiptEditorModal({
                 type="button"
                 onClick={addPayment}
                 disabled={busy}
-                className="flex items-center justify-center rounded-xl bg-white px-3 py-1 text-xs font-bold tracking-wide text-slate-600 shadow-sm ring-1 ring-slate-200 transition-all duration-200 hover:bg-slate-50 hover:text-slate-900 active:scale-95 disabled:pointer-events-none disabled:opacity-50"
+                className="flex items-center justify-center rounded-xl bg-white px-3 py-1 text-xs font-bold tracking-wide text-slate-600 shadow-sm ring-1 ring-slate-200 transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:bg-slate-50 hover:text-slate-900 active:scale-[0.97] disabled:pointer-events-none disabled:opacity-50"
               >
                 + Split
               </button>
@@ -322,7 +322,7 @@ export function OfflineReceiptEditorModal({
                   <select
                     value={payment.mode}
                     onChange={(e) => setPaymentMode(idx, e.target.value as PaymentMode)}
-                    className="h-11 flex-1 rounded-xl border border-slate-200 bg-white/50 px-4 text-sm font-medium text-slate-700 shadow-sm outline-none transition-all hover:bg-white focus:border-action focus:ring-1 focus:ring-action"
+                    className="h-11 flex-1 rounded-xl border border-slate-200 bg-white/50 px-4 text-sm font-medium text-slate-700 shadow-sm outline-none transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:bg-white focus:border-action focus:ring-1 focus:ring-action"
                     disabled={busy}
                   >
                     {PAYMENT_MODES.map((mode) => (
@@ -337,7 +337,7 @@ export function OfflineReceiptEditorModal({
                     min="0"
                     value={payment.amount}
                     onChange={(e) => setPaymentAmount(idx, e.target.value)}
-                    className="h-11 w-28 rounded-xl border border-slate-200 bg-white/50 px-4 text-right font-mono text-sm font-medium text-slate-700 shadow-sm outline-none transition-all hover:bg-white focus:border-action focus:ring-1 focus:ring-action"
+                    className="h-11 w-28 rounded-xl border border-slate-200 bg-white/50 px-4 text-right font-mono text-sm font-medium text-slate-700 shadow-sm outline-none transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:bg-white focus:border-action focus:ring-1 focus:ring-action"
                     disabled={busy}
                   />
                   {draft.payments.length > 1 && (
@@ -369,7 +369,7 @@ export function OfflineReceiptEditorModal({
                 onChange={(e) => setDraft((current) => ({ ...current, note: e.target.value }))}
                 maxLength={200}
                 rows={3}
-                className="w-full rounded-xl border border-slate-200 bg-white/50 p-4 text-sm font-medium normal-case text-slate-700 shadow-sm outline-none transition-all hover:bg-white focus:border-action focus:ring-1 focus:ring-action"
+                className="w-full rounded-xl border border-slate-200 bg-white/50 p-4 text-sm font-medium normal-case text-slate-700 shadow-sm outline-none transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:bg-white focus:border-action focus:ring-1 focus:ring-action"
                 disabled={busy}
               />
             </label>
@@ -384,7 +384,7 @@ export function OfflineReceiptEditorModal({
               <button
                 type="button"
                 onClick={onCancel}
-                className="flex h-11 items-center justify-center rounded-xl bg-white px-6 text-sm font-semibold tracking-wide text-slate-600 shadow-sm ring-1 ring-slate-200 transition-all duration-200 hover:bg-slate-50 hover:text-slate-900 active:scale-95 disabled:opacity-50"
+                className="flex h-11 items-center justify-center rounded-xl bg-white px-6 text-sm font-semibold tracking-wide text-slate-600 shadow-sm ring-1 ring-slate-200 transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:bg-slate-50 hover:text-slate-900 active:scale-[0.97] disabled:opacity-50"
                 disabled={busy}
               >
                 Cancel
@@ -393,7 +393,7 @@ export function OfflineReceiptEditorModal({
                 type="button"
                 onClick={save}
                 disabled={!canSave}
-                className="flex h-11 items-center justify-center rounded-xl bg-action px-6 text-sm font-bold tracking-wide text-white shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[var(--color-action)]/30 active:scale-95 disabled:pointer-events-none disabled:opacity-50"
+                className="flex h-11 items-center justify-center rounded-xl bg-action px-6 text-sm font-bold tracking-wide text-white shadow-sm transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:-translate-y-0.5 hover:shadow-[var(--color-action)]/30 active:scale-[0.97] disabled:pointer-events-none disabled:opacity-50"
               >
                 Save changes
               </button>

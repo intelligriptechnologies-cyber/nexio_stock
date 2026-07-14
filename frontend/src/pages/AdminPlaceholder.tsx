@@ -6,7 +6,7 @@ import { useLocation } from "react-router-dom";
 export function AdminPlaceholder() {
   const loc = useLocation();
   return (
-    <div className="rounded-[24px] bg-white p-8 shadow-lg ring-1 ring-slate-200">
+    <div className="rounded-xl bg-white p-8 shadow-lg ring-1 ring-slate-200">
       <h1 className="mb-4 text-2xl font-semibold tracking-tight text-slate-900">Admin Section</h1>
       <p className="text-body-md text-on-surface-variant">
         Owner-only admin section. Current path: <code>{loc.pathname}</code>. Per-screen

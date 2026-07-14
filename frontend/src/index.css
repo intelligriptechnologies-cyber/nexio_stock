@@ -49,6 +49,22 @@
     animation: fadeIn 0.3s ease-out forwards;
   }
 
+  /* Modal/overlay entrance — scale from 0.95, never from 0 */
+  @keyframes modalIn {
+    from {
+      opacity: 0;
+      transform: scale(0.95);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
+  .animate-modal-in {
+    animation: modalIn 0.2s ease-out forwards;
+  }
+
   /* Global prefers-reduced-motion override */
   @media (prefers-reduced-motion: reduce) {
     *,

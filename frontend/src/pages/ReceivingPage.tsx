@@ -431,22 +431,20 @@ export function ReceivingPage() {
 
       {quickAdd && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4 backdrop-blur-sm"
+          className="animate-fade-in fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4 backdrop-blur-sm"
           role="dialog"
           aria-modal="true"
           aria-labelledby="quick-add-title"
         >
-          <div className="animate-in fade-in zoom-in-95 duration-200">
-            <QuickAddModal
-              barcode={quickAdd.barcode}
-              busy={quickAddBusy}
-              error={quickAddError}
-              onCancel={closeQuickAdd}
-              onSubmit={({ brand, size }) => {
-                void submitQuickAdd({ brand, size });
-              }}
-            />
-          </div>
+          <QuickAddModal
+            barcode={quickAdd.barcode}
+            busy={quickAddBusy}
+            error={quickAddError}
+            onCancel={closeQuickAdd}
+            onSubmit={({ brand, size }) => {
+              void submitQuickAdd({ brand, size });
+            }}
+          />
         </div>
       )}
 
@@ -464,11 +462,11 @@ export function ReceivingPage() {
 
       {lastLot && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4 backdrop-blur-sm"
+          className="animate-fade-in fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4 backdrop-blur-sm"
           role="dialog"
           aria-modal="true"
         >
-          <div className="flex max-h-[90vh] w-full max-w-2xl flex-col gap-6 overflow-y-auto rounded-xl bg-white p-8 shadow-2xl animate-in fade-in zoom-in-95 duration-200">
+          <div className="animate-modal-in flex max-h-[90vh] w-full max-w-2xl flex-col gap-6 overflow-y-auto rounded-xl bg-white p-8 shadow-2xl">
             <header className="flex items-center justify-between border-b border-slate-100 pb-4">
               <h2 className="flex items-center gap-3 text-2xl font-light tracking-tight text-slate-900">
                 <CheckCircle2 className="h-8 w-8 text-emerald-500" /> Lot #{lastLot.id} saved
@@ -614,14 +612,14 @@ function PurchaseReviewModal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4 backdrop-blur-sm"
+      className="animate-fade-in fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4 backdrop-blur-sm"
       role="dialog"
       aria-modal="true"
       aria-labelledby="purchase-review-title"
     >
       <form
         onSubmit={submit}
-        className="flex max-h-[92vh] w-full max-w-4xl flex-col gap-6 overflow-y-auto rounded-xl bg-white p-8 shadow-2xl animate-in fade-in zoom-in-95 duration-200"
+        className="animate-modal-in flex max-h-[92vh] w-full max-w-4xl flex-col gap-6 overflow-y-auto rounded-xl bg-white p-8 shadow-2xl"
       >
         <header className="flex items-center justify-between border-b border-slate-100 pb-4">
           <h2 id="purchase-review-title" className="flex items-center gap-3 text-2xl font-light tracking-tight text-slate-900">

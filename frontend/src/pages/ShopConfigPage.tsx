@@ -84,7 +84,7 @@ export function ShopConfigPage() {
 
   return (
     <div className="flex flex-col gap-8 font-sans">
-      <header className="flex flex-col gap-2 rounded-[24px] border border-slate-200/50 bg-white/60 p-6 shadow-[0_8px_30px_rgb(0,0,0,0.02)] backdrop-blur-xl">
+      <header className="flex flex-col gap-2 rounded-xl border border-slate-200/50 bg-white/60 p-6 shadow-[0_8px_30px_rgb(0,0,0,0.02)] backdrop-blur-xl">
         <h1 className="flex items-center gap-3 text-2xl font-light tracking-tight text-slate-900">
           <Store className="h-6 w-6 text-action" /> Shop Config
         </h1>
@@ -96,7 +96,7 @@ export function ShopConfigPage() {
       </header>
 
       {user?.role === "superadmin" && actingShopId === null && (
-        <div className="flex h-[20vh] items-center justify-center rounded-[24px] border border-slate-200/50 bg-white/60 p-8 shadow-[0_8px_30px_rgb(0,0,0,0.02)] backdrop-blur-xl">
+        <div className="flex h-[20vh] items-center justify-center rounded-xl border border-slate-200/50 bg-white/60 p-8 shadow-[0_8px_30px_rgb(0,0,0,0.02)] backdrop-blur-xl">
           <div className="text-center text-sm font-medium text-slate-500">
             Pick a shop first (top of the sidebar).
           </div>
@@ -106,7 +106,7 @@ export function ShopConfigPage() {
       {shop && (
         <form
           onSubmit={save}
-          className="grid grid-cols-1 gap-8 rounded-[24px] border border-slate-200/50 bg-white/60 p-8 shadow-[0_8px_30px_rgb(0,0,0,0.02)] backdrop-blur-xl md:grid-cols-2"
+          className="grid grid-cols-1 gap-8 rounded-xl border border-slate-200/50 bg-white/60 p-8 shadow-[0_8px_30px_rgb(0,0,0,0.02)] backdrop-blur-xl md:grid-cols-2"
         >
         <Field
           label="GSTIN (15 uppercase alphanumerics)"
@@ -143,7 +143,7 @@ export function ShopConfigPage() {
           <button
             type="submit"
             disabled={busy}
-            className="flex h-11 items-center justify-center gap-2 rounded-xl bg-action px-8 text-sm font-bold tracking-wide text-white shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[var(--color-action)]/30 active:scale-95 disabled:pointer-events-none disabled:opacity-50"
+            className="flex h-11 items-center justify-center gap-2 rounded-xl bg-action px-8 text-sm font-bold tracking-wide text-white shadow-sm transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:-translate-y-0.5 hover:shadow-[var(--color-action)]/30 active:scale-[0.97] disabled:pointer-events-none disabled:opacity-50"
           >
             <Save className="h-4 w-4" /> {busy ? "Saving…" : "Save shop config"}
           </button>
@@ -198,7 +198,7 @@ function Field({
         max={max}
         maxLength={maxLength}
         placeholder={placeholder}
-        className="h-11 w-full rounded-xl border border-slate-200 bg-white/50 px-4 text-sm font-medium normal-case text-slate-700 shadow-sm outline-none transition-all hover:bg-white focus:border-action focus:ring-1 focus:ring-action"
+        className="h-11 w-full rounded-xl border border-slate-200 bg-white/50 px-4 text-sm font-medium normal-case text-slate-700 shadow-sm outline-none transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:bg-white focus:border-action focus:ring-1 focus:ring-action"
       />
     </label>
   );
@@ -223,7 +223,7 @@ function TextAreaField({
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
         rows={4}
-        className="min-h-[7rem] w-full rounded-xl border border-slate-200 bg-white/50 p-4 text-sm font-medium normal-case text-slate-700 shadow-sm outline-none transition-all hover:bg-white focus:border-action focus:ring-1 focus:ring-action"
+        className="min-h-[7rem] w-full rounded-xl border border-slate-200 bg-white/50 p-4 text-sm font-medium normal-case text-slate-700 shadow-sm outline-none transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:bg-white focus:border-action focus:ring-1 focus:ring-action"
       />
     </label>
   );

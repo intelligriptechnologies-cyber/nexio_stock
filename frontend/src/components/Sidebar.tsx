@@ -125,12 +125,12 @@ export function Sidebar() {
             : it.label}
       </span>
       {it.to === "/admin/pending" && pendingCount > 0 && (
-        <span className="animate-in zoom-in ml-2 flex h-5 items-center justify-center rounded-full bg-action px-2 text-[10px] font-bold text-on-action shadow-sm">
+        <span className="animate-modal-in ml-2 flex h-5 items-center justify-center rounded-full bg-action px-2 text-[10px] font-bold text-on-action shadow-sm">
           NEW
         </span>
       )}
       {it.to === "/admin/voids" && voidApprovalCount > 0 && (
-        <span className="animate-in zoom-in ml-2 flex h-5 items-center justify-center rounded-full bg-action px-2 text-[10px] font-bold text-on-action shadow-sm">
+        <span className="animate-modal-in ml-2 flex h-5 items-center justify-center rounded-full bg-action px-2 text-[10px] font-bold text-on-action shadow-sm">
           NEW
         </span>
       )}

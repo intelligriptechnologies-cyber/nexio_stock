@@ -1145,7 +1145,7 @@ export function CheckoutPage() {
           rest of the sale. */}
       {quickAdd && (
         <div
-          className="fixed inset-0 z-30 flex items-center justify-center bg-slate-900/40 p-4 backdrop-blur-sm transition-opacity"
+          className="animate-fade-in fixed inset-0 z-30 flex items-center justify-center bg-slate-900/40 p-4 backdrop-blur-sm"
           role="dialog"
           aria-modal="true"
           aria-labelledby="quick-add-title"
@@ -1461,11 +1461,11 @@ export function CheckoutPage() {
       {/* Modal-ish invoice preview */}
       {lastInvoice && (
         <div
-          className="fixed inset-0 z-30 flex items-center justify-center bg-slate-900/40 p-4 backdrop-blur-sm transition-opacity"
+          className="animate-fade-in fixed inset-0 z-30 flex items-center justify-center bg-slate-900/40 p-4 backdrop-blur-sm"
           role="dialog"
           aria-modal="true"
         >
-          <div className="flex max-h-[90vh] w-full max-w-2xl flex-col gap-gutter overflow-y-auto rounded-xl bg-white p-8 shadow-lg ring-1 ring-slate-200/50">
+          <div className="animate-modal-in flex max-h-[90vh] w-full max-w-2xl flex-col gap-gutter overflow-y-auto rounded-xl bg-white p-8 shadow-lg ring-1 ring-slate-200/50">
             <header className="flex items-start justify-between gap-stack-gap">
               <h2 className="text-xl font-light tracking-tight text-slate-900">
                 Invoice #{lastInvoice.invoice_number}

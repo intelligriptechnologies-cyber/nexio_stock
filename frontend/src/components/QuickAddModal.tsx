@@ -36,7 +36,7 @@ export function QuickAddModal({
         ).value;
         onSubmit({ brand, size });
       }}
-      className="flex w-full max-w-md flex-col gap-6 rounded-[24px] bg-white p-8 shadow-[0_20px_60px_rgba(0,0,0,0.1)] ring-1 ring-slate-200/50"
+      className="animate-modal-in flex w-full max-w-md flex-col gap-6 rounded-xl bg-white p-8 shadow-[0_20px_60px_rgba(0,0,0,0.1)] ring-1 ring-slate-200/50"
     >
       <header className="flex items-start justify-between gap-4">
         <div>
@@ -70,7 +70,7 @@ export function QuickAddModal({
           placeholder="e.g. Royal Stag"
           maxLength={200}
           autoFocus
-          className="h-11 w-full rounded-xl border border-slate-200 bg-white/50 px-4 text-sm font-medium normal-case text-slate-700 shadow-sm outline-none transition-all hover:bg-white focus:border-action focus:ring-1 focus:ring-action"
+          className="h-11 w-full rounded-xl border border-slate-200 bg-white/50 px-4 text-sm font-medium normal-case text-slate-700 shadow-sm outline-none transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:bg-white focus:border-action focus:ring-1 focus:ring-action"
         />
       </label>
 
@@ -81,7 +81,7 @@ export function QuickAddModal({
           type="text"
           placeholder="e.g. 750ml"
           maxLength={64}
-          className="h-11 w-full rounded-xl border border-slate-200 bg-white/50 px-4 text-sm font-medium normal-case text-slate-700 shadow-sm outline-none transition-all hover:bg-white focus:border-action focus:ring-1 focus:ring-action"
+          className="h-11 w-full rounded-xl border border-slate-200 bg-white/50 px-4 text-sm font-medium normal-case text-slate-700 shadow-sm outline-none transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:bg-white focus:border-action focus:ring-1 focus:ring-action"
         />
       </label>
 
@@ -98,14 +98,14 @@ export function QuickAddModal({
         <button
           type="button"
           onClick={onCancel}
-          className="flex h-11 items-center justify-center rounded-xl bg-white px-6 text-sm font-semibold tracking-wide text-slate-600 shadow-sm ring-1 ring-slate-200 transition-all duration-200 hover:bg-slate-50 hover:text-slate-900 active:scale-95 disabled:opacity-50"
+          className="flex h-11 items-center justify-center rounded-xl bg-white px-6 text-sm font-semibold tracking-wide text-slate-600 shadow-sm ring-1 ring-slate-200 transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:bg-slate-50 hover:text-slate-900 active:scale-[0.97] disabled:opacity-50"
           disabled={busy}
         >
           Cancel
         </button>
         <button
           type="submit"
-          className="flex h-11 items-center justify-center rounded-xl bg-action px-6 text-sm font-bold tracking-wide text-white shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[var(--color-action)]/30 active:scale-95 disabled:pointer-events-none disabled:opacity-50"
+          className="flex h-11 items-center justify-center rounded-xl bg-action px-6 text-sm font-bold tracking-wide text-white shadow-sm transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:-translate-y-0.5 hover:shadow-[var(--color-action)]/30 active:scale-[0.97] disabled:pointer-events-none disabled:opacity-50"
           disabled={busy}
         >
           {busy ? "Adding..." : "Add product"}

@@ -61,7 +61,7 @@ export function PinPad({
               type="button"
               disabled={disabled}
               onClick={onClear}
-              className="h-16 rounded-2xl bg-slate-100 text-lg font-bold text-slate-700 transition-colors hover:bg-slate-200 active:bg-slate-300 disabled:opacity-50"
+              className="h-16 rounded-2xl bg-slate-100 text-lg font-bold text-slate-700 transition-[transform,background-color] duration-150 ease-out hover:bg-slate-200 active:scale-[0.95] active:bg-slate-300 disabled:opacity-50"
             >
               CLR
             </button>
@@ -74,7 +74,7 @@ export function PinPad({
               type="button"
               disabled={disabled}
               onClick={onBackspace}
-              className="h-16 rounded-2xl bg-slate-100 text-lg font-bold text-slate-700 transition-colors hover:bg-slate-200 active:bg-slate-300 disabled:opacity-50"
+              className="h-16 rounded-2xl bg-slate-100 text-lg font-bold text-slate-700 transition-[transform,background-color] duration-150 ease-out hover:bg-slate-200 active:scale-[0.95] active:bg-slate-300 disabled:opacity-50"
               aria-label="Backspace"
             >
               ⌫
@@ -87,7 +87,7 @@ export function PinPad({
             type="button"
             disabled={disabled}
             onClick={() => onDigit(k)}
-            className="min-h-touchTarget rounded-md bg-primary text-display-lg text-on-primary active:bg-primary-container disabled:opacity-50"
+            className="min-h-touchTarget rounded-md bg-primary text-display-lg text-on-primary transition-transform duration-150 ease-out active:scale-[0.95] active:bg-primary-container disabled:opacity-50"
             aria-label={`Digit ${k}`}
           >
             {k}
@@ -98,7 +98,7 @@ export function PinPad({
         type="button"
         disabled={disabled}
         onClick={onSubmit}
-        className="col-span-3 min-h-touchTarget rounded-md bg-action text-label-xl text-on-action active:opacity-90 disabled:opacity-50"
+        className="col-span-3 min-h-touchTarget rounded-md bg-action text-label-xl text-on-action transition-transform duration-150 ease-out active:scale-[0.97] active:opacity-90 disabled:opacity-50"
       >
         {accentLabel}
       </button>

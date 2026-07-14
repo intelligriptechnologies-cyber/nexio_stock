@@ -24,8 +24,8 @@ export function ScanSuccessOverlay({ brand, sizeLabel, onDone }: ScanSuccessOver
   return (
     <div
       aria-live="polite"
-      className={`pointer-events-none fixed inset-0 z-20 flex items-center justify-center bg-success/90 px-gutter text-on-secondary transition-opacity duration-200 ${
-        visible ? "opacity-100" : "opacity-0"
+      className={`pointer-events-none fixed inset-0 z-20 flex items-center justify-center bg-success/90 px-gutter text-on-secondary transition-[opacity,transform] duration-200 ease-out ${
+        visible ? "scale-100 opacity-100" : "scale-95 opacity-0"
       }`}
       data-testid="scan-success-overlay"
     >
