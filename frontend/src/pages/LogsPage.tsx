@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { FileText, RefreshCw, Download, Save } from "lucide-react";
 import { useAuth } from "../auth/AuthProvider";
 import { useShopScope } from "../auth/ShopScopeProvider";
 import { ApiError } from "../api/client";
@@ -105,24 +106,27 @@ export function LogsPage() {
   };
 
   return (
-    <div className="flex flex-col gap-gutter">
-      <header className="flex flex-wrap items-center justify-between gap-stack-gap">
+    <div className="flex flex-col gap-8 font-sans">
+      <header className="flex flex-wrap items-center justify-between gap-4 rounded-[24px] border border-slate-200/50 bg-white/60 p-6 shadow-[0_8px_30px_rgb(0,0,0,0.02)] backdrop-blur-xl">
         <div>
-          <h1 className="text-headline-lg text-primary">Logs</h1>
-          <p className="text-label-md text-on-surface-variant">
-            {activeTab?.label ?? "Log files"} · {files.length} files
+          <h1 className="flex items-center gap-3 text-2xl font-light tracking-tight text-slate-900">
+            <FileText className="h-6 w-6 text-action" /> Logs
+          </h1>
+          <p className="mt-1 text-sm font-medium text-slate-500">
+            {activeTab?.label ?? "Log files"} <span className="mx-2 text-slate-300">·</span> {files.length} files
           </p>
         </div>
         <button
           type="button"
           onClick={() => void reload()}
-          className="rounded-md bg-action px-stack-gap py-2 text-label-md text-on-action"
+          className="group flex h-10 items-center justify-center rounded-xl bg-white px-5 text-sm font-semibold tracking-wide text-slate-700 shadow-sm ring-1 ring-slate-200 transition-all duration-300 hover:scale-[1.02] hover:bg-slate-50 hover:shadow-md active:scale-95"
         >
-          Refresh
+          <RefreshCw className="h-4 w-4 text-slate-400 transition-transform duration-300 group-hover:rotate-180" />
+          <span className="ml-2">Refresh</span>
         </button>
       </header>
 
-      <div className="flex flex-wrap gap-2" role="tablist" aria-label="Log sections">
+      <div className="flex flex-wrap gap-2 border-b border-slate-200/60 pb-4" role="tablist" aria-label="Log sections">
         {tabs.map((tab) => (
           <button
             key={tab.type}
@@ -130,8 +134,10 @@ export function LogsPage() {
             role="tab"
             aria-selected={type === tab.type}
             onClick={() => setType(tab.type)}
-            className={`min-h-touchTarget-sm rounded-md px-stack-gap text-label-md ${
-              type === tab.type ? "bg-primary text-on-primary" : "bg-surface-container-high text-on-surface"
+            className={`group relative flex h-11 items-center justify-center gap-2 rounded-full px-6 text-sm font-bold tracking-wide transition-all duration-300 ${
+              type === tab.type
+                ? "bg-action text-white shadow-[0_4px_20px_rgba(var(--color-action-rgb),0.3)] hover:-translate-y-0.5"
+                : "bg-white text-slate-500 shadow-sm ring-1 ring-slate-200 hover:bg-slate-50 hover:text-slate-700"
             }`}
           >
             {tab.label}
@@ -139,70 +145,77 @@ export function LogsPage() {
         ))}
       </div>
 
-      <section className="flex flex-wrap items-end gap-stack-gap">
-        <label className="flex flex-col gap-1 text-label-md text-on-surface">
-          Retention days
-          <input
-            value={draftRetentionDays}
-            onChange={(e) => setDraftRetentionDays(e.target.value)}
-            inputMode="numeric"
-            className="min-h-touchTarget-sm w-32 rounded-md border border-outline bg-surface px-3 text-body-md text-on-surface"
-          />
-        </label>
-        <button
-          type="button"
-          onClick={() => void saveRetention()}
-          disabled={retentionNeedsShop}
-          className="min-h-touchTarget-sm rounded-md bg-primary px-stack-gap text-label-md text-on-primary disabled:opacity-50"
-        >
-          Save
-        </button>
-        <span className="text-label-md text-on-surface-variant">
-          Current: {retentionDays} days
-        </span>
+      <section className="flex flex-col gap-6 rounded-[24px] border border-slate-200/50 bg-white/60 p-6 shadow-[0_8px_30px_rgb(0,0,0,0.02)] backdrop-blur-xl">
+        <div className="flex flex-wrap items-end gap-6">
+          <label className="flex flex-col gap-1.5 text-xs font-semibold uppercase tracking-wider text-slate-500">
+            Retention days
+            <input
+              value={draftRetentionDays}
+              onChange={(e) => setDraftRetentionDays(e.target.value)}
+              inputMode="numeric"
+              className="h-11 w-32 rounded-xl border border-slate-200 bg-white/50 px-4 text-sm font-medium text-slate-700 shadow-sm outline-none transition-all focus:border-action focus:ring-1 focus:ring-action"
+            />
+          </label>
+          <button
+            type="button"
+            onClick={() => void saveRetention()}
+            disabled={retentionNeedsShop}
+            className="flex h-11 items-center justify-center gap-2 rounded-xl bg-action px-6 text-sm font-bold tracking-wide text-white shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[var(--color-action)]/30 active:scale-95 disabled:pointer-events-none disabled:opacity-50"
+          >
+            <Save className="h-4 w-4" /> Save
+          </button>
+          <div className="mb-3 text-sm font-medium text-slate-500">
+            Current: <span className="font-semibold text-slate-700">{retentionDays}</span> days
+          </div>
+        </div>
+
+        {retentionNeedsShop && (
+          <div role="status" className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-medium text-amber-700">
+            Pick a shop in the sidebar before changing retention for this tab.
+          </div>
+        )}
+        {error && <div role="alert" className="rounded-xl bg-red-50 px-4 py-3 text-sm font-medium text-red-600 ring-1 ring-red-200">{error}</div>}
+        {info && <div role="status" className="rounded-xl bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-600 ring-1 ring-emerald-200">{info}</div>}
       </section>
 
-      {retentionNeedsShop && (
-        <div role="status" className="rounded-md bg-surface-container px-stack-gap py-3 text-label-md text-on-surface">
-          Pick a shop in the sidebar before changing retention for this tab.
-        </div>
-      )}
-      {error && <div role="alert" className="rounded-md bg-error px-stack-gap py-3 text-on-error">{error}</div>}
-      {info && <div role="status" className="rounded-md bg-success px-stack-gap py-3 text-on-secondary">{info}</div>}
-
-      <div className="overflow-x-auto rounded-md border border-outline bg-surface">
-        <table className="min-w-full text-left text-label-md">
-          <thead className="bg-surface-container text-on-surface-variant">
+      <div className="max-h-[calc(100vh-22rem)] overflow-y-auto rounded-[24px] border border-slate-200/50 bg-white/60 shadow-[0_8px_30px_rgb(0,0,0,0.02)] backdrop-blur-xl custom-scrollbar">
+        <table className="w-full text-left text-sm">
+          <thead className="sticky top-0 z-10 bg-slate-50/90 text-[11px] uppercase tracking-widest text-slate-500 backdrop-blur-sm">
             <tr>
-              <th className="px-stack-gap py-3 font-medium">File</th>
-              <th className="px-stack-gap py-3 font-medium">Modified</th>
-              <th className="px-stack-gap py-3 font-medium">Size</th>
-              <th className="px-stack-gap py-3 font-medium">Age</th>
-              <th className="px-stack-gap py-3 font-medium">Expires in</th>
-              <th className="px-stack-gap py-3 font-medium">Download</th>
+              <th className="px-6 py-4 font-semibold">File</th>
+              <th className="px-6 py-4 font-semibold">Modified</th>
+              <th className="px-6 py-4 font-semibold">Size</th>
+              <th className="px-6 py-4 font-semibold">Age</th>
+              <th className="px-6 py-4 font-semibold">Expires in</th>
+              <th className="px-6 py-4 font-semibold text-right">Download</th>
             </tr>
           </thead>
-          <tbody>
+          <tbody className="divide-y divide-slate-100">
             {files.map((file) => (
-              <tr key={file.relative_path} className="border-t border-outline">
-                <td className="px-stack-gap py-3 text-on-surface">
-                  <div className="font-medium">{file.filename}</div>
-                  <div className="text-label-sm text-on-surface-variant">{file.relative_path}</div>
+              <tr key={file.relative_path} className="transition-colors hover:bg-slate-50/50">
+                <td className="px-6 py-4">
+                  <div className="font-medium text-slate-900">{file.filename}</div>
+                  <div className="mt-1 text-xs text-slate-500">{file.relative_path}</div>
                 </td>
-                <td className="px-stack-gap py-3 text-on-surface-variant">
+                <td className="px-6 py-4 text-slate-600">
                   {new Date(file.modified_at).toLocaleString()}
                 </td>
-                <td className="px-stack-gap py-3 text-on-surface-variant">{formatBytes(file.size_bytes)}</td>
-                <td className="px-stack-gap py-3 text-on-surface-variant">{formatDays(file.age_days)}</td>
-                <td className="px-stack-gap py-3 text-on-surface-variant">
-                  {file.expires_in_days === 0 ? "Expires today" : `${file.expires_in_days} days`}
+                <td className="px-6 py-4 font-mono text-slate-600">{formatBytes(file.size_bytes)}</td>
+                <td className="px-6 py-4 text-slate-600">{formatDays(file.age_days)}</td>
+                <td className="px-6 py-4">
+                  <span className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium ${
+                    file.expires_in_days === 0 ? "bg-red-50 text-red-700" : "bg-slate-100 text-slate-700"
+                  }`}>
+                    {file.expires_in_days === 0 ? "Expires today" : `${file.expires_in_days} days`}
+                  </span>
                 </td>
-                <td className="px-stack-gap py-3">
+                <td className="px-6 py-4 text-right">
                   <button
                     type="button"
                     onClick={() => void download(file)}
-                    className="rounded-md bg-action px-stack-gap py-2 text-label-md text-on-action"
+                    className="inline-flex h-9 items-center justify-center gap-1.5 rounded-xl bg-white px-4 text-xs font-bold tracking-wide text-action shadow-sm ring-1 ring-slate-200 transition-all duration-200 hover:-translate-y-0.5 hover:bg-slate-50 hover:shadow-md active:scale-95"
                   >
+                    <Download className="h-3.5 w-3.5" />
                     Download
                   </button>
                 </td>
@@ -210,7 +223,7 @@ export function LogsPage() {
             ))}
             {files.length === 0 && (
               <tr>
-                <td colSpan={6} className="px-stack-gap py-gutter text-center text-on-surface-variant">
+                <td colSpan={6} className="px-6 py-12 text-center text-sm font-medium text-slate-500">
                   No log files for this tab.
                 </td>
               </tr>

@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import type { ReactNode } from "react";
+import { Settings, Palette, Mail, FileText, Save } from "lucide-react";
 import { ApiError } from "../api/client";
 import { getMySettings, updateMySettings, type SettingsPublic } from "../api/settings";
 import { useAuth } from "../auth/AuthProvider";
@@ -102,35 +103,41 @@ export function SettingsPage() {
   };
 
   return (
-    <div className="flex flex-col gap-stack-gap">
-      <div>
-        <h1 className="text-headline-lg text-primary">Settings</h1>
+    <div className="flex flex-col gap-8 font-sans">
+      <header className="flex flex-col gap-2 rounded-[24px] border border-slate-200/50 bg-white/60 p-6 shadow-[0_8px_30px_rgb(0,0,0,0.02)] backdrop-blur-xl">
+        <h1 className="flex items-center gap-3 text-2xl font-light tracking-tight text-slate-900">
+          <Settings className="h-6 w-6 text-action" /> Settings
+        </h1>
         {settings && (
-          <p className="text-label-md text-on-surface-variant">
-            {settings.name} <span className="font-mono">({settings.code})</span>
+          <p className="text-sm font-medium text-slate-500">
+            {settings.name} <span className="font-mono text-slate-400">({settings.code})</span>
           </p>
         )}
-      </div>
+      </header>
 
       {blocked && (
-        <div className="rounded-md bg-surface-container p-stack-gap text-on-surface-variant">
-          Pick a shop first (top of the sidebar).
+        <div className="flex h-[20vh] items-center justify-center rounded-[24px] border border-slate-200/50 bg-white/60 p-8 shadow-[0_8px_30px_rgb(0,0,0,0.02)] backdrop-blur-xl">
+          <div className="text-center text-sm font-medium text-slate-500">
+            Pick a shop first (top of the sidebar).
+          </div>
         </div>
       )}
 
-      <div className="flex flex-wrap gap-2 border-b border-outline">
-        <TabButton active={tab === "general"} onClick={() => setTab("general")}>
-          General Settings
-        </TabButton>
-        <TabButton active={tab === "email"} onClick={() => setTab("email")}>
-          Email Settings
-        </TabButton>
-        <TabButton active={tab === "invoice"} onClick={() => setTab("invoice")}>
-          Invoice Settings
-        </TabButton>
-      </div>
+      {!blocked && (
+        <div className="flex flex-wrap gap-2 border-b border-slate-200/60 pb-4">
+          <TabButton active={tab === "general"} onClick={() => setTab("general")}>
+            <Palette className="h-4 w-4" /> General Settings
+          </TabButton>
+          <TabButton active={tab === "email"} onClick={() => setTab("email")}>
+            <Mail className="h-4 w-4" /> Email Settings
+          </TabButton>
+          <TabButton active={tab === "invoice"} onClick={() => setTab("invoice")}>
+            <FileText className="h-4 w-4" /> Invoice Settings
+          </TabButton>
+        </div>
+      )}
 
-      {tab === "general" && (
+      {tab === "general" && !blocked && (
         <form
           onSubmit={(e) => {
             e.preventDefault();
@@ -145,7 +152,7 @@ export function SettingsPage() {
               "General settings saved."
             );
           }}
-          className="grid grid-cols-1 gap-stack-gap rounded-md bg-surface-container p-gutter md:grid-cols-2"
+          className="grid grid-cols-1 gap-8 rounded-[24px] border border-slate-200/50 bg-white/60 p-8 shadow-[0_8px_30px_rgb(0,0,0,0.02)] backdrop-blur-xl md:grid-cols-2"
         >
           <Field
             label="Sidebar Brand Name"
@@ -153,20 +160,20 @@ export function SettingsPage() {
             onChange={(v) => setField("appName", v)}
             placeholder={DEFAULT_SIDEBAR_BRAND_NAME}
           />
-          <label className="flex flex-col gap-1 text-label-md">
+          <label className="flex flex-col gap-1.5 text-xs font-semibold uppercase tracking-wider text-slate-500">
             Active/Button Color
-            <div className="flex min-h-touchTarget-sm items-center gap-stack-gap rounded-md border border-outline bg-surface px-stack-gap">
+            <div className="flex h-11 items-center gap-3 overflow-hidden rounded-xl border border-slate-200 bg-white/50 pr-4 shadow-sm transition-all focus-within:border-action focus-within:ring-1 focus-within:ring-action">
               <input
                 aria-label="Active/Button Color"
                 type="color"
                 value={form.actionColor}
                 onChange={(e) => setField("actionColor", e.target.value)}
-                className="h-10 w-14 cursor-pointer bg-transparent"
+                className="h-full w-14 cursor-pointer border-0 p-0"
               />
               <input
                 value={form.actionColor}
                 onChange={(e) => setField("actionColor", e.target.value)}
-                className="min-h-touchTarget-sm flex-1 bg-transparent text-body-md"
+                className="flex-1 bg-transparent text-sm font-medium text-slate-700 outline-none"
               />
             </div>
           </label>
@@ -185,9 +192,9 @@ export function SettingsPage() {
             value={form.menuActiveTextColor}
             onChange={(v) => setField("menuActiveTextColor", v)}
           />
-          <div className="md:col-span-2 flex flex-wrap items-center gap-stack-gap">
+          <div className="flex flex-wrap items-center gap-4 md:col-span-2">
             <div
-              className="flex min-h-touchTarget-sm items-center rounded-md px-gutter text-label-md"
+              className="flex h-11 items-center rounded-xl px-5 text-sm font-bold tracking-wide shadow-sm"
               style={{
                 backgroundColor: form.actionColor,
                 color: previewTextColor(form.actionColor),
@@ -196,7 +203,7 @@ export function SettingsPage() {
               Action preview
             </div>
             <div
-              className="flex min-h-touchTarget-sm items-center rounded-t-md px-gutter text-label-md"
+              className="flex h-11 items-center rounded-xl px-5 text-sm font-bold tracking-wide shadow-sm"
               style={{
                 backgroundColor: form.activeTabColor,
                 color: previewTextColor(form.activeTabColor),
@@ -204,12 +211,12 @@ export function SettingsPage() {
             >
               Active tab preview
             </div>
-            <div className="flex min-h-touchTarget-sm flex-wrap items-center gap-4 rounded-md border border-outline bg-surface px-stack-gap text-label-md">
-              <span className="text-on-surface-variant">Menu text preview</span>
+            <div className="flex h-11 flex-wrap items-center gap-4 rounded-xl border border-slate-200 bg-white/50 px-5 text-sm font-medium">
+              <span className="text-slate-500">Menu text preview</span>
               <span className="inline-flex items-center gap-2">
                 <span
                   aria-hidden="true"
-                  className="h-4 w-4 rounded-sm border border-outline"
+                  className="h-4 w-4 rounded-full border border-slate-200 shadow-sm"
                   style={{ backgroundColor: form.menuActiveTextColor }}
                 />
                 <span style={{ color: form.menuActiveTextColor }}>Active</span>
@@ -217,26 +224,26 @@ export function SettingsPage() {
               <span className="inline-flex items-center gap-2">
                 <span
                   aria-hidden="true"
-                  className="h-4 w-4 rounded-sm border border-outline"
+                  className="h-4 w-4 rounded-full border border-slate-200 shadow-sm"
                   style={{ backgroundColor: form.menuInactiveTextColor }}
                 />
                 <span style={{ color: form.menuInactiveTextColor }}>Inactive</span>
               </span>
             </div>
           </div>
-          <div className="mt-[50px] flex md:col-span-2">
+          <div className="mt-4 flex md:col-span-2">
             <button
               type="submit"
               disabled={busy}
-              className="min-h-touchTarget rounded-lg bg-action px-gutter text-label-xl text-on-action shadow-sm transition hover:brightness-95 disabled:opacity-50"
+              className="flex h-11 items-center justify-center gap-2 rounded-xl bg-action px-8 text-sm font-bold tracking-wide text-white shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[var(--color-action)]/30 active:scale-95 disabled:pointer-events-none disabled:opacity-50"
             >
-              {busy ? "Saving..." : "Save"}
+              <Save className="h-4 w-4" /> {busy ? "Saving..." : "Save"}
             </button>
           </div>
         </form>
       )}
 
-      {tab === "email" && (
+      {tab === "email" && !blocked && (
         <form
           onSubmit={(e) => {
             e.preventDefault();
@@ -254,14 +261,14 @@ export function SettingsPage() {
               "Email settings saved."
             );
           }}
-          className="grid grid-cols-1 gap-stack-gap rounded-md bg-surface-container p-gutter md:grid-cols-2"
+          className="grid grid-cols-1 gap-8 rounded-[24px] border border-slate-200/50 bg-white/60 p-8 shadow-[0_8px_30px_rgb(0,0,0,0.02)] backdrop-blur-xl md:grid-cols-2"
         >
-          <label className="md:col-span-2 flex min-h-touchTarget-sm items-center gap-stack-gap text-label-md">
+          <label className="flex h-11 w-fit items-center gap-3 rounded-xl border border-slate-200 bg-white/50 px-4 text-sm font-semibold tracking-wide text-slate-700 shadow-sm md:col-span-2">
             <input
               type="checkbox"
               checked={form.emailEnabled}
               onChange={(e) => setField("emailEnabled", e.target.checked)}
-              className="h-6 w-6"
+              className="h-5 w-5 rounded border-slate-300 text-action focus:ring-action"
             />
             Enable email
           </label>
@@ -297,34 +304,34 @@ export function SettingsPage() {
             value={form.smtpFromName}
             onChange={(v) => setField("smtpFromName", v)}
           />
-          <label className="flex min-h-touchTarget-sm items-center gap-stack-gap text-label-md">
+          <label className="flex h-11 w-fit items-center gap-3 rounded-xl border border-slate-200 bg-white/50 px-4 text-sm font-semibold tracking-wide text-slate-700 shadow-sm">
             <input
               type="checkbox"
               checked={form.smtpUseTls}
               onChange={(e) => setField("smtpUseTls", e.target.checked)}
-              className="h-6 w-6"
+              className="h-5 w-5 rounded border-slate-300 text-action focus:ring-action"
             />
             Use TLS
           </label>
-          <div className="flex flex-wrap gap-stack-gap md:col-span-2">
+          <div className="mt-4 flex flex-wrap gap-4 md:col-span-2">
             <button
               type="submit"
               disabled={busy}
-              className="min-h-touchTarget rounded-md bg-action px-gutter text-label-xl text-on-action disabled:opacity-50"
+              className="flex h-11 items-center justify-center gap-2 rounded-xl bg-action px-8 text-sm font-bold tracking-wide text-white shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[var(--color-action)]/30 active:scale-95 disabled:pointer-events-none disabled:opacity-50"
             >
-              {busy ? "Saving..." : "Save"}
+              <Save className="h-4 w-4" /> {busy ? "Saving..." : "Save"}
             </button>
             <button
               type="button"
               disabled
-              className="min-h-touchTarget rounded-md bg-surface-container-high px-gutter text-label-md text-on-surface-variant opacity-60"
+              className="flex h-11 items-center justify-center rounded-xl bg-white px-6 text-sm font-semibold tracking-wide text-slate-500 shadow-sm ring-1 ring-slate-200 transition-all hover:bg-slate-50 active:scale-95 disabled:pointer-events-none disabled:opacity-50"
             >
               Test SMTP
             </button>
             <button
               type="button"
               disabled
-              className="min-h-touchTarget rounded-md bg-surface-container-high px-gutter text-label-md text-on-surface-variant opacity-60"
+              className="flex h-11 items-center justify-center rounded-xl bg-white px-6 text-sm font-semibold tracking-wide text-slate-500 shadow-sm ring-1 ring-slate-200 transition-all hover:bg-slate-50 active:scale-95 disabled:pointer-events-none disabled:opacity-50"
             >
               Send Test Mail
             </button>
@@ -332,7 +339,7 @@ export function SettingsPage() {
         </form>
       )}
 
-      {tab === "invoice" && (
+      {tab === "invoice" && !blocked && (
         <form
           onSubmit={(e) => {
             e.preventDefault();
@@ -347,7 +354,7 @@ export function SettingsPage() {
               "Invoice settings saved."
             );
           }}
-          className="grid grid-cols-1 gap-stack-gap rounded-md bg-surface-container p-gutter md:grid-cols-2"
+          className="grid grid-cols-1 gap-8 rounded-[24px] border border-slate-200/50 bg-white/60 p-8 shadow-[0_8px_30px_rgb(0,0,0,0.02)] backdrop-blur-xl md:grid-cols-2"
         >
           <Field
             label="GSTIN (15 uppercase alphanumerics)"
@@ -372,23 +379,25 @@ export function SettingsPage() {
             type="number"
             min="0"
           />
-          <button
-            type="submit"
-            disabled={busy}
-            className="min-h-touchTarget rounded-md bg-action text-label-xl text-on-action disabled:opacity-50 md:col-span-2"
-          >
-            {busy ? "Saving..." : "Save"}
-          </button>
+          <div className="mt-4 flex md:col-span-2">
+            <button
+              type="submit"
+              disabled={busy}
+              className="flex h-11 items-center justify-center gap-2 rounded-xl bg-action px-8 text-sm font-bold tracking-wide text-white shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[var(--color-action)]/30 active:scale-95 disabled:pointer-events-none disabled:opacity-50"
+            >
+              <Save className="h-4 w-4" /> {busy ? "Saving..." : "Save"}
+            </button>
+          </div>
         </form>
       )}
 
       {error && (
-        <div role="alert" className="rounded-md bg-error px-stack-gap py-3 text-on-error">
+        <div role="alert" className="rounded-xl bg-red-50 px-4 py-3 text-sm font-medium text-red-600 ring-1 ring-red-200">
           {error}
         </div>
       )}
       {info && (
-        <div role="status" className="rounded-md bg-success px-stack-gap py-3 text-on-secondary">
+        <div role="status" className="rounded-xl bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-600 ring-1 ring-emerald-200">
           {info}
         </div>
       )}
@@ -409,8 +418,10 @@ function TabButton({
     <button
       type="button"
       onClick={onClick}
-      className={`min-h-touchTarget-sm rounded-t-md px-stack-gap text-label-md ${
-        active ? "bg-active-tab text-on-active-tab" : "text-on-surface-variant hover:bg-surface-container"
+      className={`group relative flex h-11 items-center justify-center gap-2 rounded-full px-6 text-sm font-bold tracking-wide transition-all duration-300 ${
+        active 
+          ? "bg-action text-white shadow-[0_4px_20px_rgba(var(--color-action-rgb),0.3)] hover:-translate-y-0.5" 
+          : "bg-white text-slate-500 shadow-sm ring-1 ring-slate-200 hover:bg-slate-50 hover:text-slate-700"
       }`}
     >
       {children}
@@ -440,7 +451,7 @@ function Field({
   placeholder?: string;
 }) {
   return (
-    <label className="flex flex-col gap-1 text-label-md">
+    <label className="flex flex-col gap-1.5 text-xs font-semibold uppercase tracking-wider text-slate-500">
       {label}
       <input
         type={type}
@@ -451,7 +462,7 @@ function Field({
         max={max}
         maxLength={maxLength}
         placeholder={placeholder}
-        className="min-h-touchTarget-sm rounded-md border border-outline bg-surface px-stack-gap text-body-md"
+        className="h-11 w-full rounded-xl border border-slate-200 bg-white/50 px-4 text-sm font-medium normal-case text-slate-700 shadow-sm outline-none transition-all hover:bg-white focus:border-action focus:ring-1 focus:ring-action"
       />
     </label>
   );
@@ -467,19 +478,19 @@ function ColorTextField({
   onChange: (v: string) => void;
 }) {
   return (
-    <label className="flex flex-col gap-1 text-label-md">
+    <label className="flex flex-col gap-1.5 text-xs font-semibold uppercase tracking-wider text-slate-500">
       {label}
-      <div className="flex min-h-touchTarget-sm items-center gap-stack-gap rounded-md border border-outline bg-surface px-stack-gap">
+      <div className="flex h-11 items-center gap-3 overflow-hidden rounded-xl border border-slate-200 bg-white/50 pr-4 shadow-sm transition-all focus-within:border-action focus-within:ring-1 focus-within:ring-action">
         <span
           aria-hidden="true"
-          className="h-10 w-14 rounded-sm border border-outline"
+          className="h-full w-14"
           style={{ backgroundColor: isCssHexColor(value) ? value : "transparent" }}
         />
         <input
           value={value}
           onChange={(e) => onChange(e.target.value)}
           placeholder="#535353cf"
-          className="min-h-touchTarget-sm flex-1 bg-transparent font-mono text-body-md"
+          className="flex-1 bg-transparent font-mono text-sm text-slate-700 outline-none normal-case"
         />
       </div>
     </label>
@@ -496,21 +507,21 @@ function ColorField({
   onChange: (v: string) => void;
 }) {
   return (
-    <label className="flex flex-col gap-1 text-label-md">
+    <label className="flex flex-col gap-1.5 text-xs font-semibold uppercase tracking-wider text-slate-500">
       {label}
-      <div className="flex min-h-touchTarget-sm items-center gap-stack-gap rounded-md border border-outline bg-surface px-stack-gap">
+      <div className="flex h-11 items-center gap-3 overflow-hidden rounded-xl border border-slate-200 bg-white/50 pr-4 shadow-sm transition-all focus-within:border-action focus-within:ring-1 focus-within:ring-action">
         <input
           aria-label={label}
           type="color"
           value={isSixDigitHexColor(value) ? value : "#5a5148"}
           onChange={(e) => onChange(e.target.value)}
-          className="h-10 w-14 cursor-pointer bg-transparent"
+          className="h-full w-14 cursor-pointer border-0 p-0"
         />
         <input
           value={value}
           onChange={(e) => onChange(e.target.value)}
           placeholder="#5a5148"
-          className="min-h-touchTarget-sm flex-1 bg-transparent font-mono text-body-md"
+          className="flex-1 bg-transparent font-mono text-sm text-slate-700 outline-none normal-case"
         />
       </div>
     </label>

@@ -19,6 +19,7 @@ import {
 import { listShops, type ShopSummary } from "../api/shops";
 import { requestVoid } from "../api/voids";
 import { notifyVoidApprovalsChanged } from "../api/void-approvals-events";
+import { ReceiptText, RefreshCw, FileText, Download, XOctagon, Edit3, Eye, Calendar, MapPin, Filter, Search } from "lucide-react";
 
 type Source = "current" | "past";
 
@@ -327,17 +328,19 @@ export function InvoiceLookupPage() {
   };
 
   return (
-    <div className="flex flex-col gap-stack-gap">
+    <div className="flex flex-col gap-8 font-sans">
       <header>
-        <h1 className="text-headline-lg text-primary">Invoices</h1>
-        <p className="text-label-md text-on-surface-variant">
+        <h1 className="flex items-center gap-3 text-3xl font-light tracking-tight text-slate-900">
+          <ReceiptText className="h-8 w-8 text-action" /> Invoices
+        </h1>
+        <p className="mt-2 text-sm text-slate-500">
           {source === "current"
             ? "Open business-day invoices that are not EOD archived."
             : "Archived invoices after EOD sign-off."}
         </p>
       </header>
 
-      <div className="flex flex-wrap gap-2 border-b border-outline">
+      <div className="flex flex-wrap gap-2 border-b border-slate-200/60 pb-4">
         <TabButton active={source === "current"} onClick={() => setSource("current")}>
           Today
         </TabButton>
@@ -346,14 +349,14 @@ export function InvoiceLookupPage() {
         </TabButton>
       </div>
 
-      <section className="grid gap-stack-gap rounded-md bg-surface-container p-stack-gap md:grid-cols-4">
+      <section className="grid gap-6 rounded-[24px] border border-slate-200/50 bg-white/60 p-6 shadow-[0_8px_30px_rgb(0,0,0,0.02)] backdrop-blur-xl md:grid-cols-4">
         {user?.role === "superadmin" && (
-          <label className="flex flex-col gap-1 text-label-md text-on-surface">
-            Shop
+          <label className="flex flex-col gap-1.5 text-xs font-semibold uppercase tracking-wider text-slate-500">
+            <span className="flex items-center gap-1.5"><MapPin className="h-4 w-4" /> Shop</span>
             <select
               value={actingShopId ?? ""}
               onChange={(e) => setActingShopId(e.target.value ? Number(e.target.value) : null)}
-              className="min-h-touchTarget-sm rounded-md border border-outline bg-surface px-stack-gap"
+              className="h-11 rounded-xl border border-slate-200 bg-white/50 px-4 text-sm font-medium text-slate-700 shadow-sm outline-none transition-all hover:bg-white focus:border-action focus:ring-1 focus:ring-action"
             >
               <option value="">Select shop</option>
               {shops.map((shop) => (
@@ -366,116 +369,114 @@ export function InvoiceLookupPage() {
         )}
         {source === "past" && (
           <>
-            <label className="flex flex-col gap-1 text-label-md text-on-surface">
-              Date from
+            <label className="flex flex-col gap-1.5 text-xs font-semibold uppercase tracking-wider text-slate-500">
+              <span className="flex items-center gap-1.5"><Calendar className="h-4 w-4" /> Date from</span>
               <input
                 type="date"
                 value={dateFrom}
                 onChange={(e) => setDateFrom(e.target.value)}
-                className="min-h-touchTarget-sm rounded-md border border-outline bg-surface px-stack-gap"
+                className="h-11 rounded-xl border border-slate-200 bg-white/50 px-4 text-sm font-medium text-slate-700 shadow-sm outline-none transition-all hover:bg-white focus:border-action focus:ring-1 focus:ring-action"
               />
             </label>
-            <label className="flex flex-col gap-1 text-label-md text-on-surface">
-              Date to
+            <label className="flex flex-col gap-1.5 text-xs font-semibold uppercase tracking-wider text-slate-500">
+              <span className="flex items-center gap-1.5"><Calendar className="h-4 w-4" /> Date to</span>
               <input
                 type="date"
                 value={dateTo}
                 onChange={(e) => setDateTo(e.target.value)}
-                className="min-h-touchTarget-sm rounded-md border border-outline bg-surface px-stack-gap"
+                className="h-11 rounded-xl border border-slate-200 bg-white/50 px-4 text-sm font-medium text-slate-700 shadow-sm outline-none transition-all hover:bg-white focus:border-action focus:ring-1 focus:ring-action"
               />
             </label>
           </>
         )}
-        <label className="flex flex-col gap-1 text-label-md text-on-surface">
-          Payment mode
+        <label className="flex flex-col gap-1.5 text-xs font-semibold uppercase tracking-wider text-slate-500">
+          <span className="flex items-center gap-1.5"><Filter className="h-4 w-4" /> Payment mode</span>
           <select
             value={paymentMode}
             onChange={(e) => setPaymentMode(e.target.value as PaymentMode | "")}
-            className="min-h-touchTarget-sm rounded-md border border-outline bg-surface px-stack-gap"
+            className="h-11 rounded-xl border border-slate-200 bg-white/50 px-4 text-sm font-medium text-slate-700 shadow-sm outline-none transition-all hover:bg-white focus:border-action focus:ring-1 focus:ring-action"
           >
             <option value="">All payments</option>
             {PAYMENT_MODES.map((mode) => <option key={mode} value={mode}>{mode.toUpperCase()}</option>)}
           </select>
         </label>
-        <label className="flex flex-col gap-1 text-label-md text-on-surface">
-          Status
+        <label className="flex flex-col gap-1.5 text-xs font-semibold uppercase tracking-wider text-slate-500">
+          <span className="flex items-center gap-1.5"><Filter className="h-4 w-4" /> Status</span>
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value as InvoicePublic["status"] | "")}
-            className="min-h-touchTarget-sm rounded-md border border-outline bg-surface px-stack-gap"
+            className="h-11 rounded-xl border border-slate-200 bg-white/50 px-4 text-sm font-medium text-slate-700 shadow-sm outline-none transition-all hover:bg-white focus:border-action focus:ring-1 focus:ring-action"
           >
             <option value="">All statuses</option>
             {STATUS_FILTERS.map((status) => <option key={status} value={status}>{status}</option>)}
           </select>
         </label>
-        <div className="flex flex-col justify-end gap-1">
-          <span className="text-label-md text-transparent" aria-hidden="true">Action</span>
+        <div className="flex flex-col justify-end gap-1.5">
           <button
             type="button"
             onClick={() => void reload()}
-            className="min-h-touchTarget-sm rounded-md bg-surface-container-high px-stack-gap text-label-md"
+            className="group flex h-11 items-center justify-center gap-2 rounded-xl bg-slate-100 px-4 text-sm font-semibold text-slate-600 transition-colors hover:bg-slate-200"
           >
-            Refresh
+            <RefreshCw className="h-4 w-4 transition-transform duration-300 group-hover:rotate-180" /> Refresh
           </button>
         </div>
         {canShowCloseToday && (
-          <div className="flex flex-col justify-end gap-1 md:col-span-2">
-            <span className="text-label-md text-transparent" aria-hidden="true">Close day</span>
+          <div className="flex flex-col justify-end gap-1.5 md:col-span-2">
             <button
               type="button"
               onClick={() => void openSettlementSummary()}
               disabled={busy}
-              className="min-h-touchTarget-sm rounded-md bg-action px-stack-gap text-label-md text-on-action disabled:opacity-50"
+              className="flex h-11 w-full items-center justify-center rounded-xl bg-action px-6 text-sm font-bold tracking-wide text-on-action shadow-lg transition-all hover:-translate-y-0.5 hover:shadow-[var(--color-action)]/30 active:scale-95 disabled:opacity-50 disabled:hover:translate-y-0 disabled:hover:shadow-none"
             >
               Reconcile-Settle-Close Today
             </button>
           </div>
         )}
         {user?.role === "superadmin" && source === "current" && actingShopId === null && (
-          <div className="flex items-end text-label-md text-on-surface-variant md:col-span-2">
+          <div className="flex items-end text-sm text-slate-500 md:col-span-2">
             Select a shop to view and close today&apos;s invoices.
           </div>
         )}
         {user?.role === "superadmin" && source === "current" && eodTotals?.signed_off && (
-          <div className="flex items-end text-label-md text-success md:col-span-2">
+          <div className="flex items-end text-sm text-emerald-600 md:col-span-2">
             Today is already closed for {selectedShop?.name ?? "this shop"}.
           </div>
         )}
       </section>
 
-      {error && <div role="alert" className="rounded-md bg-error px-stack-gap py-3 text-on-error">{error}</div>}
-      {info && <div role="status" className="rounded-md bg-success px-stack-gap py-3 text-on-secondary">{info}</div>}
+      {error && <div role="alert" className="rounded-xl bg-red-50 px-6 py-4 text-sm font-medium text-red-600 shadow-sm ring-1 ring-red-200">{error}</div>}
+      {info && <div role="status" className="rounded-xl bg-emerald-50 px-6 py-4 text-sm font-medium text-emerald-600 shadow-sm ring-1 ring-emerald-200">{info}</div>}
 
-      <section className="overflow-hidden rounded-md border border-outline bg-surface">
-        <div className="flex flex-wrap items-center justify-between gap-stack-gap border-b border-outline bg-surface-container px-stack-gap py-3">
-          <span className="text-label-md text-on-surface-variant">
+      <section className="overflow-hidden rounded-[24px] border border-slate-200/50 bg-white/60 shadow-[0_8px_30px_rgb(0,0,0,0.02)] backdrop-blur-xl">
+        <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-200/50 bg-slate-50/50 px-6 py-4">
+          <span className="text-sm font-medium text-slate-500">
             {busy ? "Loading..." : `Showing ${rows.length === 0 ? 0 : 1} - ${rows.length} of ${rows.length}`}
           </span>
-          <span className="text-label-md text-on-surface-variant">
-            Units: <span className="font-mono text-on-surface">{totalUnits}</span> · Value:{" "}
-            <span className="font-mono text-on-surface">₹{totalValue.toFixed(2)}</span>
+          <span className="text-sm font-medium text-slate-500">
+            Units: <span className="font-mono text-slate-900">{totalUnits}</span> · Value:{" "}
+            <span className="font-mono text-slate-900">₹{totalValue.toFixed(2)}</span>
           </span>
         </div>
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[1120px] border-collapse text-left">
-            <thead className="bg-surface-container text-label-md uppercase text-on-surface-variant">
+          <table className="w-full min-w-[1120px] text-left text-sm">
+            <thead className="bg-slate-50/80 text-[11px] uppercase tracking-widest text-slate-500">
               <tr>
-                <th className="border-b border-outline px-3 py-3">Invoice</th>
-                <th className="border-b border-outline px-3 py-3">Business Date</th>
-                <th className="border-b border-outline px-3 py-3">Cashier</th>
-                <th className="border-b border-outline px-3 py-3">Items</th>
-                <th className="border-b border-outline px-3 py-3 text-right">Units</th>
-                <th className="border-b border-outline px-3 py-3">Payments</th>
-                <th className="border-b border-outline px-3 py-3 text-right">Total</th>
-                <th className="border-b border-outline px-3 py-3">Status</th>
-                <th className="border-b border-outline px-3 py-3">EOD</th>
-                <th className="border-b border-outline px-3 py-3">Actions</th>
+                <th className="px-6 py-4 font-semibold">Invoice</th>
+                <th className="px-6 py-4 font-semibold">Business Date</th>
+                <th className="px-6 py-4 font-semibold">Cashier</th>
+                <th className="px-6 py-4 font-semibold">Items</th>
+                <th className="px-6 py-4 text-right font-semibold">Units</th>
+                <th className="px-6 py-4 font-semibold">Payments</th>
+                <th className="px-6 py-4 text-right font-semibold">Total</th>
+                <th className="px-6 py-4 font-semibold">Status</th>
+                <th className="px-6 py-4 font-semibold">EOD</th>
+                <th className="px-6 py-4 font-semibold">Actions</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody className="divide-y divide-slate-100">
               {rows.length === 0 && (
                 <tr>
-                  <td colSpan={10} className="px-3 py-gutter text-center text-on-surface-variant">
+                  <td colSpan={10} className="px-6 py-12 text-center text-slate-500">
                     No invoices found.
                   </td>
                 </tr>
@@ -489,86 +490,85 @@ export function InvoiceLookupPage() {
                 return (
                   <tr
                     key={invoice.id}
-                    className={`border-b border-outline/60 ${
+                    className={`group bg-white transition-colors duration-200 hover:bg-slate-50/50 ${
                       invoice.status === "pending_void"
-                        ? "bg-surface-container text-on-surface-variant opacity-75"
+                        ? "text-slate-400 opacity-75"
                         : selected?.id === invoice.id
-                          ? "bg-action-muted/60"
-                          : "bg-surface"
+                          ? "bg-slate-50"
+                          : ""
                     }`}
                   >
-                    <td className="px-3 py-3 align-top">
+                    <td className="px-6 py-4 align-top">
                       <button
                         type="button"
                         onClick={() => beginEdit(invoice)}
-                        className="min-h-0 text-left text-label-md text-primary underline-offset-2 hover:underline"
+                        className="font-medium text-action underline-offset-4 hover:underline"
                       >
                         #{invoice.invoice_number}
                       </button>
-                      <div className="text-label-md text-on-surface-variant">ID {invoice.id}</div>
+                      <div className="mt-1 text-xs text-slate-400">ID {invoice.id}</div>
                     </td>
-                    <td className="px-3 py-3 align-top font-mono text-label-md">{invoice.business_date}</td>
-                    <td className="px-3 py-3 align-top text-label-md">User #{invoice.cashier_user_id}</td>
-                    <td className="max-w-[280px] px-3 py-3 align-top text-label-md">
-                      <span className="block truncate">{itemLabel || "-"}</span>
+                    <td className="px-6 py-4 align-top font-mono text-xs text-slate-500">{invoice.business_date}</td>
+                    <td className="px-6 py-4 align-top text-slate-700">User #{invoice.cashier_user_id}</td>
+                    <td className="max-w-[280px] px-6 py-4 align-top">
+                      <span className="block truncate font-medium text-slate-900">{itemLabel || "-"}</span>
                       {invoice.lines.length > 2 && (
-                        <span className="text-on-surface-variant">+{invoice.lines.length - 2} more</span>
+                        <span className="mt-1 block text-xs text-slate-500">+{invoice.lines.length - 2} more</span>
                       )}
                     </td>
-                    <td className="px-3 py-3 text-right align-top font-mono text-label-md">{units}</td>
-                    <td className="px-3 py-3 align-top text-label-md">
+                    <td className="px-6 py-4 text-right align-top font-mono font-medium text-slate-900">{units}</td>
+                    <td className="px-6 py-4 align-top text-slate-700">
                       {invoice.payments.map((p) => `${p.mode.toUpperCase()} ₹${p.amount}`).join(", ")}
                     </td>
-                    <td className="px-3 py-3 text-right align-top font-mono text-label-md">₹{invoice.total_amount}</td>
-                    <td className="px-3 py-3 align-top">
-                      <span className="rounded bg-surface-container-high px-2 py-1 text-label-md">
+                    <td className="px-6 py-4 text-right align-top font-mono font-semibold text-slate-900">₹{invoice.total_amount}</td>
+                    <td className="px-6 py-4 align-top">
+                      <span className={`inline-flex items-center rounded-md px-2 py-1 text-xs font-semibold ${
+                        invoice.status === "finalized" ? "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-600/20" :
+                        invoice.status === "voided" ? "bg-red-50 text-red-700 ring-1 ring-red-600/20" :
+                        "bg-amber-50 text-amber-700 ring-1 ring-amber-600/20"
+                      }`}>
                         {invoice.status}
                       </span>
                     </td>
-                    <td className="px-3 py-3 align-top text-label-md">
+                    <td className="px-6 py-4 align-top text-xs font-medium text-slate-500">
                       {invoice.eod_signed_off ? "Archived" : "Open"}
                     </td>
-                    <td className="px-3 py-3 align-top">
-                      <div className="grid min-w-[220px] grid-cols-2 gap-2">
+                    <td className="px-6 py-4 align-top">
+                      <div className="flex items-center gap-1">
                         <button
                           type="button"
                           onClick={() => beginEdit(invoice)}
-                          className="min-h-touchTarget-sm rounded-md bg-surface-container-high px-2 text-label-md"
+                          title={canEdit(invoice) ? "Edit" : "View"}
+                          className="flex h-8 w-8 items-center justify-center rounded-md bg-white text-slate-600 shadow-sm ring-1 ring-slate-200 transition-colors hover:bg-slate-50 hover:text-slate-900"
                         >
-                          {canEdit(invoice) ? "Edit" : "View"}
+                          {canEdit(invoice) ? <Edit3 className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                         </button>
                         <button
                           type="button"
                           onClick={() => void downloadInvoiceForRow(invoice)}
                           disabled={downloadingInvoiceId === invoice.id}
-                          className="min-h-touchTarget-sm rounded-md bg-surface-container-high px-2 text-label-md disabled:opacity-50"
+                          title="Download PDF"
+                          className="flex h-8 w-8 items-center justify-center rounded-md bg-white text-slate-600 shadow-sm ring-1 ring-slate-200 transition-colors hover:bg-slate-50 hover:text-slate-900 disabled:opacity-50"
                         >
-                          {downloadingInvoiceId === invoice.id ? "Downloading..." : "Download PDF"}
+                          <Download className="h-4 w-4" />
                         </button>
                         {invoice.status === "pending_void" ? (
-                          <button
-                            type="button"
-                            disabled
-                            className="col-span-2 min-h-touchTarget-sm rounded-md bg-surface-container-high px-2 text-label-md text-on-surface-variant opacity-80"
-                          >
-                            Approval sent
-                          </button>
+                          <span title="Approval sent" className="flex h-8 w-8 items-center justify-center rounded-md bg-slate-50 text-slate-400">
+                            <XOctagon className="h-4 w-4" />
+                          </span>
                         ) : canRequestVoid(invoice) ? (
                           <button
                             type="button"
                             onClick={() => openVoidDialog(invoice)}
-                            className="col-span-2 min-h-touchTarget-sm rounded-md bg-error px-2 text-label-md text-on-error"
+                            title="Void"
+                            className="flex h-8 w-8 items-center justify-center rounded-md bg-red-50 text-red-600 transition-colors hover:bg-red-100"
                           >
-                            Void
+                            <XOctagon className="h-4 w-4" />
                           </button>
                         ) : (
-                          <button
-                            type="button"
-                            disabled
-                            className="col-span-2 min-h-touchTarget-sm rounded-md bg-surface-container-high px-2 text-label-md text-on-surface-variant opacity-60"
-                          >
-                            Locked
-                          </button>
+                          <span title="Locked" className="flex h-8 w-8 items-center justify-center rounded-md bg-slate-50 text-slate-400">
+                            <XOctagon className="h-4 w-4 opacity-50" />
+                          </span>
                         )}
                       </div>
                     </td>
@@ -582,28 +582,32 @@ export function InvoiceLookupPage() {
 
       {selected && (
         <div
-          className="fixed inset-0 z-40 flex items-center justify-center bg-black/50 p-stack-gap"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4 backdrop-blur-sm transition-opacity"
           role="dialog"
           aria-modal="true"
           aria-labelledby="invoice-edit-title"
         >
-          <section className="flex max-h-[90vh] w-full max-w-2xl flex-col overflow-hidden rounded-md bg-surface shadow-xl">
-            <header className="flex items-start justify-between gap-stack-gap border-b border-outline bg-surface-container px-gutter py-stack-gap">
+          <section className="flex max-h-[90vh] w-full max-w-2xl flex-col overflow-hidden rounded-[24px] bg-white shadow-[0_20px_60px_rgba(0,0,0,0.1)] ring-1 ring-slate-200/50">
+            <header className="flex items-start justify-between gap-4 border-b border-slate-200/50 bg-slate-50/80 px-6 py-5">
               <div>
-                <h2 id="invoice-edit-title" className="text-headline-md text-primary">
+                <h2 id="invoice-edit-title" className="text-xl font-light tracking-tight text-slate-900">
                   Invoice #{selected.invoice_number}
                 </h2>
-                <p className="text-label-md text-on-surface-variant">
-                  {selected.business_date} · {selected.status} · ₹{selected.total_amount}
+                <p className="mt-1 flex items-center gap-2 text-xs font-medium text-slate-500">
+                  <span>{selected.business_date}</span>
+                  <span>&middot;</span>
+                  <span className="uppercase tracking-wider">{selected.status}</span>
+                  <span>&middot;</span>
+                  <span className="font-mono text-slate-900">₹{selected.total_amount}</span>
                 </p>
               </div>
               <button
                 type="button"
                 onClick={closeEdit}
-                className="h-12 w-12 rounded-md bg-surface-container-high text-headline-md text-on-surface"
+                className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-200/50 text-slate-500 transition-colors hover:bg-slate-200 hover:text-slate-900"
                 aria-label="Close invoice dialog"
               >
-                ×
+                <XOctagon className="h-4 w-4" />
               </button>
             </header>
 
@@ -790,50 +794,52 @@ function SettlementSummaryDialog({
 }) {
   return (
     <div
-      className="fixed inset-0 z-40 flex items-center justify-center bg-black/50 p-stack-gap"
+      className="fixed inset-0 z-40 flex items-center justify-center bg-slate-900/40 p-4 backdrop-blur-sm transition-opacity"
       role="dialog"
       aria-modal="true"
       aria-labelledby="settlement-summary-title"
     >
-      <section className="flex w-full max-w-xl flex-col gap-stack-gap rounded-md bg-surface p-gutter shadow-xl">
+      <section className="flex w-full max-w-xl flex-col gap-6 overflow-hidden rounded-[24px] bg-white shadow-[0_20px_60px_rgba(0,0,0,0.1)] ring-1 ring-slate-200/50 p-6">
         <header>
-          <h2 id="settlement-summary-title" className="text-headline-md text-primary">
+          <h2 id="settlement-summary-title" className="text-xl font-light tracking-tight text-slate-900">
             {shop.name}
           </h2>
-          <p className="text-label-md text-on-surface-variant">
-            Reconcile settlement for {totals.business_date}
+          <p className="mt-1 text-sm font-medium text-slate-500">
+            Reconcile settlement for <span className="font-mono text-slate-700">{totals.business_date}</span>
           </p>
         </header>
-        <div className="grid gap-stack-gap md:grid-cols-2">
+        <div className="grid gap-6 md:grid-cols-2">
           <SummaryTile label="Total invoices today" value={String(totals.invoice_count)} />
           <SummaryTile label="Total received" value={`₹${totals.revenue}`} />
         </div>
-        <section className="rounded-md border border-outline">
-          <h3 className="border-b border-outline bg-surface-container px-stack-gap py-2 text-label-md uppercase text-on-surface-variant">
+        <section className="rounded-2xl border border-slate-200 bg-white/50 overflow-hidden">
+          <h3 className="border-b border-slate-200 bg-slate-50/80 px-4 py-3 text-xs font-semibold uppercase tracking-wider text-slate-500 backdrop-blur-sm">
             Payment modes
           </h3>
-          {paymentTotals.map((row) => (
-            <div
-              key={row.mode}
-              className="flex justify-between border-b border-outline/50 px-stack-gap py-2 text-body-md last:border-b-0"
-            >
-              <span>{row.mode.toUpperCase()}</span>
-              <span className="font-mono">₹{row.amount}</span>
-            </div>
-          ))}
+          <div className="divide-y divide-slate-100">
+            {paymentTotals.map((row) => (
+              <div
+                key={row.mode}
+                className="flex justify-between px-4 py-3 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50/50"
+              >
+                <span>{row.mode.toUpperCase()}</span>
+                <span className="font-mono text-slate-900">₹{row.amount}</span>
+              </div>
+            ))}
+          </div>
         </section>
-        <footer className="flex justify-end gap-stack-gap">
+        <footer className="flex flex-wrap justify-end gap-3 pt-2">
           <button
             type="button"
             onClick={onCancel}
-            className="min-h-touchTarget-sm rounded-md bg-surface-container-high px-gutter text-label-md"
+            className="flex h-11 items-center justify-center rounded-xl bg-white px-6 text-sm font-semibold tracking-wide text-slate-600 shadow-sm ring-1 ring-slate-200 transition-all duration-200 hover:bg-slate-50 hover:text-slate-900 active:scale-95"
           >
             Cancel
           </button>
           <button
             type="button"
             onClick={onContinue}
-            className="min-h-touchTarget-sm rounded-md bg-action px-gutter text-label-md text-on-action"
+            className="flex h-11 items-center justify-center rounded-xl bg-action px-6 text-sm font-bold tracking-wide text-white shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[var(--color-action)]/30 active:scale-95"
           >
             Mark Reviewed and Close
           </button>
@@ -868,49 +874,49 @@ function VoidConfirmDialog({
   const canConfirm = isCashier || confirmationText === "VOID";
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-stack-gap"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4 backdrop-blur-sm transition-opacity"
       role="dialog"
       aria-modal="true"
       aria-labelledby="void-confirm-title"
     >
-      <section className="flex w-full max-w-lg flex-col gap-stack-gap rounded-md bg-surface p-gutter shadow-xl">
+      <section className="flex w-full max-w-lg flex-col gap-6 overflow-hidden rounded-[24px] bg-white shadow-[0_20px_60px_rgba(0,0,0,0.1)] ring-1 ring-slate-200/50 p-6">
         <header>
-          <h2 id="void-confirm-title" className="text-headline-md text-primary">
+          <h2 id="void-confirm-title" className="text-xl font-light tracking-tight text-slate-900">
             Invoice #{invoice.invoice_number}
           </h2>
-          <p className="text-label-md text-on-surface-variant">
+          <p className="mt-1 text-sm font-medium text-slate-500">
             {isCashier
               ? "Send this invoice to Approvals. It will still count until approved."
               : "This will fully void the invoice."}
           </p>
         </header>
-        <label className="flex flex-col gap-1 text-label-md">
+        <label className="flex flex-col gap-1.5 text-xs font-semibold uppercase tracking-wider text-slate-500">
           Reason
           <textarea
             value={reason}
             onChange={(e) => onReason(e.target.value)}
             rows={3}
             maxLength={200}
-            className="rounded-md border border-outline bg-surface px-stack-gap py-2"
+            className="w-full rounded-xl border border-slate-200 bg-white/50 p-4 text-sm font-medium normal-case text-slate-700 shadow-sm outline-none transition-all hover:bg-white focus:border-action focus:ring-1 focus:ring-action"
           />
         </label>
         {!isCashier && (
-          <label className="flex flex-col gap-1 text-label-md">
+          <label className="flex flex-col gap-1.5 text-xs font-semibold uppercase tracking-wider text-slate-500">
             Type VOID to confirm
             <input
               value={confirmationText}
               onChange={(e) => onConfirmationText(e.target.value)}
-              className="min-h-touchTarget-sm rounded-md border border-outline bg-surface px-stack-gap"
+              className="h-11 w-full rounded-xl border border-slate-200 bg-white/50 px-4 text-sm font-medium normal-case text-slate-700 shadow-sm outline-none transition-all hover:bg-white focus:border-action focus:ring-1 focus:ring-action"
               autoFocus
             />
           </label>
         )}
-        <footer className="flex justify-end gap-stack-gap">
+        <footer className="flex flex-wrap justify-end gap-3 pt-2">
           <button
             type="button"
             onClick={onCancel}
             disabled={busy}
-            className="min-h-touchTarget-sm rounded-md bg-surface-container-high px-gutter text-label-md"
+            className="flex h-11 items-center justify-center rounded-xl bg-white px-6 text-sm font-semibold tracking-wide text-slate-600 shadow-sm ring-1 ring-slate-200 transition-all duration-200 hover:bg-slate-50 hover:text-slate-900 active:scale-95 disabled:opacity-50"
           >
             Cancel
           </button>
@@ -918,7 +924,7 @@ function VoidConfirmDialog({
             type="button"
             onClick={onConfirm}
             disabled={!canConfirm || busy}
-            className="min-h-touchTarget-sm rounded-md bg-error px-gutter text-label-md text-on-error disabled:opacity-50"
+            className="flex h-11 items-center justify-center rounded-xl bg-red-600 px-6 text-sm font-bold tracking-wide text-white shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-red-600/30 active:scale-95 disabled:pointer-events-none disabled:opacity-50"
           >
             {busy ? "Working..." : isCashier ? "Send Approval Request" : "Void Invoice"}
           </button>
@@ -949,44 +955,44 @@ function SettlementConfirmDialog({
 }) {
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-stack-gap"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4 backdrop-blur-sm transition-opacity"
       role="dialog"
       aria-modal="true"
       aria-labelledby="settlement-confirm-title"
     >
-      <section className="flex w-full max-w-xl flex-col gap-stack-gap rounded-md bg-surface p-gutter shadow-xl">
+      <section className="flex w-full max-w-xl flex-col gap-6 overflow-hidden rounded-[24px] bg-white shadow-[0_20px_60px_rgba(0,0,0,0.1)] ring-1 ring-slate-200/50 p-6">
         <header>
-          <h2 id="settlement-confirm-title" className="text-headline-md text-primary">
+          <h2 id="settlement-confirm-title" className="text-xl font-light tracking-tight text-slate-900">
             Confirm close for {shop.name}
           </h2>
-          <p className="text-label-md text-on-surface-variant">
+          <p className="mt-1 text-sm font-medium text-slate-500">
             Type CLOSE TODAY to archive today&apos;s invoices into Past Invoices.
           </p>
         </header>
-        <label className="flex flex-col gap-1 text-label-md">
+        <label className="flex flex-col gap-1.5 text-xs font-semibold uppercase tracking-wider text-slate-500">
           Confirmation text
           <input
             value={confirmationText}
             onChange={(e) => onConfirmationText(e.target.value)}
-            className="min-h-touchTarget-sm rounded-md border border-outline bg-surface px-stack-gap"
+            className="h-11 w-full rounded-xl border border-slate-200 bg-white/50 px-4 text-sm font-medium normal-case text-slate-700 shadow-sm outline-none transition-all hover:bg-white focus:border-action focus:ring-1 focus:ring-action"
             autoFocus
           />
         </label>
-        <label className="flex flex-col gap-1 text-label-md">
+        <label className="flex flex-col gap-1.5 text-xs font-semibold uppercase tracking-wider text-slate-500">
           Notes
           <textarea
             value={notes}
             onChange={(e) => onNotes(e.target.value)}
             maxLength={500}
             rows={3}
-            className="rounded-md border border-outline bg-surface px-stack-gap py-2"
+            className="w-full rounded-xl border border-slate-200 bg-white/50 p-4 text-sm font-medium normal-case text-slate-700 shadow-sm outline-none transition-all hover:bg-white focus:border-action focus:ring-1 focus:ring-action"
           />
         </label>
-        <footer className="flex justify-end gap-stack-gap">
+        <footer className="flex flex-wrap justify-end gap-3 pt-2">
           <button
             type="button"
             onClick={onCancel}
-            className="min-h-touchTarget-sm rounded-md bg-surface-container-high px-gutter text-label-md"
+            className="flex h-11 items-center justify-center rounded-xl bg-white px-6 text-sm font-semibold tracking-wide text-slate-600 shadow-sm ring-1 ring-slate-200 transition-all duration-200 hover:bg-slate-50 hover:text-slate-900 active:scale-95 disabled:opacity-50"
             disabled={busy}
           >
             Cancel
@@ -995,7 +1001,7 @@ function SettlementConfirmDialog({
             type="button"
             onClick={onConfirm}
             disabled={confirmationText !== "CLOSE TODAY" || busy}
-            className="min-h-touchTarget-sm rounded-md bg-action px-gutter text-label-md text-on-action disabled:opacity-50"
+            className="flex h-11 items-center justify-center rounded-xl bg-action px-6 text-sm font-bold tracking-wide text-white shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[var(--color-action)]/30 active:scale-95 disabled:pointer-events-none disabled:opacity-50"
           >
             {busy ? "Closing..." : "Close Today"}
           </button>
@@ -1007,9 +1013,9 @@ function SettlementConfirmDialog({
 
 function SummaryTile({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-md bg-surface-container p-stack-gap">
-      <div className="text-label-md text-on-surface-variant">{label}</div>
-      <div className="font-mono text-headline-md text-on-surface">{value}</div>
+    <div className="flex flex-col gap-1 rounded-[16px] border border-slate-200 bg-slate-50/50 p-5">
+      <div className="text-xs font-semibold uppercase tracking-wider text-slate-500">{label}</div>
+      <div className="text-3xl font-light tracking-tight text-slate-900">{value}</div>
     </div>
   );
 }
@@ -1027,8 +1033,10 @@ function TabButton({
     <button
       type="button"
       onClick={onClick}
-      className={`min-h-touchTarget-sm rounded-t-md px-stack-gap text-label-md ${
-        active ? "bg-action text-on-action" : "text-on-surface-variant hover:bg-surface-container"
+      className={`group relative flex h-11 items-center justify-center gap-2 rounded-full px-6 text-sm font-bold tracking-wide transition-all duration-300 ${
+        active 
+          ? "bg-action text-white shadow-[0_4px_20px_rgba(var(--color-action-rgb),0.3)] hover:-translate-y-0.5" 
+          : "bg-white text-slate-500 shadow-sm ring-1 ring-slate-200 hover:bg-slate-50 hover:text-slate-700"
       }`}
     >
       {children}

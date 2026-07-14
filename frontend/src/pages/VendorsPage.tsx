@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { Truck, RefreshCw, Plus, Save } from "lucide-react";
 import { ApiError, toUserMessage } from "../api/client";
 import {
   createVendor,
@@ -40,8 +41,10 @@ export function VendorsPage() {
 
   if (actingShopId == null) {
     return (
-      <div className="rounded-md bg-surface-container p-gutter text-on-surface-variant">
-        Pick a shop first (top of the sidebar).
+      <div className="flex h-[50vh] items-center justify-center rounded-[24px] border border-slate-200/50 bg-white/60 p-8 shadow-[0_8px_30px_rgb(0,0,0,0.02)] backdrop-blur-xl">
+        <div className="text-center text-sm font-medium text-slate-500">
+          Pick a shop first (top of the sidebar).
+        </div>
       </div>
     );
   }
@@ -93,36 +96,39 @@ export function VendorsPage() {
   };
 
   return (
-    <div className="flex flex-col gap-stack-gap">
-      <header className="flex flex-wrap items-center justify-between gap-stack-gap">
+    <div className="flex flex-col gap-8 font-sans">
+      <header className="flex flex-wrap items-center justify-between gap-4 rounded-[24px] border border-slate-200/50 bg-white/60 p-6 shadow-[0_8px_30px_rgb(0,0,0,0.02)] backdrop-blur-xl">
         <div>
-          <h1 className="text-headline-lg text-primary">Vendors</h1>
-          <p className="text-label-md text-on-surface-variant">
+          <h1 className="flex items-center gap-3 text-2xl font-light tracking-tight text-slate-900">
+            <Truck className="h-6 w-6 text-action" /> Vendors
+          </h1>
+          <p className="mt-1 text-sm font-medium text-slate-500">
             Shop-scoped supplier list for receiving.
           </p>
         </div>
-        <label className="flex items-center gap-2 text-label-md">
+        <label className="flex items-center gap-2 text-sm font-medium text-slate-600">
           <input
             type="checkbox"
             checked={includeInactive}
             onChange={(e) => setIncludeInactive(e.target.checked)}
+            className="h-4 w-4 rounded border-slate-300 text-action focus:ring-action"
           />
           Include inactive
         </label>
       </header>
 
       {error && (
-        <div role="alert" className="rounded-md bg-error px-stack-gap py-3 text-on-error">
+        <div role="alert" className="rounded-xl bg-red-50 px-4 py-3 text-sm font-medium text-red-600 ring-1 ring-red-200">
           {error}
         </div>
       )}
       {info && (
-        <div role="status" className="rounded-md bg-success px-stack-gap py-3 text-on-secondary">
+        <div role="status" className="rounded-xl bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-600 ring-1 ring-emerald-200">
           {info}
         </div>
       )}
 
-      <div className="grid gap-stack-gap lg:grid-cols-[360px_1fr]">
+      <div className="grid gap-8 lg:grid-cols-[380px_1fr]">
         <VendorForm
           key={selected?.id ?? "new"}
           vendor={selected}
@@ -132,47 +138,52 @@ export function VendorsPage() {
           onNew={() => setSelectedId(null)}
         />
 
-        <section className="rounded-lg bg-surface-container p-gutter">
+        <section className="flex flex-col gap-6 rounded-[24px] border border-slate-200/50 bg-white/60 p-6 shadow-[0_8px_30px_rgb(0,0,0,0.02)] backdrop-blur-xl">
           <div className="flex items-center justify-between">
-            <h2 className="text-headline-md text-primary">Vendor list</h2>
+            <h2 className="text-lg font-light tracking-tight text-slate-900">Vendor list</h2>
             <button
               type="button"
               onClick={refresh}
-              className="min-h-touchTarget-sm rounded-md bg-surface-container-high px-stack-gap text-label-md"
+              className="group flex h-10 items-center justify-center rounded-xl bg-white px-5 text-sm font-semibold tracking-wide text-slate-700 shadow-sm ring-1 ring-slate-200 transition-all duration-300 hover:scale-[1.02] hover:bg-slate-50 hover:shadow-md active:scale-95"
             >
-              Refresh
+              <RefreshCw className="h-4 w-4 text-slate-400 transition-transform duration-300 group-hover:rotate-180" />
+              <span className="ml-2">Refresh</span>
             </button>
           </div>
-          <div className="mt-stack-gap max-h-[calc(100vh-14rem)] overflow-y-auto rounded-md bg-surface">
-            <table className="w-full border-collapse">
-              <thead>
-                <tr className="border-b border-outline text-label-md text-on-surface-variant">
-                  <th className="px-stack-gap py-2 text-left">Name</th>
-                  <th className="px-stack-gap py-2 text-left">GSTIN</th>
-                  <th className="px-stack-gap py-2 text-left">Phone</th>
-                  <th className="px-stack-gap py-2 text-left">Status</th>
+          <div className="max-h-[calc(100vh-18rem)] overflow-y-auto rounded-2xl border border-slate-200 bg-white custom-scrollbar">
+            <table className="w-full text-left text-sm">
+              <thead className="sticky top-0 z-10 bg-slate-50/90 text-[11px] uppercase tracking-widest text-slate-500 backdrop-blur-sm">
+                <tr>
+                  <th className="px-6 py-4 font-semibold">Name</th>
+                  <th className="px-6 py-4 font-semibold">GSTIN</th>
+                  <th className="px-6 py-4 font-semibold">Phone</th>
+                  <th className="px-6 py-4 font-semibold">Status</th>
                 </tr>
               </thead>
-              <tbody>
+              <tbody className="divide-y divide-slate-100">
                 {vendors.map((vendor) => (
                   <tr
                     key={vendor.id}
-                    className={`cursor-pointer border-b border-outline/40 ${
-                      selectedId === vendor.id ? "bg-primary/10" : ""
+                    className={`cursor-pointer transition-colors ${
+                      selectedId === vendor.id ? "bg-action/5" : "hover:bg-slate-50/50"
                     }`}
                     onClick={() => setSelectedId(vendor.id)}
                   >
-                    <td className="px-stack-gap py-2">{vendor.name}</td>
-                    <td className="px-stack-gap py-2 font-mono">{vendor.gstin ?? "-"}</td>
-                    <td className="px-stack-gap py-2 font-mono">{vendor.phone ?? "-"}</td>
-                    <td className="px-stack-gap py-2">
-                      {vendor.is_active ? "Active" : "Inactive"}
+                    <td className="px-6 py-4 font-medium text-slate-900">{vendor.name}</td>
+                    <td className="px-6 py-4 font-mono text-slate-500">{vendor.gstin ?? "-"}</td>
+                    <td className="px-6 py-4 font-mono text-slate-500">{vendor.phone ?? "-"}</td>
+                    <td className="px-6 py-4">
+                      <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${
+                        vendor.is_active ? "bg-emerald-100 text-emerald-700" : "bg-slate-100 text-slate-600"
+                      }`}>
+                        {vendor.is_active ? "Active" : "Inactive"}
+                      </span>
                     </td>
                   </tr>
                 ))}
                 {vendors.length === 0 && (
                   <tr>
-                    <td className="px-stack-gap py-4 text-on-surface-variant" colSpan={4}>
+                    <td className="px-6 py-8 text-center text-slate-500" colSpan={4}>
                       No vendors yet.
                     </td>
                   </tr>
@@ -239,12 +250,12 @@ function VendorForm({
   };
 
   return (
-    <form onSubmit={submit} className="flex flex-col gap-stack-gap rounded-lg bg-surface-container p-gutter">
+    <form onSubmit={submit} className="flex flex-col gap-6 rounded-[24px] border border-slate-200/50 bg-white/60 p-6 shadow-[0_8px_30px_rgb(0,0,0,0.02)] backdrop-blur-xl h-fit">
       <div>
-        <h2 className="text-headline-md text-primary">
+        <h2 className="text-xl font-light tracking-tight text-slate-900">
           {vendor ? `Edit vendor #${vendor.id}` : "New vendor"}
         </h2>
-        <p className="text-label-md text-on-surface-variant">
+        <p className="text-sm font-medium text-slate-500 mt-1">
           {vendor ? "Update details or deactivate the vendor." : "Create a new shop-scoped vendor."}
         </p>
       </div>
@@ -252,27 +263,34 @@ function VendorForm({
         <button
           type="button"
           onClick={onNew}
-          className="min-h-touchTarget-sm w-fit rounded-md bg-surface-container-high px-stack-gap text-label-md"
+          className="flex h-10 w-fit items-center justify-center gap-2 rounded-xl bg-white px-4 text-sm font-semibold tracking-wide text-slate-700 shadow-sm ring-1 ring-slate-200 transition-all duration-200 hover:bg-slate-50 active:scale-95"
         >
-          New vendor
+          <Plus className="h-4 w-4" /> New vendor
         </button>
       )}
 
-      <Field label="Name" value={name} onChange={setName} required />
-      <Field label="GSTIN" value={gstin} onChange={setGstin} maxLength={15} />
-      <Field label="Address" value={address} onChange={setAddress} />
-      <Field label="Email" value={email} onChange={setEmail} type="email" />
-      <Field label="Phone" value={phone} onChange={setPhone} />
-      <label className="flex items-center gap-2 text-label-md">
-        <input type="checkbox" checked={isActive} onChange={(e) => setIsActive(e.target.checked)} />
-        Active
-      </label>
+      <div className="flex flex-col gap-4">
+        <Field label="Name" value={name} onChange={setName} required />
+        <Field label="GSTIN" value={gstin} onChange={setGstin} maxLength={15} />
+        <Field label="Address" value={address} onChange={setAddress} />
+        <Field label="Email" value={email} onChange={setEmail} type="email" />
+        <Field label="Phone" value={phone} onChange={setPhone} />
+        <label className="flex items-center gap-2 text-sm font-medium text-slate-600">
+          <input 
+            type="checkbox" 
+            checked={isActive} 
+            onChange={(e) => setIsActive(e.target.checked)} 
+            className="h-4 w-4 rounded border-slate-300 text-action focus:ring-action"
+          />
+          Active
+        </label>
+      </div>
       <button
         type="submit"
         disabled={busy}
-        className="min-h-touchTarget-sm rounded-md bg-action px-stack-gap text-label-md text-on-action disabled:opacity-50"
+        className="flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-action px-6 text-sm font-bold tracking-wide text-white shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[var(--color-action)]/30 active:scale-95 disabled:pointer-events-none disabled:opacity-50"
       >
-        {busy ? "Saving..." : vendor ? "Update vendor" : "Create vendor"}
+        <Save className="h-4 w-4" /> {busy ? "Saving..." : vendor ? "Update vendor" : "Create vendor"}
       </button>
     </form>
   );
@@ -294,7 +312,7 @@ function Field({
   maxLength?: number;
 }) {
   return (
-    <label className="flex flex-col gap-1 text-label-md">
+    <label className="flex flex-col gap-1.5 text-xs font-semibold uppercase tracking-wider text-slate-500">
       {label}
       <input
         type={type}
@@ -302,7 +320,7 @@ function Field({
         onChange={(e) => onChange(e.target.value)}
         required={required}
         maxLength={maxLength}
-        className="min-h-touchTarget-sm rounded-md border border-outline bg-surface px-stack-gap text-body-md"
+        className="h-11 w-full rounded-xl border border-slate-200 bg-white/50 px-4 text-sm font-medium normal-case text-slate-700 shadow-sm outline-none transition-all hover:bg-white focus:border-action focus:ring-1 focus:ring-action"
       />
     </label>
   );
