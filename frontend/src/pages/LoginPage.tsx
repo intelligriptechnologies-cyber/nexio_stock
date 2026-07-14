@@ -1,93 +1,35 @@
-import { useEffect, useMemo, useState } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Api, ApiError, getOrCreateDeviceKey } from "../api/client";
 import { homePathFor, type AuthUser, type Role, useAuth } from "../auth/AuthProvider";
+import { AuthShell } from "../components/AuthShell";
 
 type ShopLoginRole = Exclude<Role, "superadmin">;
 
+const FIELD_CLASS =
+  "h-12 w-full rounded-2xl border border-white/10 bg-[#1c1714] px-4 text-sm text-white shadow-sm transition-[background-color,box-shadow,border-color] duration-200 ease-out hover:border-amber-300/45 hover:bg-[#241d1a] focus:border-amber-300 focus:bg-[#241d1a] focus:outline-none focus:ring-4 focus:ring-amber-300/10";
+
 const ROLE_OPTIONS: Array<{ value: ShopLoginRole; label: string }> = [
   { value: "cashier_user", label: "Cashier" },
-  { value: "receiver_user", label: "Receiver" },
+  { value: "receiver_user", label: "Stock Keeper" },
   { value: "owner", label: "Owner" },
 ];
-
-function defaultUsername(role: ShopLoginRole): string {
-  if (role === "owner") return "SHOPCODE-OWNER-01";
-  if (role === "receiver_user") return "SHOPCODE-RECEIVER-01";
-  return "SHOPCODE-CASHIER-01";
-}
 
 export function LoginPage() {
   const navigate = useNavigate();
   const { login } = useAuth();
   const [role, setRole] = useState<ShopLoginRole>("cashier_user");
-  const [username, setUsername] = useState(defaultUsername("cashier_user"));
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const [deviceKey] = useState<string>(() => getOrCreateDeviceKey());
-  const [deviceStatus, setDeviceStatus] = useState<{
-    device_key: string;
-    is_registered: boolean;
-    can_login: boolean;
-    shop_id: number | null;
-    shop_name: string | null;
-    shop_code: string | null;
-    counter_name: string | null;
-    message: string;
-  } | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [checkingDevice, setCheckingDevice] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [deviceKey] = useState<string>(() => getOrCreateDeviceKey());
 
-  useEffect(() => {
-    let cancelled = false;
-    setCheckingDevice(true);
-    Api.getDeviceContext(deviceKey)
-      .then((context) => {
-        if (cancelled) return;
-        setDeviceStatus(context);
-        setError(context.can_login ? null : context.message);
-      })
-      .catch((e) => {
-        if (cancelled) return;
-        setDeviceStatus(null);
-        if (e instanceof ApiError) {
-          setError(e.status === 0 ? "Network error - is the backend reachable?" : e.detail);
-        } else {
-          setError("Could not verify this device.");
-        }
-      })
-      .finally(() => {
-        if (!cancelled) setCheckingDevice(false);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [deviceKey]);
-
-  useEffect(() => {
-    setUsername((current) => {
-      const trimmed = current.trim();
-      return trimmed.length === 0 || trimmed.startsWith("SHOPCODE-") ? defaultUsername(role) : current;
-    });
-  }, [role]);
-
-  const canSubmit = useMemo(() => {
-    return (
-      Boolean(deviceStatus?.can_login) &&
-      !checkingDevice &&
-      !submitting &&
-      username.trim().length > 0 &&
-      password.length >= 4
-    );
-  }, [checkingDevice, deviceStatus?.can_login, password.length, submitting, username]);
+  const canSubmit = username.trim().length > 0 && password.length >= 4 && !submitting;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
-    if (!deviceStatus?.can_login) {
-      setError(deviceStatus?.message ?? "This device is not registered.");
-      return;
-    }
     if (password.length < 4) {
       setError("Enter your password/PIN (4+ characters).");
       return;
@@ -125,123 +67,90 @@ export function LoginPage() {
     }
   };
 
-  const statusText = deviceStatus?.can_login
-    ? deviceStatus.message
-    : deviceStatus?.message ?? "This device must be registered before shop login is allowed.";
-
   return (
-    <div className="relative flex min-h-full items-center justify-center overflow-hidden bg-slate-50 p-6 font-sans">
-      {/* Subtle single-tone brand wash, replacing the prior two-color mesh-orb decoration */}
-      <div className="pointer-events-none absolute left-0 top-0 h-[500px] w-[500px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[rgba(34,197,94,0.25)] blur-[100px]" />
-
-      <section className="relative w-full max-w-[460px] overflow-hidden rounded-2xl border border-slate-200/60 bg-white/70 shadow-sm backdrop-blur-xl transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out">
-        <div className="border-b border-slate-200/50 px-8 py-8 text-center">
-          <p className="text-sm font-semibold text-slate-500">Barstock</p>
-          <h1 className="mt-3 text-3xl font-light tracking-tight text-slate-900">Shop Login</h1>
-          <p className="mt-2 text-sm text-slate-500">
-            Sign in with your role, username, and PIN.
-          </p>
-        </div>
-
-        <form onSubmit={handleSubmit} className="flex flex-col gap-6 px-8 py-8 text-slate-900">
-          <div className="flex flex-col gap-5">
-            <label className="flex flex-col gap-1.5 text-sm font-medium text-slate-700">
-              Role
+    <AuthShell
+      variant="shop"
+      title="Shop sign in"
+      subcopy="Use your assigned role, username, and PIN to open the live stock workflow."
+      footerActionLabel="Superadmin login"
+      footerActionTo="/login/superadmin"
+      footerActionText="Need cross-shop access?"
+    >
+      <form onSubmit={handleSubmit} className="flex flex-col gap-4 text-white">
+        <div className="grid gap-4">
+          <label className="flex flex-col gap-1.5 text-sm font-medium text-slate-200">
+            Role
+            <div className="relative">
               <select
                 value={role}
                 onChange={(e) => setRole(e.target.value as ShopLoginRole)}
-                className="h-11 w-full rounded-xl border border-slate-200/80 bg-white/80 px-4 text-sm text-slate-800 shadow-sm transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:border-action/50 focus:border-action focus:bg-white focus:outline-none focus:ring-4 focus:ring-action/10"
+                className={`${FIELD_CLASS} appearance-none pr-11`}
               >
                 {ROLE_OPTIONS.map((option) => (
-                  <option key={option.value} value={option.value}>
+                  <option key={option.value} value={option.value} className="bg-slate-950 text-white">
                     {option.label}
                   </option>
                 ))}
               </select>
-            </label>
-
-            <label className="flex flex-col gap-1.5 text-sm font-medium text-slate-700">
-              Username
-              <input
-                type="text"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                placeholder={defaultUsername(role)}
-                className="h-11 w-full rounded-xl border border-slate-200/80 bg-white/80 px-4 text-sm text-slate-800 shadow-sm transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:border-action/50 focus:border-action focus:bg-white focus:outline-none focus:ring-4 focus:ring-action/10"
-                autoComplete="username"
-                autoFocus
-                required
-              />
-              <span className="mt-1 text-xs text-slate-400">
-                Default: {defaultUsername(role)}.
-              </span>
-            </label>
-
-            <label className="flex flex-col gap-1.5 text-sm font-medium text-slate-700">
-              PIN / Password
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => {
-                  setPassword(e.target.value);
-                  if (error) setError(null);
-                }}
-                className="h-11 w-full rounded-xl border border-slate-200/80 bg-white/80 px-4 text-sm text-slate-800 shadow-sm transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:border-action/50 focus:border-action focus:bg-white focus:outline-none focus:ring-4 focus:ring-action/10"
-                autoComplete="current-password"
-                required
-              />
-            </label>
-          </div>
-
-          <div className="group relative overflow-hidden rounded-2xl border border-slate-200/60 bg-gradient-to-br from-slate-50 to-slate-100/50 p-5 transition-colors duration-200 ease-out hover:border-slate-300">
-            <div className="absolute -right-6 -top-6 h-16 w-16 rounded-full bg-slate-200/50 blur-2xl transition-colors duration-200 ease-out group-hover:bg-action/20" />
-            <div className="relative z-10">
-              <div className="text-xs font-semibold uppercase tracking-wider text-slate-400">Device</div>
-              <div className="mt-1 font-mono text-sm tracking-tight text-slate-800 break-all">{deviceKey}</div>
-              <div className="mt-2 text-xs text-slate-500">{statusText}</div>
-              {deviceStatus?.shop_name && (
-                <div className="mt-3 flex flex-wrap gap-2 text-xs font-medium">
-                  <span className="rounded-full bg-slate-900 px-2.5 py-1 text-white shadow-sm">
-                    {deviceStatus.shop_name}
-                  </span>
-                  {deviceStatus.counter_name && (
-                    <span className="rounded-full bg-white px-2.5 py-1 text-slate-700 shadow-sm ring-1 ring-slate-200">
-                      Counter: {deviceStatus.counter_name}
-                    </span>
-                  )}
-                </div>
-              )}
+              <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-4 text-amber-200/80">
+                <svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true" className="h-4 w-4">
+                  <path
+                    fillRule="evenodd"
+                    d="M5.23 7.21a.75.75 0 0 1 1.06.02L10 11.168l3.71-3.938a.75.75 0 1 1 1.08 1.04l-4.25 4.51a.75.75 0 0 1-1.08 0l-4.25-4.51a.75.75 0 0 1 .02-1.06Z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+              </div>
             </div>
-          </div>
+          </label>
 
-          {error && (
-            <div
-              role="alert"
-              className="animate-fade-in rounded-xl border border-red-200/60 bg-red-50/50 p-4 text-sm text-red-700 backdrop-blur-sm"
-            >
-              {error}
-            </div>
-          )}
+          <label className="flex flex-col gap-1.5 text-sm font-medium text-slate-200">
+            Username
+            <input
+              type="text"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              placeholder="Username"
+              className={FIELD_CLASS}
+              autoComplete="username"
+              autoFocus
+              required
+            />
+          </label>
 
-          <button
-            type="submit"
-            disabled={!canSubmit}
-            className="group relative mt-2 flex h-12 items-center justify-center overflow-hidden rounded-xl bg-slate-900 text-sm font-semibold tracking-wide text-white shadow-md transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:-translate-y-0.5 hover:bg-slate-800 hover:shadow-xl active:scale-[0.97] disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:translate-y-0 disabled:hover:shadow-md"
-          >
-            <span className="relative z-10">{checkingDevice ? "Checking device..." : submitting ? "Signing in..." : "Continue"}</span>
-          </button>
-        </form>
-
-        <div className="border-t border-slate-100 bg-slate-50/50 p-4 text-center">
-          <button
-            type="button"
-            onClick={() => navigate("/login/superadmin")}
-            className="text-xs font-medium text-slate-400 transition-colors duration-200 ease-out hover:text-slate-700"
-          >
-            Access Superadmin Panel &rarr;
-          </button>
+          <label className="flex flex-col gap-1.5 text-sm font-medium text-slate-200">
+            Password / PIN
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => {
+                setPassword(e.target.value);
+                if (error) setError(null);
+              }}
+              className={FIELD_CLASS}
+              autoComplete="current-password"
+              required
+            />
+          </label>
         </div>
-      </section>
-    </div>
+
+        {error && (
+          <div
+            role="alert"
+            className="animate-fade-in rounded-2xl border border-rose-400/20 bg-rose-400/10 p-4 text-sm text-rose-100 backdrop-blur-sm"
+          >
+            {error}
+          </div>
+        )}
+
+        <button
+          type="submit"
+          disabled={!canSubmit}
+          className="group mt-1 flex h-12 items-center justify-center rounded-2xl bg-amber-400 px-4 text-sm font-semibold tracking-wide text-slate-950 shadow-[0_18px_45px_rgba(251,191,36,0.2)] transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:-translate-y-0.5 hover:bg-amber-300 hover:shadow-[0_24px_60px_rgba(251,191,36,0.24)] active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:translate-y-0 disabled:hover:shadow-[0_18px_45px_rgba(251,191,36,0.2)]"
+        >
+          <span className="relative z-10">{submitting ? "Signing in..." : "Sign in"}</span>
+        </button>
+      </form>
+    </AuthShell>
   );
 }

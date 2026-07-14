@@ -2,13 +2,16 @@
 from __future__ import annotations
 
 import re
-from datetime import datetime
+from datetime import date, datetime
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
+from pydantic import EmailStr, model_validator
 
 from app.models.user import UserRole
+from app.schemas.shop import _GSTIN_RE
 
 _PHONE_RE = re.compile(r"^\+?[0-9]{7,15}$")
+_PAN_RE = re.compile(r"^[A-Z]{5}[0-9]{4}[A-Z]$")
 
 
 class SuperAdminLoginRequest(BaseModel):
@@ -19,7 +22,11 @@ class SuperAdminLoginRequest(BaseModel):
 
 
 class ShopLoginByUsername(BaseModel):
-    """Shop login via username + role + password + device binding."""
+    """Shop login via username + role + password.
+
+    ``device_key`` is retained for backward compatibility with older
+    clients, but the backend no longer uses it to gate login.
+    """
 
     model_config = ConfigDict(extra="forbid")
 
@@ -73,7 +80,7 @@ class ShopLoginByStaffId(BaseModel):
     password: str = Field(min_length=4, max_length=128)
 
 
-# Shop login now uses username + role + device_key.
+# Shop login still accepts the legacy device_key field for compatibility.
 ShopLoginRequest = ShopLoginByUsername
 
 
@@ -93,8 +100,70 @@ class UserPublic(BaseModel):
     username: str
     full_name: str
     phone: str
+    email: EmailStr | None
+    date_of_birth: date | None
+    pan: str | None
+    gstin: str | None
     is_active: bool
     created_at: datetime
+
+
+class UserProfileUpdate(BaseModel):
+    """Mutable profile fields for the current authenticated user."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    email: EmailStr | None = None
+    phone: str | None = Field(default=None, min_length=7, max_length=20)
+    date_of_birth: date | None = None
+    pan: str | None = Field(default=None, max_length=10)
+    gstin: str | None = Field(default=None, max_length=15)
+
+    @field_validator("phone")
+    @classmethod
+    def _phone_shape(cls, v: str | None) -> str | None:
+        if v is None:
+            return v
+        value = v.strip()
+        if not _PHONE_RE.match(value):
+            raise ValueError("phone must be 7-15 digits, optional leading +")
+        return value
+
+    @field_validator("pan")
+    @classmethod
+    def _pan_shape(cls, v: str | None) -> str | None:
+        if v is None:
+            return v
+        value = v.strip().upper()
+        if not _PAN_RE.match(value):
+            raise ValueError("pan must be 10 uppercase alphanumeric characters")
+        return value
+
+    @field_validator("gstin")
+    @classmethod
+    def _gstin_shape(cls, v: str | None) -> str | None:
+        if v is None:
+            return v
+        value = v.strip().upper()
+        if not _GSTIN_RE.match(value):
+            raise ValueError("gstin must be 15 uppercase alphanumeric characters")
+        return value
+
+
+class UserPasswordUpdate(BaseModel):
+    """Current-password verified password/PIN change request."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    current_password: str = Field(min_length=4, max_length=128)
+    new_password: str = Field(min_length=4, max_length=128)
+    confirm_password: str = Field(min_length=4, max_length=128)
+
+    @model_validator(mode="after")
+    def _passwords_match(self) -> "UserPasswordUpdate":
+        if self.new_password != self.confirm_password:
+            raise ValueError("new password and confirm password must match")
+        return self
 
 
 class ShopStaffMember(BaseModel):
@@ -114,7 +183,11 @@ class ShopStaffMember(BaseModel):
 
 
 class DeviceContext(BaseModel):
-    """Pre-auth device binding status for the login screen."""
+    """Legacy pre-auth device binding status payload.
+
+    Kept for compatibility with older clients/tests; the login flow no
+    longer consults it operationally.
+    """
 
     device_key: str
     is_registered: bool

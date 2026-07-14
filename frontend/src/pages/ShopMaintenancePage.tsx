@@ -1,27 +1,24 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Store, RefreshCw, Plus, Save, Users, MonitorSmartphone, Package, Key, Settings } from "lucide-react";
+import { Store, RefreshCw, Plus, Save, Users, Package, Key, Settings } from "lucide-react";
 import { listProducts, type Product } from "../api/products";
-import { getOrCreateDeviceKey, toUserMessage } from "../api/client";
+import { toUserMessage } from "../api/client";
 import {
   createShop,
   createShopUser,
   getMyShop,
   listShopUsers,
-  listShopDevices,
   listShops,
   resetShopUserPassword,
   setShopUserActive,
-  upsertShopDevice,
-  updateShopDevice,
   updateShop,
   type ShopPublic,
-  type ShopDevice,
   type ShopSummary,
   type ShopUser,
   type ShopUserRole,
 } from "../api/shops";
 import { useShopScope } from "../auth/ShopScopeProvider";
+import { AppTabButton } from "../components/AppTabs";
 
 const ROLES: ShopUserRole[] = ["owner", "cashier_user", "receiver_user"];
 const ROLE_FILTERS = ["all", ...ROLES] as const;
@@ -29,12 +26,11 @@ const STATUS_FILTERS = ["all", "active", "inactive"] as const;
 
 type RoleFilter = (typeof ROLE_FILTERS)[number];
 type StatusFilter = (typeof STATUS_FILTERS)[number];
-type ShopTab = "details" | "users" | "devices" | "inventory";
+type ShopTab = "details" | "users" | "inventory";
 
 const TABS: Array<{ id: ShopTab; label: string }> = [
   { id: "details", label: "Shop Details" },
   { id: "users", label: "Allotted Users" },
-  { id: "devices", label: "Devices" },
   { id: "inventory", label: "Quick Inventory Check" },
 ];
 
@@ -46,7 +42,6 @@ export function ShopMaintenancePage() {
   const [activeTab, setActiveTab] = useState<ShopTab>("details");
   const [shopDetails, setShopDetails] = useState<ShopPublic | null>(null);
   const [users, setUsers] = useState<ShopUser[]>([]);
-  const [devices, setDevices] = useState<ShopDevice[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [productQuery, setProductQuery] = useState("");
   const [includeInactiveProducts, setIncludeInactiveProducts] = useState(false);
@@ -89,7 +84,6 @@ export function ShopMaintenancePage() {
     if (selectedShopId == null) {
       setShopDetails(null);
       setUsers([]);
-      setDevices([]);
       setProducts([]);
       return;
     }
@@ -97,18 +91,16 @@ export function ShopMaintenancePage() {
     Promise.all([
       getMyShop(selectedShopId),
       listShopUsers(selectedShopId),
-      listShopDevices(selectedShopId),
       listProducts({
         shopId: selectedShopId,
         q: productQuery.trim() || undefined,
         includeInactive: includeInactiveProducts,
       }),
     ])
-      .then(([details, userRows, deviceRows, productRows]) => {
+      .then(([details, userRows, productRows]) => {
         if (cancelled) return;
         setShopDetails(details);
         setUsers(userRows);
-        setDevices(deviceRows);
         setProducts(productRows);
       })
       .catch((e) => {
@@ -141,7 +133,7 @@ export function ShopMaintenancePage() {
   return (
     <div className="flex flex-col gap-8 font-sans">
       <header className="flex flex-wrap items-center justify-between gap-4 rounded-xl border border-slate-200/50 bg-white/60 p-6 shadow-[0_8px_30px_rgb(0,0,0,0.02)] backdrop-blur-xl">
-        <h1 className="flex items-center gap-3 text-2xl font-light tracking-tight text-slate-900">
+        <h1 className="flex items-center gap-3 text-2xl font-bold tracking-tight text-slate-900">
           <Store className="h-6 w-6 text-action" /> Shop Master
         </h1>
         <button
@@ -180,21 +172,21 @@ export function ShopMaintenancePage() {
             onError={setError}
           />
           <div className="border-t border-slate-200/50 pt-6">
-            <h2 className="mb-4 text-xs font-semibold uppercase tracking-widest text-slate-500">Shops</h2>
+            <h2 className="mb-4 text-xs font-bold uppercase tracking-widest text-slate-500">Shops</h2>
             <div className="flex max-h-[calc(100vh-28rem)] flex-col gap-2 overflow-y-auto pr-2 custom-scrollbar">
               {shops.map((shop) => (
                 <button
                   key={shop.id}
                   type="button"
                   onClick={() => selectShop(shop.id)}
-                  className={`group relative flex w-full flex-col items-start gap-1 rounded-xl p-4 text-left transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out ${
+                  className={`group relative flex w-full flex-col items-start gap-0.5 rounded-[18px] px-4 py-3 text-left transition-[transform,opacity,background-color,border-color,box-shadow] duration-200 ease-out ${
                     shop.id === selectedShopId
-                      ? "bg-action text-white shadow-md shadow-[var(--color-action)]/20"
-                      : "bg-white text-slate-700 shadow-sm ring-1 ring-slate-200/50 hover:bg-slate-50 hover:shadow"
+                      ? "border border-primary bg-primary text-white shadow-[0_10px_24px_rgba(30,41,59,0.18)]"
+                      : "border border-slate-300/90 bg-white text-slate-700 shadow-[0_1px_2px_rgba(15,23,42,0.04)] hover:border-slate-400 hover:bg-slate-50 hover:shadow-sm"
                   }`}
                   aria-current={shop.id === selectedShopId ? "true" : undefined}
                 >
-                  <div className="text-sm font-bold tracking-tight">{shop.name}</div>
+                  <div className="text-[0.95rem] font-bold tracking-tight">{shop.name}</div>
                   <div
                     className={`font-mono text-xs ${
                       shop.id === selectedShopId ? "text-white/80" : "text-slate-400"
@@ -217,28 +209,21 @@ export function ShopMaintenancePage() {
           <main className="flex min-w-0 flex-col rounded-xl border border-slate-200/50 bg-white/60 shadow-[0_8px_30px_rgb(0,0,0,0.02)] backdrop-blur-xl">
             <div className="border-b border-slate-200/50 px-8 pt-8">
               <div className="mb-6">
-                <div className="text-[11px] font-semibold uppercase tracking-widest text-slate-500">Selected shop</div>
-                <h2 className="text-2xl font-light tracking-tight text-slate-900">{selectedShop.name}</h2>
+                <div className="text-[11px] font-bold uppercase tracking-widest text-slate-500">Selected shop</div>
+                <h2 className="text-2xl font-bold tracking-tight text-slate-900">{selectedShop.name}</h2>
               </div>
-              <div className="flex flex-wrap gap-6" role="tablist" aria-label="Shop management tabs">
+              <div className="flex flex-wrap gap-2 border-b border-slate-200/60 pb-4" role="tablist" aria-label="Shop management tabs">
                 {TABS.map((tab) => (
-                  <button
+                  <AppTabButton
                     key={tab.id}
-                    type="button"
                     role="tab"
                     aria-selected={activeTab === tab.id}
                     onClick={() => setActiveTab(tab.id)}
-                    className={`relative px-2 pb-4 text-sm font-medium transition-colors ${
-                      activeTab === tab.id
-                        ? "text-action"
-                        : "text-slate-500 hover:text-slate-900"
-                    }`}
+                    active={activeTab === tab.id}
+                    className="whitespace-nowrap"
                   >
                     {tab.label}
-                    {activeTab === tab.id && (
-                      <div className="absolute bottom-0 left-0 h-0.5 w-full bg-action" />
-                    )}
-                  </button>
+                  </AppTabButton>
                 ))}
               </div>
             </div>
@@ -266,17 +251,6 @@ export function ShopMaintenancePage() {
                   onStatusFilter={setStatusFilter}
                   onChanged={() => {
                     setMessage("User updated.");
-                    reload();
-                  }}
-                  onError={setError}
-                />
-              )}
-              {activeTab === "devices" && (
-                <DevicePanel
-                  shopId={selectedShop.id}
-                  devices={devices}
-                  onChanged={() => {
-                    setMessage("Device binding updated.");
                     reload();
                   }}
                   onError={setError}
@@ -335,7 +309,7 @@ function CreateShopForm({
 
   return (
     <form onSubmit={submit} className="flex flex-col gap-4">
-      <h2 className="flex items-center gap-2 text-lg font-light tracking-tight text-slate-900">
+      <h2 className="flex items-center gap-2 text-lg font-semibold tracking-tight text-slate-900">
         <Plus className="h-5 w-5 text-action" /> New shop
       </h2>
       <Field label="Name" value={name} onChange={setName} required />
@@ -369,8 +343,8 @@ function EditShopForm({
   );
   const [gstin, setGstin] = useState(shop.gstin ?? "");
   const [dutyRate, setDutyRate] = useState(shop.excise_duty_rate ?? "");
-  const [allowedLoginCidrs, setAllowedLoginCidrs] = useState(
-    shop.allowed_login_cidrs?.join("\n") ?? ""
+  const [receivingVendorLinkEnabled, setReceivingVendorLinkEnabled] = useState(
+    shop.receiving_vendor_link_enabled
   );
   const [busy, setBusy] = useState(false);
 
@@ -380,7 +354,7 @@ function EditShopForm({
     setThreshold(shop.low_stock_threshold_default == null ? "" : String(shop.low_stock_threshold_default));
     setGstin(shop.gstin ?? "");
     setDutyRate(shop.excise_duty_rate ?? "");
-    setAllowedLoginCidrs(shop.allowed_login_cidrs?.join("\n") ?? "");
+    setReceivingVendorLinkEnabled(shop.receiving_vendor_link_enabled);
   }, [shop, fallbackSummary]);
 
   const submit = async (e: React.FormEvent) => {
@@ -395,10 +369,7 @@ function EditShopForm({
         low_stock_threshold_default: nextThreshold ? Number(nextThreshold) : null,
         gstin: gstin.trim() || null,
         excise_duty_rate: dutyRate.trim() || null,
-        allowed_login_cidrs: allowedLoginCidrs
-          .split(/\r?\n|,/)
-          .map((value) => value.trim())
-          .filter((value) => value.length > 0),
+        receiving_vendor_link_enabled: receivingVendorLinkEnabled,
       });
       await onSaved();
     } catch (err) {
@@ -410,7 +381,7 @@ function EditShopForm({
 
   return (
     <form onSubmit={submit} className="flex flex-col gap-6">
-      <h2 className="flex items-center gap-2 text-xl font-light tracking-tight text-slate-900">
+      <h2 className="flex items-center gap-2 text-xl font-semibold tracking-tight text-slate-900">
         <Settings className="h-5 w-5 text-action" /> Shop details
       </h2>
       <div className="grid gap-6 md:grid-cols-2">
@@ -425,11 +396,11 @@ function EditShopForm({
           type="number"
           min="0"
         />
-        <TextAreaField
-          label="Allowed login IPs/CIDRs"
-          value={allowedLoginCidrs}
-          onChange={setAllowedLoginCidrs}
-          placeholder="One per line, e.g. 203.0.113.10 or 203.0.113.0/24"
+        <ToggleField
+          label="Vendor link for receiving"
+          description="Require vendor, invoice, date, and invoice value on stock inward."
+          checked={receivingVendorLinkEnabled}
+          onChange={setReceivingVendorLinkEnabled}
         />
       </div>
       <button
@@ -516,7 +487,7 @@ function UserPanel({
   return (
     <section className="flex flex-col gap-6">
       <div className="flex flex-wrap items-center justify-between gap-4">
-        <h2 className="flex items-center gap-2 text-xl font-light tracking-tight text-slate-900">
+        <h2 className="flex items-center gap-2 text-xl font-semibold tracking-tight text-slate-900">
           <Users className="h-5 w-5 text-action" /> Allotted users
         </h2>
         <div className="flex flex-wrap gap-4">
@@ -558,7 +529,7 @@ function UserPanel({
       </form>
 
       <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white">
-        <table className="w-full text-left text-sm">
+        <table className="app-list-table">
           <thead className="bg-slate-50/80 text-[11px] uppercase tracking-widest text-slate-500">
             <tr>
               <th className="px-6 py-4 font-semibold">Name</th>
@@ -620,177 +591,6 @@ function UserPanel({
   );
 }
 
-function DevicePanel({
-  shopId,
-  devices,
-  onChanged,
-  onError,
-}: {
-  shopId: number;
-  devices: ShopDevice[];
-  onChanged: () => void;
-  onError: (message: string | null) => void;
-}) {
-  const [deviceKey, setDeviceKey] = useState(() => getOrCreateDeviceKey());
-  const [counterName, setCounterName] = useState("");
-  const [busy, setBusy] = useState(false);
-
-  const registerCurrentDevice = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setBusy(true);
-    onError(null);
-    try {
-      await upsertShopDevice(
-        {
-          device_key: deviceKey.trim(),
-          counter_name: counterName.trim() || null,
-          is_active: true,
-        },
-        shopId
-      );
-      onChanged();
-    } catch (err) {
-      onError(toUserMessage(err, "Device registration failed."));
-    } finally {
-      setBusy(false);
-    }
-  };
-
-  const saveDevice = async (device: ShopDevice, changes: { counter_name?: string | null; is_active?: boolean | null }) => {
-    setBusy(true);
-    onError(null);
-    try {
-      await updateShopDevice(device.id, changes, shopId);
-      onChanged();
-    } catch (err) {
-      onError(toUserMessage(err, "Device update failed."));
-    } finally {
-      setBusy(false);
-    }
-  };
-
-  return (
-    <section className="flex flex-col gap-6">
-      <div className="flex flex-col gap-1">
-        <div className="flex flex-wrap items-center justify-between gap-4">
-          <h2 className="flex items-center gap-2 text-xl font-light tracking-tight text-slate-900">
-            <MonitorSmartphone className="h-5 w-5 text-action" /> Device bindings
-          </h2>
-        </div>
-        <p className="text-sm font-medium text-slate-500">
-          Bind each tablet or PC to this shop and counter.
-        </p>
-      </div>
-
-      <form onSubmit={registerCurrentDevice} className="grid items-end gap-4 rounded-2xl bg-slate-50 p-6 ring-1 ring-slate-200/50 md:grid-cols-[1.4fr_1fr_auto]">
-        <Field label="Device key" value={deviceKey} onChange={setDeviceKey} required />
-        <Field
-          label="Counter name"
-          value={counterName}
-          onChange={setCounterName}
-          placeholder="Front counter"
-        />
-        <button
-          type="submit"
-          disabled={busy}
-          className="flex h-11 items-center justify-center gap-2 rounded-xl bg-action px-6 text-sm font-bold tracking-wide text-white shadow-sm transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:-translate-y-0.5 hover:shadow-[var(--color-action)]/30 active:scale-[0.97] disabled:pointer-events-none disabled:opacity-50"
-        >
-          <Plus className="h-4 w-4" /> {busy ? "Saving..." : "Bind current device"}
-        </button>
-      </form>
-
-      <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white">
-        <table className="w-full text-left text-sm">
-          <thead className="bg-slate-50/80 text-[11px] uppercase tracking-widest text-slate-500">
-            <tr>
-              <th className="px-6 py-4 font-semibold">Device key</th>
-              <th className="px-6 py-4 font-semibold">Counter</th>
-              <th className="px-6 py-4 font-semibold">Status</th>
-              <th className="px-6 py-4 text-right font-semibold">Actions</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-slate-100">
-            {devices.map((device) => (
-              <DeviceRow
-                key={device.id}
-                device={device}
-                onSave={saveDevice}
-                busy={busy}
-              />
-            ))}
-            {devices.length === 0 && (
-              <tr>
-                <td className="px-6 py-8 text-center text-slate-500" colSpan={4}>
-                  No device bindings yet.
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
-    </section>
-  );
-}
-
-function DeviceRow({
-  device,
-  onSave,
-  busy,
-}: {
-  device: ShopDevice;
-  onSave: (
-    device: ShopDevice,
-    changes: { counter_name?: string | null; is_active?: boolean | null }
-  ) => Promise<void>;
-  busy: boolean;
-}) {
-  const [counterName, setCounterName] = useState(device.counter_name ?? "");
-  useEffect(() => {
-    setCounterName(device.counter_name ?? "");
-  }, [device.counter_name]);
-  return (
-    <tr className="transition-colors hover:bg-slate-50/50">
-      <td className="px-6 py-4 font-mono text-slate-500">{device.device_key}</td>
-      <td className="px-6 py-4">
-        <input
-          value={counterName}
-          onChange={(e) => setCounterName(e.target.value)}
-          className="h-9 w-full rounded-lg border border-slate-200 bg-white/50 px-3 text-sm font-medium text-slate-700 shadow-sm outline-none transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:bg-white focus:border-action focus:ring-1 focus:ring-action"
-        />
-      </td>
-      <td className="px-6 py-4">
-        <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${
-          device.is_active ? "bg-emerald-100 text-emerald-700" : "bg-slate-100 text-slate-600"
-        }`}>
-          {device.is_active ? "Active" : "Inactive"}
-        </span>
-      </td>
-      <td className="px-6 py-4 text-right">
-        <div className="flex justify-end gap-3">
-          <button
-            type="button"
-            disabled={busy}
-            onClick={() => void onSave(device, { counter_name: counterName.trim() || null })}
-            className="text-sm font-semibold text-action transition-colors hover:text-action/80 disabled:opacity-50"
-          >
-            Save
-          </button>
-          <button
-            type="button"
-            disabled={busy}
-            onClick={() => void onSave(device, { is_active: !device.is_active })}
-            className={`text-sm font-semibold transition-colors disabled:opacity-50 ${
-              device.is_active ? "text-red-500 hover:text-red-700" : "text-emerald-500 hover:text-emerald-700"
-            }`}
-          >
-            {device.is_active ? "Disable" : "Enable"}
-          </button>
-        </div>
-      </td>
-    </tr>
-  );
-}
-
 function InventoryPanel({
   products,
   query,
@@ -809,7 +609,7 @@ function InventoryPanel({
   return (
     <section className="flex flex-col gap-6">
       <div className="flex flex-wrap items-center justify-between gap-4">
-        <h2 className="flex items-center gap-2 text-xl font-light tracking-tight text-slate-900">
+        <h2 className="flex items-center gap-2 text-xl font-semibold tracking-tight text-slate-900">
           <Package className="h-5 w-5 text-action" /> Quick inventory check
         </h2>
         <button
@@ -839,7 +639,7 @@ function InventoryPanel({
         </label>
       </div>
       <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white">
-        <table className="w-full text-left text-sm">
+        <table className="app-list-table">
           <thead className="bg-slate-50/80 text-[11px] uppercase tracking-widest text-slate-500">
             <tr>
               <th className="px-6 py-4 font-semibold">Brand</th>
@@ -884,6 +684,33 @@ function InventoryPanel({
         </table>
       </div>
     </section>
+  );
+}
+
+function ToggleField({
+  label,
+  description,
+  checked,
+  onChange,
+}: {
+  label: string;
+  description: string;
+  checked: boolean;
+  onChange: (value: boolean) => void;
+}) {
+  return (
+    <label className="flex flex-col gap-2 rounded-2xl border border-slate-200/60 bg-white/70 p-4 text-slate-700 shadow-sm">
+      <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">{label}</span>
+      <div className="flex items-start gap-3">
+        <input
+          type="checkbox"
+          checked={checked}
+          onChange={(e) => onChange(e.target.checked)}
+          className="mt-1 h-4 w-4 rounded border-slate-300 text-action focus:ring-action"
+        />
+        <span className="text-sm text-slate-600">{description}</span>
+      </div>
+    </label>
   );
 }
 
@@ -956,31 +783,6 @@ function Field({
         min={min}
         placeholder={placeholder}
         className="h-11 w-full rounded-xl border border-slate-200 bg-white/50 px-4 text-sm font-medium normal-case text-slate-700 shadow-sm outline-none transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:bg-white focus:border-action focus:ring-1 focus:ring-action"
-      />
-    </label>
-  );
-}
-
-function TextAreaField({
-  label,
-  value,
-  onChange,
-  placeholder,
-}: {
-  label: string;
-  value: string;
-  onChange: (v: string) => void;
-  placeholder?: string;
-}) {
-  return (
-    <label className="flex flex-col gap-1.5 text-xs font-semibold uppercase tracking-wider text-slate-500 md:col-span-2">
-      {label}
-      <textarea
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        placeholder={placeholder}
-        rows={4}
-        className="min-h-[7rem] w-full rounded-xl border border-slate-200 bg-white/50 px-4 py-3 text-sm font-medium normal-case text-slate-700 shadow-sm outline-none transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:bg-white focus:border-action focus:ring-1 focus:ring-action"
       />
     </label>
   );

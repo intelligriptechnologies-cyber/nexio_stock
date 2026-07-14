@@ -4,9 +4,12 @@ export interface ShopPublic {
   id: number;
   name: string;
   code: string;
+  current_business_date: string;
   gstin: string | null;
   excise_duty_rate: string | null; // Decimal serialised as string in JSON
   low_stock_threshold_default: number | null;
+  cashier_login_restriction_enabled: boolean;
+  receiving_vendor_link_enabled: boolean;
   allowed_login_cidrs: string[];
 }
 
@@ -21,6 +24,8 @@ export interface ShopUpdatePayload {
   gstin?: string | null;
   excise_duty_rate?: string | null;
   low_stock_threshold_default?: number | null;
+  cashier_login_restriction_enabled?: boolean;
+  receiving_vendor_link_enabled?: boolean;
 }
 
 export type ShopUserRole = "owner" | "cashier_user" | "receiver_user";
@@ -40,6 +45,8 @@ export interface ShopCreatePayload {
   name: string;
   code: string;
   low_stock_threshold_default?: number | null;
+  cashier_login_restriction_enabled?: boolean;
+  receiving_vendor_link_enabled?: boolean;
   allowed_login_cidrs?: string[];
 }
 
@@ -47,6 +54,8 @@ export interface ShopMaintenanceUpdatePayload {
   name?: string;
   code?: string;
   low_stock_threshold_default?: number | null;
+  cashier_login_restriction_enabled?: boolean;
+  receiving_vendor_link_enabled?: boolean;
   gstin?: string | null;
   excise_duty_rate?: string | null;
   allowed_login_cidrs?: string[] | null;

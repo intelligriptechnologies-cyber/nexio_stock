@@ -148,17 +148,6 @@ export const Api = {
       "/auth/login",
       { method: "POST", json: payload }
     ),
-  getDeviceContext: (deviceKey: string) =>
-    api<{
-      device_key: string;
-      is_registered: boolean;
-      can_login: boolean;
-      shop_id: number | null;
-      shop_name: string | null;
-      shop_code: string | null;
-      counter_name: string | null;
-      message: string;
-    }>(`/auth/device-context?device_key=${encodeURIComponent(deviceKey)}`),
   // Public pre-auth staff picker (legacy compatibility for older tests).
   listShopStaff: () =>
     api<Array<{ id: number; full_name: string; role: string }>>("/auth/shop-staff"),

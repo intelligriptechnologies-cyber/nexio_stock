@@ -1,8 +1,9 @@
-const CACHE_NAME = "barstock-app-shell-v1";
+const CACHE_NAME = "barstock-app-shell-v2";
 const APP_SHELL_URLS = [
   "/",
   "/manifest.webmanifest",
   "/offline.html",
+  "/icons/barstock-icon.svg",
   "/icons/barstock-icon-192.png",
   "/icons/barstock-icon-512.png",
   "/icons/barstock-maskable-512.png",

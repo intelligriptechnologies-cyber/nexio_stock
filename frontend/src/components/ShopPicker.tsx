@@ -27,7 +27,7 @@ export function ShopPicker() {
   return (
     <div className="shrink-0 border-b border-outline p-3">
       <div className="rounded-md border border-outline bg-sidebar-hover/35 p-3">
-        <label className="block text-label-md text-on-sidebar" htmlFor="shop-picker">
+        <label className="block text-sm font-semibold tracking-tight text-on-sidebar" htmlFor="shop-picker">
           Working shop
         </label>
         <select
@@ -43,9 +43,9 @@ export function ShopPicker() {
             </option>
           ))}
         </select>
-        {error && <div className="mt-2 text-label-md text-on-error">{error}</div>}
+        {error && <div className="mt-2 text-sm font-medium text-on-error">{error}</div>}
         {!error && actingShopId === null && (
-          <div className="mt-2 text-label-md text-on-sidebar-muted">
+          <div className="mt-2 text-sm font-medium text-on-sidebar-muted">
             Required before shop edits or billing actions.
           </div>
         )}

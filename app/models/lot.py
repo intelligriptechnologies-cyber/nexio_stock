@@ -1,4 +1,4 @@
-"""Lot + LotLine - first-class stock-receipt entity (D-17, R-6)."""
+"""Committed stock lot + LotLine - created only after inward approval."""
 from __future__ import annotations
 
 from datetime import date, datetime
@@ -11,6 +11,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.db import Base
 
 if TYPE_CHECKING:
+    from app.models.stock_inward import StockInward
     from app.models.product import Product
     from app.models.shop import Shop
     from app.models.user import User
@@ -30,9 +31,15 @@ class Lot(Base):
         nullable=False,
         index=True,
     )
-    vendor_id: Mapped[int] = mapped_column(
+    stock_inward_id: Mapped[int | None] = mapped_column(
+        ForeignKey("stock_inwards.id", ondelete="set null"),
+        nullable=True,
+        unique=True,
+        index=True,
+    )
+    vendor_id: Mapped[int | None] = mapped_column(
         ForeignKey("vendors.id", ondelete="restrict"),
-        nullable=False,
+        nullable=True,
         index=True,
     )
     received_by_user_id: Mapped[int] = mapped_column(
@@ -55,7 +62,11 @@ class Lot(Base):
     lines: Mapped[list["LotLine"]] = relationship(back_populates="lot", cascade="all, delete-orphan")
     received_by: Mapped[User] = relationship()
     shop: Mapped[Shop] = relationship()
-    vendor: Mapped[Vendor] = relationship()
+    vendor: Mapped[Vendor | None] = relationship()
+    stock_inward: Mapped[StockInward | None] = relationship(
+        foreign_keys=[stock_inward_id],
+        uselist=False,
+    )
 
 
 class LotLine(Base):

@@ -1,28 +1,20 @@
 """Auth routes for superadmin and shop-scoped login.
 
-Login now differs by role:
-  - superadmin : username + password (no shop; cross-shop)
-  - owner / receiver / cashier : username + password + device_key
-
-The shop-scoped login contract is device-bound. The frontend stores a
-stable device key in local storage, the login screen preflights that key
-against ``GET /auth/device-context``, and the actual ``POST /auth/login``
-request refuses to authenticate unless the device is registered to a
-shop/counter.
+Shop login stays generic: username + password + role. Device binding and
+IP allowlists still exist as data fields for compatibility, but they no
+longer affect login behavior.
 """
 from __future__ import annotations
 
-from fastapi import APIRouter, HTTPException, Request, status
+from fastapi import APIRouter, HTTPException, status
 from sqlalchemy import select
 
 from app.api.deps import DbSession
 from app.config import get_settings
 from app.logging_config import get_logger
-from app.models.device import DeviceBinding
 from app.models.shop import Shop
 from app.models.user import SHOP_SCOPED_ROLES, User, UserRole
 from app.schemas.auth import (
-    DeviceContext,
     ShopLoginByUsername,
     ShopStaffMember,
     SuperAdminLoginRequest,
@@ -31,7 +23,6 @@ from app.schemas.auth import (
 )
 from app.security.jwt import create_access_token
 from app.security.passwords import verify_password
-from app.services.ip_allowlist import client_ip_is_allowed, resolve_client_ip
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 log = get_logger(__name__)
@@ -91,58 +82,6 @@ async def _authenticate(
     return user
 
 
-def _deny_shop_network(request: Request, *, shop: Shop | None, endpoint: str) -> None:
-    client_ip = resolve_client_ip(request)
-    log.warning(
-        "login.blocked_ip",
-        endpoint=endpoint,
-        shop_id=shop.id if shop is not None else None,
-        client_ip=client_ip,
-        allowed_login_cidrs=shop.allowed_login_cidrs if shop is not None else [],
-    )
-    raise HTTPException(
-        status_code=status.HTTP_403_FORBIDDEN,
-        detail="login allowed only from the shop network",
-    )
-
-
-def _require_shop_network(request: Request, *, shop: Shop | None, endpoint: str) -> None:
-    if shop is None:
-        return
-    client_ip = resolve_client_ip(request)
-    if not client_ip_is_allowed(client_ip, shop.allowed_login_cidrs):
-        _deny_shop_network(request, shop=shop, endpoint=endpoint)
-
-
-async def _get_device_binding(db: DbSession, device_key: str) -> DeviceBinding | None:
-    return (
-        await db.execute(
-            select(DeviceBinding).where(DeviceBinding.device_key == device_key)
-        )
-    ).scalar_one_or_none()
-
-
-def _device_context_message(binding: DeviceBinding | None, shop: Shop | None) -> str:
-    if binding is None:
-        return "This device is not registered yet. Ask an owner or superadmin to assign it to a shop and counter."
-    if not binding.is_active:
-        return "This device is registered but disabled. Ask an owner or superadmin to reactivate it."
-    if shop is None:
-        return "This device is registered, but the shop record is missing."
-    suffix = f" for counter {binding.counter_name}" if binding.counter_name else ""
-    return f"Registered to {shop.name} ({shop.code}){suffix}."
-
-
-async def _resolve_device_context(
-    db: DbSession, *, device_key: str
-) -> tuple[DeviceBinding | None, Shop | None]:
-    binding = await _get_device_binding(db, device_key)
-    if binding is None:
-        return None, None
-    shop = await db.get(Shop, binding.shop_id)
-    return binding, shop
-
-
 @router.post(
     "/login/superadmin",
     response_model=TokenResponse,
@@ -172,19 +111,12 @@ async def login_superadmin(payload: SuperAdminLoginRequest, db: DbSession) -> To
 @router.post(
     "/login",
     response_model=TokenResponse,
-    summary="Shop login (username + password + device_key, owner / receiver_user / cashier_user)",
+    summary="Shop login (username + password, owner / receiver_user / cashier_user)",
 )
-async def login_shop(request: Request, db: DbSession, payload: ShopLoginByUsername) -> TokenResponse:
-    binding, shop = await _resolve_device_context(db, device_key=payload.device_key)
-    if binding is None or shop is None or not binding.is_active:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail=_device_context_message(binding, shop),
-        )
-    _require_shop_network(request, shop=shop, endpoint="/auth/login")
+async def login_shop(db: DbSession, payload: ShopLoginByUsername) -> TokenResponse:
     user = await _authenticate(
         db,
-        shop_id=shop.id,
+        shop_id=None,
         identifier_field="username",
         identifier_value=payload.username,
         password=payload.password,
@@ -195,6 +127,13 @@ async def login_shop(request: Request, db: DbSession, payload: ShopLoginByUserna
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="invalid credentials",
         )
+    shop = await db.get(Shop, user.shop_id) if user.shop_id is not None else None
+    if shop is None and user.role != UserRole.SUPERADMIN:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="shop-scoped user has no shop",
+        )
+
     settings = get_settings()
     token = create_access_token(sub=str(user.id), shop_id=user.shop_id, role=user.role.value)
     log.info("login.shop", user_id=user.id, role=user.role.value)
@@ -206,37 +145,11 @@ async def login_shop(request: Request, db: DbSession, payload: ShopLoginByUserna
 
 
 @router.get(
-    "/device-context",
-    response_model=DeviceContext,
-    summary="Resolve the pre-auth device binding for the login screen",
-)
-async def device_context(
-    request: Request,
-    db: DbSession,
-    device_key: str,
-) -> DeviceContext:
-    binding, shop = await _resolve_device_context(db, device_key=device_key)
-    if shop is not None:
-        _require_shop_network(request, shop=shop, endpoint="/auth/device-context")
-    message = _device_context_message(binding, shop)
-    return DeviceContext(
-        device_key=device_key,
-        is_registered=binding is not None,
-        can_login=binding is not None and shop is not None and binding.is_active,
-        shop_id=shop.id if shop is not None else None,
-        shop_name=shop.name if shop is not None else None,
-        shop_code=shop.code if shop is not None else None,
-        counter_name=binding.counter_name if binding is not None else None,
-        message=message,
-    )
-
-
-@router.get(
     "/shop-staff",
     response_model=list[ShopStaffMember],
     summary="Public pre-auth staff picker (issue #24, D-v2-16)",
 )
-async def list_shop_staff(request: Request, db: DbSession) -> list[ShopStaffMember]:
+async def list_shop_staff(db: DbSession) -> list[ShopStaffMember]:
     """Return the one existing shop's active shop-scoped users as
     ``{id, full_name, role}`` so the ``LoginPage`` can render a tap-list
     before any credential is entered.
@@ -260,7 +173,6 @@ async def list_shop_staff(request: Request, db: DbSession) -> list[ShopStaffMemb
     ).scalar_one_or_none()
     if shop is None:
         return []
-    _require_shop_network(request, shop=shop, endpoint="/auth/shop-staff")
     stmt = (
         select(User)
         .where(

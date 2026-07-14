@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { FileText, RefreshCw, Download, Save } from "lucide-react";
 import { useAuth } from "../auth/AuthProvider";
 import { useShopScope } from "../auth/ShopScopeProvider";
+import { AppTabButton } from "../components/AppTabs";
 import { ApiError } from "../api/client";
 import {
   downloadLogFile,
@@ -109,7 +110,7 @@ export function LogsPage() {
     <div className="flex flex-col gap-8 font-sans">
       <header className="flex flex-wrap items-center justify-between gap-4 rounded-xl border border-slate-200/50 bg-white/60 p-6 shadow-[0_8px_30px_rgb(0,0,0,0.02)] backdrop-blur-xl">
         <div>
-          <h1 className="flex items-center gap-3 text-2xl font-light tracking-tight text-slate-900">
+          <h1 className="flex items-center gap-3 text-2xl font-bold tracking-tight text-slate-900">
             <FileText className="h-6 w-6 text-action" /> Logs
           </h1>
           <p className="mt-1 text-sm font-medium text-slate-500">
@@ -128,20 +129,15 @@ export function LogsPage() {
 
       <div className="flex flex-wrap gap-2 border-b border-slate-200/60 pb-4" role="tablist" aria-label="Log sections">
         {tabs.map((tab) => (
-          <button
+          <AppTabButton
             key={tab.type}
-            type="button"
             role="tab"
             aria-selected={type === tab.type}
             onClick={() => setType(tab.type)}
-            className={`group relative flex h-11 items-center justify-center gap-2 rounded-full px-6 text-sm font-bold tracking-wide transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out ${
-              type === tab.type
-                ? "bg-action text-white shadow-[0_4px_20px_rgba(var(--color-action-rgb),0.3)] hover:-translate-y-0.5"
-                : "bg-white text-slate-500 shadow-sm ring-1 ring-slate-200 hover:bg-slate-50 hover:text-slate-700"
-            }`}
+            active={type === tab.type}
           >
             {tab.label}
-          </button>
+          </AppTabButton>
         ))}
       </div>
 
@@ -179,7 +175,7 @@ export function LogsPage() {
       </section>
 
       <div className="max-h-[calc(100vh-22rem)] overflow-y-auto rounded-xl border border-slate-200/50 bg-white/60 shadow-[0_8px_30px_rgb(0,0,0,0.02)] backdrop-blur-xl custom-scrollbar">
-        <table className="w-full text-left text-sm">
+        <table className="app-list-table">
           <thead className="sticky top-0 z-10 bg-slate-50/90 text-[11px] uppercase tracking-widest text-slate-500 backdrop-blur-sm">
             <tr>
               <th className="px-6 py-4 font-semibold">File</th>

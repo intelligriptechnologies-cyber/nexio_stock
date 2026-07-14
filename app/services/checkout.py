@@ -25,7 +25,6 @@ from __future__ import annotations
 
 from collections.abc import Iterable
 from dataclasses import dataclass
-from datetime import date
 from decimal import Decimal
 from typing import NamedTuple
 
@@ -42,6 +41,7 @@ from app.models.invoice import (
 )
 from app.models.product import Product
 from app.models.shop import Shop
+from app.services.calendar import today_local_date
 from app.services.stock import compute_derived_stock
 
 
@@ -93,6 +93,15 @@ def _check_idempotency_key_present(key: str | None) -> str:
     if len(k) > 80:
         raise CheckoutError("idempotency_key_too_long", "Idempotency-Key max length is 80")
     return k
+
+
+def validate_note_for_payments(*, payments: list[PaymentLine], note: str | None) -> None:
+    if any(payment.mode == PaymentMode.OTHER for payment in payments) and not (note or "").strip():
+        raise CheckoutError(
+            "note_required_for_other_payment",
+            "note is required when payment mode 'other' is used",
+        )
+
 
 async def _resolve_products_for_cart(
     db: AsyncSession,
@@ -191,6 +200,8 @@ async def finalize_checkout(
         # (cascade from a void reversal). Treat as no-prior and proceed
         # by inserting a new key below.
 
+    validate_note_for_payments(payments=payments, note=note)
+
     # 2. Resolve cart barcodes to products.
     by_barcode = await _resolve_products_for_cart(db, shop_id=shop_id, lines=cart)
 
@@ -257,14 +268,9 @@ async def finalize_checkout(
             select(Shop).where(Shop.id == shop_id).with_for_update()
         )
     ).scalar_one()
-    if shop.current_business_date > date.today():
-        raise CheckoutError(
-            "eod_signed_off",
-            f"business date {date.today().isoformat()} is already signed off",
-        )
     next_number = (shop.last_invoice_number or 0) + 1
     shop.last_invoice_number = next_number
-    business_date = shop.current_business_date
+    business_date = today_local_date()
 
     # 7. Create the invoice + lines + payments.
     invoice = Invoice(

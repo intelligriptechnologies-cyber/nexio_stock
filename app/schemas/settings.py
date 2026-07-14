@@ -6,7 +6,7 @@ from decimal import Decimal
 
 from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
 
-from app.schemas.shop import _GSTIN_RE
+from app.schemas.shop import _GSTIN_RE, _normalize_allowed_login_cidrs
 
 _HEX_COLOR_RE = re.compile(r"^#[0-9a-fA-F]{6}$")
 _HEX_COLOR_WITH_ALPHA_RE = re.compile(r"^#[0-9a-fA-F]{6}([0-9a-fA-F]{2})?$")
@@ -26,6 +26,8 @@ class SettingsPublic(BaseModel):
     sidebar_menu_inactive_text_color: str
     sidebar_menu_active_text_color: str
     email_enabled: bool
+    cashier_login_restriction_enabled: bool
+    receiving_vendor_link_enabled: bool
     smtp_host: str | None
     smtp_port: int | None
     smtp_username: str | None
@@ -35,6 +37,7 @@ class SettingsPublic(BaseModel):
     gstin: str | None
     excise_duty_rate: Decimal | None
     low_stock_threshold_default: int | None
+    allowed_login_cidrs: list[str]
 
 
 class SettingsUpdate(BaseModel):
@@ -56,6 +59,9 @@ class SettingsUpdate(BaseModel):
     smtp_from_email: EmailStr | None = None
     smtp_from_name: str | None = Field(default=None, max_length=255)
     smtp_use_tls: bool | None = None
+    cashier_login_restriction_enabled: bool | None = None
+    receiving_vendor_link_enabled: bool | None = None
+    allowed_login_cidrs: list[str] | None = None
     gstin: str | None = Field(default=None, max_length=15)
     excise_duty_rate: Decimal | None = Field(
         default=None,
@@ -103,3 +109,12 @@ class SettingsUpdate(BaseModel):
         if not _GSTIN_RE.match(v):
             raise ValueError("gstin must be 15 alphanumeric characters (uppercase)")
         return v
+
+    @field_validator("allowed_login_cidrs")
+    @classmethod
+    def _allowed_login_cidrs_shape(
+        cls, values: list[str] | None
+    ) -> list[str] | None:
+        if values is None:
+            return None
+        return _normalize_allowed_login_cidrs(values)

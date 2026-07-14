@@ -1,8 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
 import type { CheckoutLine, PaymentInput, PaymentMode } from "../api/checkout";
 import type { OfflineCatalogItem, OfflineReceiptPayload } from "../api/offline-sessions";
-
-const PAYMENT_MODES: PaymentMode[] = ["cash", "upi", "card"];
+import { ModalDialog } from "./ModalDialog";
+import {
+  PAYMENT_MODES,
+  formatPaymentLabel,
+  requiresPaymentNote,
+} from "../payment-modes";
 
 interface DraftLine {
   barcode: string;
@@ -33,10 +37,6 @@ function parseMoney(value: string): number {
   const n = Number.parseFloat(value);
   if (!Number.isFinite(n) || n < 0) return 0;
   return Math.round(n * 100);
-}
-
-function formatPaymentLabel(mode: PaymentMode): string {
-  return { cash: "Cash", upi: "UPI", card: "Card" }[mode];
 }
 
 function createDraft(receipt: OfflineReceiptPayload | null): ReceiptDraft {
@@ -79,7 +79,13 @@ export function OfflineReceiptEditorModal({
 
   const lineTotalCents = receiptLineTotalCents(draft.lines, catalogByBarcode);
   const paymentTotalCents = draft.payments.reduce((acc, payment) => acc + parseMoney(payment.amount), 0);
-  const canSave = draft.lines.length > 0 && draft.payments.length > 0 && lineTotalCents === paymentTotalCents && !busy;
+  const noteRequired = requiresPaymentNote(draft.payments, draft.note);
+  const canSave =
+    draft.lines.length > 0 &&
+    draft.payments.length > 0 &&
+    lineTotalCents === paymentTotalCents &&
+    !noteRequired &&
+    !busy;
 
   const addLine = () => {
     const barcode = draft.newBarcode.trim();
@@ -159,6 +165,10 @@ export function OfflineReceiptEditorModal({
       setError("Payment splits must equal the receipt total.");
       return;
     }
+    if (noteRequired) {
+      setError("Add a note when any payment split uses Other.");
+      return;
+    }
 
     onSave({
       temp_receipt_id: receipt.temp_receipt_id,
@@ -171,16 +181,11 @@ export function OfflineReceiptEditorModal({
   };
 
   return (
-    <div
-      className="animate-fade-in fixed inset-0 z-40 flex items-center justify-center bg-slate-900/40 p-4 backdrop-blur-sm"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="offline-receipt-editor-title"
-    >
+    <ModalDialog labelledBy="offline-receipt-editor-title" onDismiss={onCancel} className="animate-fade-in fixed inset-0 z-40 flex items-center justify-center bg-slate-900/40 p-4 backdrop-blur-sm">
       <div className="animate-modal-in flex max-h-[90vh] w-full max-w-4xl flex-col gap-6 overflow-y-auto rounded-xl bg-white p-8 shadow-[0_20px_60px_rgba(0,0,0,0.1)] ring-1 ring-slate-200/50">
         <header className="flex items-start justify-between gap-4">
           <div>
-            <h2 id="offline-receipt-editor-title" className="text-xl font-light tracking-tight text-slate-900">
+            <h2 id="offline-receipt-editor-title" className="text-xl font-semibold tracking-tight text-slate-900">
               Edit {receipt.temp_receipt_id}
             </h2>
             <p className="mt-2 text-sm text-slate-500">
@@ -301,11 +306,11 @@ export function OfflineReceiptEditorModal({
             <div className="relative overflow-hidden rounded-xl bg-slate-900 p-6 text-white shadow-lg">
               <div className="pointer-events-none absolute -right-10 -top-10 h-32 w-32 rounded-full bg-gradient-to-br from-[rgba(34,197,94,0.2)] to-white/5 blur-2xl" />
               <div className="relative z-10 text-xs font-bold uppercase tracking-widest text-slate-400">Receipt total</div>
-              <div className="relative z-10 mt-2 font-mono text-4xl font-light tracking-tight">₹{moneyString(lineTotalCents)}</div>
+              <div className="relative z-10 mt-2 font-mono text-4xl font-semibold tracking-tight">₹{moneyString(lineTotalCents)}</div>
             </div>
 
             <div className="flex items-center justify-between">
-              <h3 className="text-lg font-light tracking-tight text-slate-900">Payments</h3>
+              <h3 className="text-lg font-semibold tracking-tight text-slate-900">Payments</h3>
               <button
                 type="button"
                 onClick={addPayment}
@@ -363,15 +368,21 @@ export function OfflineReceiptEditorModal({
             </div>
 
             <label className="flex flex-col gap-1.5 text-xs font-semibold uppercase tracking-wider text-slate-500">
-              Note
+              Note {noteRequired ? "(required for Other)" : ""}
               <textarea
                 value={draft.note}
                 onChange={(e) => setDraft((current) => ({ ...current, note: e.target.value }))}
                 maxLength={200}
                 rows={3}
+                aria-invalid={noteRequired && !draft.note.trim()}
                 className="w-full rounded-xl border border-slate-200 bg-white/50 p-4 text-sm font-medium normal-case text-slate-700 shadow-sm outline-none transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:bg-white focus:border-action focus:ring-1 focus:ring-action"
                 disabled={busy}
               />
+              {noteRequired && !draft.note.trim() && (
+                <span className="text-xs font-medium text-red-600">
+                  Add a note before saving this receipt.
+                </span>
+              )}
             </label>
 
             {error && (
@@ -401,6 +412,6 @@ export function OfflineReceiptEditorModal({
           </aside>
         </div>
       </div>
-    </div>
+    </ModalDialog>
   );
 }

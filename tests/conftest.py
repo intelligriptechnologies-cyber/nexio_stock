@@ -127,7 +127,7 @@ async def _truncate_tables(test_db_dsn: str) -> AsyncIterator[None]:
         # then users, then shops.
         await session.execute(
             text(
-                "TRUNCATE TABLE offline_sessions, eod_signoffs, idempotency_keys, past_payments, past_invoice_lines, past_invoices, payments, invoice_lines, invoices, lot_lines, lots, vendors, products, master_products, invoicing_logs, stockin_logs, "
+                "TRUNCATE TABLE offline_sessions, eod_signoffs, idempotency_keys, past_payments, past_invoice_lines, past_invoices, payments, invoice_lines, invoices, lot_lines, lots, stock_inward_lines, stock_inwards, vendors, products, master_products, invoicing_logs, stockin_logs, "
                 "log_file_retention_settings, users, shops RESTART IDENTITY CASCADE"
             )
         )
@@ -182,7 +182,12 @@ async def client(test_db_dsn: str) -> AsyncIterator[AsyncClient]:
 async def _make_shop(
     session: AsyncSession, code: str = "shop1", name: str = "Shop One"
 ) -> Shop:
-    shop = Shop(code=code, name=name)
+    shop = Shop(
+        code=code,
+        name=name,
+        cashier_login_restriction_enabled=False,
+        receiving_vendor_link_enabled=True,
+    )
     session.add(shop)
     await session.flush()
     await session.commit()

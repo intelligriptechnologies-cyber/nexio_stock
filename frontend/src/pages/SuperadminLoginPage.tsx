@@ -2,6 +2,10 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Api, ApiError } from "../api/client";
 import { type AuthUser, type Role, useAuth } from "../auth/AuthProvider";
+import { AuthShell } from "../components/AuthShell";
+
+const FIELD_CLASS =
+  "h-12 w-full rounded-2xl border border-white/10 bg-[#1c1714] px-4 text-sm text-white shadow-sm transition-[background-color,box-shadow,border-color] duration-200 ease-out hover:border-amber-300/45 hover:bg-[#241d1a] focus:border-amber-300 focus:bg-[#241d1a] focus:outline-none focus:ring-4 focus:ring-amber-300/10";
 
 export function SuperadminLoginPage() {
   const navigate = useNavigate();
@@ -42,73 +46,56 @@ export function SuperadminLoginPage() {
   };
 
   return (
-    <div className="relative flex min-h-full items-center justify-center overflow-hidden bg-[#030712] p-6 font-sans">
-      {/* Dark Mode Purple Accents */}
-      <div className="pointer-events-none absolute left-1/2 top-1/2 h-[600px] w-[600px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-purple-600/10 blur-[120px]" />
-      
-      <form
-        onSubmit={submit}
-        className="relative w-full max-w-[420px] overflow-hidden rounded-2xl border border-white/10 bg-[#0f172a]/80 shadow-[0_8px_40px_rgb(0,0,0,0.4)] backdrop-blur-xl transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:border-purple-500/30 hover:shadow-[0_8px_60px_rgba(139,92,246,0.15)]"
-      >
-        <div className="border-b border-white/5 px-8 py-8 text-center">
-          <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-purple-500/10 text-purple-400 ring-1 ring-purple-500/20">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-          </div>
-          <h1 className="text-2xl font-light tracking-tight text-white">Superadmin</h1>
-          <p className="mt-2 text-sm text-slate-400">Restricted system access</p>
+    <AuthShell
+      variant="superadmin"
+      title="Superadmin sign in"
+      subcopy="Use your admin username and password to manage shops, access, and inventory control."
+      footerActionLabel="Back to shop login"
+      footerActionTo="/login"
+      footerActionText="Need the shop counter?"
+    >
+      <form onSubmit={submit} className="flex flex-col gap-4 text-white">
+        <div className="grid gap-4">
+          <label className="flex flex-col gap-1.5 text-sm font-medium text-slate-200">
+            Username
+            <input
+              type="text"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              className={FIELD_CLASS}
+              autoFocus
+              required
+            />
+          </label>
+          <label className="flex flex-col gap-1.5 text-sm font-medium text-slate-200">
+            Password
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className={FIELD_CLASS}
+              required
+            />
+          </label>
         </div>
 
-        <div className="flex flex-col gap-6 px-8 py-8">
-          <div className="flex flex-col gap-5">
-            <label className="flex flex-col gap-2 text-sm font-medium text-slate-300">
-              Username
-              <input
-                type="text"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                className="h-11 w-full rounded-xl border border-white/10 bg-[#1e293b]/50 px-4 text-sm text-white shadow-inner transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:border-purple-500/30 focus:border-purple-500 focus:bg-[#1e293b] focus:outline-none focus:ring-4 focus:ring-purple-500/20"
-                autoFocus
-                required
-              />
-            </label>
-            <label className="flex flex-col gap-2 text-sm font-medium text-slate-300">
-              Password
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="h-11 w-full rounded-xl border border-white/10 bg-[#1e293b]/50 px-4 text-sm text-white shadow-inner transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:border-purple-500/30 focus:border-purple-500 focus:bg-[#1e293b] focus:outline-none focus:ring-4 focus:ring-purple-500/20"
-                required
-              />
-            </label>
+        {error && (
+          <div
+            role="alert"
+            className="animate-fade-in rounded-2xl border border-rose-400/20 bg-rose-400/10 p-4 text-sm text-rose-100 backdrop-blur-sm"
+          >
+            {error}
           </div>
+        )}
 
-          {error && (
-            <div
-              role="alert"
-              className="animate-fade-in rounded-xl border border-red-500/20 bg-red-500/10 p-4 text-sm text-red-400 backdrop-blur-md"
-            >
-              {error}
-            </div>
-          )}
-
-          <button
-            type="submit"
-            disabled={loading}
-            className="group relative mt-2 flex h-11 items-center justify-center overflow-hidden rounded-xl bg-purple-600 text-sm font-semibold tracking-wide text-white shadow-lg shadow-purple-600/20 transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:-translate-y-0.5 hover:bg-purple-500 hover:shadow-xl hover:shadow-purple-600/40 active:scale-[0.97] disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:translate-y-0 disabled:hover:shadow-lg"
-          >
-            <span className="relative z-10">{loading ? "Authenticating..." : "Sign In"}</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => navigate("/login")}
-            className="mt-2 text-center text-xs font-medium text-slate-500 transition-colors duration-300 hover:text-slate-300"
-          >
-            &larr; Back to Shop Login
-          </button>
-        </div>
+        <button
+          type="submit"
+          disabled={loading}
+          className="group mt-1 flex h-12 items-center justify-center rounded-2xl bg-amber-400 px-4 text-sm font-semibold tracking-wide text-slate-950 shadow-[0_18px_45px_rgba(251,191,36,0.2)] transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:-translate-y-0.5 hover:bg-amber-300 hover:shadow-[0_24px_60px_rgba(251,191,36,0.24)] active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:translate-y-0 disabled:hover:shadow-[0_18px_45px_rgba(251,191,36,0.2)]"
+        >
+          <span className="relative z-10">{loading ? "Signing in..." : "Sign in"}</span>
+        </button>
       </form>
-    </div>
+    </AuthShell>
   );
 }

@@ -1,0 +1,6 @@
+[2026-07-12T22:55:36+05:30] Receiving lot #1 for Shop One by Receiver One (user #3); reference no reference; notes no notes; products received: Copy Brand 750ml x 5 at Rs. 123.45, row total Rs. 617.25.
+[2026-07-12T22:56:07+05:30] Receiving lot #1 for Shop One by Receiver One (user #2); reference no reference; notes no notes; products received: X 750ml x 2 at Rs. 100.00, row total Rs. 200.00.
+[2026-07-12T22:56:16+05:30] Receiving lot #1 for Shop One by Receiver One (user #2); reference no reference; notes no notes; products received: X 750ml x 2 at Rs. 100.00, row total Rs. 200.00.
+[2026-07-12T22:56:24+05:30] Receiving lot #1 for Shop One by Receiver One (user #2); reference no reference; notes no notes; products received: X 750ml x 2 at Rs. 100.00, row total Rs. 200.00.
+[2026-07-12T22:56:31+05:30] Receiving lot #1 for Shop One by Receiver One (user #2); reference no reference; notes no notes; products received: X 750ml x 2 at Rs. 100.00, row total Rs. 200.00.
+[2026-07-12T22:56:39+05:30] Receiving lot #1 for Test Liquor Corner by Receiver One (user #2); reference no reference; notes no notes; products received: X 750ml x 2 at Rs. 100.00, row total Rs. 200.00.

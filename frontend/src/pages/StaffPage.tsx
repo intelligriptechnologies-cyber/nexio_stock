@@ -101,7 +101,7 @@ export function StaffPage() {
   return (
     <div className="flex flex-col gap-8 font-sans">
       <header className="flex flex-wrap items-center justify-between gap-4 rounded-xl border border-slate-200/50 bg-white/60 p-6 shadow-[0_8px_30px_rgb(0,0,0,0.02)] backdrop-blur-xl">
-        <h1 className="flex items-center gap-3 text-2xl font-light tracking-tight text-slate-900">
+        <h1 className="flex items-center gap-3 text-2xl font-bold tracking-tight text-slate-900">
           <Users className="h-6 w-6 text-action" /> Staff
         </h1>
         <button
@@ -129,7 +129,7 @@ export function StaffPage() {
         <CreateCard onSubmit={onCreate} busy={busy} />
 
         <section className="flex flex-col gap-6 rounded-xl border border-slate-200/50 bg-white/60 p-6 shadow-[0_8px_30px_rgb(0,0,0,0.02)] backdrop-blur-xl">
-          <h2 className="text-lg font-light tracking-tight text-slate-900">Current staff</h2>
+          <h2 className="text-lg font-semibold tracking-tight text-slate-900">Current staff</h2>
           {items === null ? (
             <div className="flex h-32 items-center justify-center rounded-2xl border border-slate-200 bg-white/50">
               <div className="text-sm font-medium text-slate-500">Loading…</div>
@@ -140,7 +140,7 @@ export function StaffPage() {
             </div>
           ) : (
             <div className="max-h-[calc(100vh-18rem)] overflow-y-auto rounded-2xl border border-slate-200 bg-white custom-scrollbar">
-              <table className="w-full text-left text-sm">
+              <table className="app-list-table">
                 <thead className="sticky top-0 z-10 bg-slate-50/90 text-[11px] uppercase tracking-widest text-slate-500 backdrop-blur-sm">
                   <tr>
                     <th className="px-6 py-4 font-semibold">Role</th>
@@ -250,7 +250,7 @@ function CreateCard({
       onSubmit={submit}
       className="flex flex-col gap-6 rounded-xl border border-slate-200/50 bg-white/60 p-6 shadow-[0_8px_30px_rgb(0,0,0,0.02)] backdrop-blur-xl h-fit"
     >
-      <h2 className="flex items-center gap-2 text-xl font-light tracking-tight text-slate-900">
+      <h2 className="flex items-center gap-2 text-xl font-semibold tracking-tight text-slate-900">
         <UserPlus className="h-5 w-5 text-action" /> New staff account
       </h2>
       <label className="flex flex-col gap-1.5 text-xs font-semibold uppercase tracking-wider text-slate-500">

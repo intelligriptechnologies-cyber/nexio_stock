@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import type { ReactNode } from "react";
 import { useAuth } from "../auth/AuthProvider";
 import { useShopScope } from "../auth/ShopScopeProvider";
+import { AppTabButton } from "../components/AppTabs";
 import { ApiError } from "../api/client";
 import {
   getEodTotals,
@@ -16,14 +16,19 @@ import {
   type InvoicePublic,
   type PaymentMode,
 } from "../api/checkout";
-import { listShops, type ShopSummary } from "../api/shops";
+import {
+  PAYMENT_MODES,
+  formatPaymentLabel,
+  requiresPaymentNote,
+} from "../payment-modes";
+import { getMyShop, listShops, type ShopPublic, type ShopSummary } from "../api/shops";
 import { requestVoid } from "../api/voids";
 import { notifyVoidApprovalsChanged } from "../api/void-approvals-events";
-import { ReceiptText, RefreshCw, Download, XOctagon, Edit3, Eye, Calendar, MapPin, Filter } from "lucide-react";
+import { ModalDialog } from "../components/ModalDialog";
+import { ReceiptText, RefreshCw, Download, XOctagon, Calendar, MapPin, Filter } from "lucide-react";
 
 type Source = "current" | "past";
 
-const PAYMENT_MODES: PaymentMode[] = ["cash", "upi", "card"];
 const STATUS_FILTERS: Array<InvoicePublic["status"]> = [
   "finalized",
   "voided",
@@ -31,12 +36,17 @@ const STATUS_FILTERS: Array<InvoicePublic["status"]> = [
   "reversal",
 ];
 
+function cashierLabel(invoice: InvoicePublic) {
+  return invoice.cashier_name?.trim() || `User #${invoice.cashier_user_id}`;
+}
+
 export function InvoiceLookupPage() {
   const { user } = useAuth();
   const { actingShopId, setActingShopId } = useShopScope();
   const [source, setSource] = useState<Source>("current");
   const [rows, setRows] = useState<InvoicePublic[]>([]);
   const [shops, setShops] = useState<ShopSummary[]>([]);
+  const [activeShop, setActiveShop] = useState<ShopPublic | null>(null);
   const [eodTotals, setEodTotals] = useState<EodTotalsResponse | null>(null);
   const [summaryOpen, setSummaryOpen] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
@@ -75,11 +85,12 @@ export function InvoiceLookupPage() {
   );
   const today = todayLocalDateString();
   const selectedShop = useMemo(
-    () => shops.find((shop) => shop.id === actingShopId) ?? null,
-    [actingShopId, shops]
+    () => activeShop ?? shops.find((shop) => shop.id === actingShopId) ?? null,
+    [actingShopId, activeShop, shops]
   );
-  const canShowCloseToday =
-    user?.role === "superadmin" &&
+  const settlementBusinessDate = today;
+  const canShowArchiveOpenInvoices =
+    (user?.role === "owner" || user?.role === "superadmin") &&
     source === "current" &&
     actingShopId !== null &&
     eodTotals !== null &&
@@ -103,6 +114,24 @@ export function InvoiceLookupPage() {
       cancelled = true;
     };
   }, [user?.role]);
+
+  useEffect(() => {
+    if (user?.role === "superadmin" && actingShopId === null) {
+      setActiveShop(null);
+      return;
+    }
+    let cancelled = false;
+    getMyShop(user?.role === "superadmin" ? actingShopId : undefined)
+      .then((shop) => {
+        if (!cancelled) setActiveShop(shop);
+      })
+      .catch((e) => {
+        if (!cancelled) setError(e instanceof Error ? e.message : "Could not load shop.");
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [actingShopId, user?.role]);
 
   useEffect(() => {
     if (!info) return;
@@ -134,7 +163,7 @@ export function InvoiceLookupPage() {
         current ? result.invoices.find((row) => row.id === current.id) ?? null : null
       );
       if (source === "current") {
-        setEodTotals(await getEodTotals(today, actingShopId));
+          setEodTotals(await getEodTotals(settlementBusinessDate, actingShopId));
       } else {
         setEodTotals(null);
       }
@@ -143,7 +172,7 @@ export function InvoiceLookupPage() {
     } finally {
       setBusy(false);
     }
-  }, [actingShopId, dateFrom, dateTo, paymentMode, source, statusFilter, today, user?.role]);
+  }, [actingShopId, dateFrom, dateTo, paymentMode, source, statusFilter, settlementBusinessDate, user?.role]);
 
   useEffect(() => {
     void reload();
@@ -194,6 +223,7 @@ export function InvoiceLookupPage() {
         .toFixed(2),
     [editLines]
   );
+  const editNoteRequired = requiresPaymentNote(editPayments, editNote);
 
   const setEditLineQuantity = (index: number, quantity: number) => {
     const nextQuantity = Math.max(1, Number.isFinite(quantity) ? Math.floor(quantity) : 1);
@@ -221,6 +251,10 @@ export function InvoiceLookupPage() {
 
   const saveEdit = async () => {
     if (!selected) return;
+    if (requiresPaymentNote(editPayments, editNote)) {
+      setError("Add a note when any payment split uses Other.");
+      return;
+    }
     setBusy(true);
     setError(null);
     try {
@@ -284,11 +318,11 @@ export function InvoiceLookupPage() {
     setBusy(true);
     setError(null);
     try {
-      const totals = await getEodTotals(today, actingShopId);
+      const totals = await getEodTotals(settlementBusinessDate, actingShopId);
       setEodTotals(totals);
       setSummaryOpen(true);
     } catch (e) {
-      setError(e instanceof ApiError ? e.detail : "Could not load today summary.");
+      setError(e instanceof ApiError ? e.detail : "Could not load open-invoices summary.");
     } finally {
       setBusy(false);
     }
@@ -301,12 +335,12 @@ export function InvoiceLookupPage() {
     setCloseNotes("");
   };
 
-  const closeToday = async () => {
-    if (actingShopId === null || confirmationText !== "CLOSE TODAY") return;
+  const archiveOpenInvoices = async () => {
+    if (actingShopId === null || confirmationText !== "ARCHIVE OPEN INVOICES") return;
     setCloseBusy(true);
     setError(null);
     try {
-      const result = await signOffEod(today, actingShopId, closeNotes.trim() || undefined);
+      const result = await signOffEod(settlementBusinessDate, actingShopId, closeNotes.trim() || undefined);
       closeSettlementModals();
       setDateFrom(result.business_date);
       setDateTo(result.business_date);
@@ -316,7 +350,7 @@ export function InvoiceLookupPage() {
           `${result.invoices_signed_off} invoice(s) moved to Past Invoices.`
       );
     } catch (e) {
-      const detail = e instanceof ApiError ? e.detail : "Could not close today.";
+      const detail = e instanceof ApiError ? e.detail : "Could not archive open invoices.";
       setError(
         detail.includes("pending_void_approvals_exist")
           ? "Resolve pending void approvals before closing EOD. Open Approvals from the sidebar."
@@ -330,23 +364,23 @@ export function InvoiceLookupPage() {
   return (
     <div className="flex flex-col gap-8 font-sans">
       <header>
-        <h1 className="flex items-center gap-3 text-3xl font-light tracking-tight text-slate-900">
+        <h1 className="flex items-center gap-3 text-3xl font-bold tracking-tight text-slate-900">
           <ReceiptText className="h-8 w-8 text-action" /> Invoices
         </h1>
         <p className="mt-2 text-sm text-slate-500">
           {source === "current"
-            ? "Open business-day invoices that are not EOD archived."
+          ? "Open invoices that are not yet archived."
             : "Archived invoices after EOD sign-off."}
         </p>
       </header>
 
       <div className="flex flex-wrap gap-2 border-b border-slate-200/60 pb-4">
-        <TabButton active={source === "current"} onClick={() => setSource("current")}>
-          Today
-        </TabButton>
-        <TabButton active={source === "past"} onClick={() => setSource("past")}>
+        <AppTabButton active={source === "current"} onClick={() => setSource("current")}>
+          Open Invoices
+        </AppTabButton>
+        <AppTabButton active={source === "past"} onClick={() => setSource("past")}>
           Past Invoices
-        </TabButton>
+        </AppTabButton>
       </div>
 
       <section className="grid gap-6 rounded-xl border border-slate-200/50 bg-white/60 p-6 shadow-[0_8px_30px_rgb(0,0,0,0.02)] backdrop-blur-xl md:grid-cols-4">
@@ -397,7 +431,11 @@ export function InvoiceLookupPage() {
             className="h-11 rounded-xl border border-slate-200 bg-white/50 px-4 text-sm font-medium text-slate-700 shadow-sm outline-none transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:bg-white focus:border-action focus:ring-1 focus:ring-action"
           >
             <option value="">All payments</option>
-            {PAYMENT_MODES.map((mode) => <option key={mode} value={mode}>{mode.toUpperCase()}</option>)}
+            {PAYMENT_MODES.map((mode) => (
+              <option key={mode} value={mode}>
+                {formatPaymentLabel(mode)}
+              </option>
+            ))}
           </select>
         </label>
         <label className="flex flex-col gap-1.5 text-xs font-semibold uppercase tracking-wider text-slate-500">
@@ -420,26 +458,26 @@ export function InvoiceLookupPage() {
             <RefreshCw className="h-4 w-4 transition-transform duration-300 group-hover:rotate-180" /> Refresh
           </button>
         </div>
-        {canShowCloseToday && (
+        {canShowArchiveOpenInvoices && (
           <div className="flex flex-col justify-end gap-1.5 md:col-span-2">
             <button
               type="button"
               onClick={() => void openSettlementSummary()}
               disabled={busy}
-              className="flex h-11 w-full items-center justify-center rounded-xl bg-action px-6 text-sm font-bold tracking-wide text-on-action shadow-lg transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:-translate-y-0.5 hover:shadow-[var(--color-action)]/30 active:scale-[0.97] disabled:opacity-50 disabled:hover:translate-y-0 disabled:hover:shadow-none"
-            >
-              Reconcile-Settle-Close Today
-            </button>
+            className="flex h-11 w-full items-center justify-center rounded-xl bg-action px-6 text-sm font-bold tracking-wide text-slate-900 shadow-lg transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:-translate-y-0.5 hover:shadow-[var(--color-action)]/30 active:scale-[0.97] disabled:opacity-50 disabled:hover:translate-y-0 disabled:hover:shadow-none"
+          >
+            Reconcile Open Invoices
+          </button>
           </div>
         )}
         {user?.role === "superadmin" && source === "current" && actingShopId === null && (
           <div className="flex items-end text-sm text-slate-500 md:col-span-2">
-            Select a shop to view and close today&apos;s invoices.
+            Select a shop to view and archive open invoices.
           </div>
         )}
         {user?.role === "superadmin" && source === "current" && eodTotals?.signed_off && (
           <div className="flex items-end text-sm text-emerald-600 md:col-span-2">
-            Today is already closed for {selectedShop?.name ?? "this shop"}.
+            Open invoices are already archived for {selectedShop?.name ?? "this shop"}.
           </div>
         )}
       </section>
@@ -458,8 +496,8 @@ export function InvoiceLookupPage() {
           </span>
         </div>
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[1120px] text-left text-sm">
-            <thead className="bg-slate-50/80 text-[11px] uppercase tracking-widest text-slate-500">
+          <table className="app-list-table min-w-[1040px]">
+            <thead className="text-[11px] uppercase tracking-widest">
               <tr>
                 <th className="px-6 py-4 font-semibold">Invoice</th>
                 <th className="px-6 py-4 font-semibold">Business Date</th>
@@ -468,15 +506,14 @@ export function InvoiceLookupPage() {
                 <th className="px-6 py-4 text-right font-semibold">Units</th>
                 <th className="px-6 py-4 font-semibold">Payments</th>
                 <th className="px-6 py-4 text-right font-semibold">Total</th>
-                <th className="px-6 py-4 font-semibold">Status</th>
-                <th className="px-6 py-4 font-semibold">EOD</th>
+                <th className="px-6 py-4 text-center font-semibold">Status / EOD</th>
                 <th className="px-6 py-4 font-semibold">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
               {rows.length === 0 && (
                 <tr>
-                  <td colSpan={10} className="px-6 py-12 text-center text-slate-500">
+                  <td colSpan={9} className="px-6 py-12 text-center text-slate-500">
                     No invoices found.
                   </td>
                 </tr>
@@ -506,10 +543,9 @@ export function InvoiceLookupPage() {
                       >
                         #{invoice.invoice_number}
                       </button>
-                      <div className="mt-1 text-xs text-slate-400">ID {invoice.id}</div>
                     </td>
                     <td className="px-6 py-4 align-top font-mono text-xs text-slate-500">{invoice.business_date}</td>
-                    <td className="px-6 py-4 align-top text-slate-700">User #{invoice.cashier_user_id}</td>
+                    <td className="px-6 py-4 align-top text-slate-700">{cashierLabel(invoice)}</td>
                     <td className="max-w-[280px] px-6 py-4 align-top">
                       <span className="block truncate font-medium text-slate-900">{itemLabel || "-"}</span>
                       {invoice.lines.length > 2 && (
@@ -518,56 +554,63 @@ export function InvoiceLookupPage() {
                     </td>
                     <td className="px-6 py-4 text-right align-top font-mono font-medium text-slate-900">{units}</td>
                     <td className="px-6 py-4 align-top text-slate-700">
-                      {invoice.payments.map((p) => `${p.mode.toUpperCase()} ₹${p.amount}`).join(", ")}
+                      {invoice.payments.map((p) => `${formatPaymentLabel(p.mode)} ₹${p.amount}`).join(", ")}
                     </td>
                     <td className="px-6 py-4 text-right align-top font-mono font-semibold text-slate-900">₹{invoice.total_amount}</td>
-                    <td className="px-6 py-4 align-top">
-                      <span className={`inline-flex items-center rounded-md px-2 py-1 text-xs font-semibold ${
-                        invoice.status === "finalized" ? "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-600/20" :
-                        invoice.status === "voided" ? "bg-red-50 text-red-700 ring-1 ring-red-600/20" :
-                        "bg-amber-50 text-amber-700 ring-1 ring-amber-600/20"
-                      }`}>
-                        {invoice.status}
-                      </span>
+                    <td className="px-6 py-4 align-top text-center">
+                      <div className="flex flex-col items-center gap-1.5">
+                        <span
+                          className={`inline-flex w-fit items-center rounded-md px-2 py-1 text-xs font-semibold ${
+                            invoice.status === "finalized"
+                              ? "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-600/20"
+                              : invoice.status === "voided"
+                                ? "bg-red-50 text-red-700 ring-1 ring-red-600/20"
+                                : "bg-amber-50 text-amber-700 ring-1 ring-amber-600/20"
+                          }`}
+                        >
+                          {invoice.status}
+                        </span>
+                        <span className="text-xs font-medium text-slate-500">
+                          {invoice.eod_signed_off ? "Archived" : "Open"}
+                        </span>
+                      </div>
                     </td>
-                    <td className="px-6 py-4 align-top text-xs font-medium text-slate-500">
-                      {invoice.eod_signed_off ? "Archived" : "Open"}
-                    </td>
                     <td className="px-6 py-4 align-top">
-                      <div className="flex items-center gap-1">
+                      <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
                         <button
                           type="button"
                           onClick={() => beginEdit(invoice)}
                           title={canEdit(invoice) ? "Edit" : "View"}
-                          className="flex h-8 w-8 items-center justify-center rounded-md bg-white text-slate-600 shadow-sm ring-1 ring-slate-200 transition-colors hover:bg-slate-50 hover:text-slate-900"
+                          className="inline-flex items-center text-sm font-semibold tracking-wide text-action underline-offset-4 transition-colors hover:underline disabled:pointer-events-none disabled:text-slate-400 disabled:no-underline"
                         >
-                          {canEdit(invoice) ? <Edit3 className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                          {canEdit(invoice) ? "Edit" : "View"}
                         </button>
                         <button
                           type="button"
                           onClick={() => void downloadInvoiceForRow(invoice)}
                           disabled={downloadingInvoiceId === invoice.id}
                           title="Download PDF"
-                          className="flex h-8 w-8 items-center justify-center rounded-md bg-white text-slate-600 shadow-sm ring-1 ring-slate-200 transition-colors hover:bg-slate-50 hover:text-slate-900 disabled:opacity-50"
+                          className="inline-flex items-center gap-1.5 text-sm font-semibold tracking-wide text-action underline-offset-4 transition-colors hover:underline disabled:pointer-events-none disabled:text-slate-400 disabled:no-underline"
                         >
-                          <Download className="h-4 w-4" />
+                          <Download className="h-3.5 w-3.5" />
+                          {downloadingInvoiceId === invoice.id ? "Downloading..." : "Download"}
                         </button>
                         {invoice.status === "pending_void" ? (
-                          <span title="Approval sent" className="flex h-8 w-8 items-center justify-center rounded-md bg-slate-50 text-slate-400">
-                            <XOctagon className="h-4 w-4" />
+                          <span title="Approval sent" className="text-sm font-semibold tracking-wide text-slate-400">
+                            Void
                           </span>
                         ) : canRequestVoid(invoice) ? (
                           <button
                             type="button"
                             onClick={() => openVoidDialog(invoice)}
                             title="Void"
-                            className="flex h-8 w-8 items-center justify-center rounded-md bg-red-50 text-red-600 transition-colors hover:bg-red-100"
+                            className="inline-flex items-center text-sm font-semibold tracking-wide text-red-600 underline-offset-4 transition-colors hover:underline"
                           >
-                            <XOctagon className="h-4 w-4" />
+                            Void
                           </button>
                         ) : (
-                          <span title="Locked" className="flex h-8 w-8 items-center justify-center rounded-md bg-slate-50 text-slate-400">
-                            <XOctagon className="h-4 w-4 opacity-50" />
+                          <span title="Locked" className="text-sm font-semibold tracking-wide text-slate-400">
+                            Void
                           </span>
                         )}
                       </div>
@@ -581,16 +624,11 @@ export function InvoiceLookupPage() {
       </section>
 
       {selected && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4 backdrop-blur-sm transition-opacity"
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="invoice-edit-title"
-        >
+        <ModalDialog labelledBy="invoice-edit-title" onDismiss={closeEdit} className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4 backdrop-blur-sm transition-opacity">
           <section className="flex max-h-[90vh] w-full max-w-2xl flex-col overflow-hidden rounded-xl bg-white shadow-[0_20px_60px_rgba(0,0,0,0.1)] ring-1 ring-slate-200/50">
             <header className="flex items-start justify-between gap-4 border-b border-slate-200/50 bg-slate-50/80 px-6 py-5">
               <div>
-                <h2 id="invoice-edit-title" className="text-xl font-light tracking-tight text-slate-900">
+                <h2 id="invoice-edit-title" className="text-xl font-semibold tracking-tight text-slate-900">
                   Invoice #{selected.invoice_number}
                 </h2>
                 <p className="mt-1 flex items-center gap-2 text-xs font-medium text-slate-500">
@@ -615,7 +653,7 @@ export function InvoiceLookupPage() {
               <div className="grid gap-4 text-sm font-semibold text-slate-700 md:grid-cols-3">
                 <div className="rounded-xl bg-slate-50 p-4 ring-1 ring-slate-200">
                   <div className="text-slate-500">Cashier</div>
-                  <div className="font-mono text-slate-900">User #{selected.cashier_user_id}</div>
+                  <div className="text-slate-900">{cashierLabel(selected)}</div>
                 </div>
                 <div className="rounded-xl bg-slate-50 p-4 ring-1 ring-slate-200">
                   <div className="text-slate-500">Status</div>
@@ -657,13 +695,19 @@ export function InvoiceLookupPage() {
               </div>
 
               <label className="flex flex-col gap-2 text-sm font-semibold text-slate-700">
-                Note
+                Note {editNoteRequired ? "(required for Other)" : ""}
                 <input
                   value={editNote}
                   disabled={!canEdit(selected)}
                   onChange={(e) => setEditNote(e.target.value)}
+                  aria-invalid={editNoteRequired && !editNote.trim()}
                   className="h-11 rounded-xl border border-slate-200 bg-white px-4 text-sm shadow-sm outline-none transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out focus:border-action focus:ring-1 focus:ring-action disabled:bg-slate-50 disabled:opacity-50"
                 />
+                {editNoteRequired && !editNote.trim() && (
+                  <span className="text-xs font-medium text-red-600">
+                    Add a note before saving this invoice.
+                  </span>
+                )}
               </label>
 
               <div className="grid gap-4 md:grid-cols-2">
@@ -683,7 +727,7 @@ export function InvoiceLookupPage() {
                     >
                       {PAYMENT_MODES.map((mode) => (
                         <option key={mode} value={mode}>
-                          {mode.toUpperCase()}
+                          {formatPaymentLabel(mode)}
                         </option>
                       ))}
                     </select>
@@ -725,7 +769,7 @@ export function InvoiceLookupPage() {
                 <button
                   type="button"
                   onClick={() => void saveEdit()}
-                  disabled={busy}
+                  disabled={busy || editNoteRequired}
                   className="min-h-touchTarget-sm rounded-md bg-action px-gutter text-label-md text-on-action disabled:opacity-50"
                 >
                   {busy ? "Saving..." : "Save Changes"}
@@ -733,7 +777,7 @@ export function InvoiceLookupPage() {
               )}
             </footer>
           </section>
-        </div>
+        </ModalDialog>
       )}
 
       {summaryOpen && eodTotals && selectedShop && (
@@ -758,7 +802,7 @@ export function InvoiceLookupPage() {
           onConfirmationText={setConfirmationText}
           onNotes={setCloseNotes}
           onCancel={closeSettlementModals}
-          onConfirm={() => void closeToday()}
+          onConfirm={() => void archiveOpenInvoices()}
         />
       )}
 
@@ -793,15 +837,10 @@ function SettlementSummaryDialog({
   onContinue: () => void;
 }) {
   return (
-    <div
-      className="fixed inset-0 z-40 flex items-center justify-center bg-slate-900/40 p-4 backdrop-blur-sm transition-opacity"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="settlement-summary-title"
-    >
+    <ModalDialog labelledBy="settlement-summary-title" onDismiss={onCancel} className="fixed inset-0 z-40 flex items-center justify-center bg-slate-900/40 p-4 backdrop-blur-sm transition-opacity">
       <section className="flex w-full max-w-xl flex-col gap-6 overflow-hidden rounded-xl bg-white shadow-[0_20px_60px_rgba(0,0,0,0.1)] ring-1 ring-slate-200/50 p-6">
         <header>
-          <h2 id="settlement-summary-title" className="text-xl font-light tracking-tight text-slate-900">
+          <h2 id="settlement-summary-title" className="text-xl font-semibold tracking-tight text-slate-900">
             {shop.name}
           </h2>
           <p className="mt-1 text-sm font-medium text-slate-500">
@@ -809,7 +848,7 @@ function SettlementSummaryDialog({
           </p>
         </header>
         <div className="grid gap-6 md:grid-cols-2">
-          <SummaryTile label="Total invoices today" value={String(totals.invoice_count)} />
+          <SummaryTile label="Total open invoices" value={String(totals.invoice_count)} />
           <SummaryTile label="Total received" value={`₹${totals.revenue}`} />
         </div>
         <section className="rounded-2xl border border-slate-200 bg-white/50 overflow-hidden">
@@ -822,7 +861,7 @@ function SettlementSummaryDialog({
                 key={row.mode}
                 className="flex justify-between px-4 py-3 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50/50"
               >
-                <span>{row.mode.toUpperCase()}</span>
+                <span>{formatPaymentLabel(row.mode as PaymentMode)}</span>
                 <span className="font-mono text-slate-900">₹{row.amount}</span>
               </div>
             ))}
@@ -845,7 +884,7 @@ function SettlementSummaryDialog({
           </button>
         </footer>
       </section>
-    </div>
+    </ModalDialog>
   );
 }
 
@@ -873,15 +912,10 @@ function VoidConfirmDialog({
   const isCashier = role === "cashier_user";
   const canConfirm = isCashier || confirmationText === "VOID";
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4 backdrop-blur-sm transition-opacity"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="void-confirm-title"
-    >
+    <ModalDialog labelledBy="void-confirm-title" onDismiss={onCancel} className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4 backdrop-blur-sm transition-opacity">
       <section className="flex w-full max-w-lg flex-col gap-6 overflow-hidden rounded-xl bg-white shadow-[0_20px_60px_rgba(0,0,0,0.1)] ring-1 ring-slate-200/50 p-6">
         <header>
-          <h2 id="void-confirm-title" className="text-xl font-light tracking-tight text-slate-900">
+          <h2 id="void-confirm-title" className="text-xl font-semibold tracking-tight text-slate-900">
             Invoice #{invoice.invoice_number}
           </h2>
           <p className="mt-1 text-sm font-medium text-slate-500">
@@ -930,7 +964,7 @@ function VoidConfirmDialog({
           </button>
         </footer>
       </section>
-    </div>
+    </ModalDialog>
   );
 }
 
@@ -954,19 +988,14 @@ function SettlementConfirmDialog({
   onConfirm: () => void;
 }) {
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4 backdrop-blur-sm transition-opacity"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="settlement-confirm-title"
-    >
+    <ModalDialog labelledBy="settlement-confirm-title" onDismiss={onCancel} className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4 backdrop-blur-sm transition-opacity">
       <section className="flex w-full max-w-xl flex-col gap-6 overflow-hidden rounded-xl bg-white shadow-[0_20px_60px_rgba(0,0,0,0.1)] ring-1 ring-slate-200/50 p-6">
         <header>
-          <h2 id="settlement-confirm-title" className="text-xl font-light tracking-tight text-slate-900">
+          <h2 id="settlement-confirm-title" className="text-xl font-semibold tracking-tight text-slate-900">
             Confirm close for {shop.name}
           </h2>
           <p className="mt-1 text-sm font-medium text-slate-500">
-            Type CLOSE TODAY to archive today&apos;s invoices into Past Invoices.
+            Type ARCHIVE OPEN INVOICES to archive the open invoices into Past Invoices.
           </p>
         </header>
         <label className="flex flex-col gap-1.5 text-xs font-semibold uppercase tracking-wider text-slate-500">
@@ -1000,14 +1029,14 @@ function SettlementConfirmDialog({
           <button
             type="button"
             onClick={onConfirm}
-            disabled={confirmationText !== "CLOSE TODAY" || busy}
+            disabled={confirmationText !== "ARCHIVE OPEN INVOICES" || busy}
             className="flex h-11 items-center justify-center rounded-xl bg-action px-6 text-sm font-bold tracking-wide text-white shadow-sm transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:-translate-y-0.5 hover:shadow-[var(--color-action)]/30 active:scale-[0.97] disabled:pointer-events-none disabled:opacity-50"
           >
-            {busy ? "Closing..." : "Close Today"}
+            {busy ? "Archiving..." : "Archive Open Invoices"}
           </button>
         </footer>
       </section>
-    </div>
+    </ModalDialog>
   );
 }
 
@@ -1015,31 +1044,7 @@ function SummaryTile({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex flex-col gap-1 rounded-[16px] border border-slate-200 bg-slate-50/50 p-5">
       <div className="text-xs font-semibold uppercase tracking-wider text-slate-500">{label}</div>
-      <div className="text-3xl font-light tracking-tight text-slate-900">{value}</div>
+      <div className="text-3xl font-semibold tracking-tight text-slate-900">{value}</div>
     </div>
-  );
-}
-
-function TabButton({
-  active,
-  onClick,
-  children,
-}: {
-  active: boolean;
-  onClick: () => void;
-  children: ReactNode;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={`group relative flex h-11 items-center justify-center gap-2 rounded-full px-6 text-sm font-bold tracking-wide transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out ${
-        active 
-          ? "bg-action text-white shadow-[0_4px_20px_rgba(var(--color-action-rgb),0.3)] hover:-translate-y-0.5" 
-          : "bg-white text-slate-500 shadow-sm ring-1 ring-slate-200 hover:bg-slate-50 hover:text-slate-700"
-      }`}
-    >
-      {children}
-    </button>
   );
 }

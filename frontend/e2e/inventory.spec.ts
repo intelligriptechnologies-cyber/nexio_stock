@@ -158,7 +158,7 @@ test.describe("inventory", () => {
     await expect(page.getByRole("heading", { name: "Inventory" })).toBeVisible();
     await expect(page.getByRole("table", { name: "Inventory table" })).toBeVisible();
     await expect(page.getByRole("link", { name: "Inventory" })).toBeVisible();
-    await expect(page.getByRole("link", { name: "Receive" })).toHaveCount(products.length);
+    await expect(page.getByRole("link", { name: "Stock Inward" })).toHaveCount(products.length);
     await expect(page.getByRole("link", { name: "Checkout" })).toHaveCount(0);
     await expect(page.getByRole("link", { name: "Edit product" })).toHaveCount(0);
   });
@@ -174,7 +174,7 @@ test.describe("inventory", () => {
     await expect(table).toBeVisible();
     await expect(page.getByRole("link", { name: "Inventory" })).toBeVisible();
     await expect(table.getByRole("link", { name: "Checkout" })).toHaveCount(products.length);
-    await expect(page.getByRole("link", { name: "Receive" })).toHaveCount(0);
+    await expect(page.getByRole("link", { name: "Stock Inward" })).toHaveCount(0);
     await expect(page.getByRole("link", { name: "Edit product" })).toHaveCount(0);
   });
 
@@ -235,7 +235,7 @@ test.describe("inventory", () => {
     await mockShellApis(page);
     await page.goto("/inventory");
 
-    await page.getByRole("link", { name: "Receive" }).first().click();
+    await page.getByRole("link", { name: "Stock Inward" }).first().click();
     await expect(page).toHaveURL(/\/receiving$/);
 
     await page.goto("/inventory");

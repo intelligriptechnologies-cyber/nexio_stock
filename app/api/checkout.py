@@ -60,6 +60,7 @@ from app.services.checkout import (
     finalize_checkout,
 )
 from app.services.invoices import (
+    attach_cashier_names,
     edit_current_invoice,
     list_current_invoices,
     list_past_invoices,
@@ -87,6 +88,7 @@ _CHECKOUT_CODE_TO_STATUS: dict[str, int] = {
     "no_payments": status.HTTP_400_BAD_REQUEST,
     "zero_payment": status.HTTP_400_BAD_REQUEST,
     "payment_mismatch": status.HTTP_400_BAD_REQUEST,
+    "note_required_for_other_payment": status.HTTP_400_BAD_REQUEST,
     "not_found": status.HTTP_404_NOT_FOUND,
     "bad_status": status.HTTP_409_CONFLICT,
     # Issue #26: a pending product in the cart is the cashier's
@@ -197,6 +199,7 @@ async def finalize(
     # the snapshot migration (no-op for rows created after it). New
     # rows already carry their snapshot from the write path.
     await resolve_missing_snapshots(db, list(invoice.lines))
+    await attach_cashier_names(db, [invoice])
     product_rows = (
         await db.execute(
             select(Product.id, Product.barcode).where(
@@ -336,6 +339,7 @@ async def list_invoices(
             offset=offset,
         )
     await resolve_missing_snapshots(db, [line for row in rows for line in row.lines])
+    await attach_cashier_names(db, rows)
     return InvoiceListResponse(invoices=[InvoicePublic.model_validate(row) for row in rows])
 
 
@@ -389,6 +393,7 @@ async def edit_invoice(
             log_event="invoice_edit.unmapped_error_code",
         ) from exc
 
+    await attach_cashier_names(db, [result.invoice])
     return InvoicePublic.model_validate(result.invoice)
 
 
@@ -413,6 +418,7 @@ async def get_invoice(
     )
     # Issue #38: backfill snapshot for any pre-migration line.
     await resolve_missing_snapshots(db, list(invoice.lines))
+    await attach_cashier_names(db, [invoice])
     return InvoicePublic.model_validate(invoice)
 
 

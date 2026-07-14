@@ -48,13 +48,16 @@ async def _seed_product(
 
 
 async def _seed_lot(
-    receiver_client: AsyncClient, *, items: list[tuple[str, int]]
+    receiver_client: AsyncClient, owner_client: AsyncClient, *, items: list[tuple[str, int]]
 ) -> None:
     resp = await receiver_client.post(
         "/lots",
         json={"lines": [{"barcode": bc, "quantity": q} for bc, q in items]},
     )
     assert resp.status_code == 201, resp.text
+    inward_id = resp.json()["id"]
+    approved = await owner_client.post(f"/lots/{inward_id}/approve")
+    assert approved.status_code == 200, approved.text
 
 
 async def _finalize(
@@ -88,7 +91,7 @@ async def test_invoice_line_snapshot_captured_at_sale(
     await _seed_product(
         owner_client, "8903000000038", brand="SnapshotBrand", size_label="650ml"
     )
-    await _seed_lot(receiver_client, items=[("8903000000038", 5)])
+    await _seed_lot(receiver_client, owner_client, items=[("8903000000038", 5)])
     inv = await _finalize(
         cashier_client, barcode="8903000000038", quantity=1, amount="100.00"
     )
@@ -133,7 +136,7 @@ async def test_invoice_line_snapshot_survives_product_rename(
     await _seed_product(
         owner_client, "8903000000040", brand="OriginalName", size_label="750ml"
     )
-    await _seed_lot(receiver_client, items=[("8903000000040", 5)])
+    await _seed_lot(receiver_client, owner_client, items=[("8903000000040", 5)])
     inv = await _finalize(
         cashier_client, barcode="8903000000040", quantity=1, amount="100.00"
     )
@@ -171,7 +174,7 @@ async def test_pre_migration_invoice_line_resolves_via_live_join(
     await _seed_product(
         owner_client, "8903000000041", brand="LiveFallbackBrand", size_label="330ml"
     )
-    await _seed_lot(receiver_client, items=[("8903000000041", 5)])
+    await _seed_lot(receiver_client, owner_client, items=[("8903000000041", 5)])
     inv = await _finalize(
         cashier_client, barcode="8903000000041", quantity=1, amount="100.00"
     )
@@ -235,7 +238,7 @@ async def test_invoice_pdf_renders_brand_and_size(
     await _seed_product(
         owner_client, "8903000000043", brand="PdfBrand", size_label="1L"
     )
-    await _seed_lot(receiver_client, items=[("8903000000043", 5)])
+    await _seed_lot(receiver_client, owner_client, items=[("8903000000043", 5)])
     inv = await _finalize(
         cashier_client, barcode="8903000000043", quantity=1, amount="100.00"
     )

@@ -40,7 +40,7 @@ export function QuickAddModal({
     >
       <header className="flex items-start justify-between gap-4">
         <div>
-          <h2 id="quick-add-title" className="text-xl font-light tracking-tight text-slate-900">
+          <h2 id="quick-add-title" className="text-xl font-semibold tracking-tight text-slate-900">
             Register new catalog item
           </h2>
           <p className="mt-2 text-sm text-slate-500">

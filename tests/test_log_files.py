@@ -29,12 +29,17 @@ async def _create_product(client: AsyncClient, barcode: str, brand: str = "Test"
     assert resp.status_code == 201, resp.text
 
 
-async def _create_lot(receiver_client: AsyncClient, barcode: str) -> None:
+async def _create_lot(
+    receiver_client: AsyncClient, owner_client: AsyncClient, barcode: str
+) -> None:
     resp = await receiver_client.post(
         "/lots",
         json={"reference": "DEL-1", "lines": [{"barcode": barcode, "quantity": 5}]},
     )
     assert resp.status_code == 201, resp.text
+    inward_id = resp.json()["id"]
+    approved = await owner_client.post(f"/lots/{inward_id}/approve")
+    assert approved.status_code == 200, approved.text
 
 
 async def _finalize(cashier_client: AsyncClient, barcode: str) -> None:
@@ -58,7 +63,7 @@ async def test_live_events_append_daily_english_files(
     shop,
 ) -> None:
     await _create_product(owner_client, "8909100000001", brand="Royal Stag")
-    await _create_lot(receiver_client, "8909100000001")
+    await _create_lot(receiver_client, owner_client, "8909100000001")
     await _finalize(cashier_client, "8909100000001")
     signoff = await owner_client.post(
         "/dashboard/eod/sign-off", json={"business_date": date.today().isoformat()}
@@ -79,7 +84,7 @@ async def test_live_events_append_daily_english_files(
     assert "payment mode cash" in checkout
     assert "payments: cash Rs. 100.00" in checkout
     assert "Receiving lot #" in receiving
-    assert "Receiver One" in receiving
+    assert "Owner One" in receiving
     assert "Royal Stag 750ml x 5" in receiving
     assert "row total Rs. 500.00" in receiving
     assert "EOD sign-off completed" in closing
@@ -103,7 +108,7 @@ async def test_live_events_append_daily_english_files(
     assert receiving_rows[0]["barcode"] == "8909100000001"
     assert receiving_rows[0]["product_name_snapshot"] == "Royal Stag 750ml"
     assert receiving_rows[0]["shop_name"] == shop.name
-    assert receiving_rows[0]["actor_name"] == "Receiver One"
+    assert receiving_rows[0]["actor_name"] == "Owner One"
     assert receiving_rows[0]["vendor_name"]
     assert receiving_rows[0]["purchase_date"]
     assert receiving_rows[0]["vendor_invoice_number"]
@@ -121,7 +126,7 @@ async def test_checkout_and_receiving_csv_rows_follow_line_items(
 ) -> None:
     await _create_product(owner_client, "8909200000001", brand="Royal Stag")
     await _create_product(owner_client, "8909200000002", brand="Blenders Pride")
-    await receiver_client.post(
+    lot = await receiver_client.post(
         "/lots",
         json={
             "reference": "DEL-2",
@@ -132,6 +137,10 @@ async def test_checkout_and_receiving_csv_rows_follow_line_items(
             ],
         },
     )
+    assert lot.status_code == 201, lot.text
+    inward_id = lot.json()["id"]
+    approved = await owner_client.post(f"/lots/{inward_id}/approve")
+    assert approved.status_code == 200, approved.text
     assert (
         await cashier_client.post(
             "/checkout/finalize",

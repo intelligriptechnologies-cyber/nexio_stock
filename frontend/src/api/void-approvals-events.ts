@@ -1,5 +1,4 @@
-export const VOID_APPROVALS_CHANGED_EVENT = "nexio:void-approvals-changed";
-
-export function notifyVoidApprovalsChanged(): void {
-  window.dispatchEvent(new Event(VOID_APPROVALS_CHANGED_EVENT));
-}
+export {
+  APPROVALS_CHANGED_EVENT as VOID_APPROVALS_CHANGED_EVENT,
+  notifyApprovalsChanged as notifyVoidApprovalsChanged,
+} from "./approvals-events";

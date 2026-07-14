@@ -19,6 +19,8 @@ import { invalidateCache, resolveBarcode } from "../api/catalog";
 import { useAuth } from "../auth/AuthProvider";
 import { useShopScope, useShopScopeGuard } from "../auth/ShopScopeProvider";
 import { useBarcodeScanner } from "../hooks/useBarcodeScanner";
+import { AppTabButton } from "../components/AppTabs";
+import { ModalDialog } from "../components/ModalDialog";
 import { Package, Search, Filter, RefreshCw, Edit3, Trash2, RotateCcw, XOctagon, Download, Upload, Copy, AlertCircle, PlusCircle } from "lucide-react";
 
 type Tab = "list" | "create" | "import" | "copy";
@@ -69,7 +71,7 @@ export function ProductsPage() {
   return (
     <div className="flex flex-col gap-8 font-sans">
       <header>
-        <h1 className="flex items-center gap-3 text-3xl font-light tracking-tight text-slate-900">
+        <h1 className="flex items-center gap-3 text-3xl font-bold tracking-tight text-slate-900">
           <Package className="h-8 w-8 text-action" /> Products
         </h1>
         <p className="mt-2 text-sm text-slate-500">
@@ -83,17 +85,14 @@ export function ProductsPage() {
         </div>
       )}
 
-      <nav className="flex flex-wrap gap-2 border-b border-slate-200/50 pb-px" aria-label="Product sections">
+      <nav className="flex flex-wrap gap-2 border-b border-slate-200/60 pb-4" aria-label="Product sections">
         {(["list", "create", "import", "copy"] as const).map((t) => {
           const active = tab === t;
           return (
-            <button
+            <AppTabButton
               key={t}
-              type="button"
               onClick={() => setTab(t)}
-              className={`relative px-6 py-3 text-sm font-semibold transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out ${
-                active ? "text-action" : "text-slate-500 hover:text-slate-700"
-              }`}
+              active={active}
             >
               <span className="flex items-center gap-2">
                 {t === "list" && <Search className="h-4 w-4" />}
@@ -104,14 +103,11 @@ export function ProductsPage() {
                   ? "Catalog"
                   : t === "create"
                     ? "New product"
-                    : t === "import"
+                : t === "import"
                       ? "Bulk import"
                       : "Copy products"}
               </span>
-              {active && (
-                <span className="absolute bottom-0 left-0 h-0.5 w-full bg-action rounded-t-full shadow-sm" />
-              )}
-            </button>
+            </AppTabButton>
           );
         })}
       </nav>
@@ -296,7 +292,7 @@ function ListTab({
       ) : (
         <div className="overflow-hidden rounded-xl border border-slate-200/50 bg-white/60 shadow-[0_8px_30px_rgb(0,0,0,0.02)] backdrop-blur-xl">
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[900px] text-left text-sm">
+            <table className="app-list-table min-w-[900px]">
               <thead className="bg-slate-50/80 text-[11px] uppercase tracking-widest text-slate-500">
                 <tr>
                   <th className="px-6 py-4 font-semibold">Brand</th>
@@ -454,15 +450,10 @@ function DestructiveActionDialog({
   const expected = actionExpectedText(kind);
   const canSubmit = confirmationText === expected && !busy;
   return (
-    <div
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="product-action-title"
-      className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4 backdrop-blur-sm transition-opacity"
-    >
+    <ModalDialog labelledBy="product-action-title" onDismiss={onCancel} className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4 backdrop-blur-sm transition-opacity">
       <div className="w-full max-w-lg overflow-hidden rounded-xl bg-white shadow-lg ring-1 ring-slate-200/50">
         <div className="border-b border-slate-200/50 bg-slate-50/80 px-6 py-5">
-          <h2 id="product-action-title" className="flex items-center gap-2 text-xl font-light tracking-tight text-slate-900">
+          <h2 id="product-action-title" className="flex items-center gap-2 text-xl font-semibold tracking-tight text-slate-900">
             <AlertCircle className={`h-5 w-5 ${kind === "permanent-delete" ? "text-red-500" : "text-amber-500"}`} />
             {actionTitle(kind)}
           </h2>
@@ -515,7 +506,7 @@ function DestructiveActionDialog({
           </div>
         </div>
       </div>
-    </div>
+    </ModalDialog>
   );
 }
 
@@ -564,7 +555,7 @@ function CopyTab() {
 
   return (
     <section className="flex max-w-xl flex-col gap-6 rounded-xl border border-slate-200/50 bg-white/60 p-8 shadow-[0_8px_30px_rgb(0,0,0,0.02)] backdrop-blur-xl">
-      <h2 className="text-xl font-light tracking-tight text-slate-900">Copy products</h2>
+      <h2 className="text-xl font-semibold tracking-tight text-slate-900">Copy products</h2>
       <label className="flex flex-col gap-1.5 text-xs font-semibold uppercase tracking-wider text-slate-500">
         Source shop
         <select
@@ -805,7 +796,7 @@ function CreateTab({
       onSubmit={submit}
       className="flex max-w-xl flex-col gap-6 rounded-xl border border-slate-200/50 bg-white/60 p-8 shadow-[0_8px_30px_rgb(0,0,0,0.02)] backdrop-blur-xl"
     >
-      <h2 className="text-xl font-light tracking-tight text-slate-900">New product</h2>
+      <h2 className="text-xl font-semibold tracking-tight text-slate-900">New product</h2>
       <Field label="Barcode" value={barcode} onChange={setBarcode} required />
       <Field label="Brand" value={brand} onChange={setBrand} required />
       <Field label="Size label" value={sizeLabel} onChange={setSizeLabel} required />
@@ -904,7 +895,7 @@ function ImportTab() {
 
   return (
     <div className="flex max-w-2xl flex-col gap-6 rounded-xl border border-slate-200/50 bg-white/60 p-8 shadow-[0_8px_30px_rgb(0,0,0,0.02)] backdrop-blur-xl">
-      <h2 className="text-xl font-light tracking-tight text-slate-900">Bulk CSV import</h2>
+      <h2 className="text-xl font-semibold tracking-tight text-slate-900">Bulk CSV import</h2>
       <p className="text-sm text-slate-500">
         Required columns: <code className="rounded bg-slate-100 px-1.5 py-0.5 text-xs text-slate-700">barcode</code>, <code className="rounded bg-slate-100 px-1.5 py-0.5 text-xs text-slate-700">brand</code>, <code className="rounded bg-slate-100 px-1.5 py-0.5 text-xs text-slate-700">size_label</code>,{" "}
         <code className="rounded bg-slate-100 px-1.5 py-0.5 text-xs text-slate-700">price</code>. Optional column: <code className="rounded bg-slate-100 px-1.5 py-0.5 text-xs text-slate-700">low_stock_threshold</code>. Blank optional
@@ -944,12 +935,12 @@ function ImportTab() {
       )}
       {result && (
         <div className="flex flex-col gap-4 rounded-xl bg-slate-50 p-6 ring-1 ring-slate-200/60">
-          <div className="text-lg font-light tracking-tight text-slate-900">
+          <div className="text-lg font-semibold tracking-tight text-slate-900">
             {result.created} created, {result.failed} failed
           </div>
           {result.errors.length > 0 && (
             <div className="overflow-hidden rounded-xl border border-slate-200/50 bg-white shadow-sm">
-              <table className="w-full text-left text-sm">
+              <table className="app-list-table">
                 <thead className="bg-slate-50/80 text-[11px] uppercase tracking-widest text-slate-500">
                   <tr>
                     <th className="px-4 py-3 font-semibold">Row</th>

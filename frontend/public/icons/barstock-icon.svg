@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="100%" height="100%" role="img" aria-label="BarStock">
+  <defs>
+    <linearGradient id="bg" x1="96" y1="32" x2="416" y2="480" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#115e59" />
+      <stop offset="0.55" stop-color="#0f766e" />
+      <stop offset="1" stop-color="#134e4a" />
+    </linearGradient>
+    <radialGradient id="glow" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(126 118) rotate(38) scale(250 220)">
+      <stop offset="0" stop-color="#5eead4" stop-opacity="0.45" />
+      <stop offset="1" stop-color="#5eead4" stop-opacity="0" />
+    </radialGradient>
+    <linearGradient id="bottle" x1="190" y1="126" x2="322" y2="396" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#f8fafc" />
+      <stop offset="1" stop-color="#dbeafe" />
+    </linearGradient>
+    <linearGradient id="label" x1="200" y1="282" x2="312" y2="340" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#f59e0b" />
+      <stop offset="1" stop-color="#f97316" />
+    </linearGradient>
+    <filter id="shadow" x="-40%" y="-40%" width="180%" height="180%">
+      <feDropShadow dx="0" dy="16" stdDeviation="18" flood-color="#052e2b" flood-opacity="0.35" />
+    </filter>
+  </defs>
+
+  <rect x="24" y="24" width="464" height="464" rx="124" fill="url(#bg)" />
+  <circle cx="154" cy="122" r="126" fill="url(#glow)" />
+  <circle cx="376" cy="138" r="76" fill="#fbbf24" opacity="0.12" />
+
+  <g filter="url(#shadow)">
+    <rect x="146" y="110" width="220" height="292" rx="58" fill="rgba(255,255,255,0.14)" />
+    <path d="M224 92c0-16 13-29 29-29h6c16 0 29 13 29 29v26h-64z" fill="url(#bottle)" />
+    <path d="M188 154c0-16 13-29 29-29h78c16 0 29 13 29 29v198c0 28-23 51-51 51h-34c-28 0-51-23-51-51z" fill="url(#bottle)" />
+    <rect x="196" y="278" width="120" height="74" rx="24" fill="url(#label)" />
+    <rect x="208" y="122" width="96" height="18" rx="9" fill="#0f766e" opacity="0.22" />
+    <rect x="214" y="296" width="84" height="10" rx="5" fill="#fff7ed" opacity="0.92" />
+    <rect x="214" y="316" width="60" height="10" rx="5" fill="#fff7ed" opacity="0.92" />
+    <path d="M223 402h66c18 0 33-15 33-33v-15H190v15c0 18 15 33 33 33z" fill="#ecfeff" opacity="0.86" />
+    <path d="M214 318h84" stroke="#fff7ed" stroke-width="8" stroke-linecap="round" opacity="0.8" />
+    <path d="M214 294h84" stroke="#fff7ed" stroke-width="8" stroke-linecap="round" opacity="0.8" />
+    <path d="M226 134h60" stroke="#0f766e" stroke-width="10" stroke-linecap="round" opacity="0.16" />
+    <path d="M230 170c0-10 8-18 18-18h16c10 0 18 8 18 18v38h-52z" fill="#0f766e" opacity="0.12" />
+  </g>
+
+  <g opacity="0.95">
+    <circle cx="340" cy="154" r="10" fill="#fbbf24" />
+    <path d="M334 154l4 4 9-10" fill="none" stroke="#134e4a" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" />
+  </g>
+</svg>

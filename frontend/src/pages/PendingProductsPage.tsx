@@ -149,7 +149,7 @@ export function PendingProductsPage() {
   return (
     <div className="flex flex-col gap-8 font-sans">
       <header className="flex flex-wrap items-center justify-between gap-4 rounded-xl border border-slate-200/50 bg-white/60 p-6 shadow-[0_8px_30px_rgb(0,0,0,0.02)] backdrop-blur-xl">
-        <h1 className="flex items-center gap-3 text-2xl font-light tracking-tight text-slate-900">
+        <h1 className="flex items-center gap-3 text-2xl font-bold tracking-tight text-slate-900">
           <Clock className="h-6 w-6 text-action" /> Pending
         </h1>
         <div className="flex items-center gap-4 text-sm font-medium text-slate-500">

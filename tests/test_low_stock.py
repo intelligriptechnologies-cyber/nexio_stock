@@ -23,13 +23,16 @@ async def _seed_product(
 
 
 async def _seed_lot(
-    receiver_client: AsyncClient, *, items: list[tuple[str, int]]
+    receiver_client: AsyncClient, owner_client: AsyncClient, *, items: list[tuple[str, int]]
 ) -> None:
     resp = await receiver_client.post(
         "/lots",
         json={"lines": [{"barcode": bc, "quantity": q} for bc, q in items]},
     )
     assert resp.status_code == 201
+    inward_id = resp.json()["id"]
+    approved = await owner_client.post(f"/lots/{inward_id}/approve")
+    assert approved.status_code == 200, approved.text
 
 
 async def _finalize(
@@ -62,7 +65,7 @@ async def test_no_default_no_overrides_returns_empty(
     # No shop default, no per-product thresholds. The product has
     # stock but isn't monitored.
     await _seed_product(owner_client, "8905000000001", brand="Watched")
-    await _seed_lot(receiver_client, items=[("8905000000001", 5)])
+    await _seed_lot(receiver_client, owner_client, items=[("8905000000001", 5)])
 
     resp = await owner_client.get("/dashboard/low-stock")
     assert resp.status_code == 200
@@ -74,7 +77,7 @@ async def test_per_product_override_triggers_alert(
     owner_client: AsyncClient, receiver_client: AsyncClient
 ) -> None:
     await _seed_product(owner_client, "8905000000002", brand="R")
-    await _seed_lot(receiver_client, items=[("8905000000002", 3)])
+    await _seed_lot(receiver_client, owner_client, items=[("8905000000002", 3)])
 
     # Per-product threshold = 5; stock 3 → low.
     upd = await owner_client.patch(
@@ -104,7 +107,7 @@ async def test_product_above_threshold_not_in_list(
     await db_session.commit()
 
     await _seed_product(owner_client, "8905000000003", brand="Plenty")
-    await _seed_lot(receiver_client, items=[("8905000000003", 10)])
+    await _seed_lot(receiver_client, owner_client, items=[("8905000000003", 10)])
 
     resp = await owner_client.get("/dashboard/low-stock")
     assert resp.json()["items"] == []
@@ -121,7 +124,7 @@ async def test_product_at_threshold_appears(
     await db_session.commit()
 
     await _seed_product(owner_client, "8905000000004", brand="Edge")
-    await _seed_lot(receiver_client, items=[("8905000000004", 5)])
+    await _seed_lot(receiver_client, owner_client, items=[("8905000000004", 5)])
 
     resp = await owner_client.get("/dashboard/low-stock")
     items = resp.json()["items"]
@@ -147,7 +150,7 @@ async def test_sale_brings_product_below_threshold(
     await db_session.commit()
 
     await _seed_product(owner_client, "8905000000005", brand="Y")
-    await _seed_lot(receiver_client, items=[("8905000000005", 10)])
+    await _seed_lot(receiver_client, owner_client, items=[("8905000000005", 10)])
     await _finalize(cashier_client, barcode="8905000000005", quantity=6, amount="600.00")
 
     resp = await owner_client.get("/dashboard/low-stock")
@@ -173,6 +176,7 @@ async def test_per_product_override_beats_shop_default(
     await _seed_product(owner_client, "8905000000007", brand="Normal")
     await _seed_lot(
         receiver_client,
+        owner_client,
         items=[("8905000000006", 8), ("8905000000007", 8)],
     )
     # Sensitive wants warning at <=20, so 8 is low.
@@ -207,6 +211,7 @@ async def test_list_sorted_most_urgent_first(
         await _seed_product(owner_client, bc, brand=bc[-4:])
     await _seed_lot(
         receiver_client,
+        owner_client,
         items=[("8905000000008", 1), ("8905000000009", 5), ("8905000000010", 9)],
     )
 
@@ -225,7 +230,7 @@ async def test_receiver_can_view_low_stock(
     )
     await db_session.commit()
     await _seed_product(owner_client, "8905000000011", brand="Z")
-    await _seed_lot(receiver_client, items=[("8905000000011", 2)])
+    await _seed_lot(receiver_client, owner_client, items=[("8905000000011", 2)])
 
     # The receiver needs to see what to order.
     resp = await receiver_client.get("/dashboard/low-stock")
@@ -242,7 +247,7 @@ async def test_low_stock_inactive_products_excluded(
     )
     await db_session.commit()
     await _seed_product(owner_client, "8905000000012", brand="Z")
-    await _seed_lot(receiver_client, items=[("8905000000012", 2)])
+    await _seed_lot(receiver_client, owner_client, items=[("8905000000012", 2)])
     # Deactivate the product.
     product = (
         await db_session.execute(

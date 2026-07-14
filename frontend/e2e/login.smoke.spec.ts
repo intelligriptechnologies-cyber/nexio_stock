@@ -11,7 +11,7 @@ test.describe("auth + role routing", () => {
   test("receiver_user lands on /receiving", async ({ page }) => {
     await loginAsRole(page, "Receiver", "2222");
     await expect(page).toHaveURL(/\/receiving$/);
-    await expect(page.getByRole("heading", { name: "Stock Receiving" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Stock Inward" })).toBeVisible();
   });
 
   test("owner lands on /dashboard", async ({ page }) => {
@@ -34,12 +34,12 @@ test.describe("login UX", () => {
       localStorage.setItem("barstock.deviceKey", "test-terminal-01");
     });
     await page.goto("/login");
-    await expect(page.getByRole("heading", { name: "Shop login" })).toBeVisible({
+    await expect(page.getByRole("heading", { name: "Shop sign in" })).toBeVisible({
       timeout: 5000,
     });
     await expect(page.getByLabel("Role")).toBeVisible();
     await expect(page.getByLabel("Username")).toBeVisible();
-    await expect(page.getByLabel("PIN / password")).toBeVisible();
+    await expect(page.getByLabel("Password / PIN")).toBeVisible();
   });
 
   test("superadmin link routes to /login/superadmin", async ({ page }) => {
@@ -47,7 +47,7 @@ test.describe("login UX", () => {
       localStorage.setItem("barstock.deviceKey", "test-terminal-01");
     });
     await page.goto("/login");
-    await page.getByRole("button", { name: "Superadmin login" }).click();
+    await page.getByRole("link", { name: "Superadmin login" }).click();
     await expect(page).toHaveURL(/\/login\/superadmin$/);
   });
 });

@@ -29,6 +29,7 @@ from app.models.invoice import Invoice, InvoiceStatus, PastInvoice
 from app.models.log import InvoicingLog
 from app.models.user import User, UserRole
 from app.schemas.checkout import InvoicePublic
+from app.services.invoices import attach_cashier_names
 from app.services.voids import (
     VoidError,
     approve_post_eod_void,
@@ -164,6 +165,7 @@ async def request_void(
         eod_signed_off=was_eod_signed_off,
     )
     await db.refresh(updated, attribute_names=["lines", "payments"])
+    await attach_cashier_names(db, [updated])
     return InvoicePublic.model_validate(updated)
 
 
@@ -222,6 +224,7 @@ async def approve_void(
         reversal_invoice_id=result.reversal.id if result.reversal else None,
     )
     await db.refresh(result.invoice, attribute_names=["lines", "payments"])
+    await attach_cashier_names(db, [result.invoice])
     return InvoicePublic.model_validate(result.invoice)
 
 
@@ -278,6 +281,7 @@ async def reject_void(
         invoice_id=invoice_id,
     )
     await db.refresh(updated, attribute_names=["lines", "payments"])
+    await attach_cashier_names(db, [updated])
     return InvoicePublic.model_validate(updated)
 
 

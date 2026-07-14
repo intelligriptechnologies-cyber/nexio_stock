@@ -2,9 +2,12 @@ import { useEffect, useMemo, useState, useCallback } from "react";
 import { ApiError } from "../api/client";
 import { invalidateCache, prefetchCatalog, type CatalogProduct } from "../api/catalog";
 import { createLotSafe, type LotPublic } from "../api/lots";
+import { notifyApprovalsChanged } from "../api/approvals-events";
 import { listVendors, type VendorPublic } from "../api/vendors";
+import { getMyShop } from "../api/shops";
 import { QuickSearch } from "../components/QuickSearch";
 import { QuickAddModal } from "../components/QuickAddModal";
+import { ModalDialog } from "../components/ModalDialog";
 import { ScanSuccessOverlay } from "../components/ScanSuccessOverlay";
 import { useBarcodeScanner } from "../hooks/useBarcodeScanner";
 import { useQuickAdd } from "../hooks/useQuickAdd";
@@ -51,6 +54,7 @@ export function ReceivingPage() {
   const [notes, setNotes] = useState("");
   const [lines, setLines] = useState<ReceivingLine[]>([]);
   const [vendors, setVendors] = useState<VendorPublic[]>([]);
+  const [vendorLinkEnabled, setVendorLinkEnabled] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [info, setInfo] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -81,9 +85,9 @@ export function ReceivingPage() {
           currentStock: product.current_stock,
         },
       ]);
-      setInfo(
-        `Quick-added (pending - owner needs to set the price): ${product.brand} ${product.size_label}`
-      );
+        setInfo(
+          `Quick-added to stock inward (pending approval): ${product.brand} ${product.size_label}`
+        );
     },
     onConflict: (missingBarcode) => {
       void addByBarcode(missingBarcode);
@@ -98,6 +102,36 @@ export function ReceivingPage() {
   }, [actingShopId]);
 
   useEffect(() => {
+    let cancelled = false;
+    if (user?.role === "superadmin" && actingShopId == null) {
+      setVendorLinkEnabled(true);
+      setVendors([]);
+      return () => {
+        cancelled = true;
+      };
+    }
+    void getMyShop(user?.role === "superadmin" ? actingShopId : undefined)
+      .then((shop) => {
+        if (cancelled) return;
+        setVendorLinkEnabled(shop.receiving_vendor_link_enabled);
+      })
+      .catch(() => {
+        if (!cancelled) setVendorLinkEnabled(true);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [actingShopId, user?.role]);
+
+  useEffect(() => {
+    if (user?.role === "superadmin" && actingShopId == null) {
+      setVendors([]);
+      return;
+    }
+    if (!vendorLinkEnabled) {
+      setVendors([]);
+      return;
+    }
     void listVendors(actingShopId)
       .then((rows) => {
         setVendors(rows);
@@ -107,7 +141,7 @@ export function ReceivingPage() {
         setVendors([]);
         setError(e instanceof Error ? e.message : "Could not load vendors.");
       });
-  }, [actingShopId]);
+  }, [actingShopId, vendorLinkEnabled]);
 
   useEffect(() => {
     if (!info) return;
@@ -210,6 +244,16 @@ export function ReceivingPage() {
     setLines((prev) => prev.filter((l) => l.lineId !== lineId));
   };
 
+  const changeLineQuantity = (lineId: string, delta: number) => {
+    setLines((prev) =>
+      prev.map((line) =>
+        line.lineId === lineId
+          ? { ...line, quantity: Math.max(1, line.quantity + delta) }
+          : line
+      )
+    );
+  };
+
   const resetForm = () => {
     setLines([]);
     setReference("");
@@ -227,7 +271,7 @@ export function ReceivingPage() {
       setError("Pick a shop first (top of the sidebar).");
       return;
     }
-    if (vendors.length === 0) {
+    if (vendorLinkEnabled && vendors.length === 0) {
       setError("Add at least one active vendor before saving a lot.");
       return;
     }
@@ -241,10 +285,14 @@ export function ReceivingPage() {
     try {
       const lot = await createLotSafe(
         {
-          vendor_id: Number(review.vendorId),
-          purchase_date: review.purchaseDate,
-          vendor_invoice_number: review.vendorInvoiceNumber.trim(),
-          invoice_value: review.invoiceValue.trim(),
+          ...(vendorLinkEnabled
+            ? {
+                vendor_id: Number(review.vendorId),
+                purchase_date: review.purchaseDate,
+                vendor_invoice_number: review.vendorInvoiceNumber.trim(),
+                invoice_value: review.invoiceValue.trim(),
+              }
+            : {}),
           reference: reference.trim() || undefined,
           notes: notes.trim() || undefined,
           lines: lines.map((line) => ({
@@ -260,7 +308,8 @@ export function ReceivingPage() {
       resetForm();
       invalidateCache();
       void prefetchCatalog(actingShopId).then(() => setCatalogReady(true));
-      setInfo(`Lot #${lot.id} saved with ${lot.lines.length} line(s).`);
+      notifyApprovalsChanged();
+      setInfo(`Inward #${lot.id} submitted with ${lot.lines.length} line(s).`);
     } catch (e) {
       if (e instanceof ApiError) {
         if (e.status === 400) setError(`Validation error: ${e.detail}`);
@@ -290,8 +339,8 @@ export function ReceivingPage() {
 
       <section className="flex flex-col gap-6 rounded-xl border border-slate-200/50 bg-white/60 p-8 shadow-[0_8px_30px_rgb(0,0,0,0.02)] backdrop-blur-xl">
         <header className="flex items-center justify-between">
-          <h1 className="flex items-center gap-3 text-3xl font-light tracking-tight text-slate-900">
-            <PackagePlus className="h-8 w-8 text-action" /> Stock Receiving
+          <h1 className="flex items-center gap-3 text-3xl font-bold tracking-tight text-slate-900">
+            <PackagePlus className="h-8 w-8 text-action" /> Stock Inward
           </h1>
           <div className="flex items-center gap-2 text-sm font-medium text-slate-500">
             {catalogReady ? (
@@ -342,36 +391,65 @@ export function ReceivingPage() {
           {lines.map((line) => (
             <li
               key={line.lineId}
-              className="group flex items-center justify-between rounded-xl border border-slate-200/60 bg-white p-4 shadow-sm transition-colors duration-200 hover:bg-slate-50/50 hover:border-slate-300"
+              className="group flex flex-col gap-4 rounded-xl border border-slate-200/60 bg-white p-4 shadow-sm transition-colors duration-200 hover:border-slate-300 hover:bg-slate-50/50 sm:flex-row sm:items-center sm:justify-between"
             >
-              <div className="flex flex-col">
+              <div className="flex flex-col gap-0.5">
                 <span className="text-base font-semibold text-slate-900">{line.brand}</span>
                 <span className="text-sm font-medium text-slate-500">{line.sizeLabel}</span>
                 <span className="mt-1 font-mono text-xs text-slate-400">{line.barcode}</span>
-                <div className="mt-3 flex gap-6 text-sm font-medium text-slate-600">
-                  <span>
-                    Received qty: <span className="font-mono text-base font-bold text-slate-900">{line.quantity}</span>
-                  </span>
-                  <span>
-                    On shelf: <span className="font-mono text-slate-500">{line.currentStock ?? "—"}</span>
-                  </span>
-                </div>
+                <span className="mt-3 inline-flex w-fit items-center rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold tracking-wide text-slate-600">
+                  On shelf: <span className="ml-1 font-mono text-slate-900">{line.currentStock ?? "—"}</span>
+                </span>
               </div>
-              <button
-                type="button"
-                onClick={() => removeLine(line.lineId)}
-                className="flex h-10 w-10 items-center justify-center rounded-lg bg-white text-red-500 shadow-sm ring-1 ring-slate-200 transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:bg-red-50 hover:text-red-600 hover:ring-red-200 active:scale-[0.97]"
-                aria-label="Remove line"
-              >
-                <Trash2 className="h-5 w-5" />
-              </button>
+              <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => changeLineQuantity(line.lineId, -1)}
+                  className="flex h-11 w-11 items-center justify-center rounded-full bg-slate-100 text-xl font-medium text-slate-600 transition-colors hover:bg-slate-200 active:bg-slate-300"
+                  aria-label="Decrease quantity"
+                >
+                  -
+                </button>
+                <input
+                  type="number"
+                  min={1}
+                  value={line.quantity}
+                  onChange={(e) => {
+                    const next = Math.max(1, Math.floor(Number(e.target.value || 1)));
+                    setLines((prev) =>
+                      prev.map((row) =>
+                        row.lineId === line.lineId ? { ...row, quantity: next } : row
+                      )
+                    );
+                  }}
+                  onFocus={(e) => e.currentTarget.select()}
+                  className="h-11 w-16 rounded-xl border-none bg-slate-50 text-center font-mono text-lg font-semibold text-slate-900 shadow-inner outline-none ring-1 ring-inset ring-slate-200 focus:ring-2 focus:ring-action disabled:opacity-50"
+                  aria-label="Quantity"
+                />
+                <button
+                  type="button"
+                  onClick={() => changeLineQuantity(line.lineId, +1)}
+                  className="flex h-11 w-11 items-center justify-center rounded-full bg-slate-100 text-xl font-medium text-slate-600 transition-colors hover:bg-slate-200 active:bg-slate-300"
+                  aria-label="Increase quantity"
+                >
+                  +
+                </button>
+                <button
+                  type="button"
+                  onClick={() => removeLine(line.lineId)}
+                  className="flex h-10 w-10 items-center justify-center rounded-lg bg-white text-red-500 shadow-sm ring-1 ring-slate-200 transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:bg-red-50 hover:text-red-600 hover:ring-red-200 active:scale-[0.97]"
+                  aria-label="Remove line"
+                >
+                  <Trash2 className="h-5 w-5" />
+                </button>
+              </div>
             </li>
           ))}
         </ul>
       </section>
 
       <aside className="flex h-fit flex-col gap-6 rounded-xl border border-slate-200/50 bg-white/60 p-8 shadow-[0_8px_30px_rgb(0,0,0,0.02)] backdrop-blur-xl">
-        <h2 className="text-xl font-semibold tracking-tight text-slate-900">Lot Summary</h2>
+        <h2 className="text-xl font-semibold tracking-tight text-slate-900">Inward Summary</h2>
 
         <div className="flex flex-col gap-4">
           <label className="flex flex-col gap-1.5 text-xs font-semibold uppercase tracking-wider text-slate-500">
@@ -381,16 +459,6 @@ export function ReceivingPage() {
               value={reference}
               onChange={(e) => setReference(e.target.value)}
               maxLength={100}
-              className="h-11 w-full rounded-xl border border-slate-200 bg-white/50 px-4 text-sm font-medium text-slate-700 shadow-sm outline-none transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:bg-white focus-visible:ring-2 focus-visible:ring-action/40 focus-visible:border-action"
-            />
-          </label>
-          <label className="flex flex-col gap-1.5 text-xs font-semibold uppercase tracking-wider text-slate-500">
-            Notes (optional)
-            <input
-              type="text"
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              maxLength={500}
               className="h-11 w-full rounded-xl border border-slate-200 bg-white/50 px-4 text-sm font-medium text-slate-700 shadow-sm outline-none transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:bg-white focus-visible:ring-2 focus-visible:ring-action/40 focus-visible:border-action"
             />
           </label>
@@ -414,7 +482,7 @@ export function ReceivingPage() {
           disabled={lines.length === 0 || busy}
           className="flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-action px-6 text-sm font-bold tracking-wide text-white shadow-sm transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:-translate-y-0.5 hover:shadow-[var(--color-action)]/30 active:scale-[0.97] disabled:pointer-events-none disabled:opacity-50"
         >
-          <Save className="h-5 w-5" /> Review & Save
+          <Save className="h-5 w-5" /> Review & Submit
         </button>
 
         {error && (
@@ -430,12 +498,7 @@ export function ReceivingPage() {
       </aside>
 
       {quickAdd && (
-        <div
-          className="animate-fade-in fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4 backdrop-blur-sm"
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="quick-add-title"
-        >
+        <ModalDialog labelledBy="quick-add-title" onDismiss={closeQuickAdd}>
           <QuickAddModal
             barcode={quickAdd.barcode}
             busy={quickAddBusy}
@@ -445,14 +508,17 @@ export function ReceivingPage() {
               void submitQuickAdd({ brand, size });
             }}
           />
-        </div>
+        </ModalDialog>
       )}
 
       {reviewOpen && (
         <PurchaseReviewModal
           vendors={vendors}
+          vendorLinkEnabled={vendorLinkEnabled}
           lines={lines}
           busy={busy}
+          notes={notes}
+          onNotes={setNotes}
           onCancel={() => setReviewOpen(false)}
           onSubmit={(review) => {
             void handleFinalSave(review);
@@ -461,15 +527,11 @@ export function ReceivingPage() {
       )}
 
       {lastLot && (
-        <div
-          className="animate-fade-in fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4 backdrop-blur-sm"
-          role="dialog"
-          aria-modal="true"
-        >
+        <ModalDialog onDismiss={() => setLastLot(null)}>
           <div className="animate-modal-in flex max-h-[90vh] w-full max-w-2xl flex-col gap-6 overflow-y-auto rounded-xl bg-white p-8 shadow-2xl">
             <header className="flex items-center justify-between border-b border-slate-100 pb-4">
-              <h2 className="flex items-center gap-3 text-2xl font-light tracking-tight text-slate-900">
-                <CheckCircle2 className="h-8 w-8 text-emerald-500" /> Lot #{lastLot.id} saved
+              <h2 className="flex items-center gap-3 text-2xl font-semibold tracking-tight text-slate-900">
+                <CheckCircle2 className="h-8 w-8 text-emerald-500" /> Inward #{lastLot.id} submitted
               </h2>
               <button
                 type="button"
@@ -482,24 +544,53 @@ export function ReceivingPage() {
             </header>
             
             <div className="grid gap-4 rounded-2xl bg-slate-50 p-6 ring-1 ring-slate-200/50 md:grid-cols-2">
-              <div>
-                <div className="text-[11px] font-semibold uppercase tracking-widest text-slate-500">Vendor</div>
-                <div className="mt-1 font-medium text-slate-900">{lastLot.vendor.name}</div>
-              </div>
-              <div>
-                <div className="text-[11px] font-semibold uppercase tracking-widest text-slate-500">Purchase date</div>
-                <div className="mt-1 font-medium text-slate-900">{lastLot.purchase_date}</div>
-              </div>
-              <div>
-                <div className="text-[11px] font-semibold uppercase tracking-widest text-slate-500">Vendor invoice</div>
-                <div className="mt-1 font-mono font-medium text-slate-900">{lastLot.vendor_invoice_number}</div>
-              </div>
-              <div>
-                <div className="text-[11px] font-semibold uppercase tracking-widest text-slate-500">Invoice value</div>
-                <div className="mt-1 font-mono font-medium text-slate-900">Rs {lastLot.invoice_value}</div>
-              </div>
-              <div className="col-span-2">
-                <div className="text-[11px] font-semibold uppercase tracking-widest text-slate-500">Recorded at</div>
+              {vendorLinkEnabled ? (
+                <>
+                  <div>
+                    <div className="text-[11px] font-semibold uppercase tracking-widest text-slate-500">
+                      Vendor
+                    </div>
+                    <div className="mt-1 font-medium text-slate-900">
+                      {lastLot.vendor?.name ?? "Unknown vendor"}
+                    </div>
+                  </div>
+                  <div>
+                    <div className="text-[11px] font-semibold uppercase tracking-widest text-slate-500">
+                      Purchase date
+                    </div>
+                    <div className="mt-1 font-medium text-slate-900">{lastLot.purchase_date}</div>
+                  </div>
+                  <div>
+                    <div className="text-[11px] font-semibold uppercase tracking-widest text-slate-500">
+                      Vendor invoice
+                    </div>
+                    <div className="mt-1 font-mono font-medium text-slate-900">
+                      {lastLot.vendor_invoice_number}
+                    </div>
+                  </div>
+                  <div>
+                    <div className="text-[11px] font-semibold uppercase tracking-widest text-slate-500">
+                      Invoice value
+                    </div>
+                    <div className="mt-1 font-mono font-medium text-slate-900">
+                      Rs {lastLot.invoice_value}
+                    </div>
+                  </div>
+                </>
+              ) : (
+                <div className="md:col-span-2">
+                  <div className="text-[11px] font-semibold uppercase tracking-widest text-slate-500">
+                    Inward details
+                  </div>
+                  <div className="mt-1 text-sm font-medium text-slate-600">
+                    Vendor link disabled. Hidden placeholder inward details were stored with this request.
+                  </div>
+                </div>
+              )}
+              <div className="md:col-span-2">
+                <div className="text-[11px] font-semibold uppercase tracking-widest text-slate-500">
+                  Recorded at
+                </div>
                 <div className="mt-1 text-sm font-medium text-slate-600">
                   {new Date(lastLot.received_at).toLocaleString()}
                 </div>
@@ -507,7 +598,7 @@ export function ReceivingPage() {
             </div>
 
             <div className="overflow-hidden rounded-2xl border border-slate-200">
-              <table className="w-full text-left text-sm">
+              <table className="app-list-table">
                 <thead className="bg-slate-50/80 text-[11px] uppercase tracking-widest text-slate-500">
                   <tr>
                     <th className="px-6 py-4 font-semibold">Product</th>
@@ -532,7 +623,7 @@ export function ReceivingPage() {
               </table>
             </div>
           </div>
-        </div>
+        </ModalDialog>
       )}
     </div>
   );
@@ -540,18 +631,26 @@ export function ReceivingPage() {
 
 function PurchaseReviewModal({
   vendors,
+  vendorLinkEnabled,
   lines,
   busy,
+  notes,
+  onNotes,
   onCancel,
   onSubmit,
 }: {
   vendors: VendorPublic[];
+  vendorLinkEnabled: boolean;
   lines: ReceivingLine[];
   busy: boolean;
+  notes: string;
+  onNotes: (value: string) => void;
   onCancel: () => void;
   onSubmit: (review: PurchaseReviewState) => void;
 }) {
-  const defaultVendorId = vendors.find((vendor) => vendor.is_active)?.id ?? vendors[0]?.id;
+  const defaultVendorId = vendorLinkEnabled
+    ? vendors.find((vendor) => vendor.is_active)?.id ?? vendors[0]?.id
+    : undefined;
   const [vendorId, setVendorId] = useState<number | "">(defaultVendorId ?? "");
   const [purchaseDate, setPurchaseDate] = useState(localDateInputValue());
   const [vendorInvoiceNumber, setVendorInvoiceNumber] = useState("");
@@ -560,16 +659,21 @@ function PurchaseReviewModal({
     Object.fromEntries(lines.map((line) => [line.lineId, line.quantity]))
   );
   const [localError, setLocalError] = useState<string | null>(null);
+  const breakageExists = lines.some((line) => (lineConditions[line.lineId] ?? line.quantity) < line.quantity);
 
   useEffect(() => {
     setLineConditions(Object.fromEntries(lines.map((line) => [line.lineId, line.quantity])));
   }, [lines]);
 
   useEffect(() => {
+    if (!vendorLinkEnabled) {
+      setVendorId("");
+      return;
+    }
     if (vendorId === "" && defaultVendorId !== undefined) {
       setVendorId(defaultVendorId);
     }
-  }, [defaultVendorId, vendorId]);
+  }, [defaultVendorId, vendorId, vendorLinkEnabled]);
 
   const updateCondition = (lineId: string, value: number) => {
     setLineConditions((current) => ({ ...current, [lineId]: value }));
@@ -578,21 +682,23 @@ function PurchaseReviewModal({
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
     setLocalError(null);
-    if (vendorId === "") {
-      setLocalError("Pick a vendor.");
-      return;
-    }
-    if (!purchaseDate) {
-      setLocalError("Pick a purchase date.");
-      return;
-    }
-    if (!vendorInvoiceNumber.trim()) {
-      setLocalError("Enter the vendor invoice number.");
-      return;
-    }
-    if (!invoiceValue.trim() || Number(invoiceValue) <= 0) {
-      setLocalError("Enter a valid invoice value.");
-      return;
+    if (vendorLinkEnabled) {
+      if (vendorId === "") {
+        setLocalError("Pick a vendor.");
+        return;
+      }
+      if (!purchaseDate) {
+        setLocalError("Pick a purchase date.");
+        return;
+      }
+      if (!vendorInvoiceNumber.trim()) {
+        setLocalError("Enter the vendor invoice number.");
+        return;
+      }
+      if (!invoiceValue.trim() || Number(invoiceValue) <= 0) {
+        setLocalError("Enter a valid invoice value.");
+        return;
+      }
     }
     for (const line of lines) {
       const good = lineConditions[line.lineId] ?? 0;
@@ -600,6 +706,10 @@ function PurchaseReviewModal({
         setLocalError("Good-condition quantity cannot exceed received quantity.");
         return;
       }
+    }
+    if (breakageExists && !notes.trim()) {
+      setLocalError("Add notes when any breakage exists.");
+      return;
     }
     onSubmit({
       vendorId,
@@ -611,18 +721,13 @@ function PurchaseReviewModal({
   };
 
   return (
-    <div
-      className="animate-fade-in fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4 backdrop-blur-sm"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="purchase-review-title"
-    >
+    <ModalDialog labelledBy="purchase-review-title" onDismiss={onCancel}>
       <form
         onSubmit={submit}
         className="animate-modal-in flex max-h-[92vh] w-full max-w-4xl flex-col gap-6 overflow-y-auto rounded-xl bg-white p-8 shadow-2xl"
       >
         <header className="flex items-center justify-between border-b border-slate-100 pb-4">
-          <h2 id="purchase-review-title" className="flex items-center gap-3 text-2xl font-light tracking-tight text-slate-900">
+          <h2 id="purchase-review-title" className="flex items-center gap-3 text-2xl font-semibold tracking-tight text-slate-900">
             <Save className="h-6 w-6 text-action" /> Review purchase details
           </h2>
           <button
@@ -635,61 +740,74 @@ function PurchaseReviewModal({
           </button>
         </header>
 
-        <div className="grid gap-6 md:grid-cols-2">
-          <label className="flex flex-col gap-1.5 text-xs font-semibold uppercase tracking-wider text-slate-500">
-            Vendor
-            <select
-              value={vendorId}
-              onChange={(e) =>
-                setVendorId(e.target.value === "" ? "" : Number.parseInt(e.target.value, 10))
-              }
-              className="h-11 w-full rounded-xl border border-slate-200 bg-white/50 px-4 text-sm font-medium text-slate-700 shadow-sm outline-none transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:bg-white focus-visible:ring-2 focus-visible:ring-action/40 focus-visible:border-action"
-            >
-              <option value="">Select vendor</option>
-              {vendors.map((vendor) => (
-                <option key={vendor.id} value={vendor.id}>
-                  {vendor.name}
-                  {!vendor.is_active ? " (inactive)" : ""}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label className="flex flex-col gap-1.5 text-xs font-semibold uppercase tracking-wider text-slate-500">
-            <span className="flex items-center gap-1.5"><Calendar className="h-4 w-4" /> Purchase date</span>
-            <input
-              type="date"
-              value={purchaseDate}
-              onChange={(e) => setPurchaseDate(e.target.value)}
-              className="h-11 w-full rounded-xl border border-slate-200 bg-white/50 px-4 text-sm font-medium text-slate-700 shadow-sm outline-none transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:bg-white focus-visible:ring-2 focus-visible:ring-action/40 focus-visible:border-action"
-            />
-          </label>
-          <label className="flex flex-col gap-1.5 text-xs font-semibold uppercase tracking-wider text-slate-500">
-            <span className="flex items-center gap-1.5"><FileDigit className="h-4 w-4" /> Vendor invoice number</span>
-            <input
-              type="text"
-              value={vendorInvoiceNumber}
-              onChange={(e) => setVendorInvoiceNumber(e.target.value)}
-              className="h-11 w-full rounded-xl border border-slate-200 bg-white/50 px-4 text-sm font-medium text-slate-700 shadow-sm outline-none transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:bg-white focus-visible:ring-2 focus-visible:ring-action/40 focus-visible:border-action"
-            />
-          </label>
-          <label className="flex flex-col gap-1.5 text-xs font-semibold uppercase tracking-wider text-slate-500">
-            <span className="flex items-center gap-1.5"><IndianRupee className="h-4 w-4" /> Invoice value</span>
-            <input
-              type="number"
-              min="0"
-              step="0.01"
-              value={invoiceValue}
-              onChange={(e) => setInvoiceValue(e.target.value)}
-              className="h-11 w-full rounded-xl border border-slate-200 bg-white/50 px-4 text-sm font-medium text-slate-700 shadow-sm outline-none transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:bg-white focus-visible:ring-2 focus-visible:ring-action/40 focus-visible:border-action"
-            />
-          </label>
-        </div>
+        {vendorLinkEnabled ? (
+          <div className="grid gap-6 md:grid-cols-2">
+            <label className="flex flex-col gap-1.5 text-xs font-semibold uppercase tracking-wider text-slate-500">
+              Vendor
+              <select
+                value={vendorId}
+                onChange={(e) =>
+                  setVendorId(e.target.value === "" ? "" : Number.parseInt(e.target.value, 10))
+                }
+                className="h-11 w-full rounded-xl border border-slate-200 bg-white/50 px-4 text-sm font-medium text-slate-700 shadow-sm outline-none transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:bg-white focus-visible:ring-2 focus-visible:ring-action/40 focus-visible:border-action"
+              >
+                <option value="">Select vendor</option>
+                {vendors.map((vendor) => (
+                  <option key={vendor.id} value={vendor.id}>
+                    {vendor.name}
+                    {!vendor.is_active ? " (inactive)" : ""}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="flex flex-col gap-1.5 text-xs font-semibold uppercase tracking-wider text-slate-500">
+              <span className="flex items-center gap-1.5">
+                <Calendar className="h-4 w-4" /> Purchase date
+              </span>
+              <input
+                type="date"
+                value={purchaseDate}
+                onChange={(e) => setPurchaseDate(e.target.value)}
+                className="h-11 w-full rounded-xl border border-slate-200 bg-white/50 px-4 text-sm font-medium text-slate-700 shadow-sm outline-none transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:bg-white focus-visible:ring-2 focus-visible:ring-action/40 focus-visible:border-action"
+              />
+            </label>
+            <label className="flex flex-col gap-1.5 text-xs font-semibold uppercase tracking-wider text-slate-500">
+              <span className="flex items-center gap-1.5">
+                <FileDigit className="h-4 w-4" /> Vendor invoice number
+              </span>
+              <input
+                type="text"
+                value={vendorInvoiceNumber}
+                onChange={(e) => setVendorInvoiceNumber(e.target.value)}
+                className="h-11 w-full rounded-xl border border-slate-200 bg-white/50 px-4 text-sm font-medium text-slate-700 shadow-sm outline-none transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:bg-white focus-visible:ring-2 focus-visible:ring-action/40 focus-visible:border-action"
+              />
+            </label>
+            <label className="flex flex-col gap-1.5 text-xs font-semibold uppercase tracking-wider text-slate-500">
+              <span className="flex items-center gap-1.5">
+                <IndianRupee className="h-4 w-4" /> Invoice value
+              </span>
+              <input
+                type="number"
+                min="0"
+                step="0.01"
+                value={invoiceValue}
+                onChange={(e) => setInvoiceValue(e.target.value)}
+                className="h-11 w-full rounded-xl border border-slate-200 bg-white/50 px-4 text-sm font-medium text-slate-700 shadow-sm outline-none transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:bg-white focus-visible:ring-2 focus-visible:ring-action/40 focus-visible:border-action"
+              />
+            </label>
+          </div>
+        ) : (
+          <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-6 py-5 text-sm text-slate-600">
+            Vendor linking is disabled for this shop. The lot will save with hidden placeholder
+            receiving details.
+          </div>
+        )}
 
         <div className="overflow-hidden rounded-2xl border border-slate-200">
           <div className="border-b border-slate-200 bg-slate-50/80 px-6 py-3 text-[11px] font-medium uppercase tracking-widest text-slate-500">
-            Good-condition quantity is the only editable line-level field.
+            Use the stepper to adjust good-condition quantity for each line.
           </div>
-          <table className="w-full text-left text-sm">
+          <table className="app-list-table">
             <thead className="bg-slate-50/80 text-[11px] uppercase tracking-widest text-slate-500">
               <tr>
                 <th className="px-6 py-4 font-semibold">Product</th>
@@ -712,19 +830,38 @@ function PurchaseReviewModal({
                     </td>
                     <td className="px-6 py-4 text-right font-mono font-medium text-slate-900">{line.quantity}</td>
                     <td className="px-6 py-4 text-right">
-                      <input
-                        type="number"
-                        min="0"
-                        max={line.quantity}
-                        value={good}
-                        onChange={(e) =>
-                          updateCondition(
-                            line.lineId,
-                            Math.max(0, Math.floor(Number(e.target.value || 0)))
-                          )
-                        }
-                        className="w-24 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-right font-mono text-sm font-medium shadow-sm transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:border-slate-300 focus-visible:ring-2 focus-visible:ring-action/40 focus-visible:border-action outline-none"
-                      />
+                      <div className="inline-flex items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={() => updateCondition(line.lineId, Math.max(0, good - 1))}
+                          className="flex h-9 w-9 items-center justify-center rounded-full bg-slate-100 text-lg font-medium text-slate-600 transition-colors hover:bg-slate-200 active:bg-slate-300"
+                          aria-label="Decrease good quantity"
+                        >
+                          -
+                        </button>
+                        <input
+                          type="number"
+                          min="0"
+                          max={line.quantity}
+                          value={good}
+                          onChange={(e) =>
+                            updateCondition(
+                              line.lineId,
+                              Math.max(0, Math.floor(Number(e.target.value || 0)))
+                            )
+                          }
+                          className="w-20 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-right font-mono text-sm font-medium shadow-sm transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:border-slate-300 focus-visible:ring-2 focus-visible:ring-action/40 focus-visible:border-action outline-none"
+                          aria-label="Good-condition quantity"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => updateCondition(line.lineId, Math.min(line.quantity, good + 1))}
+                          className="flex h-9 w-9 items-center justify-center rounded-full bg-slate-100 text-lg font-medium text-slate-600 transition-colors hover:bg-slate-200 active:bg-slate-300"
+                          aria-label="Increase good quantity"
+                        >
+                          +
+                        </button>
+                      </div>
                     </td>
                     <td className="px-6 py-4 text-right font-mono font-medium text-slate-500">{line.quantity - good}</td>
                   </tr>
@@ -733,6 +870,18 @@ function PurchaseReviewModal({
             </tbody>
           </table>
         </div>
+
+        <label className="flex flex-col gap-1.5 text-xs font-semibold uppercase tracking-wider text-slate-500">
+          Notes {breakageExists ? "(required when breakage exists)" : "(optional)"}
+          <textarea
+            value={notes}
+            onChange={(e) => onNotes(e.target.value)}
+            maxLength={500}
+            rows={3}
+            className="w-full rounded-xl border border-slate-200 bg-white/50 p-4 text-sm font-medium normal-case text-slate-700 shadow-sm outline-none transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:bg-white focus-visible:ring-2 focus-visible:ring-action/40 focus-visible:border-action"
+            placeholder={breakageExists ? "Explain any breakage before saving." : "Optional notes for this lot."}
+          />
+        </label>
 
         {localError && (
           <div role="alert" className="rounded-xl bg-red-50 px-4 py-3 text-sm font-medium text-red-600 ring-1 ring-red-200">
@@ -757,6 +906,6 @@ function PurchaseReviewModal({
           </button>
         </div>
       </form>
-    </div>
+    </ModalDialog>
   );
 }

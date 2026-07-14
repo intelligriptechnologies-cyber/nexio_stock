@@ -1,4 +1,4 @@
-"""Lot + LotLine schemas."""
+"""Stock inward + committed lot schemas."""
 from __future__ import annotations
 
 from datetime import date, datetime
@@ -7,11 +7,12 @@ from decimal import Decimal
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from app.models.lot import Lot, LotLine
+from app.models.stock_inward import StockInward, StockInwardLine, StockInwardStatus
 from app.schemas.vendor import VendorPublic
 
 
 class LotLineCreate(BaseModel):
-    """One scanned (or manually-typed) line in a lot."""
+    """One scanned (or manually-typed) line in a stock inward request."""
 
     model_config = ConfigDict(extra="forbid")
 
@@ -27,7 +28,7 @@ class LotLineCreate(BaseModel):
 
 
 class LotLinePublic(BaseModel):
-    """One line on a lot."""
+    """One line on a stock inward request."""
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -41,14 +42,16 @@ class LotLinePublic(BaseModel):
 
 
 class LotCreate(BaseModel):
-    """Receiver's full lot-receipt request."""
+    """Staff-created stock inward request."""
 
     model_config = ConfigDict(extra="forbid")
 
     vendor_id: int | None = Field(default=None)
     purchase_date: date | None = Field(default=None)
     vendor_invoice_number: str | None = Field(default=None, min_length=1, max_length=100)
-    invoice_value: Decimal | None = Field(default=None, gt=Decimal("0"), max_digits=12, decimal_places=2)
+    invoice_value: Decimal | None = Field(
+        default=None, ge=Decimal("0"), max_digits=12, decimal_places=2
+    )
     reference: str | None = Field(default=None, max_length=100)
     notes: str | None = Field(default=None, max_length=500)
     lines: list[LotLineCreate] = Field(min_length=1, max_length=500)
@@ -70,16 +73,27 @@ class LotPublic(BaseModel):
 
     id: int
     shop_id: int
-    vendor_id: int
+    vendor_id: int | None
     received_by_user_id: int
     purchase_date: date
     vendor_invoice_number: str
     invoice_value: Decimal
     reference: str | None
     notes: str | None
+    status: StockInwardStatus
+    approved_by_user_id: int | None
+    rejected_by_user_id: int | None
+    lot_id: int | None
+    created_by_name: str | None
+    approved_by_name: str | None
+    rejected_by_name: str | None
+    approved_at: datetime | None
+    rejected_at: datetime | None
+    completed_at: datetime | None
     received_at: datetime
     created_at: datetime
-    vendor: VendorPublic
+    updated_at: datetime
+    vendor: VendorPublic | None
     lines: list[LotLinePublic]
 
 

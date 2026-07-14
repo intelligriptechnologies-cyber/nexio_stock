@@ -76,6 +76,7 @@ class PaymentMode(str, enum.Enum):
     CASH = "cash"
     UPI = "upi"
     CARD = "card"  # credit card, per D-15
+    OTHER = "other"
 
 
 class Invoice(Base):

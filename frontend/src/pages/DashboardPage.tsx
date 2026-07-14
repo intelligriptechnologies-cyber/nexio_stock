@@ -10,9 +10,11 @@ import {
   type SignOffResponse,
   type StockOverviewResponse,
 } from "../api/dashboard";
+import type { PaymentMode } from "../api/checkout";
 import { toUserMessage } from "../api/client";
+import { formatPaymentLabel } from "../payment-modes";
 import { listPendingProducts } from "../api/products";
-import { listPendingVoids } from "../api/voids";
+import { getPendingApprovalsCount } from "../api/approvals";
 import { useShopScope, useShopScopeGuard } from "../auth/ShopScopeProvider";
 import { Calendar, Banknote, ShieldAlert, CheckCircle2, RefreshCw, Box, Map, History, LayoutDashboard } from "lucide-react";
 
@@ -27,7 +29,7 @@ export function DashboardPage() {
   const [lowStock, setLowStock] = useState<LowStockResponse | null>(null);
   const [history, setHistory] = useState<SignOffResponse[] | null>(null);
   const [pendingCount, setPendingCount] = useState<number | null>(null);
-  const [voidApprovalCount, setVoidApprovalCount] = useState<number | null>(null);
+  const [approvalCount, setApprovalCount] = useState<number | null>(null);
   // Issue #41 — cross-shop stock overview (owner/superadmin only).
   // null while loading or for non-authorized roles; the section
   // renders nothing in those cases.
@@ -40,7 +42,7 @@ export function DashboardPage() {
       setLowStock(null);
       setHistory(null);
       setPendingCount(null);
-      setVoidApprovalCount(null);
+      setApprovalCount(null);
       setStockOverview(null);
       return;
     }
@@ -58,14 +60,14 @@ export function DashboardPage() {
         // alongside the other dashboard data so the badge appears
         // immediately when the dashboard mounts.
         listPendingProducts(actingShopId).catch(() => []),
-        listPendingVoids(actingShopId).catch(() => ({ invoices: [] })),
+        getPendingApprovalsCount(actingShopId).catch(() => 0),
         getStockOverview().catch(() => null),
       ]);
       setToday(t);
       setLowStock(l);
       setHistory(h.signoffs);
       setPendingCount(p.length);
-      setVoidApprovalCount(v.invoices.length);
+      setApprovalCount(v);
       setStockOverview(so);
     } catch (e) {
       setError(toUserMessage(e, "Load failed."));
@@ -78,7 +80,7 @@ export function DashboardPage() {
   return (
     <div className="flex flex-col gap-section-gap p-6 font-sans">
       <header className="flex flex-wrap items-center justify-between gap-stack-gap rounded-xl border border-slate-200/50 bg-white/60 p-6 shadow-sm backdrop-blur-xl">
-        <h1 className="flex items-center gap-3 text-2xl font-light tracking-tight text-slate-900">
+        <h1 className="flex items-center gap-3 text-2xl font-bold tracking-tight text-slate-900">
           <LayoutDashboard className="h-6 w-6 text-action" /> Owner Dashboard
         </h1>
         <button
@@ -120,30 +122,30 @@ export function DashboardPage() {
               Tap to open Pending and set their prices.
             </div>
           </div>
-          <span aria-hidden="true" className="text-2xl font-light">→</span>
+          <span aria-hidden="true" className="text-2xl font-bold">→</span>
         </Link>
       )}
-      {voidApprovalCount != null && voidApprovalCount > 0 && (
+      {approvalCount != null && approvalCount > 0 && (
         <Link
-          to="/admin/voids"
+          to="/approvals"
           className="flex items-center justify-between rounded-2xl bg-amber-50 p-6 text-amber-950 shadow-sm ring-1 ring-amber-200 transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:-translate-y-0.5 hover:shadow-md active:scale-[0.97]"
           role="status"
         >
           <div>
             <div className="text-lg font-bold tracking-tight">
-              {voidApprovalCount} void approval{voidApprovalCount === 1 ? "" : "s"} pending
+              {approvalCount} approval{approvalCount === 1 ? "" : "s"} pending
             </div>
             <div className="text-sm font-medium text-amber-800">
               Resolve approvals before closing EOD.
             </div>
           </div>
-          <span aria-hidden="true" className="text-2xl font-light">→</span>
+          <span aria-hidden="true" className="text-2xl font-bold">→</span>
         </Link>
       )}
 
       {/* KPI cards */}
       <section className="grid grid-cols-1 gap-section-gap md:grid-cols-2 xl:grid-cols-4">
-        <KpiCard icon={<Calendar className="h-5 w-5" />} title="Business date" value={today?.business_date ?? "—"} accent="primary" delayMs={0} />
+        <KpiCard icon={<Calendar className="h-5 w-5" />} title="Calendar date" value={today?.business_date ?? "—"} accent="primary" delayMs={0} />
         <KpiCard
           icon={<Banknote className="h-5 w-5" />}
           title="Revenue"
@@ -171,7 +173,7 @@ export function DashboardPage() {
 
       {/* Payment mode split */}
       <section className="rounded-xl border border-slate-200/50 bg-white/60 p-8 shadow-[0_8px_30px_rgb(0,0,0,0.02)] backdrop-blur-xl transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:shadow-[0_8px_40px_rgb(0,0,0,0.04)]">
-        <h2 className="mb-6 flex items-center gap-2 text-xl font-light tracking-tight text-slate-900">
+        <h2 className="mb-6 flex items-center gap-2 text-xl font-semibold tracking-tight text-slate-900">
           <Banknote className="h-5 w-5 text-slate-400" /> Payment Mode Split
         </h2>
         {today && today.payments_by_mode.length > 0 ? (
@@ -181,7 +183,7 @@ export function DashboardPage() {
                 key={p.mode}
                 className="flex items-center justify-between rounded-xl bg-slate-50 p-4 shadow-sm ring-1 ring-slate-200"
               >
-                <span className="font-semibold text-slate-900">{p.mode}</span>
+                <span className="font-semibold text-slate-900">{formatPaymentLabel(p.mode as PaymentMode)}</span>
                 <span className="font-mono font-medium text-slate-700">
                   {moneyFmt(p.amount)} · {p.count} txn(s)
                 </span>
@@ -195,7 +197,7 @@ export function DashboardPage() {
 
       {/* Low-stock list */}
       <section className="rounded-xl border border-slate-200/50 bg-white/60 p-8 shadow-[0_8px_30px_rgb(0,0,0,0.02)] backdrop-blur-xl transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:shadow-[0_8px_40px_rgb(0,0,0,0.04)]">
-        <h2 className="mb-6 flex items-center gap-2 text-xl font-light tracking-tight text-slate-900">
+        <h2 className="mb-6 flex items-center gap-2 text-xl font-semibold tracking-tight text-slate-900">
           <Box className="h-5 w-5 text-slate-400" /> Low Stock
         </h2>
         {lowStock === null ? (
@@ -209,7 +211,7 @@ export function DashboardPage() {
           </div>
         ) : (
           <div className="overflow-hidden rounded-2xl border border-slate-200/60 bg-white shadow-sm">
-            <table className="w-full text-sm text-left">
+            <table className="app-list-table">
               <thead className="bg-slate-50/80 text-[11px] uppercase tracking-widest text-slate-500">
                 <tr>
                   <th className="px-5 py-3 font-semibold">Product</th>
@@ -243,7 +245,7 @@ export function DashboardPage() {
           Hidden for other roles: stockOverview is null on 403. */}
       {stockOverview && stockOverview.shops.length > 0 && (
         <section className="rounded-xl border border-slate-200/50 bg-white/60 p-8 shadow-[0_8px_30px_rgb(0,0,0,0.02)] backdrop-blur-xl transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:shadow-[0_8px_40px_rgb(0,0,0,0.04)]">
-          <h2 className="mb-6 flex items-center gap-2 text-xl font-light tracking-tight text-slate-900">
+          <h2 className="mb-6 flex items-center gap-2 text-xl font-semibold tracking-tight text-slate-900">
             <Map className="h-5 w-5 text-slate-400" /> Stock Across All Shops
           </h2>
           {stockOverview.shops.map((g) => (
@@ -257,7 +259,7 @@ export function DashboardPage() {
                 </div>
               ) : (
                 <div className="overflow-hidden rounded-2xl border border-slate-200/60 bg-white shadow-sm">
-                  <table className="w-full text-sm text-left">
+                  <table className="app-list-table">
                     <thead className="bg-slate-50/80 text-[11px] uppercase tracking-widest text-slate-500">
                       <tr>
                         <th className="px-5 py-3 font-semibold">Product</th>
@@ -299,7 +301,7 @@ export function DashboardPage() {
       )}
       {/* Past sign-offs */}
       <section className="rounded-xl border border-slate-200/50 bg-white/60 p-8 shadow-[0_8px_30px_rgb(0,0,0,0.02)] backdrop-blur-xl transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:shadow-[0_8px_40px_rgb(0,0,0,0.04)]">
-        <h2 className="mb-6 flex items-center gap-2 text-xl font-light tracking-tight text-slate-900">
+        <h2 className="mb-6 flex items-center gap-2 text-xl font-semibold tracking-tight text-slate-900">
           <History className="h-5 w-5 text-slate-400" /> Past Sign-offs
         </h2>
         {history === null ? (
@@ -308,7 +310,7 @@ export function DashboardPage() {
           <div className="text-on-surface-variant">No prior EOD sign-offs recorded.</div>
         ) : (
           <div className="overflow-hidden rounded-2xl border border-slate-200/60 bg-white shadow-sm">
-            <table className="w-full text-sm text-left">
+            <table className="app-list-table">
               <thead className="bg-slate-50/80 text-[11px] uppercase tracking-widest text-slate-500">
                 <tr>
                   <th className="px-5 py-3 font-semibold">Business Date</th>
@@ -364,7 +366,7 @@ function KpiCard({
         {icon && <span className="opacity-70">{icon}</span>}
         {title}
       </div>
-      <div className="relative z-10 font-mono text-[32px] font-light tracking-tight">{value}</div>
+      <div className="relative z-10 font-mono text-[32px] font-semibold tracking-tight">{value}</div>
       {sub && <div className="relative z-10 mt-1 text-xs font-medium text-slate-400">{sub}</div>}
     </div>
   );

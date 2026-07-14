@@ -9,12 +9,12 @@ indefinitely, and the data is queryable by date the same way
 without changing the API surface.
 
 Flow:
-  - sign-off: owner marks `business_date` as closed. Every invoice
-    whose `finalized_at` falls in [business_date 00:00, business_date
-    + 1 00:00) in the server's local time gets `eod_signed_off=True`
-    and an `EodSignOff` row recorded. Idempotent on (shop, day):
-    re-signing the same day is a no-op (or rejected, depending on
-    the policy — we reject with 409).
+  - sign-off: owner archives the open invoices for `business_date`.
+    Every invoice whose `finalized_at` falls in [business_date 00:00,
+    business_date + 1 00:00) in the server's local time gets
+    `eod_signed_off=True` and an `EodSignOff` row recorded. Idempotent
+    on (shop, day): re-signing the same day is a no-op (or rejected,
+    depending on the policy — we reject with 409).
   - totals: for a signed-off day, sum the invoices' total_amounts,
     group payments by mode, count invoices.
   - history: list past sign-offs in a date range, descending.
@@ -41,7 +41,7 @@ from app.models.invoice import (
     PastPayment,
     Payment,
 )
-from app.models.shop import Shop
+from app.services.calendar import today_local_date
 
 
 class EodError(Exception):
@@ -90,7 +90,7 @@ async def sign_off_day(
     flipped to `eod_signed_off=True` with the same timestamp. An
     EodSignOff row is recorded for history.
     """
-    if business_date > date.today():
+    if business_date > today_local_date():
         raise EodError(
             "future_date", "cannot sign off a future business date"
         )
@@ -129,10 +129,6 @@ async def sign_off_day(
         )
 
     now = datetime.now(UTC)
-    shop = (
-        await db.execute(select(Shop).where(Shop.id == shop_id).with_for_update())
-    ).scalar_one()
-
     invoices = (
         await db.execute(
             select(Invoice)
@@ -183,9 +179,6 @@ async def sign_off_day(
                 )
             )
         await db.delete(inv)
-
-    if shop.current_business_date <= business_date:
-        shop.current_business_date = business_date + timedelta(days=1)
 
     signoff = EodSignOff(
         shop_id=shop_id,

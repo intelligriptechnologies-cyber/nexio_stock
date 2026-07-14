@@ -10,7 +10,6 @@ import { ReceivingPage } from "./pages/ReceivingPage";
 import { DashboardPage } from "./pages/DashboardPage";
 import { AdminPlaceholder } from "./pages/AdminPlaceholder";
 import { ProductsPage } from "./pages/ProductsPage";
-import { VoidApprovalsPage } from "./pages/VoidApprovalsPage";
 import { InvoiceLookupPage } from "./pages/InvoiceLookupPage";
 import { StaffPage } from "./pages/StaffPage";
 import { SettingsPage } from "./pages/SettingsPage";
@@ -19,6 +18,8 @@ import { ShopMaintenancePage } from "./pages/ShopMaintenancePage";
 import { VendorsPage } from "./pages/VendorsPage";
 import { LogsPage } from "./pages/LogsPage";
 import { InventoryPage } from "./pages/InventoryPage";
+import { ApprovalsPage } from "./pages/ApprovalsPage";
+import { StockTrackingPage } from "./pages/StockTrackingPage";
 
 function Protected({ allow, children }: { allow: Role[]; children: JSX.Element }) {
   const { user, isReady } = useAuth();
@@ -40,7 +41,12 @@ function AuthedShell({ children }: { children: JSX.Element }) {
   return (
     <div className="h-full bg-slate-50 text-slate-900">
       <Sidebar />
-      <main className="h-full overflow-y-auto p-margin-mobile md:ml-64 md:p-margin-desktop animate-fade-in">{children}</main>
+      <main
+        data-app-shell-scroll-container="true"
+        className="h-full overflow-y-auto p-margin-mobile md:ml-64 md:p-margin-desktop animate-fade-in"
+      >
+        {children}
+      </main>
     </div>
   );
 }
@@ -144,11 +150,37 @@ export default function App() {
         }
       />
       <Route
-        path="/admin/voids"
+        path="/approvals"
         element={
           <Protected allow={["owner", "superadmin"]}>
             <AuthedShell>
-              <VoidApprovalsPage />
+              <ApprovalsPage />
+            </AuthedShell>
+          </Protected>
+        }
+      />
+      <Route
+        path="/admin/voids"
+        element={
+          <Protected allow={["owner", "superadmin"]}>
+            <Navigate to="/approvals?tab=voids" replace />
+          </Protected>
+        }
+      />
+      <Route
+        path="/admin/stock-inward-queue"
+        element={
+          <Protected allow={["owner", "superadmin"]}>
+            <Navigate to="/approvals?tab=inward" replace />
+          </Protected>
+        }
+      />
+      <Route
+        path="/admin/stock-tracking"
+        element={
+          <Protected allow={["owner", "superadmin"]}>
+            <AuthedShell>
+              <StockTrackingPage />
             </AuthedShell>
           </Protected>
         }

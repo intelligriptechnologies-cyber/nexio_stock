@@ -44,6 +44,7 @@ from app.services.eod import (
     list_signoff_history,
     sign_off_day,
 )
+from app.services.invoices import attach_cashier_names
 from app.services.log_files import append_log_line, closing_text
 from app.services.stock_overview import build_stock_overview, now_utc
 
@@ -65,7 +66,7 @@ _EOD_CODE_TO_STATUS: dict[str, int] = {
     "/eod/sign-off",
     response_model=SignOffResponse,
     status_code=status.HTTP_201_CREATED,
-    summary="Owner marks a business date as closed (R-44, D-32, D-63)",
+    summary="Owner archives open invoices for a business date (R-44, D-32, D-63)",
 )
 async def sign_off(
     payload: SignOffRequest,
@@ -243,6 +244,7 @@ async def void_queue(
     from app.schemas.checkout import InvoicePublic
 
     invoices: list[InvoicePublic] = []
+    await attach_cashier_names(db, rows)
     for r in rows:
         await db.refresh(r, attribute_names=["payments"])
         invoices.append(InvoicePublic.model_validate(r))

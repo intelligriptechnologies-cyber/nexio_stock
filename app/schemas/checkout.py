@@ -94,6 +94,7 @@ class InvoicePublic(BaseModel):
     id: int
     shop_id: int
     cashier_user_id: int
+    cashier_name: str | None
     invoice_number: int
     status: InvoiceStatus
     total_amount: Decimal

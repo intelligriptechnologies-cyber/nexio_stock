@@ -87,6 +87,16 @@ export function extendOfflineSession(sessionId: number): Promise<OfflineSessionE
   });
 }
 
+export function discardOfflineSession(
+  sessionId: number,
+  reason: string
+): Promise<{ session: OfflineSessionPublic }> {
+  return api<{ session: OfflineSessionPublic }>(`/offline-sessions/${sessionId}/discard`, {
+    method: "POST",
+    json: { reason },
+  });
+}
+
 export function syncOfflineSession(
   sessionId: number,
   receipts: OfflineReceiptPayload[],

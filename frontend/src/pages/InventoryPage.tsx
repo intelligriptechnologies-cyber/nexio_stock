@@ -114,7 +114,7 @@ export function InventoryPage() {
     <div className="flex flex-col gap-8 font-sans">
       <header className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h1 className="flex items-center gap-3 text-3xl font-light tracking-tight text-slate-900">
+          <h1 className="flex items-center gap-3 text-3xl font-bold tracking-tight text-slate-900">
             <PackageOpen className="h-8 w-8 text-action" /> Inventory
           </h1>
           <p className="mt-2 text-sm text-slate-500">
@@ -178,7 +178,7 @@ export function InventoryPage() {
       ) : visibleItems.length > 0 ? (
         <div className="overflow-hidden rounded-xl border border-slate-200/50 bg-white/60 shadow-[0_8px_30px_rgb(0,0,0,0.02)] backdrop-blur-xl">
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[1000px] text-left text-sm" aria-label="Inventory table">
+            <table className="app-list-table min-w-[1000px]" aria-label="Inventory table">
               <thead className="bg-slate-50/80 text-[11px] uppercase tracking-widest text-slate-500">
                 <tr>
                   <th className="px-6 py-4 font-semibold">Product / brand</th>
@@ -224,7 +224,7 @@ export function InventoryPage() {
                           {canReceive && (
                             <Link
                               to="/receiving"
-                              title="Receive"
+                              title="Stock Inward"
                               className="flex h-8 w-8 items-center justify-center rounded-md bg-white text-action shadow-sm ring-1 ring-slate-200 transition-colors hover:bg-slate-50"
                             >
                               <ArrowDownToLine className="h-4 w-4" />

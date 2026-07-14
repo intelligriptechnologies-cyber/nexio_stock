@@ -12,7 +12,6 @@ export function ShopConfigPage() {
   const [gstin, setGstin] = useState("");
   const [dutyRate, setDutyRate] = useState("");
   const [threshold, setThreshold] = useState("");
-  const [allowedLoginCidrs, setAllowedLoginCidrs] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [info, setInfo] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -32,7 +31,6 @@ export function ShopConfigPage() {
       setThreshold(
         s.low_stock_threshold_default === null ? "" : String(s.low_stock_threshold_default)
       );
-      setAllowedLoginCidrs(s.allowed_login_cidrs?.join("\n") ?? "");
     } catch (e) {
       setError(e instanceof Error ? e.message : "Load failed.");
     }
@@ -56,15 +54,10 @@ export function ShopConfigPage() {
         gstin: string | null;
         excise_duty_rate: string | null;
         low_stock_threshold_default: number | null;
-        allowed_login_cidrs: string[];
       } = {
         gstin: gstin.trim() ? gstin.trim() : null,
         excise_duty_rate: dutyRate.trim() ? dutyRate.trim() : null,
         low_stock_threshold_default: threshold.trim() ? Number(threshold.trim()) : null,
-        allowed_login_cidrs: allowedLoginCidrs
-          .split(/\r?\n|,/)
-          .map((value) => value.trim())
-          .filter((value) => value.length > 0),
       };
       const updated = await updateMyShop(payload, actingShopId);
       setShop(updated);
@@ -85,7 +78,7 @@ export function ShopConfigPage() {
   return (
     <div className="flex flex-col gap-8 font-sans">
       <header className="flex flex-col gap-2 rounded-xl border border-slate-200/50 bg-white/60 p-6 shadow-[0_8px_30px_rgb(0,0,0,0.02)] backdrop-blur-xl">
-        <h1 className="flex items-center gap-3 text-2xl font-light tracking-tight text-slate-900">
+        <h1 className="flex items-center gap-3 text-2xl font-bold tracking-tight text-slate-900">
           <Store className="h-6 w-6 text-action" /> Shop Config
         </h1>
         {shop && (
@@ -132,12 +125,6 @@ export function ShopConfigPage() {
           type="number"
           min="0"
           placeholder="Per-product overrides win"
-        />
-        <TextAreaField
-          label="Allowed login IPs/CIDRs"
-          value={allowedLoginCidrs}
-          onChange={setAllowedLoginCidrs}
-          placeholder={'One per line, e.g. 203.0.113.10 or 203.0.113.0/24\nLeave blank to allow shop login from anywhere'}
         />
         <div className="mt-4 flex md:col-span-2">
           <button
@@ -199,31 +186,6 @@ function Field({
         maxLength={maxLength}
         placeholder={placeholder}
         className="h-11 w-full rounded-xl border border-slate-200 bg-white/50 px-4 text-sm font-medium normal-case text-slate-700 shadow-sm outline-none transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:bg-white focus:border-action focus:ring-1 focus:ring-action"
-      />
-    </label>
-  );
-}
-
-function TextAreaField({
-  label,
-  value,
-  onChange,
-  placeholder,
-}: {
-  label: string;
-  value: string;
-  onChange: (v: string) => void;
-  placeholder?: string;
-}) {
-  return (
-    <label className="flex flex-col gap-1.5 text-xs font-semibold uppercase tracking-wider text-slate-500 md:col-span-2">
-      {label}
-      <textarea
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        placeholder={placeholder}
-        rows={4}
-        className="min-h-[7rem] w-full rounded-xl border border-slate-200 bg-white/50 p-4 text-sm font-medium normal-case text-slate-700 shadow-sm outline-none transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:bg-white focus:border-action focus:ring-1 focus:ring-action"
       />
     </label>
   );

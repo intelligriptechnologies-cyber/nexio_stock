@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 import re
-from datetime import datetime
+from datetime import date, datetime
 from decimal import Decimal
 from ipaddress import ip_network
 
@@ -40,9 +40,12 @@ class ShopPublic(BaseModel):
     id: int
     name: str
     code: str
+    current_business_date: date | None
     gstin: str | None
     excise_duty_rate: Decimal | None
     low_stock_threshold_default: int | None
+    cashier_login_restriction_enabled: bool
+    receiving_vendor_link_enabled: bool
     allowed_login_cidrs: list[str]
 
 
@@ -62,6 +65,8 @@ class ShopCreate(BaseModel):
     name: str = Field(min_length=1, max_length=200)
     code: str = Field(min_length=1, max_length=50)
     low_stock_threshold_default: int | None = Field(default=None, ge=0)
+    cashier_login_restriction_enabled: bool = False
+    receiving_vendor_link_enabled: bool = True
     allowed_login_cidrs: list[str] = Field(default_factory=list)
 
     @field_validator("allowed_login_cidrs")
@@ -76,6 +81,8 @@ class ShopMaintenanceUpdate(BaseModel):
     name: str | None = Field(default=None, min_length=1, max_length=200)
     code: str | None = Field(default=None, min_length=1, max_length=50)
     low_stock_threshold_default: int | None = Field(default=None, ge=0)
+    cashier_login_restriction_enabled: bool | None = None
+    receiving_vendor_link_enabled: bool | None = None
     gstin: str | None = Field(default=None, max_length=15)
     excise_duty_rate: Decimal | None = Field(default=None, ge=Decimal("0"), le=Decimal("100"))
     allowed_login_cidrs: list[str] | None = Field(default=None)
@@ -209,6 +216,8 @@ class ShopUpdate(BaseModel):
         ),
     )
     low_stock_threshold_default: int | None = Field(default=None, ge=0)
+    cashier_login_restriction_enabled: bool | None = None
+    receiving_vendor_link_enabled: bool | None = None
     allowed_login_cidrs: list[str] | None = Field(default=None)
     # Superadmin-only (D-65): names the target shop. Owner must omit this.
     shop_id: int | None = Field(default=None)

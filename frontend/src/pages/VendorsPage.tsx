@@ -99,7 +99,7 @@ export function VendorsPage() {
     <div className="flex flex-col gap-8 font-sans">
       <header className="flex flex-wrap items-center justify-between gap-4 rounded-xl border border-slate-200/50 bg-white/60 p-6 shadow-[0_8px_30px_rgb(0,0,0,0.02)] backdrop-blur-xl">
         <div>
-          <h1 className="flex items-center gap-3 text-2xl font-light tracking-tight text-slate-900">
+          <h1 className="flex items-center gap-3 text-2xl font-bold tracking-tight text-slate-900">
             <Truck className="h-6 w-6 text-action" /> Vendors
           </h1>
           <p className="mt-1 text-sm font-medium text-slate-500">
@@ -140,7 +140,7 @@ export function VendorsPage() {
 
         <section className="flex flex-col gap-6 rounded-xl border border-slate-200/50 bg-white/60 p-6 shadow-[0_8px_30px_rgb(0,0,0,0.02)] backdrop-blur-xl">
           <div className="flex items-center justify-between">
-            <h2 className="text-lg font-light tracking-tight text-slate-900">Vendor list</h2>
+            <h2 className="text-lg font-semibold tracking-tight text-slate-900">Vendor list</h2>
             <button
               type="button"
               onClick={refresh}
@@ -151,7 +151,7 @@ export function VendorsPage() {
             </button>
           </div>
           <div className="max-h-[calc(100vh-18rem)] overflow-y-auto rounded-2xl border border-slate-200 bg-white custom-scrollbar">
-            <table className="w-full text-left text-sm">
+            <table className="app-list-table">
               <thead className="sticky top-0 z-10 bg-slate-50/90 text-[11px] uppercase tracking-widest text-slate-500 backdrop-blur-sm">
                 <tr>
                   <th className="px-6 py-4 font-semibold">Name</th>
@@ -252,7 +252,7 @@ function VendorForm({
   return (
     <form onSubmit={submit} className="flex flex-col gap-6 rounded-xl border border-slate-200/50 bg-white/60 p-6 shadow-[0_8px_30px_rgb(0,0,0,0.02)] backdrop-blur-xl h-fit">
       <div>
-        <h2 className="text-xl font-light tracking-tight text-slate-900">
+        <h2 className="text-xl font-semibold tracking-tight text-slate-900">
           {vendor ? `Edit vendor #${vendor.id}` : "New vendor"}
         </h2>
         <p className="text-sm font-medium text-slate-500 mt-1">

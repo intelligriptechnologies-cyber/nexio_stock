@@ -27,13 +27,16 @@ async def _seed_product(
 
 
 async def _seed_lot(
-    receiver_client: AsyncClient, *, items: list[tuple[str, int]]
+    receiver_client: AsyncClient, owner_client: AsyncClient, *, items: list[tuple[str, int]]
 ) -> None:
     resp = await receiver_client.post(
         "/lots",
         json={"lines": [{"barcode": bc, "quantity": q} for bc, q in items]},
     )
     assert resp.status_code == 201
+    inward_id = resp.json()["id"]
+    approved = await owner_client.post(f"/lots/{inward_id}/approve")
+    assert approved.status_code == 200, approved.text
 
 
 async def _finalize(
@@ -63,7 +66,7 @@ async def test_cashier_request_on_own_current_invoice_returns_pending_void(
     cashier_client: AsyncClient, owner_client: AsyncClient, receiver_client: AsyncClient
 ) -> None:
     await _seed_product(owner_client, "8902000000001", price="100.00")
-    await _seed_lot(receiver_client, items=[("8902000000001", 5)])
+    await _seed_lot(receiver_client, owner_client, items=[("8902000000001", 5)])
     inv = await _finalize(
         cashier_client, barcode="8902000000001", quantity=2, amount="200.00"
     )
@@ -79,7 +82,7 @@ async def test_pending_void_still_counts_as_sold_until_approved(
     cashier_client: AsyncClient, owner_client: AsyncClient, receiver_client: AsyncClient, db_session
 ) -> None:
     await _seed_product(owner_client, "8902000000002", price="100.00")
-    await _seed_lot(receiver_client, items=[("8902000000002", 5)])
+    await _seed_lot(receiver_client, owner_client, items=[("8902000000002", 5)])
     inv = await _finalize(
         cashier_client, barcode="8902000000002", quantity=3, amount="300.00"
     )
@@ -117,7 +120,7 @@ async def test_cashier_cannot_request_void_for_another_users_invoice(
     cashier_client: AsyncClient, owner_client: AsyncClient, receiver_client: AsyncClient
 ) -> None:
     await _seed_product(owner_client, "8902000000012", price="100.00")
-    await _seed_lot(receiver_client, items=[("8902000000012", 5)])
+    await _seed_lot(receiver_client, owner_client, items=[("8902000000012", 5)])
     inv = await _finalize(
         owner_client, barcode="8902000000012", quantity=1, amount="100.00"
     )
@@ -132,7 +135,7 @@ async def test_owner_direct_voids_current_invoice(
     cashier_client: AsyncClient, owner_client: AsyncClient, receiver_client: AsyncClient
 ) -> None:
     await _seed_product(owner_client, "8902000000013", price="100.00")
-    await _seed_lot(receiver_client, items=[("8902000000013", 5)])
+    await _seed_lot(receiver_client, owner_client, items=[("8902000000013", 5)])
     inv = await _finalize(
         cashier_client, barcode="8902000000013", quantity=1, amount="100.00"
     )
@@ -147,7 +150,7 @@ async def test_approving_current_pending_void_marks_original_voided(
     cashier_client: AsyncClient, owner_client: AsyncClient, receiver_client: AsyncClient, db_session
 ) -> None:
     await _seed_product(owner_client, "8902000000014", price="100.00")
-    await _seed_lot(receiver_client, items=[("8902000000014", 5)])
+    await _seed_lot(receiver_client, owner_client, items=[("8902000000014", 5)])
     inv = await _finalize(
         cashier_client, barcode="8902000000014", quantity=1, amount="100.00"
     )
@@ -167,7 +170,7 @@ async def test_voiding_a_voided_invoice_returns_409(
     cashier_client: AsyncClient, owner_client: AsyncClient, receiver_client: AsyncClient
 ) -> None:
     await _seed_product(owner_client, "8902000000003", price="100.00")
-    await _seed_lot(receiver_client, items=[("8902000000003", 5)])
+    await _seed_lot(receiver_client, owner_client, items=[("8902000000003", 5)])
     inv = await _finalize(
         cashier_client, barcode="8902000000003", quantity=1, amount="100.00"
     )
@@ -187,7 +190,7 @@ async def test_session_usable_after_void_error_rejects_a_later_unrelated_void(
     leaves the session usable for a completely unrelated mutation in
     the same test run, not just a retry of the same failing call."""
     await _seed_product(owner_client, "8902000000010", price="100.00")
-    await _seed_lot(receiver_client, items=[("8902000000010", 10)])
+    await _seed_lot(receiver_client, owner_client, items=[("8902000000010", 10)])
     first_inv = await _finalize(
         cashier_client, barcode="8902000000010", quantity=1, amount="100.00"
     )
@@ -212,7 +215,7 @@ async def test_pre_eod_void_writes_invoicing_log(
     cashier_client: AsyncClient, owner_client: AsyncClient, receiver_client: AsyncClient, db_session
 ) -> None:
     await _seed_product(owner_client, "8902000000004", price="100.00")
-    await _seed_lot(receiver_client, items=[("8902000000004", 5)])
+    await _seed_lot(receiver_client, owner_client, items=[("8902000000004", 5)])
     inv = await _finalize(
         cashier_client, barcode="8902000000004", quantity=1, amount="100.00"
     )
@@ -249,7 +252,7 @@ async def test_cashier_can_request_void_on_signed_off_invoice(
     cashier_client: AsyncClient, owner_client: AsyncClient, receiver_client: AsyncClient, db_session
 ) -> None:
     await _seed_product(owner_client, "8902000000005", price="100.00")
-    await _seed_lot(receiver_client, items=[("8902000000005", 5)])
+    await _seed_lot(receiver_client, owner_client, items=[("8902000000005", 5)])
     inv = await _finalize(
         cashier_client, barcode="8902000000005", quantity=1, amount="100.00"
     )
@@ -268,7 +271,7 @@ async def test_request_void_reason_reaches_backend_as_json_body(
     # (`json: { reason }`), not a query param — the endpoint must accept it
     # that way.
     await _seed_product(owner_client, "8902000000011", price="100.00")
-    await _seed_lot(receiver_client, items=[("8902000000011", 5)])
+    await _seed_lot(receiver_client, owner_client, items=[("8902000000011", 5)])
     inv = await _finalize(
         cashier_client, barcode="8902000000011", quantity=1, amount="100.00"
     )
@@ -292,7 +295,7 @@ async def test_cashier_cannot_approve_pending_void(
     cashier_client: AsyncClient, owner_client: AsyncClient, receiver_client: AsyncClient, db_session
 ) -> None:
     await _seed_product(owner_client, "8902000000006", price="100.00")
-    await _seed_lot(receiver_client, items=[("8902000000006", 5)])
+    await _seed_lot(receiver_client, owner_client, items=[("8902000000006", 5)])
     inv = await _finalize(
         cashier_client, barcode="8902000000006", quantity=1, amount="100.00"
     )
@@ -308,7 +311,7 @@ async def test_owner_approving_pending_void_creates_reversal(
     cashier_client: AsyncClient, owner_client: AsyncClient, receiver_client: AsyncClient, db_session
 ) -> None:
     await _seed_product(owner_client, "8902000000007", price="100.00")
-    await _seed_lot(receiver_client, items=[("8902000000007", 5)])
+    await _seed_lot(receiver_client, owner_client, items=[("8902000000007", 5)])
     inv = await _finalize(
         cashier_client, barcode="8902000000007", quantity=1, amount="100.00"
     )
@@ -354,7 +357,7 @@ async def test_owner_rejecting_pending_void_reverts_to_finalized(
     cashier_client: AsyncClient, owner_client: AsyncClient, receiver_client: AsyncClient, db_session
 ) -> None:
     await _seed_product(owner_client, "8902000000008", price="100.00")
-    await _seed_lot(receiver_client, items=[("8902000000008", 5)])
+    await _seed_lot(receiver_client, owner_client, items=[("8902000000008", 5)])
     inv = await _finalize(
         cashier_client, barcode="8902000000008", quantity=1, amount="100.00"
     )
@@ -373,7 +376,7 @@ async def test_approve_on_non_pending_invoice_is_409(
     cashier_client: AsyncClient, owner_client: AsyncClient, receiver_client: AsyncClient
 ) -> None:
     await _seed_product(owner_client, "8902000000009", price="100.00")
-    await _seed_lot(receiver_client, items=[("8902000000009", 5)])
+    await _seed_lot(receiver_client, owner_client, items=[("8902000000009", 5)])
     inv = await _finalize(
         cashier_client, barcode="8902000000009", quantity=1, amount="100.00"
     )
@@ -388,7 +391,7 @@ async def test_void_actions_write_invoicing_logs(
     cashier_client: AsyncClient, owner_client: AsyncClient, receiver_client: AsyncClient, db_session
 ) -> None:
     await _seed_product(owner_client, "8902000000010", price="100.00")
-    await _seed_lot(receiver_client, items=[("8902000000010", 5)])
+    await _seed_lot(receiver_client, owner_client, items=[("8902000000010", 5)])
     inv = await _finalize(
         cashier_client, barcode="8902000000010", quantity=1, amount="100.00"
     )

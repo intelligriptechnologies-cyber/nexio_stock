@@ -70,6 +70,7 @@ _CHECKOUT_SYNC_CODE_TO_STATUS: dict[str, int] = {
     "no_payments": status.HTTP_400_BAD_REQUEST,
     "zero_payment": status.HTTP_400_BAD_REQUEST,
     "payment_mismatch": status.HTTP_400_BAD_REQUEST,
+    "note_required_for_other_payment": status.HTTP_400_BAD_REQUEST,
     "pending_product_in_cart": status.HTTP_400_BAD_REQUEST,
 }
 

@@ -73,6 +73,12 @@ class Shop(Base):
     email_enabled: Mapped[bool] = mapped_column(
         Boolean, nullable=False, default=False, server_default="false"
     )
+    cashier_login_restriction_enabled: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, default=False, server_default="false"
+    )
+    receiving_vendor_link_enabled: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, default=True, server_default="true"
+    )
     allowed_login_cidrs: Mapped[list[str]] = mapped_column(
         ARRAY(String), nullable=False, default=list, server_default=text("'{}'::varchar[]")
     )

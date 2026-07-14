@@ -15,10 +15,11 @@ Receiver/cashier accounts are full persistent accounts created by the owner
 from __future__ import annotations
 
 import enum
+from datetime import date
 from datetime import datetime
 from typing import TYPE_CHECKING
 
-from sqlalchemy import Boolean, DateTime, Enum, ForeignKey, String, UniqueConstraint, func
+from sqlalchemy import Boolean, Date, DateTime, Enum, ForeignKey, String, UniqueConstraint, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db import Base
@@ -76,6 +77,10 @@ class User(Base):
     username: Mapped[str] = mapped_column(String(64), nullable=False, index=True)
     full_name: Mapped[str] = mapped_column(String(200), nullable=False)
     phone: Mapped[str] = mapped_column(String(20), nullable=False, index=True)
+    email: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    date_of_birth: Mapped[date | None] = mapped_column(Date, nullable=True)
+    pan: Mapped[str | None] = mapped_column(String(10), nullable=True)
+    gstin: Mapped[str | None] = mapped_column(String(15), nullable=True)
     password_hash: Mapped[str] = mapped_column(String(255), nullable=False)
     is_active: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
 

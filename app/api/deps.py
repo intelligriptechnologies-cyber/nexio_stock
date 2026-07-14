@@ -8,8 +8,6 @@ admits a wrong-role request.
 from __future__ import annotations
 
 from collections.abc import AsyncIterator
-from datetime import UTC, datetime
-from datetime import date as date_cls
 from typing import Annotated
 
 from fastapi import Depends, HTTPException, status
@@ -21,6 +19,7 @@ from app.db import get_db
 from app.models.shop import Shop
 from app.models.user import SHOP_SCOPED_ROLES, User, UserRole
 from app.security.jwt import TokenError, decode_access_token
+from app.services.calendar import today_local_date
 from app.services.offline_sessions import OfflineSessionError, ensure_shop_not_offline_locked
 
 # auto_error=False so we can return our own 401 with a consistent body.
@@ -175,16 +174,3 @@ async def require_no_offline_session_lock(
             detail={"code": exc.code, "message": exc.message},
         ) from exc
 
-
-def today_local_date(now: datetime | None = None) -> date_cls:
-    """Server-local calendar date — the "today" the shop actually closes
-    for EOD purposes (matches `sign_off_day`'s `date.today()` convention
-    and the `_day_bounds` helper which uses local midnight, D-55).
-
-    Centralised so dashboard/totals endpoints agree on the meaning of
-    "today" when a caller omits an explicit date (issue #37).
-    """
-    moment = now if now is not None else datetime.now(UTC)
-    # `.astimezone()` without a tz arg converts to the system local zone,
-    # which is what `date.today()` and `_day_bounds` both already use.
-    return moment.astimezone().date()

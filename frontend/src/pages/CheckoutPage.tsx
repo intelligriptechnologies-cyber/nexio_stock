@@ -15,8 +15,14 @@ import {
   type PaymentMode,
   type InvoicePublic,
 } from "../api/checkout";
+import {
+  PAYMENT_MODES,
+  formatPaymentLabel,
+  requiresPaymentNote,
+} from "../payment-modes";
 import { listQueued, clearQueued } from "../api/finalize-queue";
 import {
+  discardOfflineSession,
   extendOfflineSession,
   offlineItemToCatalogProduct,
   type OfflineReceiptPayload,
@@ -39,12 +45,14 @@ import {
 import { OfflineReceiptEditorModal } from "../components/OfflineReceiptEditorModal";
 import { QuickSearch } from "../components/QuickSearch";
 import { QuickAddModal } from "../components/QuickAddModal";
+import { ModalDialog } from "../components/ModalDialog";
 import { ScanSuccessOverlay } from "../components/ScanSuccessOverlay";
 import { useBarcodeScanner } from "../hooks/useBarcodeScanner";
 import { useQuickAdd } from "../hooks/useQuickAdd";
 import { probeHealthz, useConnectivityStatus } from "../hooks/useOnlineStatus";
 import { useRetryQueue } from "../hooks/useRetryQueue";
 import { useShopScope } from "../auth/ShopScopeProvider";
+import { useAuth } from "../auth/AuthProvider";
 import { RefreshCw, ShoppingBag, CreditCard, ShoppingCart } from "lucide-react";
 
 interface CartLine {
@@ -61,6 +69,7 @@ interface PaymentSplit {
 interface LineValidation {
   message: string;
   invalid: boolean;
+  tone: "danger" | "warning";
 }
 
 interface CheckoutDraft {
@@ -81,8 +90,6 @@ interface ScanOverlayProduct {
   sizeLabel: string;
 }
 
-const PAYMENT_MODES: PaymentMode[] = ["cash", "upi", "card"];
-
 function moneyString(cents: number): string {
   return (cents / 100).toFixed(2);
 }
@@ -95,10 +102,6 @@ function parseMoney(s: string): number {
 
 function uid(): string {
   return Math.random().toString(36).slice(2, 10);
-}
-
-function formatPaymentLabel(m: PaymentMode): string {
-  return { cash: "Cash", upi: "UPI", card: "Card" }[m];
 }
 
 function formatRemaining(ms: number): string {
@@ -115,16 +118,17 @@ function stockValidationMessage(
   requestedQuantity: number
 ): LineValidation | null {
   if (availableQuantity <= 0) {
-    return { message: "Out of stock", invalid: true };
+    return { message: "Out of stock", invalid: true, tone: "danger" };
   }
   if (requestedQuantity > availableQuantity) {
     return {
       message: `Only ${availableQuantity} available; reduce quantity or remove this item.`,
       invalid: true,
+      tone: "warning",
     };
   }
   if (availableQuantity <= 3) {
-    return { message: `Last ${availableQuantity} remaining`, invalid: false };
+    return { message: `Last ${availableQuantity} remaining`, invalid: false, tone: "warning" };
   }
   return null;
 }
@@ -132,10 +136,14 @@ function stockValidationMessage(
 export function CheckoutPage() {
   const connectivity = useConnectivityStatus();
   const online = connectivity.online;
+  const { user } = useAuth();
   const { actingShopId } = useShopScope();
   const retryQueue = useRetryQueue({
     onFlush: (outcomes) => {
       const failed = outcomes.filter((o) => !o.ok);
+      if (outcomes.some((o) => o.ok)) {
+        void refreshCatalogAfterInvoice();
+      }
       if (failed.length === 0) return;
       const lines = failed
         .map((o) => `Queued sale ${o.key.slice(0, 6)}: HTTP ${o.status} — ${o.detail}`)
@@ -192,6 +200,46 @@ export function CheckoutPage() {
     const timer = window.setTimeout(() => setInfo(null), 4000);
     return () => window.clearTimeout(timer);
   }, [info]);
+
+  const applyValidatedStock = useCallback(
+    (validatedLines: Array<{ barcode: string; available_quantity: number }>) => {
+      const stockByBarcode = new Map(
+        validatedLines.map((line) => [line.barcode, line.available_quantity] as const)
+      );
+      setCart((prev) => {
+        let changed = false;
+        const next = prev.map((line) => {
+          const availableQuantity = stockByBarcode.get(line.product.barcode);
+          if (availableQuantity == null || line.product.current_stock === availableQuantity) {
+            return line;
+          }
+          changed = true;
+          return {
+            ...line,
+            product: {
+              ...line.product,
+              current_stock: availableQuantity,
+            },
+          };
+        });
+        return changed ? next : prev;
+      });
+    },
+    []
+  );
+
+  const refreshCatalogAfterInvoice = useCallback(async () => {
+    setCatalogReady(false);
+    invalidateCache();
+    try {
+      await prefetchCatalog(actingShopId);
+      setCatalogReady(true);
+      return true;
+    } catch (e) {
+      setError(`Catalog refresh failed: ${toUserMessage(e, "unknown error")}`);
+      return false;
+    }
+  }, [actingShopId]);
 
   const applyOfflineCatalog = useCallback(
     (record: StoredOfflineSession) => {
@@ -442,6 +490,10 @@ export function CheckoutPage() {
         actingShopId
       );
       const checked = result.lines[0];
+      if (!checked) return;
+      if (checked) {
+        applyValidatedStock([checked]);
+      }
       const message = stockValidationMessage(
         checked.available_quantity,
         checked.requested_quantity
@@ -556,11 +608,13 @@ export function CheckoutPage() {
     () => payments.reduce((acc, p) => acc + parseMoney(p.amount), 0),
     [payments]
   );
+  const noteRequired = requiresPaymentNote(payments, note);
 
   const canFinalize =
     cart.length > 0 &&
     payments.length > 0 &&
     paymentsCents === totalCents &&
+    !noteRequired &&
     !busy &&
     !offlineExpired;
 
@@ -602,6 +656,7 @@ export function CheckoutPage() {
       cart.map((l) => ({ barcode: l.product.barcode, quantity: l.quantity })),
       actingShopId
     );
+    applyValidatedStock(result.lines);
     const checkedByBarcode = new Map(result.lines.map((line) => [line.barcode, line]));
     const nextValidation: Record<string, LineValidation> = {};
     const blockingMessages: string[] = [];
@@ -632,7 +687,15 @@ export function CheckoutPage() {
     setError(null);
     setInfo(null);
     if (!canFinalize) {
-      setError(offlineExpired ? "Offline session expired. Temporary receipts cannot be edited." : "Payments must equal the cart total.");
+      if (offlineExpired) {
+        setError("Offline session expired. Temporary receipts cannot be edited.");
+      } else if (paymentsCents !== totalCents) {
+        setError("Payments must equal the cart total.");
+      } else if (noteRequired) {
+        setError("Add a note when any payment split uses Other.");
+      } else {
+        setError("Checkout cannot be finalized yet.");
+      }
       return;
     }
     setBusy(true);
@@ -667,6 +730,7 @@ export function CheckoutPage() {
       setLastInvoice(res.invoice);
       clearActiveCheckout();
       idempotencyKeyRef.current = uid();
+      await refreshCatalogAfterInvoice();
       setInfo(res.is_replay ? "Idempotent replay — same invoice shown." : "Invoice created.");
     } catch (e) {
       if (e instanceof ApiError) {
@@ -735,7 +799,23 @@ export function CheckoutPage() {
       await probeHealthz(controller.signal);
       const receipts = await listOfflineReceipts(offlineSession.session.id);
       if (receipts.length === 0) {
-        setError("No offline receipts to sync. Save a temporary receipt before resuming online.");
+        if (user?.role === "owner" || user?.role === "superadmin") {
+          await discardOfflineSession(
+            offlineSession.session.id,
+            "Discarded while resuming online with no temporary receipts saved."
+          );
+          await clearOfflineSessionData(offlineSession.session.id);
+          setOfflineSession(null);
+          setOfflineReceipts([]);
+          setOfflineReceiptCount(0);
+          setEditingReceiptId(null);
+          clearActiveCheckout();
+          idempotencyKeyRef.current = uid();
+          await refreshCatalogAfterInvoice();
+          setInfo("Resumed online. Empty offline session discarded.");
+          return;
+        }
+        setError("No offline receipts to sync. Ask an owner to discard this session.");
         return;
       }
       const result = await syncOfflineSession(
@@ -750,8 +830,7 @@ export function CheckoutPage() {
       setEditingReceiptId(null);
       clearActiveCheckout();
       idempotencyKeyRef.current = uid();
-      invalidateCache();
-      void prefetchCatalog(actingShopId).then(() => setCatalogReady(true));
+      await refreshCatalogAfterInvoice();
       setInfo(
         `Resumed online after syncing ${result.mappings.length} receipt(s). Official invoice numbers: ${result.mappings
           .map((m) => `#${m.invoice_number}`)
@@ -765,6 +844,7 @@ export function CheckoutPage() {
         )}`
       );
     } finally {
+      setTimerNow(Date.now());
       window.clearTimeout(timeout);
       setBusy(false);
     }
@@ -861,8 +941,7 @@ export function CheckoutPage() {
       setOfflineReceipts([]);
       setOfflineReceiptCount(0);
       setEditingReceiptId(null);
-      invalidateCache();
-      void prefetchCatalog(actingShopId).then(() => setCatalogReady(true));
+      await refreshCatalogAfterInvoice();
       setInfo(
         `Synced ${result.mappings.length} receipt(s). Official invoice numbers: ${result.mappings
           .map((m) => `#${m.invoice_number}`)
@@ -1144,12 +1223,7 @@ export function CheckoutPage() {
           the "Pending — no price yet" message and continues with the
           rest of the sale. */}
       {quickAdd && (
-        <div
-          className="animate-fade-in fixed inset-0 z-30 flex items-center justify-center bg-slate-900/40 p-4 backdrop-blur-sm"
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="quick-add-title"
-        >
+        <ModalDialog labelledBy="quick-add-title" onDismiss={closeQuickAdd} className="animate-fade-in fixed inset-0 z-30 flex items-center justify-center bg-slate-900/40 p-4 backdrop-blur-sm transition-opacity">
           <QuickAddModal
             barcode={quickAdd.barcode}
             busy={quickAddBusy}
@@ -1159,14 +1233,14 @@ export function CheckoutPage() {
               void submitQuickAdd({ brand, size });
             }}
           />
-        </div>
+        </ModalDialog>
       )}
 
       <div className="grid gap-section-gap font-sans lg:grid-cols-[2fr_1fr]">
       {/* LEFT — cart */}
       <section className="flex flex-col gap-gutter rounded-xl border border-slate-200/50 bg-white/60 p-8 shadow-sm backdrop-blur-xl">
         <header className="flex items-center justify-between">
-          <h1 className="flex items-center gap-2 text-2xl font-light tracking-tight text-slate-900">
+          <h1 className="flex items-center gap-2 text-2xl font-bold tracking-tight text-slate-900">
             <ShoppingCart className="h-6 w-6 text-action" /> Checkout
           </h1>
           <div className="flex items-center gap-stack-gap text-label-md text-on-surface-variant">
@@ -1210,9 +1284,9 @@ export function CheckoutPage() {
             type="button"
             onClick={parkDraft}
             disabled={checkoutLocked || cart.length === 0}
-            className="flex h-11 items-center justify-center rounded-xl bg-amber-100 px-6 text-sm font-bold tracking-wide text-amber-700 shadow-sm transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:bg-amber-200 disabled:pointer-events-none disabled:opacity-50"
+            className="group relative flex h-11 items-center justify-center overflow-hidden rounded-xl bg-logout px-6 text-sm font-bold tracking-wide text-on-logout shadow-sm transition-[transform,box-shadow,background-color] duration-200 ease-out hover:-translate-y-0.5 hover:shadow-md active:scale-[0.97] disabled:pointer-events-none disabled:opacity-50"
           >
-            Park
+            <span className="relative z-10 transition-transform duration-300 group-hover:translate-x-1">Park</span>
           </button>
           <div className="flex flex-wrap items-center gap-2">
             {drafts.map((draft) => (
@@ -1234,7 +1308,7 @@ export function CheckoutPage() {
             type="button"
             onClick={clearActiveCheckout}
             disabled={checkoutLocked}
-            className="ml-auto flex h-11 items-center justify-center rounded-xl bg-slate-100 px-6 text-sm font-semibold tracking-wide text-slate-600 shadow-sm transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:bg-slate-200 hover:text-slate-900 active:scale-[0.97] disabled:pointer-events-none disabled:opacity-50"
+            className="ml-auto flex h-11 items-center justify-center rounded-xl bg-slate-200 px-6 text-sm font-semibold tracking-wide text-slate-700 shadow-sm transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:bg-slate-300 hover:text-slate-900 active:scale-[0.97] disabled:pointer-events-none disabled:opacity-50"
           >
             All Clear
           </button>
@@ -1275,8 +1349,10 @@ export function CheckoutPage() {
                               </span>
                               {lineValidation[l.lineId] && (
                                 <span
-                                  className={`text-label-md ${
-                                    lineValidation[l.lineId].invalid ? "text-error" : "text-warning"
+                                  className={`inline-flex w-fit items-center rounded-full px-3 py-1 text-xs font-semibold tracking-wide shadow-sm ${
+                                    lineValidation[l.lineId].tone === "danger"
+                                      ? "bg-red-600 text-white"
+                                      : "bg-amber-100 text-amber-800 ring-1 ring-amber-200"
                                   }`}
                                 >
                                   {lineValidation[l.lineId].message}
@@ -1354,12 +1430,12 @@ export function CheckoutPage() {
           <div className="relative z-10 flex items-center gap-2 text-[11px] font-bold uppercase tracking-widest text-slate-400">
             <ShoppingBag className="h-4 w-4" /> Total Payable
           </div>
-          <div className="relative z-10 mt-2 font-mono text-5xl font-light tracking-tight">{totalLabel}</div>
+          <div className="relative z-10 mt-2 font-mono text-5xl font-semibold tracking-tight">{totalLabel}</div>
         </div>
 
         <div className="flex flex-col gap-gutter">
           <div className="flex items-center justify-between">
-            <h2 className="flex items-center gap-2 text-xl font-light tracking-tight text-slate-900">
+            <h2 className="flex items-center gap-2 text-xl font-semibold tracking-tight text-slate-900">
               <CreditCard className="h-5 w-5 text-action" /> Payment
             </h2>
               <button
@@ -1423,15 +1499,21 @@ export function CheckoutPage() {
         </div>
 
         <label className="flex flex-col gap-2 text-sm font-semibold text-slate-700">
-          Note (optional)
+          Note {noteRequired ? "(required for Other)" : "(optional)"}
           <input
             type="text"
             value={note}
             onChange={(e) => setNote(e.target.value)}
             maxLength={200}
+            aria-invalid={noteRequired && !note.trim()}
             className="h-12 rounded-xl border border-slate-200 bg-white px-4 text-sm font-medium text-slate-900 shadow-sm outline-none transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out focus-visible:ring-2 focus-visible:ring-action/40 focus-visible:border-action disabled:opacity-50"
             disabled={checkoutLocked}
           />
+          {noteRequired && !note.trim() && (
+            <span className="text-xs font-medium text-red-600">
+              Add a note before finishing this checkout.
+            </span>
+          )}
         </label>
 
         <button
@@ -1460,14 +1542,10 @@ export function CheckoutPage() {
 
       {/* Modal-ish invoice preview */}
       {lastInvoice && (
-        <div
-          className="animate-fade-in fixed inset-0 z-30 flex items-center justify-center bg-slate-900/40 p-4 backdrop-blur-sm"
-          role="dialog"
-          aria-modal="true"
-        >
+        <ModalDialog onDismiss={() => setLastInvoice(null)} className="animate-fade-in fixed inset-0 z-30 flex items-center justify-center bg-slate-900/40 p-4 backdrop-blur-sm transition-opacity">
           <div className="animate-modal-in flex max-h-[90vh] w-full max-w-2xl flex-col gap-gutter overflow-y-auto rounded-xl bg-white p-8 shadow-lg ring-1 ring-slate-200/50">
             <header className="flex items-start justify-between gap-stack-gap">
-              <h2 className="text-xl font-light tracking-tight text-slate-900">
+              <h2 className="text-xl font-semibold tracking-tight text-slate-900">
                 Invoice #{lastInvoice.invoice_number}
               </h2>
               <div className="flex items-center gap-3">
@@ -1540,7 +1618,7 @@ export function CheckoutPage() {
               ))}
             </div>
           </div>
-        </div>
+        </ModalDialog>
       )}
       </div>
     </div>

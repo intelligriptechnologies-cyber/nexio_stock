@@ -5,7 +5,7 @@
 @layer base {
   :root {
     --color-action: #22c55e;
-    /* R G B channels of --color-action, for opacity-modifier utilities (bg-action/40, ring-action/40, etc) — Tailwind can't decompose an opaque var() into an alpha-composable color on its own. */
+    /* R G B channels of --color-action, for opacity-modifier utilities (bg-action/40, ring-action/40, etc) - Tailwind can't decompose an opaque var() into an alpha-composable color on its own. */
     --color-action-rgb: 34 197 94;
     --color-on-action: #ffffff;
     --color-active-tab: #5a5148;
@@ -21,12 +21,24 @@
   #root {
     height: 100%;
   }
+  html {
+    font-size: 115.5%;
+  }
   body {
     @apply bg-slate-50 text-slate-900 antialiased;
   }
-  /* Oversized touch targets by default — every button is at least 48px tall. */
+  input[type="number"] {
+    appearance: textfield;
+    -moz-appearance: textfield;
+  }
+  input[type="number"]::-webkit-outer-spin-button,
+  input[type="number"]::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+  /* Oversized touch targets by default - every button is at least 48px tall. */
   button {
-    min-height: 48px;
+    min-height: 50px;
   }
 
   /* Global focus-visible styles */
@@ -51,7 +63,7 @@
     animation: fadeIn 0.3s ease-out forwards;
   }
 
-  /* Modal/overlay entrance — scale from 0.95, never from 0 */
+  /* Modal/overlay entrance - scale from 0.95, never from 0 */
   @keyframes modalIn {
     from {
       opacity: 0;
@@ -78,5 +90,54 @@
       transition-duration: 0.01ms !important;
       scroll-behavior: auto !important;
     }
+  }
+}
+
+@layer components {
+  .app-list-table {
+    @apply w-full text-left text-sm;
+  }
+
+  .app-list-table thead {
+    background-color: rgb(241 245 249 / 0.96) !important;
+    box-shadow: inset 0 -1px 0 rgb(203 213 225 / 0.9);
+    backdrop-filter: blur(10px);
+  }
+
+  .app-list-table thead th {
+    @apply px-6 py-4 font-semibold text-slate-600;
+  }
+
+  .app-list-table tbody {
+    @apply divide-y divide-slate-100;
+  }
+
+  .app-sidebar-nav-item {
+    @apply relative flex min-h-[56px] w-full items-center justify-start px-9 py-4 text-[1.03rem] font-semibold tracking-wide transition-[transform,background-color,box-shadow,color] duration-200 ease-out overflow-hidden;
+  }
+
+  .app-sidebar-nav-item-active {
+    @apply bg-action text-white;
+  }
+
+  .app-sidebar-nav-item-inactive {
+    @apply text-slate-700 hover:bg-white/50 hover:text-slate-900;
+  }
+
+  .app-tab-button {
+    @apply relative inline-flex h-11 items-center justify-center gap-2 rounded-t-md rounded-b-none px-5 text-sm font-semibold tracking-wide transition-[transform,opacity,background-color,box-shadow,color] duration-200 ease-out;
+  }
+
+  .app-tab-button-active {
+    @apply -mb-px bg-action text-white;
+  }
+
+  .app-tab-button-inactive {
+    @apply bg-transparent text-slate-500 hover:bg-slate-100/70 hover:text-slate-700;
+  }
+
+  .app-tab-button svg {
+    width: 1.35rem;
+    height: 1.35rem;
   }
 }
