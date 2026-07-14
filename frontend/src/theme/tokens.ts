@@ -65,8 +65,27 @@ export const tokens = {
     DEFAULT: "0.5rem",
     md: "0.75rem",
     lg: "1rem",
-    xl: "1.5rem",
+    xl: "1rem",
     full: "9999px",
+  },
+  boxShadow: {
+    sm: "0 1px 2px 0 rgba(0, 0, 0, 0.05)",
+    DEFAULT: "0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1)",
+    md: "0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1)",
+    lg: "0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1)",
+  },
+  transitionDuration: {
+    fast: "150ms",
+    normal: "200ms",
+    slow: "300ms",
+  },
+  zIndex: {
+    dropdown: "10",
+    sticky: "20",
+    "modal-backdrop": "30",
+    modal: "40",
+    toast: "50",
+    tooltip: "60",
   },
   spacing: {
     gutter: "1.5rem",
