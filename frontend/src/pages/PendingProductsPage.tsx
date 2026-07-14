@@ -148,7 +148,7 @@ export function PendingProductsPage() {
 
   return (
     <div className="flex flex-col gap-8 font-sans">
-      <header className="flex flex-wrap items-center justify-between gap-4 rounded-[24px] border border-slate-200/50 bg-white/60 p-6 shadow-[0_8px_30px_rgb(0,0,0,0.02)] backdrop-blur-xl">
+      <header className="flex flex-wrap items-center justify-between gap-4 rounded-xl border border-slate-200/50 bg-white/60 p-6 shadow-[0_8px_30px_rgb(0,0,0,0.02)] backdrop-blur-xl">
         <h1 className="flex items-center gap-3 text-2xl font-light tracking-tight text-slate-900">
           <Clock className="h-6 w-6 text-action" /> Pending
         </h1>
@@ -161,7 +161,7 @@ export function PendingProductsPage() {
           <button
             type="button"
             onClick={() => void reload()}
-            className="group flex h-10 items-center justify-center rounded-xl bg-white px-5 text-sm font-semibold tracking-wide text-slate-700 shadow-sm ring-1 ring-slate-200 transition-all duration-300 hover:scale-[1.02] hover:bg-slate-50 hover:shadow-md active:scale-95 disabled:opacity-50"
+            className="group flex h-10 items-center justify-center rounded-xl bg-white px-5 text-sm font-semibold tracking-wide text-slate-700 shadow-sm ring-1 ring-slate-200 transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:scale-[1.02] hover:bg-slate-50 hover:shadow-md active:scale-[0.97] disabled:opacity-50"
             disabled={loading}
           >
             <RefreshCw className={`h-4 w-4 text-slate-400 transition-transform duration-300 group-hover:rotate-180 ${loading ? "animate-spin" : ""}`} />
@@ -190,7 +190,7 @@ export function PendingProductsPage() {
         {rows.map((row) => (
           <li
             key={row.id}
-            className="rounded-[24px] border border-slate-200/50 bg-white/60 p-6 shadow-[0_8px_30px_rgb(0,0,0,0.02)] backdrop-blur-xl transition-all duration-300 hover:shadow-md"
+            className="rounded-xl border border-slate-200/50 bg-white/60 p-6 shadow-[0_8px_30px_rgb(0,0,0,0.02)] backdrop-blur-xl transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:shadow-md"
             data-testid="pending-row"
             data-pending-id={row.id}
           >
@@ -222,7 +222,7 @@ export function PendingProductsPage() {
                   <button
                     type="button"
                     onClick={() => startEdit(row)}
-                    className="flex h-10 items-center justify-center gap-2 rounded-xl bg-action px-5 text-sm font-semibold tracking-wide text-white shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[var(--color-action)]/30 active:scale-95"
+                    className="flex h-10 items-center justify-center gap-2 rounded-xl bg-action px-5 text-sm font-semibold tracking-wide text-white shadow-sm transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:-translate-y-0.5 hover:shadow-[var(--color-action)]/30 active:scale-[0.97]"
                   >
                     <Pencil className="h-4 w-4" /> Edit
                   </button>
@@ -230,7 +230,7 @@ export function PendingProductsPage() {
                     type="button"
                     onClick={() => void submitReject(row)}
                     disabled={busyId === row.id}
-                    className="flex h-10 items-center justify-center gap-2 rounded-xl bg-red-50 px-5 text-sm font-semibold tracking-wide text-red-600 shadow-sm ring-1 ring-red-200 transition-all duration-200 hover:bg-red-100 disabled:opacity-50"
+                    className="flex h-10 items-center justify-center gap-2 rounded-xl bg-red-50 px-5 text-sm font-semibold tracking-wide text-red-600 shadow-sm ring-1 ring-red-200 transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:bg-red-100 disabled:opacity-50"
                   >
                     <XCircle className="h-4 w-4" /> Reject
                   </button>
@@ -253,7 +253,7 @@ export function PendingProductsPage() {
                         setEditing({ ...editing, brand: e.target.value })
                       }
                       autoFocus
-                      className="h-11 w-full rounded-xl border border-slate-200 bg-white/50 px-4 text-sm font-medium text-slate-700 shadow-sm outline-none transition-all hover:bg-white focus:border-action focus:ring-1 focus:ring-action"
+                      className="h-11 w-full rounded-xl border border-slate-200 bg-white/50 px-4 text-sm font-medium text-slate-700 shadow-sm outline-none transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:bg-white focus:border-action focus:ring-1 focus:ring-action"
                     />
                   </label>
                   <label className="flex flex-col gap-1.5 text-xs font-semibold uppercase tracking-wider text-slate-500">
@@ -265,7 +265,7 @@ export function PendingProductsPage() {
                       onChange={(e) =>
                         setEditing({ ...editing, sizeLabel: e.target.value })
                       }
-                      className="h-11 w-full rounded-xl border border-slate-200 bg-white/50 px-4 text-sm font-medium text-slate-700 shadow-sm outline-none transition-all hover:bg-white focus:border-action focus:ring-1 focus:ring-action"
+                      className="h-11 w-full rounded-xl border border-slate-200 bg-white/50 px-4 text-sm font-medium text-slate-700 shadow-sm outline-none transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:bg-white focus:border-action focus:ring-1 focus:ring-action"
                     />
                   </label>
                   <label className="flex flex-col gap-1.5 text-xs font-semibold uppercase tracking-wider text-slate-500">
@@ -280,7 +280,7 @@ export function PendingProductsPage() {
                         setEditing({ ...editing, price: e.target.value })
                       }
                       autoFocus
-                      className="h-11 w-full rounded-xl border border-slate-200 bg-white/50 px-4 text-sm font-medium text-slate-700 shadow-sm outline-none transition-all hover:bg-white focus:border-action focus:ring-1 focus:ring-action"
+                      className="h-11 w-full rounded-xl border border-slate-200 bg-white/50 px-4 text-sm font-medium text-slate-700 shadow-sm outline-none transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:bg-white focus:border-action focus:ring-1 focus:ring-action"
                     />
                   </label>
                   <label className="flex flex-col gap-1.5 text-xs font-semibold uppercase tracking-wider text-slate-500">
@@ -294,7 +294,7 @@ export function PendingProductsPage() {
                         setEditing({ ...editing, threshold: e.target.value })
                       }
                       placeholder="e.g. 5"
-                      className="h-11 w-full rounded-xl border border-slate-200 bg-white/50 px-4 text-sm font-medium text-slate-700 shadow-sm outline-none transition-all hover:bg-white focus:border-action focus:ring-1 focus:ring-action"
+                      className="h-11 w-full rounded-xl border border-slate-200 bg-white/50 px-4 text-sm font-medium text-slate-700 shadow-sm outline-none transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:bg-white focus:border-action focus:ring-1 focus:ring-action"
                     />
                   </label>
                 </div>
@@ -302,14 +302,14 @@ export function PendingProductsPage() {
                   <button
                     type="button"
                     onClick={cancelEdit}
-                    className="flex h-11 flex-1 items-center justify-center rounded-xl bg-white text-sm font-semibold tracking-wide text-slate-700 shadow-sm ring-1 ring-slate-200 transition-all hover:bg-slate-50 active:scale-95 disabled:pointer-events-none disabled:opacity-50"
+                    className="flex h-11 flex-1 items-center justify-center rounded-xl bg-white text-sm font-semibold tracking-wide text-slate-700 shadow-sm ring-1 ring-slate-200 transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:bg-slate-50 active:scale-[0.97] disabled:pointer-events-none disabled:opacity-50"
                     disabled={busyId === row.id}
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
-                    className="flex h-11 flex-1 items-center justify-center gap-2 rounded-xl bg-action text-sm font-bold tracking-wide text-white shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[var(--color-action)]/30 active:scale-95 disabled:pointer-events-none disabled:opacity-50"
+                    className="flex h-11 flex-1 items-center justify-center gap-2 rounded-xl bg-action text-sm font-bold tracking-wide text-white shadow-sm transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:-translate-y-0.5 hover:shadow-[var(--color-action)]/30 active:scale-[0.97] disabled:pointer-events-none disabled:opacity-50"
                     disabled={busyId === row.id}
                   >
                     <CheckCircle2 className="h-4 w-4" />

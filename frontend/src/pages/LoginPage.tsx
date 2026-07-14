@@ -131,13 +131,12 @@ export function LoginPage() {
 
   return (
     <div className="relative flex min-h-full items-center justify-center overflow-hidden bg-slate-50 p-6 font-sans">
-      {/* Background Orbs for Premium Mesh Gradient Effect */}
-      <div className="pointer-events-none absolute left-0 top-0 h-[500px] w-[500px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-cyan-400/20 mix-blend-multiply blur-[100px]" />
-      <div className="pointer-events-none absolute bottom-0 right-0 h-[600px] w-[600px] translate-x-1/3 translate-y-1/3 rounded-full bg-blue-500/10 mix-blend-multiply blur-[120px]" />
-      
-      <section className="relative w-full max-w-[460px] overflow-hidden rounded-3xl border border-white/60 bg-white/70 shadow-[0_8px_30px_rgb(0,0,0,0.04)] backdrop-blur-xl ring-1 ring-slate-900/5 transition-all duration-500 hover:shadow-[0_8px_40px_rgb(0,0,0,0.08)]">
+      {/* Subtle single-tone brand wash, replacing the prior two-color mesh-orb decoration */}
+      <div className="pointer-events-none absolute left-0 top-0 h-[500px] w-[500px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-action/10 blur-[120px]" />
+
+      <section className="relative w-full max-w-[460px] overflow-hidden rounded-2xl border border-slate-200/60 bg-white/70 shadow-sm backdrop-blur-xl transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out">
         <div className="border-b border-slate-200/50 px-8 py-8 text-center">
-          <p className="text-xs font-semibold uppercase tracking-[0.25em] text-slate-400">Barstock</p>
+          <p className="text-sm font-semibold text-slate-500">Barstock</p>
           <h1 className="mt-3 text-3xl font-light tracking-tight text-slate-900">Shop Login</h1>
           <p className="mt-2 text-sm text-slate-500">
             Sign in with your role, username, and PIN.
@@ -151,7 +150,7 @@ export function LoginPage() {
               <select
                 value={role}
                 onChange={(e) => setRole(e.target.value as ShopLoginRole)}
-                className="h-11 w-full rounded-xl border border-slate-200/80 bg-white/80 px-4 text-sm text-slate-800 shadow-sm transition-all duration-300 hover:border-cyan-400/50 focus:border-cyan-500 focus:bg-white focus:outline-none focus:ring-4 focus:ring-cyan-500/10"
+                className="h-11 w-full rounded-xl border border-slate-200/80 bg-white/80 px-4 text-sm text-slate-800 shadow-sm transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:border-action/50 focus:border-action focus:bg-white focus:outline-none focus:ring-4 focus:ring-action/10"
               >
                 {ROLE_OPTIONS.map((option) => (
                   <option key={option.value} value={option.value}>
@@ -168,7 +167,7 @@ export function LoginPage() {
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 placeholder={defaultUsername(role)}
-                className="h-11 w-full rounded-xl border border-slate-200/80 bg-white/80 px-4 text-sm text-slate-800 shadow-sm transition-all duration-300 hover:border-cyan-400/50 focus:border-cyan-500 focus:bg-white focus:outline-none focus:ring-4 focus:ring-cyan-500/10"
+                className="h-11 w-full rounded-xl border border-slate-200/80 bg-white/80 px-4 text-sm text-slate-800 shadow-sm transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:border-action/50 focus:border-action focus:bg-white focus:outline-none focus:ring-4 focus:ring-action/10"
                 autoComplete="username"
                 autoFocus
                 required
@@ -187,15 +186,15 @@ export function LoginPage() {
                   setPassword(e.target.value);
                   if (error) setError(null);
                 }}
-                className="h-11 w-full rounded-xl border border-slate-200/80 bg-white/80 px-4 text-sm text-slate-800 shadow-sm transition-all duration-300 hover:border-cyan-400/50 focus:border-cyan-500 focus:bg-white focus:outline-none focus:ring-4 focus:ring-cyan-500/10"
+                className="h-11 w-full rounded-xl border border-slate-200/80 bg-white/80 px-4 text-sm text-slate-800 shadow-sm transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:border-action/50 focus:border-action focus:bg-white focus:outline-none focus:ring-4 focus:ring-action/10"
                 autoComplete="current-password"
                 required
               />
             </label>
           </div>
 
-          <div className="group relative overflow-hidden rounded-2xl border border-slate-200/60 bg-gradient-to-br from-slate-50 to-slate-100/50 p-5 transition-all duration-300 hover:border-slate-300">
-            <div className="absolute -right-6 -top-6 h-16 w-16 rounded-full bg-slate-200/50 blur-2xl transition-all duration-500 group-hover:bg-cyan-200/50" />
+          <div className="group relative overflow-hidden rounded-2xl border border-slate-200/60 bg-gradient-to-br from-slate-50 to-slate-100/50 p-5 transition-colors duration-200 ease-out hover:border-slate-300">
+            <div className="absolute -right-6 -top-6 h-16 w-16 rounded-full bg-slate-200/50 blur-2xl transition-colors duration-200 ease-out group-hover:bg-action/20" />
             <div className="relative z-10">
               <div className="text-xs font-semibold uppercase tracking-wider text-slate-400">Device</div>
               <div className="mt-1 font-mono text-sm tracking-tight text-slate-800 break-all">{deviceKey}</div>
@@ -218,7 +217,7 @@ export function LoginPage() {
           {error && (
             <div
               role="alert"
-              className="animate-in fade-in slide-in-from-top-1 rounded-xl border border-red-200/60 bg-red-50/50 p-4 text-sm text-red-700 backdrop-blur-sm"
+              className="animate-fade-in rounded-xl border border-red-200/60 bg-red-50/50 p-4 text-sm text-red-700 backdrop-blur-sm"
             >
               {error}
             </div>
@@ -227,10 +226,9 @@ export function LoginPage() {
           <button
             type="submit"
             disabled={!canSubmit}
-            className="group relative mt-2 flex h-12 items-center justify-center overflow-hidden rounded-xl bg-slate-900 text-sm font-semibold tracking-wide text-white shadow-md transition-all duration-300 hover:-translate-y-0.5 hover:bg-slate-800 hover:shadow-xl hover:shadow-cyan-500/20 disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:translate-y-0 disabled:hover:shadow-md"
+            className="group relative mt-2 flex h-12 items-center justify-center overflow-hidden rounded-xl bg-slate-900 text-sm font-semibold tracking-wide text-white shadow-md transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:-translate-y-0.5 hover:bg-slate-800 hover:shadow-xl active:scale-[0.97] disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:translate-y-0 disabled:hover:shadow-md"
           >
             <span className="relative z-10">{checkingDevice ? "Checking device..." : submitting ? "Signing in..." : "Continue"}</span>
-            <div className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/10 to-transparent transition-transform duration-1000 group-hover:translate-x-full" />
           </button>
         </form>
 
@@ -238,7 +236,7 @@ export function LoginPage() {
           <button
             type="button"
             onClick={() => navigate("/login/superadmin")}
-            className="text-xs font-medium text-slate-400 transition-colors duration-300 hover:text-slate-700"
+            className="text-xs font-medium text-slate-400 transition-colors duration-200 ease-out hover:text-slate-700"
           >
             Access Superadmin Panel &rarr;
           </button>

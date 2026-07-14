@@ -140,14 +140,14 @@ export function ShopMaintenancePage() {
 
   return (
     <div className="flex flex-col gap-8 font-sans">
-      <header className="flex flex-wrap items-center justify-between gap-4 rounded-[24px] border border-slate-200/50 bg-white/60 p-6 shadow-[0_8px_30px_rgb(0,0,0,0.02)] backdrop-blur-xl">
+      <header className="flex flex-wrap items-center justify-between gap-4 rounded-xl border border-slate-200/50 bg-white/60 p-6 shadow-[0_8px_30px_rgb(0,0,0,0.02)] backdrop-blur-xl">
         <h1 className="flex items-center gap-3 text-2xl font-light tracking-tight text-slate-900">
           <Store className="h-6 w-6 text-action" /> Shop Master
         </h1>
         <button
           type="button"
           onClick={reload}
-          className="group flex h-10 items-center justify-center rounded-xl bg-white px-5 text-sm font-semibold tracking-wide text-slate-700 shadow-sm ring-1 ring-slate-200 transition-all duration-300 hover:scale-[1.02] hover:bg-slate-50 hover:shadow-md active:scale-95"
+          className="group flex h-10 items-center justify-center rounded-xl bg-white px-5 text-sm font-semibold tracking-wide text-slate-700 shadow-sm ring-1 ring-slate-200 transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:scale-[1.02] hover:bg-slate-50 hover:shadow-md active:scale-[0.97]"
         >
           <RefreshCw className="h-4 w-4 text-slate-400 transition-transform duration-300 group-hover:rotate-180" />
           <span className="ml-2">Refresh</span>
@@ -166,7 +166,7 @@ export function ShopMaintenancePage() {
       )}
 
       <div className="grid gap-8 lg:grid-cols-[300px_1fr]">
-        <aside className="flex flex-col gap-6 rounded-[24px] border border-slate-200/50 bg-white/60 p-6 shadow-[0_8px_30px_rgb(0,0,0,0.02)] backdrop-blur-xl">
+        <aside className="flex flex-col gap-6 rounded-xl border border-slate-200/50 bg-white/60 p-6 shadow-[0_8px_30px_rgb(0,0,0,0.02)] backdrop-blur-xl">
           <CreateShopForm
             onCreated={async (shop) => {
               setMessage("Shop created.");
@@ -187,7 +187,7 @@ export function ShopMaintenancePage() {
                   key={shop.id}
                   type="button"
                   onClick={() => selectShop(shop.id)}
-                  className={`group relative flex w-full flex-col items-start gap-1 rounded-xl p-4 text-left transition-all duration-300 ${
+                  className={`group relative flex w-full flex-col items-start gap-1 rounded-xl p-4 text-left transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out ${
                     shop.id === selectedShopId
                       ? "bg-action text-white shadow-md shadow-[var(--color-action)]/20"
                       : "bg-white text-slate-700 shadow-sm ring-1 ring-slate-200/50 hover:bg-slate-50 hover:shadow"
@@ -214,7 +214,7 @@ export function ShopMaintenancePage() {
         </aside>
 
         {selectedShop && shopDetails ? (
-          <main className="flex min-w-0 flex-col rounded-[24px] border border-slate-200/50 bg-white/60 shadow-[0_8px_30px_rgb(0,0,0,0.02)] backdrop-blur-xl">
+          <main className="flex min-w-0 flex-col rounded-xl border border-slate-200/50 bg-white/60 shadow-[0_8px_30px_rgb(0,0,0,0.02)] backdrop-blur-xl">
             <div className="border-b border-slate-200/50 px-8 pt-8">
               <div className="mb-6">
                 <div className="text-[11px] font-semibold uppercase tracking-widest text-slate-500">Selected shop</div>
@@ -295,7 +295,7 @@ export function ShopMaintenancePage() {
             </div>
           </main>
         ) : (
-          <div className="flex h-[50vh] items-center justify-center rounded-[24px] border border-slate-200/50 bg-white/60 p-8 shadow-[0_8px_30px_rgb(0,0,0,0.02)] backdrop-blur-xl">
+          <div className="flex h-[50vh] items-center justify-center rounded-xl border border-slate-200/50 bg-white/60 p-8 shadow-[0_8px_30px_rgb(0,0,0,0.02)] backdrop-blur-xl">
             <div className="text-center text-sm font-medium text-slate-500">
               Create or select a shop to manage its details.
             </div>
@@ -343,7 +343,7 @@ function CreateShopForm({
       <button
         type="submit"
         disabled={busy}
-        className="mt-2 flex h-11 items-center justify-center rounded-xl bg-action px-6 text-sm font-bold tracking-wide text-white shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[var(--color-action)]/30 active:scale-95 disabled:pointer-events-none disabled:opacity-50"
+        className="mt-2 flex h-11 items-center justify-center rounded-xl bg-action px-6 text-sm font-bold tracking-wide text-white shadow-sm transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:-translate-y-0.5 hover:shadow-[var(--color-action)]/30 active:scale-[0.97] disabled:pointer-events-none disabled:opacity-50"
       >
         {busy ? "Creating..." : "Create"}
       </button>
@@ -435,7 +435,7 @@ function EditShopForm({
       <button
         type="submit"
         disabled={busy}
-        className="flex h-11 w-fit items-center justify-center gap-2 rounded-xl bg-action px-8 text-sm font-bold tracking-wide text-white shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[var(--color-action)]/30 active:scale-95 disabled:pointer-events-none disabled:opacity-50"
+        className="flex h-11 w-fit items-center justify-center gap-2 rounded-xl bg-action px-8 text-sm font-bold tracking-wide text-white shadow-sm transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:-translate-y-0.5 hover:shadow-[var(--color-action)]/30 active:scale-[0.97] disabled:pointer-events-none disabled:opacity-50"
       >
         <Save className="h-4 w-4" /> {busy ? "Saving..." : "Save shop"}
       </button>
@@ -530,7 +530,7 @@ function UserPanel({
           <select
             value={role}
             onChange={(e) => setRole(e.target.value as ShopUserRole)}
-            className="h-11 w-full rounded-xl border border-slate-200 bg-white/50 px-4 text-sm font-medium text-slate-700 shadow-sm outline-none transition-all hover:bg-white focus:border-action focus:ring-1 focus:ring-action"
+            className="h-11 w-full rounded-xl border border-slate-200 bg-white/50 px-4 text-sm font-medium text-slate-700 shadow-sm outline-none transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:bg-white focus:border-action focus:ring-1 focus:ring-action"
           >
             {ROLES.map((r) => (
               <option key={r} value={r}>
@@ -551,7 +551,7 @@ function UserPanel({
         <button
           type="submit"
           disabled={busy}
-          className="flex h-11 items-center justify-center gap-2 rounded-xl bg-action px-6 text-sm font-bold tracking-wide text-white shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[var(--color-action)]/30 active:scale-95 disabled:pointer-events-none disabled:opacity-50"
+          className="flex h-11 items-center justify-center gap-2 rounded-xl bg-action px-6 text-sm font-bold tracking-wide text-white shadow-sm transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:-translate-y-0.5 hover:shadow-[var(--color-action)]/30 active:scale-[0.97] disabled:pointer-events-none disabled:opacity-50"
         >
           <Plus className="h-4 w-4" /> {busy ? "Adding..." : "Add user"}
         </button>
@@ -693,7 +693,7 @@ function DevicePanel({
         <button
           type="submit"
           disabled={busy}
-          className="flex h-11 items-center justify-center gap-2 rounded-xl bg-action px-6 text-sm font-bold tracking-wide text-white shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[var(--color-action)]/30 active:scale-95 disabled:pointer-events-none disabled:opacity-50"
+          className="flex h-11 items-center justify-center gap-2 rounded-xl bg-action px-6 text-sm font-bold tracking-wide text-white shadow-sm transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:-translate-y-0.5 hover:shadow-[var(--color-action)]/30 active:scale-[0.97] disabled:pointer-events-none disabled:opacity-50"
         >
           <Plus className="h-4 w-4" /> {busy ? "Saving..." : "Bind current device"}
         </button>
@@ -755,7 +755,7 @@ function DeviceRow({
         <input
           value={counterName}
           onChange={(e) => setCounterName(e.target.value)}
-          className="h-9 w-full rounded-lg border border-slate-200 bg-white/50 px-3 text-sm font-medium text-slate-700 shadow-sm outline-none transition-all hover:bg-white focus:border-action focus:ring-1 focus:ring-action"
+          className="h-9 w-full rounded-lg border border-slate-200 bg-white/50 px-3 text-sm font-medium text-slate-700 shadow-sm outline-none transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:bg-white focus:border-action focus:ring-1 focus:ring-action"
         />
       </td>
       <td className="px-6 py-4">
@@ -815,7 +815,7 @@ function InventoryPanel({
         <button
           type="button"
           onClick={onOpenProducts}
-          className="flex h-10 items-center justify-center rounded-xl bg-action px-6 text-sm font-semibold tracking-wide text-white shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[var(--color-action)]/30 active:scale-95"
+          className="flex h-10 items-center justify-center rounded-xl bg-action px-6 text-sm font-semibold tracking-wide text-white shadow-sm transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:-translate-y-0.5 hover:shadow-[var(--color-action)]/30 active:scale-[0.97]"
         >
           Open in Products
         </button>
@@ -826,7 +826,7 @@ function InventoryPanel({
           value={query}
           onChange={(e) => onQuery(e.target.value)}
           placeholder="Search brand, barcode, or size"
-          className="h-11 flex-1 rounded-xl border border-slate-200 bg-white/50 px-4 text-sm font-medium text-slate-700 shadow-sm outline-none transition-all hover:bg-white focus:border-action focus:ring-1 focus:ring-action"
+          className="h-11 flex-1 rounded-xl border border-slate-200 bg-white/50 px-4 text-sm font-medium text-slate-700 shadow-sm outline-none transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:bg-white focus:border-action focus:ring-1 focus:ring-action"
         />
         <label className="flex items-center gap-2 text-sm font-medium text-slate-600">
           <input
@@ -904,7 +904,7 @@ function SelectFilter<T extends string>({
       <select
         value={value}
         onChange={(e) => onChange(e.target.value as T)}
-        className="h-9 min-w-[120px] rounded-lg border border-slate-200 bg-white/50 px-3 text-sm font-medium normal-case text-slate-700 shadow-sm outline-none transition-all hover:bg-white focus:border-action focus:ring-1 focus:ring-action"
+        className="h-9 min-w-[120px] rounded-lg border border-slate-200 bg-white/50 px-3 text-sm font-medium normal-case text-slate-700 shadow-sm outline-none transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:bg-white focus:border-action focus:ring-1 focus:ring-action"
       >
         {options.map((option) => (
           <option key={option} value={option}>
@@ -955,7 +955,7 @@ function Field({
         step={step}
         min={min}
         placeholder={placeholder}
-        className="h-11 w-full rounded-xl border border-slate-200 bg-white/50 px-4 text-sm font-medium normal-case text-slate-700 shadow-sm outline-none transition-all hover:bg-white focus:border-action focus:ring-1 focus:ring-action"
+        className="h-11 w-full rounded-xl border border-slate-200 bg-white/50 px-4 text-sm font-medium normal-case text-slate-700 shadow-sm outline-none transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:bg-white focus:border-action focus:ring-1 focus:ring-action"
       />
     </label>
   );
@@ -980,7 +980,7 @@ function TextAreaField({
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
         rows={4}
-        className="min-h-[7rem] w-full rounded-xl border border-slate-200 bg-white/50 px-4 py-3 text-sm font-medium normal-case text-slate-700 shadow-sm outline-none transition-all hover:bg-white focus:border-action focus:ring-1 focus:ring-action"
+        className="min-h-[7rem] w-full rounded-xl border border-slate-200 bg-white/50 px-4 py-3 text-sm font-medium normal-case text-slate-700 shadow-sm outline-none transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:bg-white focus:border-action focus:ring-1 focus:ring-action"
       />
     </label>
   );

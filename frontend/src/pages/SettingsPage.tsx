@@ -104,7 +104,7 @@ export function SettingsPage() {
 
   return (
     <div className="flex flex-col gap-8 font-sans">
-      <header className="flex flex-col gap-2 rounded-[24px] border border-slate-200/50 bg-white/60 p-6 shadow-[0_8px_30px_rgb(0,0,0,0.02)] backdrop-blur-xl">
+      <header className="flex flex-col gap-2 rounded-xl border border-slate-200/50 bg-white/60 p-6 shadow-[0_8px_30px_rgb(0,0,0,0.02)] backdrop-blur-xl">
         <h1 className="flex items-center gap-3 text-2xl font-light tracking-tight text-slate-900">
           <Settings className="h-6 w-6 text-action" /> Settings
         </h1>
@@ -116,7 +116,7 @@ export function SettingsPage() {
       </header>
 
       {blocked && (
-        <div className="flex h-[20vh] items-center justify-center rounded-[24px] border border-slate-200/50 bg-white/60 p-8 shadow-[0_8px_30px_rgb(0,0,0,0.02)] backdrop-blur-xl">
+        <div className="flex h-[20vh] items-center justify-center rounded-xl border border-slate-200/50 bg-white/60 p-8 shadow-[0_8px_30px_rgb(0,0,0,0.02)] backdrop-blur-xl">
           <div className="text-center text-sm font-medium text-slate-500">
             Pick a shop first (top of the sidebar).
           </div>
@@ -152,7 +152,7 @@ export function SettingsPage() {
               "General settings saved."
             );
           }}
-          className="grid grid-cols-1 gap-8 rounded-[24px] border border-slate-200/50 bg-white/60 p-8 shadow-[0_8px_30px_rgb(0,0,0,0.02)] backdrop-blur-xl md:grid-cols-2"
+          className="grid grid-cols-1 gap-8 rounded-xl border border-slate-200/50 bg-white/60 p-8 shadow-[0_8px_30px_rgb(0,0,0,0.02)] backdrop-blur-xl md:grid-cols-2"
         >
           <Field
             label="Sidebar Brand Name"
@@ -162,7 +162,7 @@ export function SettingsPage() {
           />
           <label className="flex flex-col gap-1.5 text-xs font-semibold uppercase tracking-wider text-slate-500">
             Active/Button Color
-            <div className="flex h-11 items-center gap-3 overflow-hidden rounded-xl border border-slate-200 bg-white/50 pr-4 shadow-sm transition-all focus-within:border-action focus-within:ring-1 focus-within:ring-action">
+            <div className="flex h-11 items-center gap-3 overflow-hidden rounded-xl border border-slate-200 bg-white/50 pr-4 shadow-sm transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out focus-within:border-action focus-within:ring-1 focus-within:ring-action">
               <input
                 aria-label="Active/Button Color"
                 type="color"
@@ -235,7 +235,7 @@ export function SettingsPage() {
             <button
               type="submit"
               disabled={busy}
-              className="flex h-11 items-center justify-center gap-2 rounded-xl bg-action px-8 text-sm font-bold tracking-wide text-white shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[var(--color-action)]/30 active:scale-95 disabled:pointer-events-none disabled:opacity-50"
+              className="flex h-11 items-center justify-center gap-2 rounded-xl bg-action px-8 text-sm font-bold tracking-wide text-white shadow-sm transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:-translate-y-0.5 hover:shadow-[var(--color-action)]/30 active:scale-[0.97] disabled:pointer-events-none disabled:opacity-50"
             >
               <Save className="h-4 w-4" /> {busy ? "Saving..." : "Save"}
             </button>
@@ -261,7 +261,7 @@ export function SettingsPage() {
               "Email settings saved."
             );
           }}
-          className="grid grid-cols-1 gap-8 rounded-[24px] border border-slate-200/50 bg-white/60 p-8 shadow-[0_8px_30px_rgb(0,0,0,0.02)] backdrop-blur-xl md:grid-cols-2"
+          className="grid grid-cols-1 gap-8 rounded-xl border border-slate-200/50 bg-white/60 p-8 shadow-[0_8px_30px_rgb(0,0,0,0.02)] backdrop-blur-xl md:grid-cols-2"
         >
           <label className="flex h-11 w-fit items-center gap-3 rounded-xl border border-slate-200 bg-white/50 px-4 text-sm font-semibold tracking-wide text-slate-700 shadow-sm md:col-span-2">
             <input
@@ -317,21 +317,21 @@ export function SettingsPage() {
             <button
               type="submit"
               disabled={busy}
-              className="flex h-11 items-center justify-center gap-2 rounded-xl bg-action px-8 text-sm font-bold tracking-wide text-white shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[var(--color-action)]/30 active:scale-95 disabled:pointer-events-none disabled:opacity-50"
+              className="flex h-11 items-center justify-center gap-2 rounded-xl bg-action px-8 text-sm font-bold tracking-wide text-white shadow-sm transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:-translate-y-0.5 hover:shadow-[var(--color-action)]/30 active:scale-[0.97] disabled:pointer-events-none disabled:opacity-50"
             >
               <Save className="h-4 w-4" /> {busy ? "Saving..." : "Save"}
             </button>
             <button
               type="button"
               disabled
-              className="flex h-11 items-center justify-center rounded-xl bg-white px-6 text-sm font-semibold tracking-wide text-slate-500 shadow-sm ring-1 ring-slate-200 transition-all hover:bg-slate-50 active:scale-95 disabled:pointer-events-none disabled:opacity-50"
+              className="flex h-11 items-center justify-center rounded-xl bg-white px-6 text-sm font-semibold tracking-wide text-slate-500 shadow-sm ring-1 ring-slate-200 transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:bg-slate-50 active:scale-[0.97] disabled:pointer-events-none disabled:opacity-50"
             >
               Test SMTP
             </button>
             <button
               type="button"
               disabled
-              className="flex h-11 items-center justify-center rounded-xl bg-white px-6 text-sm font-semibold tracking-wide text-slate-500 shadow-sm ring-1 ring-slate-200 transition-all hover:bg-slate-50 active:scale-95 disabled:pointer-events-none disabled:opacity-50"
+              className="flex h-11 items-center justify-center rounded-xl bg-white px-6 text-sm font-semibold tracking-wide text-slate-500 shadow-sm ring-1 ring-slate-200 transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:bg-slate-50 active:scale-[0.97] disabled:pointer-events-none disabled:opacity-50"
             >
               Send Test Mail
             </button>
@@ -354,7 +354,7 @@ export function SettingsPage() {
               "Invoice settings saved."
             );
           }}
-          className="grid grid-cols-1 gap-8 rounded-[24px] border border-slate-200/50 bg-white/60 p-8 shadow-[0_8px_30px_rgb(0,0,0,0.02)] backdrop-blur-xl md:grid-cols-2"
+          className="grid grid-cols-1 gap-8 rounded-xl border border-slate-200/50 bg-white/60 p-8 shadow-[0_8px_30px_rgb(0,0,0,0.02)] backdrop-blur-xl md:grid-cols-2"
         >
           <Field
             label="GSTIN (15 uppercase alphanumerics)"
@@ -383,7 +383,7 @@ export function SettingsPage() {
             <button
               type="submit"
               disabled={busy}
-              className="flex h-11 items-center justify-center gap-2 rounded-xl bg-action px-8 text-sm font-bold tracking-wide text-white shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[var(--color-action)]/30 active:scale-95 disabled:pointer-events-none disabled:opacity-50"
+              className="flex h-11 items-center justify-center gap-2 rounded-xl bg-action px-8 text-sm font-bold tracking-wide text-white shadow-sm transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:-translate-y-0.5 hover:shadow-[var(--color-action)]/30 active:scale-[0.97] disabled:pointer-events-none disabled:opacity-50"
             >
               <Save className="h-4 w-4" /> {busy ? "Saving..." : "Save"}
             </button>
@@ -418,7 +418,7 @@ function TabButton({
     <button
       type="button"
       onClick={onClick}
-      className={`group relative flex h-11 items-center justify-center gap-2 rounded-full px-6 text-sm font-bold tracking-wide transition-all duration-300 ${
+      className={`group relative flex h-11 items-center justify-center gap-2 rounded-full px-6 text-sm font-bold tracking-wide transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out ${
         active 
           ? "bg-action text-white shadow-[0_4px_20px_rgba(var(--color-action-rgb),0.3)] hover:-translate-y-0.5" 
           : "bg-white text-slate-500 shadow-sm ring-1 ring-slate-200 hover:bg-slate-50 hover:text-slate-700"
@@ -462,7 +462,7 @@ function Field({
         max={max}
         maxLength={maxLength}
         placeholder={placeholder}
-        className="h-11 w-full rounded-xl border border-slate-200 bg-white/50 px-4 text-sm font-medium normal-case text-slate-700 shadow-sm outline-none transition-all hover:bg-white focus:border-action focus:ring-1 focus:ring-action"
+        className="h-11 w-full rounded-xl border border-slate-200 bg-white/50 px-4 text-sm font-medium normal-case text-slate-700 shadow-sm outline-none transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:bg-white focus:border-action focus:ring-1 focus:ring-action"
       />
     </label>
   );
@@ -480,7 +480,7 @@ function ColorTextField({
   return (
     <label className="flex flex-col gap-1.5 text-xs font-semibold uppercase tracking-wider text-slate-500">
       {label}
-      <div className="flex h-11 items-center gap-3 overflow-hidden rounded-xl border border-slate-200 bg-white/50 pr-4 shadow-sm transition-all focus-within:border-action focus-within:ring-1 focus-within:ring-action">
+      <div className="flex h-11 items-center gap-3 overflow-hidden rounded-xl border border-slate-200 bg-white/50 pr-4 shadow-sm transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out focus-within:border-action focus-within:ring-1 focus-within:ring-action">
         <span
           aria-hidden="true"
           className="h-full w-14"
@@ -509,7 +509,7 @@ function ColorField({
   return (
     <label className="flex flex-col gap-1.5 text-xs font-semibold uppercase tracking-wider text-slate-500">
       {label}
-      <div className="flex h-11 items-center gap-3 overflow-hidden rounded-xl border border-slate-200 bg-white/50 pr-4 shadow-sm transition-all focus-within:border-action focus-within:ring-1 focus-within:ring-action">
+      <div className="flex h-11 items-center gap-3 overflow-hidden rounded-xl border border-slate-200 bg-white/50 pr-4 shadow-sm transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out focus-within:border-action focus-within:ring-1 focus-within:ring-action">
         <input
           aria-label={label}
           type="color"

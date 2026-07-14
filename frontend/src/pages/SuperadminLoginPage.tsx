@@ -48,7 +48,7 @@ export function SuperadminLoginPage() {
       
       <form
         onSubmit={submit}
-        className="relative w-full max-w-[420px] overflow-hidden rounded-3xl border border-white/10 bg-[#0f172a]/80 shadow-[0_8px_40px_rgb(0,0,0,0.4)] backdrop-blur-xl transition-all duration-500 hover:border-purple-500/30 hover:shadow-[0_8px_60px_rgba(139,92,246,0.15)]"
+        className="relative w-full max-w-[420px] overflow-hidden rounded-2xl border border-white/10 bg-[#0f172a]/80 shadow-[0_8px_40px_rgb(0,0,0,0.4)] backdrop-blur-xl transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:border-purple-500/30 hover:shadow-[0_8px_60px_rgba(139,92,246,0.15)]"
       >
         <div className="border-b border-white/5 px-8 py-8 text-center">
           <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-purple-500/10 text-purple-400 ring-1 ring-purple-500/20">
@@ -66,7 +66,7 @@ export function SuperadminLoginPage() {
                 type="text"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
-                className="h-11 w-full rounded-xl border border-white/10 bg-[#1e293b]/50 px-4 text-sm text-white shadow-inner transition-all duration-300 hover:border-purple-500/30 focus:border-purple-500 focus:bg-[#1e293b] focus:outline-none focus:ring-4 focus:ring-purple-500/20"
+                className="h-11 w-full rounded-xl border border-white/10 bg-[#1e293b]/50 px-4 text-sm text-white shadow-inner transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:border-purple-500/30 focus:border-purple-500 focus:bg-[#1e293b] focus:outline-none focus:ring-4 focus:ring-purple-500/20"
                 autoFocus
                 required
               />
@@ -77,7 +77,7 @@ export function SuperadminLoginPage() {
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="h-11 w-full rounded-xl border border-white/10 bg-[#1e293b]/50 px-4 text-sm text-white shadow-inner transition-all duration-300 hover:border-purple-500/30 focus:border-purple-500 focus:bg-[#1e293b] focus:outline-none focus:ring-4 focus:ring-purple-500/20"
+                className="h-11 w-full rounded-xl border border-white/10 bg-[#1e293b]/50 px-4 text-sm text-white shadow-inner transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:border-purple-500/30 focus:border-purple-500 focus:bg-[#1e293b] focus:outline-none focus:ring-4 focus:ring-purple-500/20"
                 required
               />
             </label>
@@ -95,7 +95,7 @@ export function SuperadminLoginPage() {
           <button
             type="submit"
             disabled={loading}
-            className="group relative mt-2 flex h-11 items-center justify-center overflow-hidden rounded-xl bg-purple-600 text-sm font-semibold tracking-wide text-white shadow-lg shadow-purple-600/20 transition-all duration-300 hover:-translate-y-0.5 hover:bg-purple-500 hover:shadow-xl hover:shadow-purple-600/40 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:translate-y-0 disabled:hover:shadow-lg"
+            className="group relative mt-2 flex h-11 items-center justify-center overflow-hidden rounded-xl bg-purple-600 text-sm font-semibold tracking-wide text-white shadow-lg shadow-purple-600/20 transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:-translate-y-0.5 hover:bg-purple-500 hover:shadow-xl hover:shadow-purple-600/40 active:scale-[0.97] disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:translate-y-0 disabled:hover:shadow-lg"
           >
             <span className="relative z-10">{loading ? "Authenticating..." : "Sign In"}</span>
           </button>

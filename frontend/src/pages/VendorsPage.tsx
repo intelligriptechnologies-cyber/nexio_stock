@@ -41,7 +41,7 @@ export function VendorsPage() {
 
   if (actingShopId == null) {
     return (
-      <div className="flex h-[50vh] items-center justify-center rounded-[24px] border border-slate-200/50 bg-white/60 p-8 shadow-[0_8px_30px_rgb(0,0,0,0.02)] backdrop-blur-xl">
+      <div className="flex h-[50vh] items-center justify-center rounded-xl border border-slate-200/50 bg-white/60 p-8 shadow-[0_8px_30px_rgb(0,0,0,0.02)] backdrop-blur-xl">
         <div className="text-center text-sm font-medium text-slate-500">
           Pick a shop first (top of the sidebar).
         </div>
@@ -97,7 +97,7 @@ export function VendorsPage() {
 
   return (
     <div className="flex flex-col gap-8 font-sans">
-      <header className="flex flex-wrap items-center justify-between gap-4 rounded-[24px] border border-slate-200/50 bg-white/60 p-6 shadow-[0_8px_30px_rgb(0,0,0,0.02)] backdrop-blur-xl">
+      <header className="flex flex-wrap items-center justify-between gap-4 rounded-xl border border-slate-200/50 bg-white/60 p-6 shadow-[0_8px_30px_rgb(0,0,0,0.02)] backdrop-blur-xl">
         <div>
           <h1 className="flex items-center gap-3 text-2xl font-light tracking-tight text-slate-900">
             <Truck className="h-6 w-6 text-action" /> Vendors
@@ -138,13 +138,13 @@ export function VendorsPage() {
           onNew={() => setSelectedId(null)}
         />
 
-        <section className="flex flex-col gap-6 rounded-[24px] border border-slate-200/50 bg-white/60 p-6 shadow-[0_8px_30px_rgb(0,0,0,0.02)] backdrop-blur-xl">
+        <section className="flex flex-col gap-6 rounded-xl border border-slate-200/50 bg-white/60 p-6 shadow-[0_8px_30px_rgb(0,0,0,0.02)] backdrop-blur-xl">
           <div className="flex items-center justify-between">
             <h2 className="text-lg font-light tracking-tight text-slate-900">Vendor list</h2>
             <button
               type="button"
               onClick={refresh}
-              className="group flex h-10 items-center justify-center rounded-xl bg-white px-5 text-sm font-semibold tracking-wide text-slate-700 shadow-sm ring-1 ring-slate-200 transition-all duration-300 hover:scale-[1.02] hover:bg-slate-50 hover:shadow-md active:scale-95"
+              className="group flex h-10 items-center justify-center rounded-xl bg-white px-5 text-sm font-semibold tracking-wide text-slate-700 shadow-sm ring-1 ring-slate-200 transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:scale-[1.02] hover:bg-slate-50 hover:shadow-md active:scale-[0.97]"
             >
               <RefreshCw className="h-4 w-4 text-slate-400 transition-transform duration-300 group-hover:rotate-180" />
               <span className="ml-2">Refresh</span>
@@ -250,7 +250,7 @@ function VendorForm({
   };
 
   return (
-    <form onSubmit={submit} className="flex flex-col gap-6 rounded-[24px] border border-slate-200/50 bg-white/60 p-6 shadow-[0_8px_30px_rgb(0,0,0,0.02)] backdrop-blur-xl h-fit">
+    <form onSubmit={submit} className="flex flex-col gap-6 rounded-xl border border-slate-200/50 bg-white/60 p-6 shadow-[0_8px_30px_rgb(0,0,0,0.02)] backdrop-blur-xl h-fit">
       <div>
         <h2 className="text-xl font-light tracking-tight text-slate-900">
           {vendor ? `Edit vendor #${vendor.id}` : "New vendor"}
@@ -263,7 +263,7 @@ function VendorForm({
         <button
           type="button"
           onClick={onNew}
-          className="flex h-10 w-fit items-center justify-center gap-2 rounded-xl bg-white px-4 text-sm font-semibold tracking-wide text-slate-700 shadow-sm ring-1 ring-slate-200 transition-all duration-200 hover:bg-slate-50 active:scale-95"
+          className="flex h-10 w-fit items-center justify-center gap-2 rounded-xl bg-white px-4 text-sm font-semibold tracking-wide text-slate-700 shadow-sm ring-1 ring-slate-200 transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:bg-slate-50 active:scale-[0.97]"
         >
           <Plus className="h-4 w-4" /> New vendor
         </button>
@@ -288,7 +288,7 @@ function VendorForm({
       <button
         type="submit"
         disabled={busy}
-        className="flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-action px-6 text-sm font-bold tracking-wide text-white shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[var(--color-action)]/30 active:scale-95 disabled:pointer-events-none disabled:opacity-50"
+        className="flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-action px-6 text-sm font-bold tracking-wide text-white shadow-sm transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:-translate-y-0.5 hover:shadow-[var(--color-action)]/30 active:scale-[0.97] disabled:pointer-events-none disabled:opacity-50"
       >
         <Save className="h-4 w-4" /> {busy ? "Saving..." : vendor ? "Update vendor" : "Create vendor"}
       </button>
@@ -320,7 +320,7 @@ function Field({
         onChange={(e) => onChange(e.target.value)}
         required={required}
         maxLength={maxLength}
-        className="h-11 w-full rounded-xl border border-slate-200 bg-white/50 px-4 text-sm font-medium normal-case text-slate-700 shadow-sm outline-none transition-all hover:bg-white focus:border-action focus:ring-1 focus:ring-action"
+        className="h-11 w-full rounded-xl border border-slate-200 bg-white/50 px-4 text-sm font-medium normal-case text-slate-700 shadow-sm outline-none transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:bg-white focus:border-action focus:ring-1 focus:ring-action"
       />
     </label>
   );

@@ -349,14 +349,14 @@ export function InvoiceLookupPage() {
         </TabButton>
       </div>
 
-      <section className="grid gap-6 rounded-[24px] border border-slate-200/50 bg-white/60 p-6 shadow-[0_8px_30px_rgb(0,0,0,0.02)] backdrop-blur-xl md:grid-cols-4">
+      <section className="grid gap-6 rounded-xl border border-slate-200/50 bg-white/60 p-6 shadow-[0_8px_30px_rgb(0,0,0,0.02)] backdrop-blur-xl md:grid-cols-4">
         {user?.role === "superadmin" && (
           <label className="flex flex-col gap-1.5 text-xs font-semibold uppercase tracking-wider text-slate-500">
             <span className="flex items-center gap-1.5"><MapPin className="h-4 w-4" /> Shop</span>
             <select
               value={actingShopId ?? ""}
               onChange={(e) => setActingShopId(e.target.value ? Number(e.target.value) : null)}
-              className="h-11 rounded-xl border border-slate-200 bg-white/50 px-4 text-sm font-medium text-slate-700 shadow-sm outline-none transition-all hover:bg-white focus:border-action focus:ring-1 focus:ring-action"
+              className="h-11 rounded-xl border border-slate-200 bg-white/50 px-4 text-sm font-medium text-slate-700 shadow-sm outline-none transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:bg-white focus:border-action focus:ring-1 focus:ring-action"
             >
               <option value="">Select shop</option>
               {shops.map((shop) => (
@@ -375,7 +375,7 @@ export function InvoiceLookupPage() {
                 type="date"
                 value={dateFrom}
                 onChange={(e) => setDateFrom(e.target.value)}
-                className="h-11 rounded-xl border border-slate-200 bg-white/50 px-4 text-sm font-medium text-slate-700 shadow-sm outline-none transition-all hover:bg-white focus:border-action focus:ring-1 focus:ring-action"
+                className="h-11 rounded-xl border border-slate-200 bg-white/50 px-4 text-sm font-medium text-slate-700 shadow-sm outline-none transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:bg-white focus:border-action focus:ring-1 focus:ring-action"
               />
             </label>
             <label className="flex flex-col gap-1.5 text-xs font-semibold uppercase tracking-wider text-slate-500">
@@ -384,7 +384,7 @@ export function InvoiceLookupPage() {
                 type="date"
                 value={dateTo}
                 onChange={(e) => setDateTo(e.target.value)}
-                className="h-11 rounded-xl border border-slate-200 bg-white/50 px-4 text-sm font-medium text-slate-700 shadow-sm outline-none transition-all hover:bg-white focus:border-action focus:ring-1 focus:ring-action"
+                className="h-11 rounded-xl border border-slate-200 bg-white/50 px-4 text-sm font-medium text-slate-700 shadow-sm outline-none transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:bg-white focus:border-action focus:ring-1 focus:ring-action"
               />
             </label>
           </>
@@ -394,7 +394,7 @@ export function InvoiceLookupPage() {
           <select
             value={paymentMode}
             onChange={(e) => setPaymentMode(e.target.value as PaymentMode | "")}
-            className="h-11 rounded-xl border border-slate-200 bg-white/50 px-4 text-sm font-medium text-slate-700 shadow-sm outline-none transition-all hover:bg-white focus:border-action focus:ring-1 focus:ring-action"
+            className="h-11 rounded-xl border border-slate-200 bg-white/50 px-4 text-sm font-medium text-slate-700 shadow-sm outline-none transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:bg-white focus:border-action focus:ring-1 focus:ring-action"
           >
             <option value="">All payments</option>
             {PAYMENT_MODES.map((mode) => <option key={mode} value={mode}>{mode.toUpperCase()}</option>)}
@@ -405,7 +405,7 @@ export function InvoiceLookupPage() {
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value as InvoicePublic["status"] | "")}
-            className="h-11 rounded-xl border border-slate-200 bg-white/50 px-4 text-sm font-medium text-slate-700 shadow-sm outline-none transition-all hover:bg-white focus:border-action focus:ring-1 focus:ring-action"
+            className="h-11 rounded-xl border border-slate-200 bg-white/50 px-4 text-sm font-medium text-slate-700 shadow-sm outline-none transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:bg-white focus:border-action focus:ring-1 focus:ring-action"
           >
             <option value="">All statuses</option>
             {STATUS_FILTERS.map((status) => <option key={status} value={status}>{status}</option>)}
@@ -426,7 +426,7 @@ export function InvoiceLookupPage() {
               type="button"
               onClick={() => void openSettlementSummary()}
               disabled={busy}
-              className="flex h-11 w-full items-center justify-center rounded-xl bg-action px-6 text-sm font-bold tracking-wide text-on-action shadow-lg transition-all hover:-translate-y-0.5 hover:shadow-[var(--color-action)]/30 active:scale-95 disabled:opacity-50 disabled:hover:translate-y-0 disabled:hover:shadow-none"
+              className="flex h-11 w-full items-center justify-center rounded-xl bg-action px-6 text-sm font-bold tracking-wide text-on-action shadow-lg transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:-translate-y-0.5 hover:shadow-[var(--color-action)]/30 active:scale-[0.97] disabled:opacity-50 disabled:hover:translate-y-0 disabled:hover:shadow-none"
             >
               Reconcile-Settle-Close Today
             </button>
@@ -447,7 +447,7 @@ export function InvoiceLookupPage() {
       {error && <div role="alert" className="rounded-xl bg-red-50 px-6 py-4 text-sm font-medium text-red-600 shadow-sm ring-1 ring-red-200">{error}</div>}
       {info && <div role="status" className="rounded-xl bg-emerald-50 px-6 py-4 text-sm font-medium text-emerald-600 shadow-sm ring-1 ring-emerald-200">{info}</div>}
 
-      <section className="overflow-hidden rounded-[24px] border border-slate-200/50 bg-white/60 shadow-[0_8px_30px_rgb(0,0,0,0.02)] backdrop-blur-xl">
+      <section className="overflow-hidden rounded-xl border border-slate-200/50 bg-white/60 shadow-[0_8px_30px_rgb(0,0,0,0.02)] backdrop-blur-xl">
         <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-200/50 bg-slate-50/50 px-6 py-4">
           <span className="text-sm font-medium text-slate-500">
             {busy ? "Loading..." : `Showing ${rows.length === 0 ? 0 : 1} - ${rows.length} of ${rows.length}`}
@@ -587,7 +587,7 @@ export function InvoiceLookupPage() {
           aria-modal="true"
           aria-labelledby="invoice-edit-title"
         >
-          <section className="flex max-h-[90vh] w-full max-w-2xl flex-col overflow-hidden rounded-[24px] bg-white shadow-[0_20px_60px_rgba(0,0,0,0.1)] ring-1 ring-slate-200/50">
+          <section className="flex max-h-[90vh] w-full max-w-2xl flex-col overflow-hidden rounded-xl bg-white shadow-[0_20px_60px_rgba(0,0,0,0.1)] ring-1 ring-slate-200/50">
             <header className="flex items-start justify-between gap-4 border-b border-slate-200/50 bg-slate-50/80 px-6 py-5">
               <div>
                 <h2 id="invoice-edit-title" className="text-xl font-light tracking-tight text-slate-900">
@@ -646,7 +646,7 @@ export function InvoiceLookupPage() {
                       value={line.quantity}
                       disabled={!canEdit(selected)}
                       onChange={(e) => setEditLineQuantity(index, Number(e.target.value))}
-                      className="h-9 rounded-lg border border-slate-200 bg-white px-2 text-center font-mono text-sm shadow-sm outline-none transition-all focus:border-action focus:ring-1 focus:ring-action disabled:bg-slate-50 disabled:opacity-50"
+                      className="h-9 rounded-lg border border-slate-200 bg-white px-2 text-center font-mono text-sm shadow-sm outline-none transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out focus:border-action focus:ring-1 focus:ring-action disabled:bg-slate-50 disabled:opacity-50"
                     />
                     <span className="text-right font-mono text-slate-900">₹{line.unitPrice}</span>
                     <span className="text-right font-mono text-slate-900">
@@ -662,7 +662,7 @@ export function InvoiceLookupPage() {
                   value={editNote}
                   disabled={!canEdit(selected)}
                   onChange={(e) => setEditNote(e.target.value)}
-                  className="h-11 rounded-xl border border-slate-200 bg-white px-4 text-sm shadow-sm outline-none transition-all focus:border-action focus:ring-1 focus:ring-action disabled:bg-slate-50 disabled:opacity-50"
+                  className="h-11 rounded-xl border border-slate-200 bg-white px-4 text-sm shadow-sm outline-none transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out focus:border-action focus:ring-1 focus:ring-action disabled:bg-slate-50 disabled:opacity-50"
                 />
               </label>
 
@@ -679,7 +679,7 @@ export function InvoiceLookupPage() {
                           )
                         )
                       }
-                      className="h-11 rounded-xl border border-slate-200 bg-slate-50 px-4 text-sm font-semibold text-slate-900 shadow-sm outline-none transition-all focus:border-action focus:ring-1 focus:ring-action disabled:opacity-50"
+                      className="h-11 rounded-xl border border-slate-200 bg-slate-50 px-4 text-sm font-semibold text-slate-900 shadow-sm outline-none transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out focus:border-action focus:ring-1 focus:ring-action disabled:opacity-50"
                     >
                       {PAYMENT_MODES.map((mode) => (
                         <option key={mode} value={mode}>
@@ -697,7 +697,7 @@ export function InvoiceLookupPage() {
                           )
                         )
                       }
-                      className="h-11 rounded-xl border border-slate-200 bg-white px-4 text-right font-mono text-sm shadow-sm outline-none transition-all focus:border-action focus:ring-1 focus:ring-action disabled:bg-slate-50 disabled:opacity-50"
+                      className="h-11 rounded-xl border border-slate-200 bg-white px-4 text-right font-mono text-sm shadow-sm outline-none transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out focus:border-action focus:ring-1 focus:ring-action disabled:bg-slate-50 disabled:opacity-50"
                     />
                   </div>
                 ))}
@@ -709,7 +709,7 @@ export function InvoiceLookupPage() {
                 <button
                   type="button"
                   onClick={() => openVoidDialog(selected)}
-                  className="flex h-11 items-center justify-center rounded-xl bg-red-50 px-6 text-sm font-bold tracking-wide text-red-500 shadow-sm transition-all hover:bg-red-100 hover:text-red-700 active:scale-95"
+                  className="flex h-11 items-center justify-center rounded-xl bg-red-50 px-6 text-sm font-bold tracking-wide text-red-500 shadow-sm transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:bg-red-100 hover:text-red-700 active:scale-[0.97]"
                 >
                   Void
                 </button>
@@ -717,7 +717,7 @@ export function InvoiceLookupPage() {
               <button
                 type="button"
                 onClick={closeEdit}
-                className="flex h-11 items-center justify-center rounded-xl bg-slate-100 px-6 text-sm font-semibold tracking-wide text-slate-600 shadow-sm transition-all duration-200 hover:bg-slate-200 hover:text-slate-900 active:scale-95"
+                className="flex h-11 items-center justify-center rounded-xl bg-slate-100 px-6 text-sm font-semibold tracking-wide text-slate-600 shadow-sm transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:bg-slate-200 hover:text-slate-900 active:scale-[0.97]"
               >
                 Cancel
               </button>
@@ -799,7 +799,7 @@ function SettlementSummaryDialog({
       aria-modal="true"
       aria-labelledby="settlement-summary-title"
     >
-      <section className="flex w-full max-w-xl flex-col gap-6 overflow-hidden rounded-[24px] bg-white shadow-[0_20px_60px_rgba(0,0,0,0.1)] ring-1 ring-slate-200/50 p-6">
+      <section className="flex w-full max-w-xl flex-col gap-6 overflow-hidden rounded-xl bg-white shadow-[0_20px_60px_rgba(0,0,0,0.1)] ring-1 ring-slate-200/50 p-6">
         <header>
           <h2 id="settlement-summary-title" className="text-xl font-light tracking-tight text-slate-900">
             {shop.name}
@@ -832,14 +832,14 @@ function SettlementSummaryDialog({
           <button
             type="button"
             onClick={onCancel}
-            className="flex h-11 items-center justify-center rounded-xl bg-white px-6 text-sm font-semibold tracking-wide text-slate-600 shadow-sm ring-1 ring-slate-200 transition-all duration-200 hover:bg-slate-50 hover:text-slate-900 active:scale-95"
+            className="flex h-11 items-center justify-center rounded-xl bg-white px-6 text-sm font-semibold tracking-wide text-slate-600 shadow-sm ring-1 ring-slate-200 transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:bg-slate-50 hover:text-slate-900 active:scale-[0.97]"
           >
             Cancel
           </button>
           <button
             type="button"
             onClick={onContinue}
-            className="flex h-11 items-center justify-center rounded-xl bg-action px-6 text-sm font-bold tracking-wide text-white shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[var(--color-action)]/30 active:scale-95"
+            className="flex h-11 items-center justify-center rounded-xl bg-action px-6 text-sm font-bold tracking-wide text-white shadow-sm transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:-translate-y-0.5 hover:shadow-[var(--color-action)]/30 active:scale-[0.97]"
           >
             Mark Reviewed and Close
           </button>
@@ -879,7 +879,7 @@ function VoidConfirmDialog({
       aria-modal="true"
       aria-labelledby="void-confirm-title"
     >
-      <section className="flex w-full max-w-lg flex-col gap-6 overflow-hidden rounded-[24px] bg-white shadow-[0_20px_60px_rgba(0,0,0,0.1)] ring-1 ring-slate-200/50 p-6">
+      <section className="flex w-full max-w-lg flex-col gap-6 overflow-hidden rounded-xl bg-white shadow-[0_20px_60px_rgba(0,0,0,0.1)] ring-1 ring-slate-200/50 p-6">
         <header>
           <h2 id="void-confirm-title" className="text-xl font-light tracking-tight text-slate-900">
             Invoice #{invoice.invoice_number}
@@ -897,7 +897,7 @@ function VoidConfirmDialog({
             onChange={(e) => onReason(e.target.value)}
             rows={3}
             maxLength={200}
-            className="w-full rounded-xl border border-slate-200 bg-white/50 p-4 text-sm font-medium normal-case text-slate-700 shadow-sm outline-none transition-all hover:bg-white focus:border-action focus:ring-1 focus:ring-action"
+            className="w-full rounded-xl border border-slate-200 bg-white/50 p-4 text-sm font-medium normal-case text-slate-700 shadow-sm outline-none transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:bg-white focus:border-action focus:ring-1 focus:ring-action"
           />
         </label>
         {!isCashier && (
@@ -906,7 +906,7 @@ function VoidConfirmDialog({
             <input
               value={confirmationText}
               onChange={(e) => onConfirmationText(e.target.value)}
-              className="h-11 w-full rounded-xl border border-slate-200 bg-white/50 px-4 text-sm font-medium normal-case text-slate-700 shadow-sm outline-none transition-all hover:bg-white focus:border-action focus:ring-1 focus:ring-action"
+              className="h-11 w-full rounded-xl border border-slate-200 bg-white/50 px-4 text-sm font-medium normal-case text-slate-700 shadow-sm outline-none transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:bg-white focus:border-action focus:ring-1 focus:ring-action"
               autoFocus
             />
           </label>
@@ -916,7 +916,7 @@ function VoidConfirmDialog({
             type="button"
             onClick={onCancel}
             disabled={busy}
-            className="flex h-11 items-center justify-center rounded-xl bg-white px-6 text-sm font-semibold tracking-wide text-slate-600 shadow-sm ring-1 ring-slate-200 transition-all duration-200 hover:bg-slate-50 hover:text-slate-900 active:scale-95 disabled:opacity-50"
+            className="flex h-11 items-center justify-center rounded-xl bg-white px-6 text-sm font-semibold tracking-wide text-slate-600 shadow-sm ring-1 ring-slate-200 transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:bg-slate-50 hover:text-slate-900 active:scale-[0.97] disabled:opacity-50"
           >
             Cancel
           </button>
@@ -924,7 +924,7 @@ function VoidConfirmDialog({
             type="button"
             onClick={onConfirm}
             disabled={!canConfirm || busy}
-            className="flex h-11 items-center justify-center rounded-xl bg-red-600 px-6 text-sm font-bold tracking-wide text-white shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-red-600/30 active:scale-95 disabled:pointer-events-none disabled:opacity-50"
+            className="flex h-11 items-center justify-center rounded-xl bg-red-600 px-6 text-sm font-bold tracking-wide text-white shadow-sm transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:-translate-y-0.5 hover:shadow-red-600/30 active:scale-[0.97] disabled:pointer-events-none disabled:opacity-50"
           >
             {busy ? "Working..." : isCashier ? "Send Approval Request" : "Void Invoice"}
           </button>
@@ -960,7 +960,7 @@ function SettlementConfirmDialog({
       aria-modal="true"
       aria-labelledby="settlement-confirm-title"
     >
-      <section className="flex w-full max-w-xl flex-col gap-6 overflow-hidden rounded-[24px] bg-white shadow-[0_20px_60px_rgba(0,0,0,0.1)] ring-1 ring-slate-200/50 p-6">
+      <section className="flex w-full max-w-xl flex-col gap-6 overflow-hidden rounded-xl bg-white shadow-[0_20px_60px_rgba(0,0,0,0.1)] ring-1 ring-slate-200/50 p-6">
         <header>
           <h2 id="settlement-confirm-title" className="text-xl font-light tracking-tight text-slate-900">
             Confirm close for {shop.name}
@@ -974,7 +974,7 @@ function SettlementConfirmDialog({
           <input
             value={confirmationText}
             onChange={(e) => onConfirmationText(e.target.value)}
-            className="h-11 w-full rounded-xl border border-slate-200 bg-white/50 px-4 text-sm font-medium normal-case text-slate-700 shadow-sm outline-none transition-all hover:bg-white focus:border-action focus:ring-1 focus:ring-action"
+            className="h-11 w-full rounded-xl border border-slate-200 bg-white/50 px-4 text-sm font-medium normal-case text-slate-700 shadow-sm outline-none transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:bg-white focus:border-action focus:ring-1 focus:ring-action"
             autoFocus
           />
         </label>
@@ -985,14 +985,14 @@ function SettlementConfirmDialog({
             onChange={(e) => onNotes(e.target.value)}
             maxLength={500}
             rows={3}
-            className="w-full rounded-xl border border-slate-200 bg-white/50 p-4 text-sm font-medium normal-case text-slate-700 shadow-sm outline-none transition-all hover:bg-white focus:border-action focus:ring-1 focus:ring-action"
+            className="w-full rounded-xl border border-slate-200 bg-white/50 p-4 text-sm font-medium normal-case text-slate-700 shadow-sm outline-none transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:bg-white focus:border-action focus:ring-1 focus:ring-action"
           />
         </label>
         <footer className="flex flex-wrap justify-end gap-3 pt-2">
           <button
             type="button"
             onClick={onCancel}
-            className="flex h-11 items-center justify-center rounded-xl bg-white px-6 text-sm font-semibold tracking-wide text-slate-600 shadow-sm ring-1 ring-slate-200 transition-all duration-200 hover:bg-slate-50 hover:text-slate-900 active:scale-95 disabled:opacity-50"
+            className="flex h-11 items-center justify-center rounded-xl bg-white px-6 text-sm font-semibold tracking-wide text-slate-600 shadow-sm ring-1 ring-slate-200 transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:bg-slate-50 hover:text-slate-900 active:scale-[0.97] disabled:opacity-50"
             disabled={busy}
           >
             Cancel
@@ -1001,7 +1001,7 @@ function SettlementConfirmDialog({
             type="button"
             onClick={onConfirm}
             disabled={confirmationText !== "CLOSE TODAY" || busy}
-            className="flex h-11 items-center justify-center rounded-xl bg-action px-6 text-sm font-bold tracking-wide text-white shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[var(--color-action)]/30 active:scale-95 disabled:pointer-events-none disabled:opacity-50"
+            className="flex h-11 items-center justify-center rounded-xl bg-action px-6 text-sm font-bold tracking-wide text-white shadow-sm transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:-translate-y-0.5 hover:shadow-[var(--color-action)]/30 active:scale-[0.97] disabled:pointer-events-none disabled:opacity-50"
           >
             {busy ? "Closing..." : "Close Today"}
           </button>
@@ -1033,7 +1033,7 @@ function TabButton({
     <button
       type="button"
       onClick={onClick}
-      className={`group relative flex h-11 items-center justify-center gap-2 rounded-full px-6 text-sm font-bold tracking-wide transition-all duration-300 ${
+      className={`group relative flex h-11 items-center justify-center gap-2 rounded-full px-6 text-sm font-bold tracking-wide transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out ${
         active 
           ? "bg-action text-white shadow-[0_4px_20px_rgba(var(--color-action-rgb),0.3)] hover:-translate-y-0.5" 
           : "bg-white text-slate-500 shadow-sm ring-1 ring-slate-200 hover:bg-slate-50 hover:text-slate-700"

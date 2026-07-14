@@ -54,14 +54,14 @@ export function VoidApprovalsPage() {
 
   return (
     <div className="flex flex-col gap-8 font-sans">
-      <header className="flex flex-wrap items-center justify-between gap-4 rounded-[24px] border border-slate-200/50 bg-white/60 p-6 shadow-[0_8px_30px_rgb(0,0,0,0.02)] backdrop-blur-xl">
+      <header className="flex flex-wrap items-center justify-between gap-4 rounded-xl border border-slate-200/50 bg-white/60 p-6 shadow-[0_8px_30px_rgb(0,0,0,0.02)] backdrop-blur-xl">
         <h1 className="flex items-center gap-3 text-2xl font-light tracking-tight text-slate-900">
           <ShieldAlert className="h-6 w-6 text-action" /> Void approvals
         </h1>
         <button
           type="button"
           onClick={() => void reload()}
-          className="group flex h-10 items-center justify-center rounded-xl bg-white px-5 text-sm font-semibold tracking-wide text-slate-700 shadow-sm ring-1 ring-slate-200 transition-all duration-300 hover:scale-[1.02] hover:bg-slate-50 hover:shadow-md active:scale-95"
+          className="group flex h-10 items-center justify-center rounded-xl bg-white px-5 text-sm font-semibold tracking-wide text-slate-700 shadow-sm ring-1 ring-slate-200 transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:scale-[1.02] hover:bg-slate-50 hover:shadow-md active:scale-[0.97]"
         >
           <RefreshCw className="h-4 w-4 text-slate-400 transition-transform duration-300 group-hover:rotate-180" />
           <span className="ml-2">Refresh</span>
@@ -80,7 +80,7 @@ export function VoidApprovalsPage() {
       )}
 
       {items === null ? (
-        <div className="flex h-32 items-center justify-center rounded-[24px] border border-slate-200/50 bg-white/60 p-6 shadow-[0_8px_30px_rgb(0,0,0,0.02)] backdrop-blur-xl">
+        <div className="flex h-32 items-center justify-center rounded-xl border border-slate-200/50 bg-white/60 p-6 shadow-[0_8px_30px_rgb(0,0,0,0.02)] backdrop-blur-xl">
           <div className="text-sm font-medium text-slate-500">Loading…</div>
         </div>
       ) : items.length === 0 ? (
@@ -92,7 +92,7 @@ export function VoidApprovalsPage() {
           {items.map((it) => (
             <li
               key={it.id}
-              className="flex flex-wrap items-center justify-between gap-6 rounded-[24px] border border-slate-200/50 bg-white/60 p-6 shadow-[0_8px_30px_rgb(0,0,0,0.02)] backdrop-blur-xl transition-all duration-300 hover:shadow-md"
+              className="flex flex-wrap items-center justify-between gap-6 rounded-xl border border-slate-200/50 bg-white/60 p-6 shadow-[0_8px_30px_rgb(0,0,0,0.02)] backdrop-blur-xl transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:shadow-md"
             >
               <div className="flex flex-col">
                 <span className="text-xl font-bold tracking-tight text-slate-900">Invoice #{it.invoice_number}</span>
@@ -109,7 +109,7 @@ export function VoidApprovalsPage() {
                   type="button"
                   disabled={busyId === it.id}
                   onClick={() => void act(it.id, () => approveVoid(it.id), "Approve")}
-                  className="flex h-10 items-center justify-center gap-2 rounded-xl bg-action px-5 text-sm font-bold tracking-wide text-white shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[var(--color-action)]/30 active:scale-95 disabled:pointer-events-none disabled:opacity-50"
+                  className="flex h-10 items-center justify-center gap-2 rounded-xl bg-action px-5 text-sm font-bold tracking-wide text-white shadow-sm transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:-translate-y-0.5 hover:shadow-[var(--color-action)]/30 active:scale-[0.97] disabled:pointer-events-none disabled:opacity-50"
                 >
                   <CheckCircle2 className="h-4 w-4" /> Approve
                 </button>
@@ -117,7 +117,7 @@ export function VoidApprovalsPage() {
                   type="button"
                   disabled={busyId === it.id}
                   onClick={() => void act(it.id, () => rejectVoid(it.id), "Reject")}
-                  className="flex h-10 items-center justify-center gap-2 rounded-xl bg-red-50 px-5 text-sm font-semibold tracking-wide text-red-600 shadow-sm ring-1 ring-red-200 transition-all duration-200 hover:bg-red-100 disabled:opacity-50"
+                  className="flex h-10 items-center justify-center gap-2 rounded-xl bg-red-50 px-5 text-sm font-semibold tracking-wide text-red-600 shadow-sm ring-1 ring-red-200 transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:bg-red-100 disabled:opacity-50"
                 >
                   <XCircle className="h-4 w-4" /> Reject
                 </button>
