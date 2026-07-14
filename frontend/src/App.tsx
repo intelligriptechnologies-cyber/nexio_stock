@@ -40,7 +40,7 @@ function AuthedShell({ children }: { children: JSX.Element }) {
   return (
     <div className="h-full bg-slate-50 text-slate-900">
       <Sidebar />
-      <main className="h-full overflow-y-auto p-4 md:ml-64 md:p-8">{children}</main>
+      <main className="h-full overflow-y-auto p-margin-mobile md:ml-64 md:p-margin-desktop animate-fade-in">{children}</main>
     </div>
   );
 }
