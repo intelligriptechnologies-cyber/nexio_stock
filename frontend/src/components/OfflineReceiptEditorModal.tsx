@@ -172,27 +172,27 @@ export function OfflineReceiptEditorModal({
 
   return (
     <div
-      className="fixed inset-0 z-40 flex items-center justify-center bg-black/50 p-stack-gap"
+      className="fixed inset-0 z-40 flex items-center justify-center bg-slate-900/40 p-4 backdrop-blur-sm transition-opacity"
       role="dialog"
       aria-modal="true"
       aria-labelledby="offline-receipt-editor-title"
     >
-      <div className="flex max-h-[90vh] w-full max-w-3xl flex-col gap-stack-gap overflow-y-auto rounded-lg bg-surface-container p-gutter">
-        <header className="flex items-start justify-between gap-stack-gap">
+      <div className="flex max-h-[90vh] w-full max-w-4xl flex-col gap-6 overflow-y-auto rounded-[24px] bg-white p-8 shadow-[0_20px_60px_rgba(0,0,0,0.1)] ring-1 ring-slate-200/50">
+        <header className="flex items-start justify-between gap-4">
           <div>
-            <h2 id="offline-receipt-editor-title" className="text-headline-md text-primary">
+            <h2 id="offline-receipt-editor-title" className="text-xl font-light tracking-tight text-slate-900">
               Edit {receipt.temp_receipt_id}
             </h2>
-            <p className="mt-1 text-label-md text-on-surface-variant">
+            <p className="mt-2 text-sm text-slate-500">
               Temporary receipts stay local until sync. Edits here update the offline stock snapshot.
             </p>
           </div>
-          <div className="flex gap-stack-gap">
+          <div className="flex items-center gap-3">
             <button
               type="button"
               onClick={onDelete}
               disabled={busy}
-              className="rounded-md bg-error px-stack-gap py-2 text-label-md text-on-error disabled:opacity-50"
+              className="flex h-11 items-center justify-center rounded-xl bg-red-50 px-6 text-sm font-bold tracking-wide text-red-600 shadow-sm transition-all duration-200 hover:bg-red-100 active:scale-95 disabled:pointer-events-none disabled:opacity-50"
             >
               Delete
             </button>
@@ -200,7 +200,7 @@ export function OfflineReceiptEditorModal({
               type="button"
               onClick={onCancel}
               disabled={busy}
-              className="flex h-12 w-12 items-center justify-center rounded-md bg-surface-container-high text-[28px] font-black leading-none text-on-surface"
+              className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 text-slate-500 transition-colors hover:bg-slate-200 hover:text-slate-900 disabled:opacity-50"
               aria-label="Close receipt editor"
             >
               &times;
@@ -208,10 +208,10 @@ export function OfflineReceiptEditorModal({
           </div>
         </header>
 
-        <div className="grid gap-stack-gap lg:grid-cols-[1.4fr_1fr]">
-          <section className="flex flex-col gap-stack-gap rounded-md bg-surface p-stack-gap">
-            <div className="flex items-end gap-stack-gap">
-              <label className="flex flex-1 flex-col gap-1 text-label-md">
+        <div className="grid gap-6 lg:grid-cols-[1.4fr_1fr]">
+          <section className="flex flex-col gap-6 rounded-[24px] border border-slate-200/50 bg-slate-50/50 p-6">
+            <div className="flex items-end gap-3">
+              <label className="flex flex-1 flex-col gap-1.5 text-xs font-semibold uppercase tracking-wider text-slate-500">
                 Add barcode
                 <input
                   type="text"
@@ -225,7 +225,7 @@ export function OfflineReceiptEditorModal({
                     }
                   }}
                   placeholder="Scan or type barcode"
-                  className="min-h-touchTarget-sm rounded-md border border-outline bg-surface px-stack-gap text-body-md"
+                  className="h-11 w-full rounded-xl border border-slate-200 bg-white/50 px-4 text-sm font-medium normal-case text-slate-700 shadow-sm outline-none transition-all hover:bg-white focus:border-action focus:ring-1 focus:ring-action"
                   disabled={busy}
                 />
               </label>
@@ -233,9 +233,9 @@ export function OfflineReceiptEditorModal({
                 type="button"
                 onClick={addLine}
                 disabled={busy}
-                className="min-h-touchTarget-sm rounded-md bg-action px-stack-gap text-label-md text-on-action"
+                className="flex h-11 items-center justify-center rounded-xl bg-slate-200/50 px-6 text-sm font-bold tracking-wide text-slate-700 shadow-sm transition-all duration-200 hover:bg-slate-200 active:scale-95 disabled:pointer-events-none disabled:opacity-50"
               >
-                Add line
+                Add
               </button>
             </div>
 
@@ -247,30 +247,30 @@ export function OfflineReceiptEditorModal({
               ))}
             </datalist>
 
-            <ul className="flex flex-col gap-stack-gap">
+            <ul className="flex flex-col gap-4">
               {draft.lines.map((line) => {
                 const item = catalogByBarcode.get(line.barcode);
                 return (
-                  <li key={line.barcode} className="flex flex-col gap-3 rounded-md border border-outline/60 bg-surface-container-high p-stack-gap">
-                    <div className="flex items-start justify-between gap-stack-gap">
+                  <li key={line.barcode} className="flex flex-col gap-4 rounded-[16px] border border-slate-200/50 bg-white p-5 shadow-sm">
+                    <div className="flex items-start justify-between gap-4">
                       <div>
-                        <div className="text-label-xl text-on-surface">{item ? item.brand : line.barcode}</div>
-                        <div className="text-label-md text-on-surface-variant">
+                        <div className="text-base font-semibold text-slate-900">{item ? item.brand : line.barcode}</div>
+                        <div className="text-sm font-medium text-slate-500">
                           {item ? item.size_label : "Unknown product"}
                         </div>
-                        <div className="font-mono text-label-md text-on-surface-variant">{line.barcode}</div>
+                        <div className="font-mono text-xs text-slate-400">{line.barcode}</div>
                       </div>
                       <button
                         type="button"
                         onClick={() => removeLine(line.barcode)}
                         disabled={busy}
-                        className="rounded-md bg-error px-stack-gap py-2 text-label-md text-on-error"
+                        className="rounded-md px-3 py-1 text-xs font-semibold text-red-500 transition-colors hover:bg-red-50 hover:text-red-600 disabled:opacity-50"
                       >
                         Remove
                       </button>
                     </div>
-                    <div className="flex items-center justify-between gap-stack-gap">
-                      <label className="flex items-center gap-2 text-label-md">
+                    <div className="flex items-center justify-between gap-4 border-t border-slate-100 pt-3">
+                      <label className="flex items-center gap-3 text-sm font-semibold uppercase tracking-wider text-slate-500">
                         Qty
                         <input
                           type="number"
@@ -278,11 +278,11 @@ export function OfflineReceiptEditorModal({
                           step="1"
                           value={line.quantity}
                           onChange={(e) => updateLine(line.barcode, Number(e.target.value))}
-                          className="h-12 w-20 rounded-md border border-outline bg-surface text-center font-mono text-body-md"
+                          className="h-11 w-20 rounded-xl border border-slate-200 bg-white/50 text-center font-mono text-sm font-medium normal-case text-slate-700 shadow-sm outline-none transition-all hover:bg-white focus:border-action focus:ring-1 focus:ring-action"
                           disabled={busy}
                         />
                       </label>
-                      <div className="font-mono text-body-md">
+                      <div className="font-mono text-lg font-medium text-slate-900">
                         {item ? `₹${moneyString(parseMoney(item.price) * line.quantity)}` : "--"}
                       </div>
                     </div>
@@ -290,98 +290,101 @@ export function OfflineReceiptEditorModal({
                 );
               })}
               {draft.lines.length === 0 && (
-                <li className="rounded-md bg-surface-container-high px-stack-gap py-3 text-label-md text-on-surface-variant">
+                <li className="rounded-xl border border-dashed border-slate-300 py-8 text-center text-sm font-medium text-slate-500">
                   No line items yet.
                 </li>
               )}
             </ul>
           </section>
 
-          <aside className="flex flex-col gap-stack-gap rounded-md bg-surface p-stack-gap">
-            <div className="rounded-md bg-primary p-stack-gap text-on-primary">
-              <div className="text-label-md uppercase">Receipt total</div>
-              <div className="font-mono text-headline-md">₹{moneyString(lineTotalCents)}</div>
+          <aside className="flex flex-col gap-6 rounded-[24px] border border-slate-200/50 bg-slate-50/50 p-6">
+            <div className="relative overflow-hidden rounded-[20px] bg-slate-900 p-6 text-white shadow-lg">
+              <div className="pointer-events-none absolute -right-10 -top-10 h-32 w-32 rounded-full bg-gradient-to-br from-indigo-500/30 to-purple-500/30 blur-2xl" />
+              <div className="relative z-10 text-xs font-bold uppercase tracking-widest text-slate-400">Receipt total</div>
+              <div className="relative z-10 mt-2 font-mono text-4xl font-light tracking-tight">₹{moneyString(lineTotalCents)}</div>
             </div>
 
             <div className="flex items-center justify-between">
-              <h3 className="text-headline-sm text-on-surface">Payments</h3>
+              <h3 className="text-lg font-light tracking-tight text-slate-900">Payments</h3>
               <button
                 type="button"
                 onClick={addPayment}
                 disabled={busy}
-                className="rounded-md bg-surface-container-high px-stack-gap py-1 text-label-md text-on-surface-variant"
+                className="flex items-center justify-center rounded-xl bg-white px-3 py-1 text-xs font-bold tracking-wide text-slate-600 shadow-sm ring-1 ring-slate-200 transition-all duration-200 hover:bg-slate-50 hover:text-slate-900 active:scale-95 disabled:pointer-events-none disabled:opacity-50"
               >
                 + Split
               </button>
             </div>
 
-            {draft.payments.map((payment, idx) => (
-              <div key={idx} className="flex items-center gap-stack-gap">
-                <select
-                  value={payment.mode}
-                  onChange={(e) => setPaymentMode(idx, e.target.value as PaymentMode)}
-                  className="min-h-touchTarget-sm flex-1 rounded-md border border-outline bg-surface px-stack-gap text-body-md"
-                  disabled={busy}
-                >
-                  {PAYMENT_MODES.map((mode) => (
-                    <option key={mode} value={mode}>
-                      {formatPaymentLabel(mode)}
-                    </option>
-                  ))}
-                </select>
-                <input
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  value={payment.amount}
-                  onChange={(e) => setPaymentAmount(idx, e.target.value)}
-                  className="min-h-touchTarget-sm w-32 rounded-md border border-outline bg-surface px-stack-gap text-right font-mono text-body-md"
-                  disabled={busy}
-                />
-                {draft.payments.length > 1 && (
-                  <button
-                    type="button"
-                    onClick={() => removePayment(idx)}
+            <div className="flex flex-col gap-3">
+              {draft.payments.map((payment, idx) => (
+                <div key={idx} className="flex items-center gap-3">
+                  <select
+                    value={payment.mode}
+                    onChange={(e) => setPaymentMode(idx, e.target.value as PaymentMode)}
+                    className="h-11 flex-1 rounded-xl border border-slate-200 bg-white/50 px-4 text-sm font-medium text-slate-700 shadow-sm outline-none transition-all hover:bg-white focus:border-action focus:ring-1 focus:ring-action"
                     disabled={busy}
-                    className="flex h-12 w-12 items-center justify-center rounded-md bg-error text-[28px] font-black leading-none text-on-error"
-                    aria-label="Remove payment split"
                   >
-                    &times;
-                  </button>
-                )}
-              </div>
-            ))}
+                    {PAYMENT_MODES.map((mode) => (
+                      <option key={mode} value={mode}>
+                        {formatPaymentLabel(mode)}
+                      </option>
+                    ))}
+                  </select>
+                  <input
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    value={payment.amount}
+                    onChange={(e) => setPaymentAmount(idx, e.target.value)}
+                    className="h-11 w-28 rounded-xl border border-slate-200 bg-white/50 px-4 text-right font-mono text-sm font-medium text-slate-700 shadow-sm outline-none transition-all hover:bg-white focus:border-action focus:ring-1 focus:ring-action"
+                    disabled={busy}
+                  />
+                  {draft.payments.length > 1 && (
+                    <button
+                      type="button"
+                      onClick={() => removePayment(idx)}
+                      disabled={busy}
+                      className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-red-50 text-[24px] font-black leading-none text-red-500 transition-colors hover:bg-red-100 disabled:opacity-50"
+                      aria-label="Remove payment split"
+                    >
+                      &times;
+                    </button>
+                  )}
+                </div>
+              ))}
+            </div>
 
-            <div className="flex justify-between text-label-md text-on-surface-variant">
+            <div className="flex justify-between border-t border-slate-200/60 pt-4 text-sm font-semibold uppercase tracking-wider text-slate-500">
               <span>Payments sum</span>
-              <span className={`font-mono ${paymentTotalCents === lineTotalCents ? "text-success" : "text-error"}`}>
+              <span className={`font-mono text-base ${paymentTotalCents === lineTotalCents ? "text-emerald-600" : "text-red-500"}`}>
                 ₹{moneyString(paymentTotalCents)}
               </span>
             </div>
 
-            <label className="flex flex-col gap-1 text-label-md">
+            <label className="flex flex-col gap-1.5 text-xs font-semibold uppercase tracking-wider text-slate-500">
               Note
               <textarea
                 value={draft.note}
                 onChange={(e) => setDraft((current) => ({ ...current, note: e.target.value }))}
                 maxLength={200}
-                rows={5}
-                className="rounded-md border border-outline bg-surface px-stack-gap py-2 text-body-md"
+                rows={3}
+                className="w-full rounded-xl border border-slate-200 bg-white/50 p-4 text-sm font-medium normal-case text-slate-700 shadow-sm outline-none transition-all hover:bg-white focus:border-action focus:ring-1 focus:ring-action"
                 disabled={busy}
               />
             </label>
 
             {error && (
-              <div role="alert" className="rounded-md bg-error px-stack-gap py-3 text-on-error">
+              <div role="alert" className="rounded-xl bg-red-50 px-4 py-3 text-sm font-medium text-red-600 ring-1 ring-red-200">
                 {error}
               </div>
             )}
 
-            <div className="flex gap-stack-gap">
+            <div className="flex flex-wrap justify-end gap-3 pt-4 border-t border-slate-200/60">
               <button
                 type="button"
                 onClick={onCancel}
-                className="min-h-touchTarget flex-1 rounded-md bg-surface-container-high text-label-xl text-on-surface"
+                className="flex h-11 items-center justify-center rounded-xl bg-white px-6 text-sm font-semibold tracking-wide text-slate-600 shadow-sm ring-1 ring-slate-200 transition-all duration-200 hover:bg-slate-50 hover:text-slate-900 active:scale-95 disabled:opacity-50"
                 disabled={busy}
               >
                 Cancel
@@ -390,7 +393,7 @@ export function OfflineReceiptEditorModal({
                 type="button"
                 onClick={save}
                 disabled={!canSave}
-                className="min-h-touchTarget flex-1 rounded-md bg-action text-label-xl text-on-action disabled:opacity-50"
+                className="flex h-11 items-center justify-center rounded-xl bg-action px-6 text-sm font-bold tracking-wide text-white shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[var(--color-action)]/30 active:scale-95 disabled:pointer-events-none disabled:opacity-50"
               >
                 Save changes
               </button>

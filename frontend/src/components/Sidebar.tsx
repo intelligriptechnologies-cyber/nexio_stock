@@ -110,14 +110,14 @@ export function Sidebar() {
       to={it.to}
       onClick={() => setOpen(false)}
       className={({ isActive }) =>
-        `flex min-h-[52px] items-center pl-9 pr-stack-gap text-left text-label-md font-bold transition ${
+        `group relative mx-4 my-1 flex min-h-[44px] items-center rounded-[14px] px-4 text-sm font-medium tracking-wide transition-all duration-300 overflow-hidden ${
           isActive
-            ? "bg-sidebar-active text-on-sidebar-active shadow-sm"
-            : "text-on-sidebar-muted hover:bg-sidebar-hover hover:text-on-sidebar"
+            ? "bg-white text-slate-900 shadow-[0_2px_12px_rgba(0,0,0,0.06)] ring-1 ring-slate-200/50"
+            : "text-slate-500 hover:bg-slate-50 hover:text-slate-900"
         }`
       }
     >
-      <span className="flex-1">
+      <span className="flex-1 transition-transform duration-300 group-hover:translate-x-1">
         {it.to === "/admin/pending"
           ? `Pending (${pendingCount})`
           : it.to === "/admin/voids"
@@ -125,12 +125,12 @@ export function Sidebar() {
             : it.label}
       </span>
       {it.to === "/admin/pending" && pendingCount > 0 && (
-        <span className="rounded bg-action px-2 py-0.5 text-label-md text-on-action">
+        <span className="animate-in zoom-in ml-2 flex h-5 items-center justify-center rounded-full bg-action px-2 text-[10px] font-bold text-on-action shadow-sm">
           NEW
         </span>
       )}
       {it.to === "/admin/voids" && voidApprovalCount > 0 && (
-        <span className="rounded bg-action px-2 py-0.5 text-label-md text-on-action">
+        <span className="animate-in zoom-in ml-2 flex h-5 items-center justify-center rounded-full bg-action px-2 text-[10px] font-bold text-on-action shadow-sm">
           NEW
         </span>
       )}
@@ -143,51 +143,57 @@ export function Sidebar() {
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className="fixed left-3 top-3 z-40 flex h-12 w-12 items-center justify-center rounded-md bg-action text-on-action md:hidden"
+        className="fixed left-4 top-4 z-40 flex h-11 w-11 items-center justify-center rounded-xl bg-action/90 text-on-action shadow-lg backdrop-blur-md transition-all duration-300 hover:scale-105 hover:bg-action active:scale-95 md:hidden"
         aria-label="Toggle menu"
       >
-        <span className="flex flex-col gap-1" aria-hidden="true">
-          <span className="block h-0.5 w-5 rounded bg-current" />
-          <span className="block h-0.5 w-5 rounded bg-current" />
-          <span className="block h-0.5 w-5 rounded bg-current" />
+        <span className="flex flex-col gap-1.5" aria-hidden="true">
+          <span className={`block h-0.5 w-5 rounded-full bg-current transition-transform duration-300 ${open ? "translate-y-2 rotate-45" : ""}`} />
+          <span className={`block h-0.5 w-5 rounded-full bg-current transition-opacity duration-300 ${open ? "opacity-0" : ""}`} />
+          <span className={`block h-0.5 w-5 rounded-full bg-current transition-transform duration-300 ${open ? "-translate-y-2 -rotate-45" : ""}`} />
         </span>
       </button>
 
       {/* Drawer overlay on mobile, fixed sidebar on desktop */}
       <aside
-        className={`fixed inset-y-0 left-0 z-30 flex w-64 flex-col border-r border-outline bg-sidebar text-on-sidebar transition-transform md:translate-x-0 ${
+        className={`fixed inset-y-0 left-0 z-30 flex w-[280px] flex-col border-r border-slate-200/60 bg-white/70 text-slate-900 shadow-[20px_0_60px_rgba(0,0,0,0.03)] backdrop-blur-2xl transition-transform duration-500 ease-out md:translate-x-0 ${
           open ? "translate-x-0" : "-translate-x-full"
         }`}
         aria-label="Main navigation"
       >
-        <div className="flex h-16 shrink-0 items-center justify-start border-b border-outline pl-5 pr-stack-gap text-left text-headline-md font-bold">
+        <div className="flex h-20 shrink-0 items-center justify-start px-8 text-left text-xl font-light tracking-tight text-slate-900">
           {displayName}
         </div>
-        <ShopPicker />
-        <nav className="flex flex-1 flex-col gap-1 overflow-y-auto py-2">
+        <div className="px-3 py-3">
+          <ShopPicker />
+        </div>
+        <nav className="custom-scrollbar flex flex-1 flex-col gap-1 overflow-y-auto pb-6 pt-2">
           {mainItems.map(renderNavItem)}
           {adminSupportItems.length > 0 && (
-            <div className="pt-2">
+            <div className="mt-6 pt-4">
+              <div className="px-8 mb-3 text-[11px] font-bold uppercase tracking-widest text-slate-400">System</div>
               <div className="flex flex-col gap-1">{adminSupportItems.map(renderNavItem)}</div>
             </div>
           )}
         </nav>
-        <div className="shrink-0 border-t border-outline p-stack-gap">
-          <div className="mb-stack-gap flex items-center gap-2 text-label-md">
-            <span className={`h-2.5 w-2.5 rounded-full ${connectivityDotClass}`} aria-hidden="true" />
-            <span>{connectivityLabel}</span>
+        <div className="shrink-0 border-t border-slate-200/50 bg-slate-50/50 p-6 backdrop-blur-sm">
+          <div className="mb-5 flex items-center gap-3 text-sm">
+            <span className="relative flex h-2 w-2">
+              <span className={`absolute inline-flex h-full w-full animate-ping rounded-full opacity-75 ${connectivityDotClass}`} aria-hidden="true" />
+              <span className={`relative inline-flex h-2 w-2 rounded-full ${connectivityDotClass}`} aria-hidden="true" />
+            </span>
+            <span className="font-medium text-slate-600">{connectivityLabel}</span>
           </div>
-          <div className="text-label-md">{user.fullName}</div>
-          <div className="text-label-md text-on-sidebar-muted">{user.role}</div>
+          <div className="mb-1 text-sm font-semibold tracking-tight text-slate-900">{user.fullName}</div>
+          <div className="text-[11px] font-bold uppercase tracking-widest text-slate-400">{user.role}</div>
           <button
             type="button"
             onClick={() => {
               logout();
               navigate("/login");
             }}
-            className="mt-stack-gap w-full min-h-touchTarget-sm rounded-md bg-logout text-on-logout"
+            className="group relative mt-5 flex h-10 w-full items-center justify-center overflow-hidden rounded-xl bg-logout text-xs font-bold tracking-wide text-on-logout shadow-sm transition-all duration-300 hover:scale-[1.02] hover:shadow-md active:scale-95"
           >
-            Logout
+            <span className="relative z-10 transition-transform duration-300 group-hover:translate-x-1">Logout</span>
           </button>
         </div>
       </aside>
@@ -195,7 +201,7 @@ export function Sidebar() {
       {open && (
         <div
           onClick={() => setOpen(false)}
-          className="fixed inset-0 z-20 bg-black/40 md:hidden"
+          className="fixed inset-0 z-20 bg-black/40 backdrop-blur-sm transition-opacity duration-500 md:hidden"
           aria-hidden="true"
         />
       )}
