@@ -45,6 +45,7 @@ import { useQuickAdd } from "../hooks/useQuickAdd";
 import { probeHealthz, useConnectivityStatus } from "../hooks/useOnlineStatus";
 import { useRetryQueue } from "../hooks/useRetryQueue";
 import { useShopScope } from "../auth/ShopScopeProvider";
+import { RefreshCw, ShoppingBag, CreditCard, ShoppingCart } from "lucide-react";
 
 interface CartLine {
   lineId: string;
@@ -1144,7 +1145,7 @@ export function CheckoutPage() {
           rest of the sale. */}
       {quickAdd && (
         <div
-          className="fixed inset-0 z-30 flex items-center justify-center bg-black/50 p-stack-gap"
+          className="fixed inset-0 z-30 flex items-center justify-center bg-slate-900/40 p-4 backdrop-blur-sm transition-opacity"
           role="dialog"
           aria-modal="true"
           aria-labelledby="quick-add-title"
@@ -1161,11 +1162,13 @@ export function CheckoutPage() {
         </div>
       )}
 
-      <div className="grid gap-gutter lg:grid-cols-[2fr_1fr]">
+      <div className="grid gap-8 font-sans lg:grid-cols-[2fr_1fr]">
       {/* LEFT — cart */}
-      <section className="flex flex-col gap-stack-gap rounded-lg bg-surface-container p-gutter">
+      <section className="flex flex-col gap-6 rounded-[32px] border border-slate-200/50 bg-white/60 p-8 shadow-[0_8px_40px_rgb(0,0,0,0.02)] backdrop-blur-xl">
         <header className="flex items-center justify-between">
-          <h1 className="text-headline-md text-primary">Checkout</h1>
+          <h1 className="flex items-center gap-2 text-2xl font-light tracking-tight text-slate-900">
+            <ShoppingCart className="h-6 w-6 text-action" /> Checkout
+          </h1>
           <div className="flex items-center gap-stack-gap text-label-md text-on-surface-variant">
             <span>{catalogReady ? "Catalog cached" : "Loading catalog…"}</span>
             <button
@@ -1176,9 +1179,9 @@ export function CheckoutPage() {
                 void prefetchCatalog(actingShopId).then(() => setCatalogReady(true));
               }}
               disabled={Boolean(offlineSession) || checkoutLocked}
-              className="rounded-md bg-surface-container-high px-stack-gap py-1 text-on-surface-variant disabled:opacity-50"
+              className="group flex h-8 items-center gap-2 rounded-md bg-slate-100 px-3 text-xs font-semibold text-slate-600 transition-colors hover:bg-slate-200 disabled:opacity-50"
             >
-              Refresh
+              <RefreshCw className="h-3 w-3 transition-transform duration-300 group-hover:rotate-180" /> Refresh
             </button>
           </div>
         </header>
@@ -1255,9 +1258,9 @@ export function CheckoutPage() {
           {cart.map((l) => (
             <li
               key={l.lineId}
-              className="flex items-center justify-between rounded-md bg-surface px-stack-gap py-3 shadow-sm"
+              className="group flex flex-col gap-4 rounded-[24px] bg-white p-5 shadow-[0_4px_20px_rgba(0,0,0,0.03)] ring-1 ring-slate-200/50 transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_12px_40px_rgba(0,0,0,0.06)] sm:flex-row sm:items-center sm:justify-between"
             >
-              <div className="flex flex-col">
+              <div className="flex flex-col gap-0.5">
                               <span className="text-label-xl text-on-surface">{l.product.brand}</span>
                               <span className="text-label-md text-on-surface-variant">{l.product.size_label}</span>
                               <span className="font-mono text-label-md text-on-surface-variant">
@@ -1280,12 +1283,12 @@ export function CheckoutPage() {
                                 </span>
                               )}
                             </div>
-              <div className="flex items-center gap-stack-gap">
+              <div className="flex items-center gap-4">
                 <button
                   type="button"
                   onClick={() => changeQty(l.lineId, -1)}
                   disabled={checkoutLocked}
-                  className="flex h-12 w-12 items-center justify-center rounded-md bg-surface-container-high text-[28px] font-black leading-none text-on-surface"
+                  className="flex h-11 w-11 items-center justify-center rounded-full bg-slate-100 text-xl font-medium text-slate-600 transition-colors hover:bg-slate-200 active:bg-slate-300 disabled:opacity-50"
                   aria-label="Decrease quantity"
                 >
                   −
@@ -1313,7 +1316,7 @@ export function CheckoutPage() {
                       void validateLineQuantity(l.lineId, Number(e.currentTarget.value));
                     }
                   }}
-                  className="h-12 w-16 rounded-md border border-outline bg-surface text-center font-mono text-headline-md"
+                  className="h-11 w-16 rounded-xl border-none bg-slate-50 text-center font-mono text-lg font-semibold text-slate-900 shadow-inner outline-none ring-1 ring-inset ring-slate-200 focus:ring-2 focus:ring-action disabled:opacity-50"
                   aria-label="Quantity"
                   disabled={checkoutLocked}
                 />
@@ -1321,20 +1324,19 @@ export function CheckoutPage() {
                   type="button"
                   onClick={() => changeQty(l.lineId, +1)}
                   disabled={checkoutLocked}
-                  className="flex h-12 w-12 items-center justify-center rounded-md bg-surface-container-high text-[28px] font-black leading-none text-on-surface"
+                  className="flex h-11 w-11 items-center justify-center rounded-full bg-slate-100 text-xl font-medium text-slate-600 transition-colors hover:bg-slate-200 active:bg-slate-300 disabled:opacity-50"
                   aria-label="Increase quantity"
                 >
                   +
                 </button>
-                <span className="w-24 text-right font-mono text-headline-md text-on-surface">
-                  ₹
-                  {moneyString(parseMoney(l.product.price ?? "0") * l.quantity)}
+                <span className="w-24 text-right font-mono text-xl font-medium text-slate-900">
+                  ₹{moneyString(parseMoney(l.product.price ?? "0") * l.quantity)}
                 </span>
                 <button
                   type="button"
                   onClick={() => removeLine(l.lineId)}
                   disabled={checkoutLocked}
-                  className="flex h-12 w-12 items-center justify-center rounded-md bg-error text-[28px] font-black leading-none text-on-error"
+                  className="flex h-11 w-11 items-center justify-center rounded-full bg-red-50 text-xl font-medium text-red-500 opacity-0 transition-all duration-300 hover:bg-red-100 active:bg-red-200 group-hover:opacity-100 disabled:opacity-50"
                   aria-label="Remove line"
                 >
                   ×
@@ -1346,15 +1348,20 @@ export function CheckoutPage() {
       </section>
 
       {/* RIGHT — payment + finalize */}
-      <aside className="flex flex-col gap-stack-gap rounded-lg bg-surface-container p-gutter">
-        <div className="rounded-md bg-primary p-gutter text-on-primary">
-          <div className="text-label-md uppercase">Total Payable</div>
-          <div className="font-mono text-display-lg">{totalLabel}</div>
+      <aside className="flex flex-col gap-6 rounded-[32px] border border-slate-200/50 bg-white/60 p-8 shadow-[0_8px_40px_rgb(0,0,0,0.02)] backdrop-blur-xl">
+        <div className="relative overflow-hidden rounded-[24px] bg-slate-900 p-8 text-white shadow-lg">
+          <div className="pointer-events-none absolute -right-10 -top-10 h-40 w-40 rounded-full bg-gradient-to-br from-indigo-500/30 to-purple-500/30 blur-2xl" />
+          <div className="relative z-10 flex items-center gap-2 text-[11px] font-bold uppercase tracking-widest text-slate-400">
+            <ShoppingBag className="h-4 w-4" /> Total Payable
+          </div>
+          <div className="relative z-10 mt-2 font-mono text-5xl font-light tracking-tight">{totalLabel}</div>
         </div>
 
-        <div className="flex flex-col gap-stack-gap">
+        <div className="flex flex-col gap-6">
           <div className="flex items-center justify-between">
-            <h2 className="text-headline-md text-on-surface">Payment</h2>
+            <h2 className="flex items-center gap-2 text-xl font-light tracking-tight text-slate-900">
+              <CreditCard className="h-5 w-5 text-action" /> Payment
+            </h2>
               <button
                 type="button"
                 onClick={addPayment}
@@ -1431,9 +1438,12 @@ export function CheckoutPage() {
           type="button"
           onClick={finalize}
           disabled={!canFinalize}
-          className="min-h-touchTarget rounded-md bg-action text-label-xl text-on-action disabled:opacity-50"
+          className="group relative flex min-h-[64px] w-full items-center justify-center overflow-hidden rounded-[20px] bg-action text-lg font-bold tracking-wide text-on-action shadow-lg transition-all duration-300 hover:-translate-y-1 hover:shadow-[var(--color-action)]/30 active:scale-[0.98] disabled:opacity-50 disabled:hover:translate-y-0 disabled:hover:shadow-none"
         >
-          {busy ? "Finishing..." : offlineSession ? "Save temporary receipt" : "Finish & pay"}
+          <div className="absolute inset-0 flex h-full w-full justify-center [transform:skew(-12deg)_translateX(-150%)] group-hover:duration-1000 group-hover:[transform:skew(-12deg)_translateX(150%)]">
+            <div className="relative h-full w-8 bg-white/20" />
+          </div>
+          <span className="relative z-10">{busy ? "Finishing..." : offlineSession ? "Save temporary receipt" : "Finish & Pay"}</span>
         </button>
 
         {error && (
@@ -1451,20 +1461,20 @@ export function CheckoutPage() {
       {/* Modal-ish invoice preview */}
       {lastInvoice && (
         <div
-          className="fixed inset-0 z-30 flex items-center justify-center bg-black/50 p-stack-gap"
+          className="fixed inset-0 z-30 flex items-center justify-center bg-slate-900/40 p-4 backdrop-blur-sm transition-opacity"
           role="dialog"
           aria-modal="true"
         >
-          <div className="flex max-h-[90vh] w-full max-w-2xl flex-col gap-stack-gap overflow-y-auto rounded-lg bg-surface-container p-gutter">
-            <header className="flex items-center justify-between">
-              <h2 className="text-headline-md text-primary">
+          <div className="flex max-h-[90vh] w-full max-w-2xl flex-col gap-6 overflow-y-auto rounded-[24px] bg-white p-8 shadow-[0_20px_60px_rgba(0,0,0,0.1)] ring-1 ring-slate-200/50">
+            <header className="flex items-start justify-between gap-4">
+              <h2 className="text-xl font-light tracking-tight text-slate-900">
                 Invoice #{lastInvoice.invoice_number}
               </h2>
-              <div className="flex gap-stack-gap">
+              <div className="flex items-center gap-3">
                 <button
                   type="button"
                   onClick={refreshInvoice}
-                  className="rounded-md bg-surface-container-high px-stack-gap py-2 text-label-md"
+                  className="flex h-11 items-center justify-center rounded-xl bg-slate-100 px-4 text-sm font-semibold tracking-wide text-slate-600 shadow-sm transition-all duration-200 hover:bg-slate-200 hover:text-slate-900 active:scale-95"
                 >
                   Refresh
                 </button>
@@ -1472,14 +1482,14 @@ export function CheckoutPage() {
                   type="button"
                   onClick={downloadPdf}
                   disabled={Boolean(offlineSession)}
-                  className="rounded-md bg-primary px-stack-gap py-2 text-label-md text-on-primary disabled:opacity-50"
+                  className="flex h-11 items-center justify-center rounded-xl bg-action px-6 text-sm font-bold tracking-wide text-white shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[var(--color-action)]/30 active:scale-95 disabled:pointer-events-none disabled:opacity-50"
                 >
                   PDF
                 </button>
                 <button
                   type="button"
                   onClick={() => setLastInvoice(null)}
-                  className="flex h-12 w-12 items-center justify-center rounded-md bg-error text-[28px] font-black leading-none text-on-error"
+                  className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 text-slate-500 transition-colors hover:bg-slate-200 hover:text-slate-900"
                   aria-label="Close"
                 >
                   ×

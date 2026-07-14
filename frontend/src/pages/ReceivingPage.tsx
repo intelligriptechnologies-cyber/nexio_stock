@@ -10,6 +10,7 @@ import { useBarcodeScanner } from "../hooks/useBarcodeScanner";
 import { useQuickAdd } from "../hooks/useQuickAdd";
 import { useAuth } from "../auth/AuthProvider";
 import { useShopScope } from "../auth/ShopScopeProvider";
+import { PackagePlus, ScanLine, X, Trash2, CheckCircle2, Save, Receipt, Calendar, FileDigit, IndianRupee } from "lucide-react";
 
 interface ReceivingLine {
   lineId: string;
@@ -277,7 +278,7 @@ export function ReceivingPage() {
   const totalUnits = useMemo(() => lines.reduce((acc, line) => acc + line.quantity, 0), [lines]);
 
   return (
-    <div className="grid gap-gutter lg:grid-cols-[2fr_1fr]">
+    <div className="grid gap-8 font-sans lg:grid-cols-[2fr_1fr]">
       {scanOverlay && (
         <ScanSuccessOverlay
           key={scanOverlay.id}
@@ -287,120 +288,142 @@ export function ReceivingPage() {
         />
       )}
 
-      <section className="flex flex-col gap-stack-gap rounded-lg bg-surface-container p-gutter">
+      <section className="flex flex-col gap-6 rounded-[24px] border border-slate-200/50 bg-white/60 p-8 shadow-[0_8px_30px_rgb(0,0,0,0.02)] backdrop-blur-xl">
         <header className="flex items-center justify-between">
-          <h1 className="text-headline-md text-primary">Stock Receiving</h1>
-          <div className="text-label-md text-on-surface-variant">
-            {catalogReady ? "Catalog cached" : "Loading catalog..."}
+          <h1 className="flex items-center gap-3 text-3xl font-light tracking-tight text-slate-900">
+            <PackagePlus className="h-8 w-8 text-action" /> Stock Receiving
+          </h1>
+          <div className="flex items-center gap-2 text-sm font-medium text-slate-500">
+            {catalogReady ? (
+              <><CheckCircle2 className="h-4 w-4 text-emerald-500" /> Catalog ready</>
+            ) : (
+              "Loading catalog..."
+            )}
           </div>
         </header>
 
-        <form onSubmit={handleSubmitBarcode} className="flex gap-stack-gap">
-          <input
-            type="text"
-            value={barcode}
-            onChange={(e) => setBarcode(e.target.value)}
-            placeholder="Scan or enter barcode"
-            className="min-h-touchTarget flex-1 rounded-md border border-outline bg-surface px-stack-gap text-body-lg"
-            autoFocus
-          />
+        <form onSubmit={handleSubmitBarcode} className="flex gap-4">
+          <div className="relative flex-1">
+            <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4">
+              <ScanLine className="h-5 w-5 text-slate-400" />
+            </div>
+            <input
+              type="text"
+              value={barcode}
+              onChange={(e) => setBarcode(e.target.value)}
+              placeholder="Scan or enter barcode"
+              className="h-14 w-full rounded-xl border border-slate-200 bg-white/50 pl-11 pr-4 text-lg font-medium text-slate-700 shadow-sm outline-none transition-all hover:bg-white focus:border-action focus:ring-2 focus:ring-action/20"
+              autoFocus
+            />
+          </div>
           <button
             type="submit"
-            className="min-h-touchTarget rounded-md bg-action px-gutter text-label-xl text-on-action"
+            className="flex h-14 items-center justify-center rounded-xl bg-action px-8 text-sm font-bold tracking-wide text-white shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[var(--color-action)]/30 active:scale-95 disabled:pointer-events-none disabled:opacity-50"
             disabled={!catalogReady}
           >
             ADD
           </button>
         </form>
 
-        <QuickSearch
-          onPick={addByPick}
-          placeholder="Search by name or barcode"
-          ariaLabel="Quick-search products by name or barcode"
-        />
+        <div className="rounded-xl border border-slate-200/50 bg-white/50 p-1 shadow-sm">
+          <QuickSearch
+            onPick={addByPick}
+            placeholder="Search by name or barcode"
+            ariaLabel="Quick-search products by name or barcode"
+          />
+        </div>
 
-        <ul className="flex flex-col gap-stack-gap">
+        <ul className="mt-4 flex flex-col gap-3">
           {lines.length === 0 && (
-            <li className="rounded-md bg-surface p-stack-gap text-center text-on-surface-variant">
+            <li className="rounded-xl border border-dashed border-slate-300 py-12 text-center text-sm font-medium text-slate-500">
               No items yet. Scan a barcode to begin.
             </li>
           )}
           {lines.map((line) => (
             <li
               key={line.lineId}
-              className="flex items-center justify-between rounded-md bg-surface px-stack-gap py-3 shadow-sm"
+              className="group flex items-center justify-between rounded-xl border border-slate-200/60 bg-white p-4 shadow-sm transition-colors duration-200 hover:bg-slate-50/50 hover:border-slate-300"
             >
               <div className="flex flex-col">
-                <span className="text-label-xl text-on-surface">{line.brand}</span>
-                <span className="text-label-md text-on-surface-variant">{line.sizeLabel}</span>
-                <span className="font-mono text-label-md text-on-surface-variant">{line.barcode}</span>
-                <span className="text-label-md text-on-surface-variant">
-                  Received qty: <span className="font-mono">{line.quantity}</span>
-                </span>
-                <span className="text-label-md text-on-surface-variant">
-                  On shelf: <span className="font-mono">{line.currentStock ?? "—"}</span>
-                </span>
+                <span className="text-base font-semibold text-slate-900">{line.brand}</span>
+                <span className="text-sm font-medium text-slate-500">{line.sizeLabel}</span>
+                <span className="mt-1 font-mono text-xs text-slate-400">{line.barcode}</span>
+                <div className="mt-3 flex gap-6 text-sm font-medium text-slate-600">
+                  <span>
+                    Received qty: <span className="font-mono text-base font-bold text-slate-900">{line.quantity}</span>
+                  </span>
+                  <span>
+                    On shelf: <span className="font-mono text-slate-500">{line.currentStock ?? "—"}</span>
+                  </span>
+                </div>
               </div>
               <button
                 type="button"
                 onClick={() => removeLine(line.lineId)}
-                className="flex h-14 w-14 items-center justify-center rounded-md bg-error text-[32px] font-black leading-none text-on-error"
+                className="flex h-10 w-10 items-center justify-center rounded-lg bg-white text-red-500 shadow-sm ring-1 ring-slate-200 transition-all hover:bg-red-50 hover:text-red-600 hover:ring-red-200 active:scale-95"
                 aria-label="Remove line"
               >
-                ×
+                <Trash2 className="h-5 w-5" />
               </button>
             </li>
           ))}
         </ul>
       </section>
 
-      <aside className="flex flex-col gap-stack-gap rounded-lg bg-surface-container p-gutter">
-        <h2 className="text-headline-md text-primary">Lot</h2>
+      <aside className="flex h-fit flex-col gap-6 rounded-[24px] border border-slate-200/50 bg-white/60 p-8 shadow-[0_8px_30px_rgb(0,0,0,0.02)] backdrop-blur-xl">
+        <h2 className="text-xl font-semibold tracking-tight text-slate-900">Lot Summary</h2>
 
-        <label className="flex flex-col gap-1 text-label-md">
-          Reference (optional)
-          <input
-            type="text"
-            value={reference}
-            onChange={(e) => setReference(e.target.value)}
-            maxLength={100}
-            className="min-h-touchTarget-sm rounded-md border border-outline bg-surface px-stack-gap text-body-md"
-          />
-        </label>
-        <label className="flex flex-col gap-1 text-label-md">
-          Notes (optional)
-          <input
-            type="text"
-            value={notes}
-            onChange={(e) => setNotes(e.target.value)}
-            maxLength={500}
-            className="min-h-touchTarget-sm rounded-md border border-outline bg-surface px-stack-gap text-body-md"
-          />
-        </label>
+        <div className="flex flex-col gap-4">
+          <label className="flex flex-col gap-1.5 text-xs font-semibold uppercase tracking-wider text-slate-500">
+            Reference (optional)
+            <input
+              type="text"
+              value={reference}
+              onChange={(e) => setReference(e.target.value)}
+              maxLength={100}
+              className="h-11 w-full rounded-xl border border-slate-200 bg-white/50 px-4 text-sm font-medium text-slate-700 shadow-sm outline-none transition-all hover:bg-white focus:border-action focus:ring-1 focus:ring-action"
+            />
+          </label>
+          <label className="flex flex-col gap-1.5 text-xs font-semibold uppercase tracking-wider text-slate-500">
+            Notes (optional)
+            <input
+              type="text"
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              maxLength={500}
+              className="h-11 w-full rounded-xl border border-slate-200 bg-white/50 px-4 text-sm font-medium text-slate-700 shadow-sm outline-none transition-all hover:bg-white focus:border-action focus:ring-1 focus:ring-action"
+            />
+          </label>
+        </div>
 
-        <div className="rounded-md bg-primary p-stack-gap text-on-primary">
-          <div className="text-label-md uppercase">Lines</div>
-          <div className="font-mono text-headline-md">{lines.length}</div>
-          <div className="text-label-md uppercase">Total units</div>
-          <div className="font-mono text-headline-md">{totalUnits}</div>
+        <div className="flex gap-4 rounded-xl bg-slate-50 p-4 ring-1 ring-slate-200/50">
+          <div className="flex-1">
+            <div className="text-[11px] font-semibold uppercase tracking-widest text-slate-500">Lines</div>
+            <div className="mt-1 font-mono text-2xl font-bold text-slate-900">{lines.length}</div>
+          </div>
+          <div className="w-px bg-slate-200"></div>
+          <div className="flex-1">
+            <div className="text-[11px] font-semibold uppercase tracking-widest text-slate-500">Total units</div>
+            <div className="mt-1 font-mono text-2xl font-bold text-slate-900">{totalUnits}</div>
+          </div>
         </div>
 
         <button
           type="button"
           onClick={openReview}
           disabled={lines.length === 0 || busy}
-          className="min-h-touchTarget rounded-md bg-action text-headline-md font-bold text-on-action disabled:opacity-50"
+          className="flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-action px-6 text-sm font-bold tracking-wide text-white shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[var(--color-action)]/30 active:scale-95 disabled:pointer-events-none disabled:opacity-50"
         >
-          Review & Save
+          <Save className="h-5 w-5" /> Review & Save
         </button>
 
         {error && (
-          <div role="alert" className="rounded-md bg-error px-stack-gap py-3 text-on-error">
+          <div role="alert" className="rounded-xl bg-red-50 px-4 py-3 text-sm font-medium text-red-600 ring-1 ring-red-200">
             {error}
           </div>
         )}
         {info && (
-          <div role="status" className="rounded-md bg-success px-stack-gap py-3 text-on-secondary">
+          <div role="status" className="rounded-xl bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-600 ring-1 ring-emerald-200">
             {info}
           </div>
         )}
@@ -408,20 +431,22 @@ export function ReceivingPage() {
 
       {quickAdd && (
         <div
-          className="fixed inset-0 z-30 flex items-center justify-center bg-black/50 p-stack-gap"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4 backdrop-blur-sm"
           role="dialog"
           aria-modal="true"
           aria-labelledby="quick-add-title"
         >
-          <QuickAddModal
-            barcode={quickAdd.barcode}
-            busy={quickAddBusy}
-            error={quickAddError}
-            onCancel={closeQuickAdd}
-            onSubmit={({ brand, size }) => {
-              void submitQuickAdd({ brand, size });
-            }}
-          />
+          <div className="animate-in fade-in zoom-in-95 duration-200">
+            <QuickAddModal
+              barcode={quickAdd.barcode}
+              busy={quickAddBusy}
+              error={quickAddError}
+              onCancel={closeQuickAdd}
+              onSubmit={({ brand, size }) => {
+                void submitQuickAdd({ brand, size });
+              }}
+            />
+          </div>
         </div>
       )}
 
@@ -439,53 +464,75 @@ export function ReceivingPage() {
 
       {lastLot && (
         <div
-          className="fixed inset-0 z-30 flex items-center justify-center bg-black/50 p-stack-gap"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4 backdrop-blur-sm"
           role="dialog"
           aria-modal="true"
         >
-          <div className="flex max-h-[90vh] w-full max-w-2xl flex-col gap-stack-gap overflow-y-auto rounded-lg bg-surface-container p-gutter">
-            <header className="flex items-center justify-between">
-              <h2 className="text-headline-md text-primary">Lot #{lastLot.id} saved</h2>
+          <div className="flex max-h-[90vh] w-full max-w-2xl flex-col gap-6 overflow-y-auto rounded-[32px] bg-white p-8 shadow-2xl animate-in fade-in zoom-in-95 duration-200">
+            <header className="flex items-center justify-between border-b border-slate-100 pb-4">
+              <h2 className="flex items-center gap-3 text-2xl font-light tracking-tight text-slate-900">
+                <CheckCircle2 className="h-8 w-8 text-emerald-500" /> Lot #{lastLot.id} saved
+              </h2>
               <button
                 type="button"
                 onClick={() => setLastLot(null)}
-                className="flex h-12 w-12 items-center justify-center rounded-md bg-error text-[28px] font-black leading-none text-on-error"
+                className="flex h-10 w-10 items-center justify-center rounded-full text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600"
                 aria-label="Close"
               >
-                ×
+                <X className="h-6 w-6" />
               </button>
             </header>
-            <div className="grid gap-2 text-label-md text-on-surface-variant md:grid-cols-2">
-              <div>Vendor: {lastLot.vendor.name}</div>
-              <div>Purchase date: {lastLot.purchase_date}</div>
-              <div>Vendor invoice: {lastLot.vendor_invoice_number}</div>
-              <div>Invoice value: Rs {lastLot.invoice_value}</div>
+            
+            <div className="grid gap-4 rounded-2xl bg-slate-50 p-6 ring-1 ring-slate-200/50 md:grid-cols-2">
+              <div>
+                <div className="text-[11px] font-semibold uppercase tracking-widest text-slate-500">Vendor</div>
+                <div className="mt-1 font-medium text-slate-900">{lastLot.vendor.name}</div>
+              </div>
+              <div>
+                <div className="text-[11px] font-semibold uppercase tracking-widest text-slate-500">Purchase date</div>
+                <div className="mt-1 font-medium text-slate-900">{lastLot.purchase_date}</div>
+              </div>
+              <div>
+                <div className="text-[11px] font-semibold uppercase tracking-widest text-slate-500">Vendor invoice</div>
+                <div className="mt-1 font-mono font-medium text-slate-900">{lastLot.vendor_invoice_number}</div>
+              </div>
+              <div>
+                <div className="text-[11px] font-semibold uppercase tracking-widest text-slate-500">Invoice value</div>
+                <div className="mt-1 font-mono font-medium text-slate-900">Rs {lastLot.invoice_value}</div>
+              </div>
+              <div className="col-span-2">
+                <div className="text-[11px] font-semibold uppercase tracking-widest text-slate-500">Recorded at</div>
+                <div className="mt-1 text-sm font-medium text-slate-600">
+                  {new Date(lastLot.received_at).toLocaleString()}
+                </div>
+              </div>
             </div>
-            <div className="text-label-md text-on-surface-variant">
-              {new Date(lastLot.received_at).toLocaleString()}
-            </div>
-            <table className="w-full border-collapse">
-              <thead>
-                <tr className="border-b border-outline text-label-md text-on-surface-variant">
-                  <th className="py-2 text-left">Product</th>
-                  <th className="py-2 text-right">Received</th>
-                  <th className="py-2 text-right">Good</th>
-                  <th className="py-2 text-right">Breakage</th>
-                </tr>
-              </thead>
-              <tbody>
-                {lastLot.lines.map((line) => (
-                  <tr key={line.id} className="border-b border-outline/40">
-                    <td className="py-2">
-                      {line.product_brand} {line.product_size_label}
-                    </td>
-                    <td className="py-2 text-right font-mono">{line.quantity}</td>
-                    <td className="py-2 text-right font-mono">{line.good_condition_quantity}</td>
-                    <td className="py-2 text-right font-mono">{line.breakage_quantity}</td>
+
+            <div className="overflow-hidden rounded-2xl border border-slate-200">
+              <table className="w-full text-left text-sm">
+                <thead className="bg-slate-50/80 text-[11px] uppercase tracking-widest text-slate-500">
+                  <tr>
+                    <th className="px-6 py-4 font-semibold">Product</th>
+                    <th className="px-6 py-4 text-right font-semibold">Received</th>
+                    <th className="px-6 py-4 text-right font-semibold">Good</th>
+                    <th className="px-6 py-4 text-right font-semibold">Breakage</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {lastLot.lines.map((line) => (
+                    <tr key={line.id} className="bg-white">
+                      <td className="px-6 py-3">
+                        <div className="font-medium text-slate-900">{line.product_brand}</div>
+                        <div className="text-slate-500">{line.product_size_label}</div>
+                      </td>
+                      <td className="px-6 py-3 text-right font-mono font-medium text-slate-900">{line.quantity}</td>
+                      <td className="px-6 py-3 text-right font-mono font-medium text-emerald-600">{line.good_condition_quantity}</td>
+                      <td className="px-6 py-3 text-right font-mono font-medium text-red-500">{line.breakage_quantity}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
       )}
@@ -567,38 +614,38 @@ function PurchaseReviewModal({
 
   return (
     <div
-      className="fixed inset-0 z-40 flex items-center justify-center bg-black/60 p-stack-gap"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4 backdrop-blur-sm"
       role="dialog"
       aria-modal="true"
       aria-labelledby="purchase-review-title"
     >
       <form
         onSubmit={submit}
-        className="flex max-h-[92vh] w-full max-w-4xl flex-col gap-stack-gap overflow-y-auto rounded-lg bg-surface-container p-gutter"
+        className="flex max-h-[92vh] w-full max-w-4xl flex-col gap-6 overflow-y-auto rounded-[32px] bg-white p-8 shadow-2xl animate-in fade-in zoom-in-95 duration-200"
       >
-        <header className="flex items-center justify-between">
-          <h2 id="purchase-review-title" className="text-headline-md text-primary">
-            Review purchase details
+        <header className="flex items-center justify-between border-b border-slate-100 pb-4">
+          <h2 id="purchase-review-title" className="flex items-center gap-3 text-2xl font-light tracking-tight text-slate-900">
+            <Save className="h-6 w-6 text-action" /> Review purchase details
           </h2>
           <button
             type="button"
             onClick={onCancel}
-            className="flex h-12 w-12 items-center justify-center rounded-md bg-error text-[28px] font-black leading-none text-on-error"
+            className="flex h-10 w-10 items-center justify-center rounded-full text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600"
             aria-label="Close purchase review"
           >
-            ×
+            <X className="h-6 w-6" />
           </button>
         </header>
 
-        <div className="grid gap-stack-gap md:grid-cols-2">
-          <label className="flex flex-col gap-1 text-label-md">
+        <div className="grid gap-6 md:grid-cols-2">
+          <label className="flex flex-col gap-1.5 text-xs font-semibold uppercase tracking-wider text-slate-500">
             Vendor
             <select
               value={vendorId}
               onChange={(e) =>
                 setVendorId(e.target.value === "" ? "" : Number.parseInt(e.target.value, 10))
               }
-              className="min-h-touchTarget-sm rounded-md border border-outline bg-surface px-stack-gap text-body-md"
+              className="h-11 w-full rounded-xl border border-slate-200 bg-white/50 px-4 text-sm font-medium text-slate-700 shadow-sm outline-none transition-all hover:bg-white focus:border-action focus:ring-1 focus:ring-action"
             >
               <option value="">Select vendor</option>
               {vendors.map((vendor) => (
@@ -609,64 +656,64 @@ function PurchaseReviewModal({
               ))}
             </select>
           </label>
-          <label className="flex flex-col gap-1 text-label-md">
-            Purchase date
+          <label className="flex flex-col gap-1.5 text-xs font-semibold uppercase tracking-wider text-slate-500">
+            <span className="flex items-center gap-1.5"><Calendar className="h-4 w-4" /> Purchase date</span>
             <input
               type="date"
               value={purchaseDate}
               onChange={(e) => setPurchaseDate(e.target.value)}
-              className="min-h-touchTarget-sm rounded-md border border-outline bg-surface px-stack-gap text-body-md"
+              className="h-11 w-full rounded-xl border border-slate-200 bg-white/50 px-4 text-sm font-medium text-slate-700 shadow-sm outline-none transition-all hover:bg-white focus:border-action focus:ring-1 focus:ring-action"
             />
           </label>
-          <label className="flex flex-col gap-1 text-label-md">
-            Vendor invoice number
+          <label className="flex flex-col gap-1.5 text-xs font-semibold uppercase tracking-wider text-slate-500">
+            <span className="flex items-center gap-1.5"><FileDigit className="h-4 w-4" /> Vendor invoice number</span>
             <input
               type="text"
               value={vendorInvoiceNumber}
               onChange={(e) => setVendorInvoiceNumber(e.target.value)}
-              className="min-h-touchTarget-sm rounded-md border border-outline bg-surface px-stack-gap text-body-md"
+              className="h-11 w-full rounded-xl border border-slate-200 bg-white/50 px-4 text-sm font-medium text-slate-700 shadow-sm outline-none transition-all hover:bg-white focus:border-action focus:ring-1 focus:ring-action"
             />
           </label>
-          <label className="flex flex-col gap-1 text-label-md">
-            Invoice value
+          <label className="flex flex-col gap-1.5 text-xs font-semibold uppercase tracking-wider text-slate-500">
+            <span className="flex items-center gap-1.5"><IndianRupee className="h-4 w-4" /> Invoice value</span>
             <input
               type="number"
               min="0"
               step="0.01"
               value={invoiceValue}
               onChange={(e) => setInvoiceValue(e.target.value)}
-              className="min-h-touchTarget-sm rounded-md border border-outline bg-surface px-stack-gap text-body-md"
+              className="h-11 w-full rounded-xl border border-slate-200 bg-white/50 px-4 text-sm font-medium text-slate-700 shadow-sm outline-none transition-all hover:bg-white focus:border-action focus:ring-1 focus:ring-action"
             />
           </label>
         </div>
 
-        <div className="overflow-hidden rounded-md border border-outline bg-surface">
-          <div className="border-b border-outline px-stack-gap py-2 text-label-md text-on-surface-variant">
+        <div className="overflow-hidden rounded-2xl border border-slate-200">
+          <div className="border-b border-slate-200 bg-slate-50/80 px-6 py-3 text-[11px] font-medium uppercase tracking-widest text-slate-500">
             Good-condition quantity is the only editable line-level field.
           </div>
-          <table className="w-full border-collapse">
-            <thead>
-              <tr className="border-b border-outline text-label-md text-on-surface-variant">
-                <th className="px-stack-gap py-2 text-left">Product</th>
-                <th className="px-stack-gap py-2 text-right">Received</th>
-                <th className="px-stack-gap py-2 text-right">Good</th>
-                <th className="px-stack-gap py-2 text-right">Breakage</th>
+          <table className="w-full text-left text-sm">
+            <thead className="bg-slate-50/80 text-[11px] uppercase tracking-widest text-slate-500">
+              <tr>
+                <th className="px-6 py-4 font-semibold">Product</th>
+                <th className="px-6 py-4 text-right font-semibold">Received</th>
+                <th className="px-6 py-4 text-right font-semibold">Good</th>
+                <th className="px-6 py-4 text-right font-semibold">Breakage</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody className="divide-y divide-slate-100">
               {lines.map((line) => {
                 const good = lineConditions[line.lineId] ?? line.quantity;
                 return (
-                  <tr key={line.lineId} className="border-b border-outline/40">
-                    <td className="px-stack-gap py-2">
-                      <div className="font-medium text-on-surface">{line.brand}</div>
-                      <div className="text-label-md text-on-surface-variant">{line.sizeLabel}</div>
-                      <div className="font-mono text-label-md text-on-surface-variant">
+                  <tr key={line.lineId} className="bg-white">
+                    <td className="px-6 py-4">
+                      <div className="font-medium text-slate-900">{line.brand}</div>
+                      <div className="text-slate-500">{line.sizeLabel}</div>
+                      <div className="mt-1 font-mono text-xs text-slate-400">
                         {line.barcode}
                       </div>
                     </td>
-                    <td className="px-stack-gap py-2 text-right font-mono">{line.quantity}</td>
-                    <td className="px-stack-gap py-2 text-right">
+                    <td className="px-6 py-4 text-right font-mono font-medium text-slate-900">{line.quantity}</td>
+                    <td className="px-6 py-4 text-right">
                       <input
                         type="number"
                         min="0"
@@ -678,10 +725,10 @@ function PurchaseReviewModal({
                             Math.max(0, Math.floor(Number(e.target.value || 0)))
                           )
                         }
-                        className="w-24 rounded-md border border-outline bg-surface px-2 py-1 text-right font-mono"
+                        className="w-24 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-right font-mono text-sm font-medium shadow-sm transition-all hover:border-slate-300 focus:border-action focus:ring-1 focus:ring-action outline-none"
                       />
                     </td>
-                    <td className="px-stack-gap py-2 text-right font-mono">{line.quantity - good}</td>
+                    <td className="px-6 py-4 text-right font-mono font-medium text-slate-500">{line.quantity - good}</td>
                   </tr>
                 );
               })}
@@ -690,23 +737,23 @@ function PurchaseReviewModal({
         </div>
 
         {localError && (
-          <div role="alert" className="rounded-md bg-error px-stack-gap py-3 text-on-error">
+          <div role="alert" className="rounded-xl bg-red-50 px-4 py-3 text-sm font-medium text-red-600 ring-1 ring-red-200">
             {localError}
           </div>
         )}
 
-        <div className="flex flex-wrap justify-end gap-stack-gap">
+        <div className="flex flex-wrap justify-end gap-3 pt-4">
           <button
             type="button"
             onClick={onCancel}
-            className="min-h-touchTarget-sm rounded-md bg-surface-container-high px-gutter text-label-md"
+            className="flex h-11 items-center justify-center rounded-xl bg-white px-6 text-sm font-semibold text-slate-600 shadow-sm ring-1 ring-slate-200 transition-all hover:bg-slate-50 hover:text-slate-900 active:scale-95"
           >
             Cancel
           </button>
           <button
             type="submit"
             disabled={busy}
-            className="min-h-touchTarget-sm rounded-md bg-action px-gutter text-label-md text-on-action disabled:opacity-50"
+            className="flex h-11 items-center justify-center rounded-xl bg-action px-8 text-sm font-bold tracking-wide text-white shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[var(--color-action)]/30 active:scale-95 disabled:pointer-events-none disabled:opacity-50"
           >
             {busy ? "Saving..." : "Confirm save"}
           </button>
