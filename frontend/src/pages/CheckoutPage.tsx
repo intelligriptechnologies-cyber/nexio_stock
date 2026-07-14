@@ -949,35 +949,35 @@ export function CheckoutPage() {
           <div
             role="region"
             aria-label="Pending finalize queue"
-            className="flex flex-col gap-stack-gap rounded-md bg-surface-container p-stack-gap"
+            className="flex flex-col gap-4 rounded-[24px] bg-slate-50 p-6 ring-1 ring-slate-200"
           >
             <div className="flex items-center justify-between">
-              <div className="text-label-xl text-primary">
+              <div className="text-lg font-semibold tracking-tight text-slate-900">
                 Pending finalize queue ({queuedSnapshot.length})
               </div>
-              <div className="flex gap-stack-gap">
+              <div className="flex gap-4">
                 <button
                   type="button"
                   onClick={() => {
                     void retryQueue.flush();
                     refreshQueueSnapshot();
                   }}
-                  className="min-h-touchTarget-sm rounded-md bg-action px-stack-gap text-label-md text-on-action disabled:opacity-50"
+                  className="flex h-11 items-center justify-center rounded-xl bg-action px-6 text-sm font-bold tracking-wide text-white shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[var(--color-action)]/30 active:scale-95 disabled:pointer-events-none disabled:opacity-50"
                   disabled={!online}
                 >
                   Retry now
                 </button>
               </div>
             </div>
-            <ul className="flex flex-col gap-stack-gap">
+            <ul className="flex flex-col gap-3">
               {queuedSnapshot.map((q) => (
                 <li
                   key={q.idempotencyKey}
-                  className="flex items-center justify-between rounded-md bg-surface px-stack-gap py-2 text-label-md"
+                  className="flex items-center justify-between rounded-xl bg-white px-4 py-3 text-sm shadow-sm ring-1 ring-slate-200"
                 >
                   <div className="flex flex-col">
-                    <span className="font-mono">{q.idempotencyKey.slice(0, 12)}…</span>
-                    <span className="text-on-surface-variant">
+                    <span className="font-mono font-medium text-slate-900">{q.idempotencyKey.slice(0, 12)}…</span>
+                    <span className="text-slate-500">
                       {q.body.lines.length} line(s) · attempts {q.attempts}
                       {q.lastError ? ` · last error: ${q.lastError}` : ""}
                     </span>
@@ -985,7 +985,7 @@ export function CheckoutPage() {
                   <button
                     type="button"
                     onClick={() => handleDismissQueued(q.idempotencyKey)}
-                    className="flex h-12 w-12 items-center justify-center rounded-md bg-error text-[28px] font-black leading-none text-on-error"
+                    className="flex h-8 w-8 items-center justify-center rounded-full bg-red-50 text-red-500 transition-colors hover:bg-red-100 hover:text-red-700 active:bg-red-200"
                     aria-label="Dismiss queued sale"
                   >
                     ×
@@ -999,41 +999,41 @@ export function CheckoutPage() {
           <div
             role="region"
             aria-label="Offline session"
-            className="flex flex-col gap-stack-gap rounded-md bg-surface-container p-stack-gap"
+            className="flex flex-col gap-6 rounded-[24px] bg-slate-50 p-6 ring-1 ring-slate-200"
           >
-            <div className="flex flex-wrap items-center justify-between gap-stack-gap">
+            <div className="flex flex-wrap items-center justify-between gap-4">
               <div>
-                <div className="text-label-xl text-primary">Offline session #{offlineSession.session.id}</div>
-                <div className="text-label-md text-on-surface-variant">
+                <div className="text-lg font-semibold tracking-tight text-slate-900">Offline session #{offlineSession.session.id}</div>
+                <div className="text-sm font-medium text-slate-500">
                   {offlineReceiptCount} temporary receipt(s) saved · sync required for official invoice numbers
                 </div>
               </div>
-              <div className={`font-mono text-headline-md ${offlineExpired ? "text-error" : "text-on-surface"}`}>
+              <div className={`font-mono text-xl font-bold tracking-tight ${offlineExpired ? "text-red-500" : "text-slate-900"}`}>
                 {formatRemaining(offlineRemainingMs)}
               </div>
             </div>
             {offlineSession.session.failure_reason?.message && (
-              <div role="alert" className="rounded-md bg-error px-stack-gap py-2 text-on-error">
+              <div role="alert" className="rounded-xl bg-red-50 px-4 py-3 text-sm font-medium text-red-600 ring-1 ring-red-200">
                 {offlineSession.session.failure_reason.message}
               </div>
             )}
-            <section className="flex flex-col gap-stack-gap rounded-md bg-surface p-stack-gap">
-              <div className="flex flex-wrap items-center justify-between gap-stack-gap">
+            <section className="flex flex-col gap-4 rounded-[20px] bg-white p-5 shadow-sm ring-1 ring-slate-200">
+              <div className="flex flex-wrap items-center justify-between gap-4">
                 <div>
-                  <div className="text-label-xl text-primary">Offline receipts</div>
-                  <div className="text-label-md text-on-surface-variant">
+                  <div className="text-base font-semibold tracking-tight text-slate-900">Offline receipts</div>
+                  <div className="text-sm font-medium text-slate-500">
                     {offlineReceipts.length} editable temporary receipt(s) · next temp number {String(
                       offlineSession.nextReceiptNumber ?? offlineSession.session.receipt_counter + 1
                     ).padStart(4, "0")}
                   </div>
                 </div>
-                <div className="text-label-md text-on-surface-variant">
+                <div className="text-sm font-semibold text-slate-700">
                   Session total ₹{moneyString(parseMoney(offlineSession.session.gross_total))}
                 </div>
               </div>
-              <ul className="flex flex-col gap-stack-gap">
+              <ul className="flex flex-col gap-4">
                 {offlineReceipts.length === 0 && (
-                  <li className="rounded-md bg-surface-container-high px-stack-gap py-3 text-label-md text-on-surface-variant">
+                  <li className="rounded-xl bg-slate-50 px-4 py-3 text-sm font-medium text-slate-500 ring-1 ring-slate-200">
                     No temporary receipts yet.
                   </li>
                 )}
@@ -1045,16 +1045,16 @@ export function CheckoutPage() {
                   return (
                     <li
                       key={receipt.temp_receipt_id}
-                      className="flex flex-col gap-3 rounded-md border border-outline/60 bg-surface-container-high p-stack-gap"
+                      className="flex flex-col gap-4 rounded-xl bg-slate-50 p-4 ring-1 ring-slate-200"
                     >
-                      <div className="flex flex-wrap items-start justify-between gap-stack-gap">
+                      <div className="flex flex-wrap items-start justify-between gap-4">
                         <div className="flex flex-col gap-1">
-                          <div className="text-label-xl text-on-surface">{receipt.temp_receipt_id}</div>
-                          <div className="text-label-md text-on-surface-variant">
+                          <div className="text-base font-semibold text-slate-900">{receipt.temp_receipt_id}</div>
+                          <div className="text-sm font-medium text-slate-500">
                             {receipt.lines.length} line(s) · {receipt.payments.length} payment split(s)
                             {receipt.note ? ` · note: ${receipt.note}` : ""}
                           </div>
-                          <div className="font-mono text-label-md text-on-surface-variant">
+                          <div className="font-mono text-sm font-bold text-slate-700">
                             Total ₹{moneyString(totalCents)}
                           </div>
                         </div>
@@ -1062,14 +1062,14 @@ export function CheckoutPage() {
                           type="button"
                           onClick={() => setEditingReceiptId(receipt.temp_receipt_id)}
                           disabled={checkoutLocked}
-                          className="rounded-md bg-primary px-stack-gap py-2 text-label-md text-on-primary"
+                          className="flex h-9 items-center justify-center rounded-lg bg-slate-900 px-4 text-xs font-semibold text-white shadow-sm transition-all hover:bg-slate-800 disabled:opacity-50"
                         >
                           Edit
                         </button>
                       </div>
-                      <div className="flex flex-wrap gap-2 text-label-md text-on-surface-variant">
+                      <div className="flex flex-wrap gap-2 text-xs font-medium text-slate-600">
                         {receipt.lines.map((line) => (
-                          <span key={`${receipt.temp_receipt_id}-${line.barcode}`} className="rounded-full bg-surface px-3 py-1">
+                          <span key={`${receipt.temp_receipt_id}-${line.barcode}`} className="rounded-lg bg-white px-3 py-1 shadow-sm ring-1 ring-slate-200">
                             {line.barcode} x{line.quantity}
                           </span>
                         ))}
@@ -1079,12 +1079,12 @@ export function CheckoutPage() {
                 })}
               </ul>
             </section>
-            <div className="flex flex-wrap gap-stack-gap">
+            <div className="flex flex-wrap gap-4">
               <button
                 type="button"
                 onClick={extendCurrentOfflineSession}
                 disabled={checkoutLocked || offlineSession.session.extension_count >= 1 || offlineExpired}
-                className="min-h-touchTarget-sm rounded-md bg-warning px-stack-gap text-label-md text-on-warning disabled:opacity-50"
+                className="flex h-11 items-center justify-center rounded-xl bg-amber-100 px-6 text-sm font-bold tracking-wide text-amber-700 shadow-sm transition-all duration-200 hover:bg-amber-200 disabled:pointer-events-none disabled:opacity-50"
               >
                 Extend 2h
               </button>
@@ -1092,7 +1092,7 @@ export function CheckoutPage() {
                 type="button"
                 onClick={syncCurrentOfflineSession}
                 disabled={checkoutLocked || !online || offlineReceiptCount === 0}
-                className="min-h-touchTarget-sm rounded-md bg-action px-stack-gap text-label-md text-on-action disabled:opacity-50"
+                className="flex h-11 items-center justify-center rounded-xl bg-action px-6 text-sm font-bold tracking-wide text-white shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[var(--color-action)]/30 active:scale-95 disabled:pointer-events-none disabled:opacity-50"
               >
                 Sync receipts
               </button>
@@ -1102,7 +1102,7 @@ export function CheckoutPage() {
                   void resumeOnline();
                 }}
                 disabled={checkoutLocked}
-                className="min-h-touchTarget-sm rounded-md bg-primary px-stack-gap text-label-md text-on-primary disabled:opacity-50"
+                className="flex h-11 items-center justify-center rounded-xl bg-slate-900 px-6 text-sm font-bold tracking-wide text-white shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-slate-900/20 active:scale-95 disabled:pointer-events-none disabled:opacity-50"
               >
                 Resume Online
               </button>
@@ -1114,7 +1114,7 @@ export function CheckoutPage() {
               type="button"
               onClick={beginOfflineSession}
               disabled={checkoutLocked || !online}
-              className="min-h-touchTarget-sm rounded-md bg-primary px-stack-gap text-label-md text-on-primary disabled:opacity-50"
+              className="flex h-11 items-center justify-center rounded-xl bg-slate-900 px-6 text-sm font-bold tracking-wide text-white shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-slate-900/20 active:scale-95 disabled:pointer-events-none disabled:opacity-50"
             >
               Work offline
             </button>
@@ -1186,47 +1186,47 @@ export function CheckoutPage() {
           </div>
         </header>
 
-        <form onSubmit={handleSubmitBarcode} className="flex gap-stack-gap">
+        <form onSubmit={handleSubmitBarcode} className="flex gap-4">
           <input
             type="text"
             value={barcode}
             onChange={(e) => setBarcode(e.target.value)}
             placeholder="Scan or enter barcode"
-            className="min-h-touchTarget flex-1 rounded-md border border-outline bg-surface px-stack-gap text-body-lg"
+            className="h-14 flex-1 rounded-2xl border border-slate-200 bg-white px-5 text-lg font-medium text-slate-900 shadow-sm outline-none transition-all focus:border-action focus:ring-1 focus:ring-action disabled:opacity-50"
             autoFocus
             disabled={checkoutLocked}
           />
           <button
             type="submit"
-            className="min-h-touchTarget rounded-md bg-action px-gutter text-label-xl text-on-action"
+            className="flex h-14 items-center justify-center rounded-2xl bg-action px-8 text-lg font-bold tracking-wide text-white shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[var(--color-action)]/30 active:scale-95 disabled:pointer-events-none disabled:opacity-50"
             disabled={!catalogReady || checkoutLocked}
           >
             ADD
           </button>
         </form>
 
-        <div className="flex flex-wrap items-center gap-stack-gap">
+        <div className="flex flex-wrap items-center gap-4">
           <button
             type="button"
             onClick={parkDraft}
             disabled={checkoutLocked || cart.length === 0}
-            className="min-h-touchTarget-sm rounded-md bg-warning px-stack-gap text-label-md text-on-warning disabled:opacity-50"
+            className="flex h-11 items-center justify-center rounded-xl bg-amber-100 px-6 text-sm font-bold tracking-wide text-amber-700 shadow-sm transition-all duration-200 hover:bg-amber-200 disabled:pointer-events-none disabled:opacity-50"
           >
             Park
           </button>
           <div className="flex flex-wrap items-center gap-2">
             {drafts.map((draft) => (
               <span key={draft.id} className="flex items-center gap-2">
-                <span className="text-on-surface-variant">|</span>
+                <span className="text-slate-300">|</span>
                 <button
                   type="button"
                   onClick={() => restoreDraft(draft)}
                   disabled={checkoutLocked}
-                  className="min-h-touchTarget-sm rounded-md bg-primary px-stack-gap text-label-md text-on-primary"
+                  className="flex h-11 items-center justify-center rounded-xl bg-slate-900 px-6 text-sm font-bold tracking-wide text-white shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-slate-900/20 active:scale-95 disabled:pointer-events-none disabled:opacity-50"
                 >
                   {draft.label} ({draft.cart.length})
                 </button>
-                <span className="text-on-surface-variant">|</span>
+                <span className="text-slate-300">|</span>
               </span>
             ))}
           </div>
@@ -1234,7 +1234,7 @@ export function CheckoutPage() {
             type="button"
             onClick={clearActiveCheckout}
             disabled={checkoutLocked}
-            className="ml-auto min-h-touchTarget-sm rounded-md bg-surface-container-high px-stack-gap text-label-md text-on-surface"
+            className="ml-auto flex h-11 items-center justify-center rounded-xl bg-slate-100 px-6 text-sm font-semibold tracking-wide text-slate-600 shadow-sm transition-all duration-200 hover:bg-slate-200 hover:text-slate-900 active:scale-95 disabled:pointer-events-none disabled:opacity-50"
           >
             All Clear
           </button>
@@ -1251,8 +1251,8 @@ export function CheckoutPage() {
 
         <ul className="flex flex-col gap-stack-gap">
           {cart.length === 0 && (
-            <li className="rounded-md bg-surface p-stack-gap text-center text-on-surface-variant">
-              No items in cart. Scan a barcode to begin.
+            <li className="rounded-xl bg-slate-50 p-6 text-center text-sm font-medium text-slate-500 ring-1 ring-slate-200">
+              Cart is empty. Scan a barcode to begin.
             </li>
           )}
           {cart.map((l) => (
@@ -1366,18 +1366,18 @@ export function CheckoutPage() {
                 type="button"
                 onClick={addPayment}
                 disabled={checkoutLocked}
-                className="rounded-md bg-surface-container-high px-stack-gap py-1 text-label-md text-on-surface-variant"
+                className="rounded-lg bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600 transition-colors hover:bg-slate-200"
               >
                 + Split
             </button>
           </div>
 
           {payments.map((p, idx) => (
-            <div key={idx} className="flex items-center gap-stack-gap">
+            <div key={idx} className="flex items-center gap-3">
               <select
                 value={p.mode}
                 onChange={(e) => setPaymentMode(idx, e.target.value as PaymentMode)}
-                className="min-h-touchTarget-sm flex-1 rounded-md border border-outline bg-surface px-stack-gap text-body-md"
+                className="h-12 flex-1 rounded-xl border border-slate-200 bg-slate-50 px-4 text-sm font-semibold text-slate-900 shadow-sm outline-none transition-all focus:border-action focus:ring-1 focus:ring-action disabled:opacity-50"
                 aria-label="Payment mode"
                 disabled={checkoutLocked}
               >
@@ -1394,7 +1394,7 @@ export function CheckoutPage() {
                 value={p.amount}
                 onChange={(e) => setPaymentAmount(idx, e.target.value)}
                 onFocus={(e) => e.currentTarget.select()}
-                className="min-h-touchTarget-sm w-32 rounded-md border border-outline bg-surface px-stack-gap text-right font-mono text-body-md"
+                className="h-12 w-32 rounded-xl border border-slate-200 bg-white px-4 text-right font-mono text-sm font-semibold text-slate-900 shadow-sm outline-none transition-all focus:border-action focus:ring-1 focus:ring-action disabled:opacity-50"
                 aria-label="Payment amount"
                 disabled={checkoutLocked}
               />
@@ -1403,7 +1403,7 @@ export function CheckoutPage() {
                   type="button"
                   onClick={() => removePayment(idx)}
                   disabled={checkoutLocked}
-                  className="flex h-12 w-12 items-center justify-center rounded-md bg-error text-[28px] font-black leading-none text-on-error"
+                  className="flex h-10 w-10 items-center justify-center rounded-full bg-red-50 text-red-500 transition-colors hover:bg-red-100 hover:text-red-700 active:bg-red-200"
                   aria-label="Remove payment"
                 >
                   ×
@@ -1422,14 +1422,14 @@ export function CheckoutPage() {
           </div>
         </div>
 
-        <label className="flex flex-col gap-1 text-label-md">
+        <label className="flex flex-col gap-2 text-sm font-semibold text-slate-700">
           Note (optional)
           <input
             type="text"
             value={note}
             onChange={(e) => setNote(e.target.value)}
             maxLength={200}
-            className="min-h-touchTarget-sm rounded-md border border-outline bg-surface px-stack-gap text-body-md"
+            className="h-12 rounded-xl border border-slate-200 bg-white px-4 text-sm font-medium text-slate-900 shadow-sm outline-none transition-all focus:border-action focus:ring-1 focus:ring-action disabled:opacity-50"
             disabled={checkoutLocked}
           />
         </label>

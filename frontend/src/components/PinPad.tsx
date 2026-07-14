@@ -61,7 +61,7 @@ export function PinPad({
               type="button"
               disabled={disabled}
               onClick={onClear}
-              className="min-h-touchTarget rounded-md bg-surface-container-high text-label-md text-on-surface-variant active:bg-outline disabled:opacity-50"
+              className="h-16 rounded-2xl bg-slate-100 text-lg font-bold text-slate-700 transition-colors hover:bg-slate-200 active:bg-slate-300 disabled:opacity-50"
             >
               CLR
             </button>
@@ -74,7 +74,7 @@ export function PinPad({
               type="button"
               disabled={disabled}
               onClick={onBackspace}
-              className="min-h-touchTarget rounded-md bg-surface-container-high text-label-md text-on-surface-variant active:bg-outline disabled:opacity-50"
+              className="h-16 rounded-2xl bg-slate-100 text-lg font-bold text-slate-700 transition-colors hover:bg-slate-200 active:bg-slate-300 disabled:opacity-50"
               aria-label="Backspace"
             >
               ⌫

@@ -32,7 +32,7 @@ export function ShopPicker() {
         </label>
         <select
           id="shop-picker"
-          className="mt-2 w-full min-h-touchTarget-sm rounded-md border border-outline bg-surface px-2 text-label-md text-on-surface"
+          className="mt-2 h-11 w-full rounded-xl border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-900 shadow-sm outline-none transition-all focus:border-action focus:ring-1 focus:ring-action"
           value={actingShopId ?? ""}
           onChange={(e) => setActingShopId(e.target.value ? Number(e.target.value) : null)}
         >

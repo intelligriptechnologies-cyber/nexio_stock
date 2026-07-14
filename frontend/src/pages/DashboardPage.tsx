@@ -92,12 +92,12 @@ export function DashboardPage() {
       </header>
 
       {shopScopeGuard.blocked && (
-        <div className="rounded-md bg-surface-container p-stack-gap text-on-surface-variant">
+        <div className="rounded-xl bg-slate-50 p-4 text-sm font-medium text-slate-500 ring-1 ring-slate-200">
           {shopScopeGuard.message}
         </div>
       )}
       {error && (
-        <div role="alert" className="rounded-md bg-error px-stack-gap py-3 text-on-error">
+        <div role="alert" className="rounded-xl bg-red-50 px-4 py-3 text-sm font-medium text-red-600 ring-1 ring-red-200">
           {error}
         </div>
       )}
@@ -108,36 +108,36 @@ export function DashboardPage() {
       {pendingCount != null && pendingCount > 0 && (
         <Link
           to="/admin/pending"
-          className="flex items-center justify-between rounded-md border border-amber-200 bg-amber-50 px-gutter py-3 text-amber-950 shadow-sm transition hover:bg-amber-100"
+          className="flex items-center justify-between rounded-2xl bg-amber-50 p-6 text-amber-950 shadow-sm ring-1 ring-amber-200 transition-all hover:-translate-y-0.5 hover:shadow-md active:scale-95"
           data-testid="pending-badge"
           role="status"
         >
           <div>
-            <div className="text-label-xl">
+            <div className="text-lg font-bold tracking-tight">
               {pendingCount} product{pendingCount === 1 ? "" : "s"} awaiting a price
             </div>
-            <div className="text-label-md">
+            <div className="text-sm font-medium text-amber-800">
               Tap to open Pending and set their prices.
             </div>
           </div>
-          <span aria-hidden="true" className="text-headline-lg">→</span>
+          <span aria-hidden="true" className="text-2xl font-light">→</span>
         </Link>
       )}
       {voidApprovalCount != null && voidApprovalCount > 0 && (
         <Link
           to="/admin/voids"
-          className="flex items-center justify-between rounded-md border border-amber-200 bg-amber-50 px-gutter py-3 text-amber-950 shadow-sm transition hover:bg-amber-100"
+          className="flex items-center justify-between rounded-2xl bg-amber-50 p-6 text-amber-950 shadow-sm ring-1 ring-amber-200 transition-all hover:-translate-y-0.5 hover:shadow-md active:scale-95"
           role="status"
         >
           <div>
-            <div className="text-label-xl">
+            <div className="text-lg font-bold tracking-tight">
               {voidApprovalCount} void approval{voidApprovalCount === 1 ? "" : "s"} pending
             </div>
-            <div className="text-label-md">
+            <div className="text-sm font-medium text-amber-800">
               Resolve approvals before closing EOD.
             </div>
           </div>
-          <span aria-hidden="true" className="text-headline-lg">â†’</span>
+          <span aria-hidden="true" className="text-2xl font-light">→</span>
         </Link>
       )}
 
@@ -172,14 +172,14 @@ export function DashboardPage() {
           <Banknote className="h-5 w-5 text-slate-400" /> Payment Mode Split
         </h2>
         {today && today.payments_by_mode.length > 0 ? (
-          <ul className="flex flex-col gap-stack-gap">
+          <ul className="flex flex-col gap-3">
             {today.payments_by_mode.map((p) => (
               <li
                 key={p.mode}
-                className="flex items-center justify-between rounded-md bg-surface px-stack-gap py-2 text-label-md"
+                className="flex items-center justify-between rounded-xl bg-slate-50 p-4 shadow-sm ring-1 ring-slate-200"
               >
-                <span className="text-label-xl">{p.mode}</span>
-                <span className="font-mono">
+                <span className="font-semibold text-slate-900">{p.mode}</span>
+                <span className="font-mono font-medium text-slate-700">
                   {moneyFmt(p.amount)} · {p.count} txn(s)
                 </span>
               </li>

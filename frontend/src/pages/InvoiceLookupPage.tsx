@@ -611,24 +611,24 @@ export function InvoiceLookupPage() {
               </button>
             </header>
 
-            <div className="flex flex-1 flex-col gap-stack-gap overflow-y-auto p-gutter">
-              <div className="grid gap-stack-gap text-label-md md:grid-cols-3">
-                <div className="rounded-md bg-surface-container p-stack-gap">
-                  <div className="text-on-surface-variant">Cashier</div>
-                  <div className="font-mono">User #{selected.cashier_user_id}</div>
+            <div className="flex flex-1 flex-col gap-6 overflow-y-auto p-6">
+              <div className="grid gap-4 text-sm font-semibold text-slate-700 md:grid-cols-3">
+                <div className="rounded-xl bg-slate-50 p-4 ring-1 ring-slate-200">
+                  <div className="text-slate-500">Cashier</div>
+                  <div className="font-mono text-slate-900">User #{selected.cashier_user_id}</div>
                 </div>
-                <div className="rounded-md bg-surface-container p-stack-gap">
-                  <div className="text-on-surface-variant">Status</div>
-                  <div>{selected.eod_signed_off ? "Archived" : "Open"}</div>
+                <div className="rounded-xl bg-slate-50 p-4 ring-1 ring-slate-200">
+                  <div className="text-slate-500">Status</div>
+                  <div className="text-slate-900">{selected.eod_signed_off ? "Archived" : "Open"}</div>
                 </div>
-                <div className="rounded-md bg-surface-container p-stack-gap">
-                  <div className="text-on-surface-variant">Edited total</div>
-                  <div className="font-mono">₹{editTotal}</div>
+                <div className="rounded-xl bg-slate-50 p-4 ring-1 ring-slate-200">
+                  <div className="text-slate-500">Edited total</div>
+                  <div className="font-mono text-slate-900">₹{editTotal}</div>
                 </div>
               </div>
 
-              <div className="rounded-md border border-outline">
-                <div className="grid grid-cols-[1fr_5rem_7rem_7rem] gap-stack-gap border-b border-outline bg-surface-container px-stack-gap py-2 text-label-md uppercase text-on-surface-variant">
+              <div className="rounded-xl border border-slate-200">
+                <div className="grid grid-cols-[1fr_5rem_7rem_7rem] gap-4 border-b border-slate-200 bg-slate-50/50 px-4 py-3 text-xs font-bold uppercase tracking-wider text-slate-500">
                   <span>Item</span>
                   <span className="text-right">Qty</span>
                   <span className="text-right">Unit</span>
@@ -637,7 +637,7 @@ export function InvoiceLookupPage() {
                 {editLines.map((line, index) => (
                   <label
                     key={`${line.label}-${index}`}
-                    className="grid grid-cols-[1fr_5rem_7rem_7rem] items-center gap-stack-gap border-b border-outline/50 px-stack-gap py-2 text-label-md last:border-b-0"
+                    className="grid grid-cols-[1fr_5rem_7rem_7rem] items-center gap-4 border-b border-slate-200/50 px-4 py-3 text-sm font-semibold text-slate-700 last:border-b-0"
                   >
                     <span className="truncate">{line.label}</span>
                     <input
@@ -646,29 +646,29 @@ export function InvoiceLookupPage() {
                       value={line.quantity}
                       disabled={!canEdit(selected)}
                       onChange={(e) => setEditLineQuantity(index, Number(e.target.value))}
-                      className="min-h-touchTarget-sm rounded-md border border-outline bg-surface px-2 text-center font-mono disabled:bg-surface-container"
+                      className="h-9 rounded-lg border border-slate-200 bg-white px-2 text-center font-mono text-sm shadow-sm outline-none transition-all focus:border-action focus:ring-1 focus:ring-action disabled:bg-slate-50 disabled:opacity-50"
                     />
-                    <span className="text-right font-mono">₹{line.unitPrice}</span>
-                    <span className="text-right font-mono">
+                    <span className="text-right font-mono text-slate-900">₹{line.unitPrice}</span>
+                    <span className="text-right font-mono text-slate-900">
                       ₹{(Number.parseFloat(line.unitPrice) * line.quantity).toFixed(2)}
                     </span>
                   </label>
                 ))}
               </div>
 
-              <label className="flex flex-col gap-1 text-label-md">
+              <label className="flex flex-col gap-2 text-sm font-semibold text-slate-700">
                 Note
                 <input
                   value={editNote}
                   disabled={!canEdit(selected)}
                   onChange={(e) => setEditNote(e.target.value)}
-                  className="min-h-touchTarget-sm rounded-md border border-outline bg-surface px-stack-gap disabled:bg-surface-container"
+                  className="h-11 rounded-xl border border-slate-200 bg-white px-4 text-sm shadow-sm outline-none transition-all focus:border-action focus:ring-1 focus:ring-action disabled:bg-slate-50 disabled:opacity-50"
                 />
               </label>
 
-              <div className="grid gap-stack-gap md:grid-cols-2">
+              <div className="grid gap-4 md:grid-cols-2">
                 {editPayments.map((payment, index) => (
-                  <div key={index} className="grid grid-cols-[1fr_8rem] gap-stack-gap">
+                  <div key={index} className="grid grid-cols-[1fr_8rem] gap-4">
                     <select
                       disabled={!canEdit(selected)}
                       value={payment.mode}
@@ -679,7 +679,7 @@ export function InvoiceLookupPage() {
                           )
                         )
                       }
-                      className="min-h-touchTarget-sm rounded-md border border-outline bg-surface px-stack-gap disabled:bg-surface-container"
+                      className="h-11 rounded-xl border border-slate-200 bg-slate-50 px-4 text-sm font-semibold text-slate-900 shadow-sm outline-none transition-all focus:border-action focus:ring-1 focus:ring-action disabled:opacity-50"
                     >
                       {PAYMENT_MODES.map((mode) => (
                         <option key={mode} value={mode}>
@@ -697,19 +697,19 @@ export function InvoiceLookupPage() {
                           )
                         )
                       }
-                      className="min-h-touchTarget-sm rounded-md border border-outline bg-surface px-stack-gap text-right font-mono disabled:bg-surface-container"
+                      className="h-11 rounded-xl border border-slate-200 bg-white px-4 text-right font-mono text-sm shadow-sm outline-none transition-all focus:border-action focus:ring-1 focus:ring-action disabled:bg-slate-50 disabled:opacity-50"
                     />
                   </div>
                 ))}
               </div>
             </div>
 
-            <footer className="flex flex-wrap justify-end gap-stack-gap border-t border-outline bg-surface-container px-gutter py-stack-gap">
+            <footer className="flex flex-wrap justify-end gap-3 border-t border-slate-200/50 bg-slate-50/80 px-6 py-4">
               {canRequestVoid(selected) && (
                 <button
                   type="button"
                   onClick={() => openVoidDialog(selected)}
-                  className="min-h-touchTarget-sm rounded-md bg-error px-gutter text-label-md text-on-error"
+                  className="flex h-11 items-center justify-center rounded-xl bg-red-50 px-6 text-sm font-bold tracking-wide text-red-500 shadow-sm transition-all hover:bg-red-100 hover:text-red-700 active:scale-95"
                 >
                   Void
                 </button>
@@ -717,7 +717,7 @@ export function InvoiceLookupPage() {
               <button
                 type="button"
                 onClick={closeEdit}
-                className="min-h-touchTarget-sm rounded-md bg-surface-container-high px-gutter text-label-md text-on-surface"
+                className="flex h-11 items-center justify-center rounded-xl bg-slate-100 px-6 text-sm font-semibold tracking-wide text-slate-600 shadow-sm transition-all duration-200 hover:bg-slate-200 hover:text-slate-900 active:scale-95"
               >
                 Cancel
               </button>
