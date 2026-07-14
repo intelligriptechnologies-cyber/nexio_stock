@@ -42,43 +42,51 @@ export function SuperadminLoginPage() {
   };
 
   return (
-    <div className="flex min-h-full items-center justify-center bg-surface p-stack-gap">
+    <div className="relative flex min-h-full items-center justify-center overflow-hidden bg-[#030712] p-6 font-sans">
+      {/* Dark Mode Purple Accents */}
+      <div className="pointer-events-none absolute left-1/2 top-1/2 h-[600px] w-[600px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-purple-600/10 blur-[120px]" />
+      
       <form
         onSubmit={submit}
-        className="w-full max-w-sm overflow-hidden rounded-lg border border-primary/30 bg-primary text-on-primary shadow-2xl shadow-primary/30 ring-1 ring-white/20"
+        className="relative w-full max-w-[420px] overflow-hidden rounded-3xl border border-white/10 bg-[#0f172a]/80 shadow-[0_8px_40px_rgb(0,0,0,0.4)] backdrop-blur-xl transition-all duration-500 hover:border-purple-500/30 hover:shadow-[0_8px_60px_rgba(139,92,246,0.15)]"
       >
-        <div className="border-b border-white/10 px-gutter py-5">
-          <p className="text-label-md text-white/70">Restricted access</p>
-          <h1 className="mt-1 text-headline-md text-white">Superadmin Login</h1>
+        <div className="border-b border-white/5 px-8 py-8 text-center">
+          <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-purple-500/10 text-purple-400 ring-1 ring-purple-500/20">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          </div>
+          <h1 className="text-2xl font-light tracking-tight text-white">Superadmin</h1>
+          <p className="mt-2 text-sm text-slate-400">Restricted system access</p>
         </div>
 
-        <div className="flex flex-col gap-stack-gap bg-surface px-gutter py-gutter text-on-surface">
-          <label className="flex flex-col gap-1 text-label-md">
-            Username
-            <input
-              type="text"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              className="min-h-touchTarget-sm rounded-md border border-outline bg-white px-stack-gap text-body-md text-on-surface shadow-inner focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
-              autoFocus
-              required
-            />
-          </label>
-          <label className="flex flex-col gap-1 text-label-md">
-            Password
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="min-h-touchTarget-sm rounded-md border border-outline bg-white px-stack-gap text-body-md text-on-surface shadow-inner focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
-              required
-            />
-          </label>
+        <div className="flex flex-col gap-6 px-8 py-8">
+          <div className="flex flex-col gap-5">
+            <label className="flex flex-col gap-2 text-sm font-medium text-slate-300">
+              Username
+              <input
+                type="text"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                className="h-11 w-full rounded-xl border border-white/10 bg-[#1e293b]/50 px-4 text-sm text-white shadow-inner transition-all duration-300 hover:border-purple-500/30 focus:border-purple-500 focus:bg-[#1e293b] focus:outline-none focus:ring-4 focus:ring-purple-500/20"
+                autoFocus
+                required
+              />
+            </label>
+            <label className="flex flex-col gap-2 text-sm font-medium text-slate-300">
+              Password
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="h-11 w-full rounded-xl border border-white/10 bg-[#1e293b]/50 px-4 text-sm text-white shadow-inner transition-all duration-300 hover:border-purple-500/30 focus:border-purple-500 focus:bg-[#1e293b] focus:outline-none focus:ring-4 focus:ring-purple-500/20"
+                required
+              />
+            </label>
+          </div>
 
           {error && (
             <div
               role="alert"
-              className="rounded-md border border-red-200 bg-error px-stack-gap py-3 text-on-error"
+              className="animate-in fade-in slide-in-from-top-1 rounded-xl border border-red-500/20 bg-red-500/10 p-4 text-sm text-red-400 backdrop-blur-md"
             >
               {error}
             </div>
@@ -87,17 +95,17 @@ export function SuperadminLoginPage() {
           <button
             type="submit"
             disabled={loading}
-            className="min-h-touchTarget rounded-md bg-action text-on-action shadow-sm transition hover:bg-action-hover disabled:cursor-not-allowed disabled:opacity-70"
+            className="group relative mt-2 flex h-11 items-center justify-center overflow-hidden rounded-xl bg-purple-600 text-sm font-semibold tracking-wide text-white shadow-lg shadow-purple-600/20 transition-all duration-300 hover:-translate-y-0.5 hover:bg-purple-500 hover:shadow-xl hover:shadow-purple-600/40 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:translate-y-0 disabled:hover:shadow-lg"
           >
-            {loading ? "Signing in..." : "LOGIN"}
+            <span className="relative z-10">{loading ? "Authenticating..." : "Sign In"}</span>
           </button>
 
           <button
             type="button"
             onClick={() => navigate("/login")}
-            className="min-h-touchTarget-sm rounded-md border border-outline bg-surface-container px-stack-gap text-label-md text-on-surface-variant transition hover:bg-surface-container-high"
+            className="mt-2 text-center text-xs font-medium text-slate-500 transition-colors duration-300 hover:text-slate-300"
           >
-            Back to shop login
+            &larr; Back to Shop Login
           </button>
         </div>
       </form>

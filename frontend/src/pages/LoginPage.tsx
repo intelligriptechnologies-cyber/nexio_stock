@@ -130,25 +130,28 @@ export function LoginPage() {
     : deviceStatus?.message ?? "This device must be registered before shop login is allowed.";
 
   return (
-    <div className="relative flex min-h-full items-center justify-center overflow-hidden bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.18),_transparent_46%),linear-gradient(160deg,#0f172a_0%,#1f2937_44%,#111827_100%)] p-stack-gap">
-      <div className="absolute inset-0 opacity-40 [background-image:linear-gradient(rgba(255,255,255,0.06)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.06)_1px,transparent_1px)] [background-size:28px_28px]" />
-      <section className="relative w-full max-w-[460px] overflow-hidden rounded-2xl border border-white/15 bg-white/95 shadow-2xl shadow-black/30 ring-1 ring-white/25">
-        <div className="border-b border-slate-200 px-gutter py-6">
-          <p className="text-label-md uppercase tracking-[0.24em] text-slate-500">Barstock</p>
-          <h1 className="mt-2 text-headline-lg text-slate-900">Shop login</h1>
-          <p className="mt-2 text-body-md text-slate-600">
-            Sign in with your role, username, and PIN/password.
+    <div className="relative flex min-h-full items-center justify-center overflow-hidden bg-slate-50 p-6 font-sans">
+      {/* Background Orbs for Premium Mesh Gradient Effect */}
+      <div className="pointer-events-none absolute left-0 top-0 h-[500px] w-[500px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-cyan-400/20 mix-blend-multiply blur-[100px]" />
+      <div className="pointer-events-none absolute bottom-0 right-0 h-[600px] w-[600px] translate-x-1/3 translate-y-1/3 rounded-full bg-blue-500/10 mix-blend-multiply blur-[120px]" />
+      
+      <section className="relative w-full max-w-[460px] overflow-hidden rounded-3xl border border-white/60 bg-white/70 shadow-[0_8px_30px_rgb(0,0,0,0.04)] backdrop-blur-xl ring-1 ring-slate-900/5 transition-all duration-500 hover:shadow-[0_8px_40px_rgb(0,0,0,0.08)]">
+        <div className="border-b border-slate-200/50 px-8 py-8 text-center">
+          <p className="text-xs font-semibold uppercase tracking-[0.25em] text-slate-400">Barstock</p>
+          <h1 className="mt-3 text-3xl font-light tracking-tight text-slate-900">Shop Login</h1>
+          <p className="mt-2 text-sm text-slate-500">
+            Sign in with your role, username, and PIN.
           </p>
         </div>
 
-        <form onSubmit={handleSubmit} className="flex flex-col gap-stack-gap px-gutter py-gutter text-slate-900">
-          <div className="grid gap-stack-gap">
-            <label className="flex flex-col gap-1 text-label-md">
+        <form onSubmit={handleSubmit} className="flex flex-col gap-6 px-8 py-8 text-slate-900">
+          <div className="flex flex-col gap-5">
+            <label className="flex flex-col gap-1.5 text-sm font-medium text-slate-700">
               Role
               <select
                 value={role}
                 onChange={(e) => setRole(e.target.value as ShopLoginRole)}
-                className="min-h-touchTarget-sm rounded-md border border-slate-300 bg-white px-stack-gap text-body-md shadow-inner focus:border-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900/10"
+                className="h-11 w-full rounded-xl border border-slate-200/80 bg-white/80 px-4 text-sm text-slate-800 shadow-sm transition-all duration-300 hover:border-cyan-400/50 focus:border-cyan-500 focus:bg-white focus:outline-none focus:ring-4 focus:ring-cyan-500/10"
               >
                 {ROLE_OPTIONS.map((option) => (
                   <option key={option.value} value={option.value}>
@@ -158,25 +161,25 @@ export function LoginPage() {
               </select>
             </label>
 
-            <label className="flex flex-col gap-1 text-label-md">
+            <label className="flex flex-col gap-1.5 text-sm font-medium text-slate-700">
               Username
               <input
                 type="text"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 placeholder={defaultUsername(role)}
-                className="min-h-touchTarget-sm rounded-md border border-slate-300 bg-white px-stack-gap text-body-md shadow-inner focus:border-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900/10"
+                className="h-11 w-full rounded-xl border border-slate-200/80 bg-white/80 px-4 text-sm text-slate-800 shadow-sm transition-all duration-300 hover:border-cyan-400/50 focus:border-cyan-500 focus:bg-white focus:outline-none focus:ring-4 focus:ring-cyan-500/10"
                 autoComplete="username"
                 autoFocus
                 required
               />
-              <span className="text-label-sm text-slate-500">
-                Use the account username assigned for this shop, for example {defaultUsername(role)}.
+              <span className="mt-1 text-xs text-slate-400">
+                Default: {defaultUsername(role)}.
               </span>
             </label>
 
-            <label className="flex flex-col gap-1 text-label-md">
-              PIN / password
+            <label className="flex flex-col gap-1.5 text-sm font-medium text-slate-700">
+              PIN / Password
               <input
                 type="password"
                 value={password}
@@ -184,35 +187,38 @@ export function LoginPage() {
                   setPassword(e.target.value);
                   if (error) setError(null);
                 }}
-                className="min-h-touchTarget-sm rounded-md border border-slate-300 bg-white px-stack-gap text-body-md shadow-inner focus:border-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900/10"
+                className="h-11 w-full rounded-xl border border-slate-200/80 bg-white/80 px-4 text-sm text-slate-800 shadow-sm transition-all duration-300 hover:border-cyan-400/50 focus:border-cyan-500 focus:bg-white focus:outline-none focus:ring-4 focus:ring-cyan-500/10"
                 autoComplete="current-password"
                 required
               />
             </label>
           </div>
 
-          <div className="rounded-xl border border-slate-200 bg-slate-50 px-stack-gap py-4">
-            <div className="text-label-md text-slate-500">Device</div>
-            <div className="mt-1 font-mono text-label-md text-slate-900 break-all">{deviceKey}</div>
-            <div className="mt-2 text-body-sm text-slate-600">{statusText}</div>
-            {deviceStatus?.shop_name && (
-              <div className="mt-2 flex flex-wrap gap-2 text-label-md text-slate-700">
-                <span className="rounded-full bg-slate-900 px-2 py-1 text-white">
-                  {deviceStatus.shop_name}
-                </span>
-                {deviceStatus.counter_name && (
-                  <span className="rounded-full bg-slate-200 px-2 py-1">
-                    Counter: {deviceStatus.counter_name}
+          <div className="group relative overflow-hidden rounded-2xl border border-slate-200/60 bg-gradient-to-br from-slate-50 to-slate-100/50 p-5 transition-all duration-300 hover:border-slate-300">
+            <div className="absolute -right-6 -top-6 h-16 w-16 rounded-full bg-slate-200/50 blur-2xl transition-all duration-500 group-hover:bg-cyan-200/50" />
+            <div className="relative z-10">
+              <div className="text-xs font-semibold uppercase tracking-wider text-slate-400">Device</div>
+              <div className="mt-1 font-mono text-sm tracking-tight text-slate-800 break-all">{deviceKey}</div>
+              <div className="mt-2 text-xs text-slate-500">{statusText}</div>
+              {deviceStatus?.shop_name && (
+                <div className="mt-3 flex flex-wrap gap-2 text-xs font-medium">
+                  <span className="rounded-full bg-slate-900 px-2.5 py-1 text-white shadow-sm">
+                    {deviceStatus.shop_name}
                   </span>
-                )}
-              </div>
-            )}
+                  {deviceStatus.counter_name && (
+                    <span className="rounded-full bg-white px-2.5 py-1 text-slate-700 shadow-sm ring-1 ring-slate-200">
+                      Counter: {deviceStatus.counter_name}
+                    </span>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
 
           {error && (
             <div
               role="alert"
-              className="rounded-md border border-red-200 bg-red-50 px-stack-gap py-3 text-red-800"
+              className="animate-in fade-in slide-in-from-top-1 rounded-xl border border-red-200/60 bg-red-50/50 p-4 text-sm text-red-700 backdrop-blur-sm"
             >
               {error}
             </div>
@@ -221,19 +227,22 @@ export function LoginPage() {
           <button
             type="submit"
             disabled={!canSubmit}
-            className="min-h-touchTarget rounded-md bg-slate-900 text-label-xl text-white shadow-sm transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50"
+            className="group relative mt-2 flex h-12 items-center justify-center overflow-hidden rounded-xl bg-slate-900 text-sm font-semibold tracking-wide text-white shadow-md transition-all duration-300 hover:-translate-y-0.5 hover:bg-slate-800 hover:shadow-xl hover:shadow-cyan-500/20 disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:translate-y-0 disabled:hover:shadow-md"
           >
-            {checkingDevice ? "Checking device..." : submitting ? "Signing in..." : "LOGIN"}
+            <span className="relative z-10">{checkingDevice ? "Checking device..." : submitting ? "Signing in..." : "Continue"}</span>
+            <div className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/10 to-transparent transition-transform duration-1000 group-hover:translate-x-full" />
           </button>
         </form>
 
-        <button
-          type="button"
-          onClick={() => navigate("/login/superadmin")}
-          className="absolute bottom-4 right-4 rounded-md border border-slate-300 bg-white/90 px-3 py-1 text-label-md text-slate-600 shadow-sm transition hover:bg-white hover:text-slate-900"
-        >
-          Superadmin login
-        </button>
+        <div className="border-t border-slate-100 bg-slate-50/50 p-4 text-center">
+          <button
+            type="button"
+            onClick={() => navigate("/login/superadmin")}
+            className="text-xs font-medium text-slate-400 transition-colors duration-300 hover:text-slate-700"
+          >
+            Access Superadmin Panel &rarr;
+          </button>
+        </div>
       </section>
     </div>
   );

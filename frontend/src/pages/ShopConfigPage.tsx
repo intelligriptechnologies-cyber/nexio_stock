@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Store, Save } from "lucide-react";
 import { ApiError } from "../api/client";
 import { getMyShop, updateMyShop, type ShopPublic } from "../api/shops";
 import { useAuth } from "../auth/AuthProvider";
@@ -82,32 +83,31 @@ export function ShopConfigPage() {
   };
 
   return (
-    <div className="flex flex-col gap-stack-gap">
-      <h1 className="text-headline-lg text-primary">Shop Config</h1>
+    <div className="flex flex-col gap-8 font-sans">
+      <header className="flex flex-col gap-2 rounded-[24px] border border-slate-200/50 bg-white/60 p-6 shadow-[0_8px_30px_rgb(0,0,0,0.02)] backdrop-blur-xl">
+        <h1 className="flex items-center gap-3 text-2xl font-light tracking-tight text-slate-900">
+          <Store className="h-6 w-6 text-action" /> Shop Config
+        </h1>
+        {shop && (
+          <p className="text-sm font-medium text-slate-500">
+            {shop.name} <span className="font-mono text-slate-400">({shop.code})</span>
+          </p>
+        )}
+      </header>
 
       {user?.role === "superadmin" && actingShopId === null && (
-        <div className="rounded-md bg-surface-container p-stack-gap text-on-surface-variant">
-          Pick a shop first (top of the sidebar).
+        <div className="flex h-[20vh] items-center justify-center rounded-[24px] border border-slate-200/50 bg-white/60 p-8 shadow-[0_8px_30px_rgb(0,0,0,0.02)] backdrop-blur-xl">
+          <div className="text-center text-sm font-medium text-slate-500">
+            Pick a shop first (top of the sidebar).
+          </div>
         </div>
       )}
 
       {shop && (
-        <div className="rounded-md bg-surface-container p-stack-gap text-label-md">
-          <div>
-            <span className="text-on-surface-variant">Shop name: </span>
-            <strong>{shop.name}</strong>
-          </div>
-          <div>
-            <span className="text-on-surface-variant">Shop code: </span>
-            <span className="font-mono">{shop.code}</span>
-          </div>
-        </div>
-      )}
-
-      <form
-        onSubmit={save}
-        className="grid grid-cols-1 gap-stack-gap rounded-lg bg-surface-container p-gutter md:grid-cols-2"
-      >
+        <form
+          onSubmit={save}
+          className="grid grid-cols-1 gap-8 rounded-[24px] border border-slate-200/50 bg-white/60 p-8 shadow-[0_8px_30px_rgb(0,0,0,0.02)] backdrop-blur-xl md:grid-cols-2"
+        >
         <Field
           label="GSTIN (15 uppercase alphanumerics)"
           value={gstin}
@@ -139,22 +139,25 @@ export function ShopConfigPage() {
           onChange={setAllowedLoginCidrs}
           placeholder={'One per line, e.g. 203.0.113.10 or 203.0.113.0/24\nLeave blank to allow shop login from anywhere'}
         />
-        <button
-          type="submit"
-          disabled={busy}
-          className="md:col-span-2 min-h-touchTarget rounded-md bg-action text-label-xl text-on-action disabled:opacity-50"
-        >
-          {busy ? "Saving…" : "Save shop config"}
-        </button>
+        <div className="mt-4 flex md:col-span-2">
+          <button
+            type="submit"
+            disabled={busy}
+            className="flex h-11 items-center justify-center gap-2 rounded-xl bg-action px-8 text-sm font-bold tracking-wide text-white shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[var(--color-action)]/30 active:scale-95 disabled:pointer-events-none disabled:opacity-50"
+          >
+            <Save className="h-4 w-4" /> {busy ? "Saving…" : "Save shop config"}
+          </button>
+        </div>
       </form>
+      )}
 
       {error && (
-        <div role="alert" className="rounded-md bg-error px-stack-gap py-3 text-on-error">
+        <div role="alert" className="rounded-xl bg-red-50 px-4 py-3 text-sm font-medium text-red-600 ring-1 ring-red-200">
           {error}
         </div>
       )}
       {info && (
-        <div role="status" className="rounded-md bg-success px-stack-gap py-3 text-on-secondary">
+        <div role="status" className="rounded-xl bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-600 ring-1 ring-emerald-200">
           {info}
         </div>
       )}
@@ -184,7 +187,7 @@ function Field({
   placeholder?: string;
 }) {
   return (
-    <label className="flex flex-col gap-1 text-label-md">
+    <label className="flex flex-col gap-1.5 text-xs font-semibold uppercase tracking-wider text-slate-500">
       {label}
       <input
         type={type}
@@ -195,7 +198,7 @@ function Field({
         max={max}
         maxLength={maxLength}
         placeholder={placeholder}
-        className="min-h-touchTarget-sm rounded-md border border-outline bg-surface px-stack-gap text-body-md"
+        className="h-11 w-full rounded-xl border border-slate-200 bg-white/50 px-4 text-sm font-medium normal-case text-slate-700 shadow-sm outline-none transition-all hover:bg-white focus:border-action focus:ring-1 focus:ring-action"
       />
     </label>
   );
@@ -213,14 +216,14 @@ function TextAreaField({
   placeholder?: string;
 }) {
   return (
-    <label className="flex flex-col gap-1 text-label-md md:col-span-2">
+    <label className="flex flex-col gap-1.5 text-xs font-semibold uppercase tracking-wider text-slate-500 md:col-span-2">
       {label}
       <textarea
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
         rows={4}
-        className="min-h-[7rem] rounded-md border border-outline bg-surface px-stack-gap py-2 text-body-md"
+        className="min-h-[7rem] w-full rounded-xl border border-slate-200 bg-white/50 p-4 text-sm font-medium normal-case text-slate-700 shadow-sm outline-none transition-all hover:bg-white focus:border-action focus:ring-1 focus:ring-action"
       />
     </label>
   );

@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { Store, RefreshCw, Plus, Save, Users, MonitorSmartphone, Package, Key, ShieldAlert, Settings } from "lucide-react";
 import { listProducts, type Product } from "../api/products";
 import { getOrCreateDeviceKey, toUserMessage } from "../api/client";
 import {
@@ -138,31 +139,34 @@ export function ShopMaintenancePage() {
   const reload = () => refreshPageData();
 
   return (
-    <div className="flex flex-col gap-stack-gap">
-      <header className="flex flex-wrap items-center justify-between gap-stack-gap">
-        <h1 className="text-headline-lg text-primary">Shop Master</h1>
+    <div className="flex flex-col gap-8 font-sans">
+      <header className="flex flex-wrap items-center justify-between gap-4 rounded-[24px] border border-slate-200/50 bg-white/60 p-6 shadow-[0_8px_30px_rgb(0,0,0,0.02)] backdrop-blur-xl">
+        <h1 className="flex items-center gap-3 text-2xl font-light tracking-tight text-slate-900">
+          <Store className="h-6 w-6 text-action" /> Shop Master
+        </h1>
         <button
           type="button"
           onClick={reload}
-          className="min-h-touchTarget-sm rounded-md bg-surface-container-high px-stack-gap text-label-md"
+          className="group flex h-10 items-center justify-center rounded-xl bg-white px-5 text-sm font-semibold tracking-wide text-slate-700 shadow-sm ring-1 ring-slate-200 transition-all duration-300 hover:scale-[1.02] hover:bg-slate-50 hover:shadow-md active:scale-95"
         >
-          Refresh
+          <RefreshCw className="h-4 w-4 text-slate-400 transition-transform duration-300 group-hover:rotate-180" />
+          <span className="ml-2">Refresh</span>
         </button>
       </header>
 
       {error && (
-        <div role="alert" className="rounded-md bg-error px-stack-gap py-3 text-on-error">
+        <div role="alert" className="rounded-xl bg-red-50 px-4 py-3 text-sm font-medium text-red-600 ring-1 ring-red-200">
           {error}
         </div>
       )}
       {message && (
-        <div role="status" className="rounded-md bg-success px-stack-gap py-3 text-on-secondary">
+        <div role="status" className="rounded-xl bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-600 ring-1 ring-emerald-200">
           {message}
         </div>
       )}
 
-      <div className="grid gap-stack-gap lg:grid-cols-[280px_1fr]">
-        <aside className="flex flex-col gap-stack-gap rounded-lg bg-surface-container p-stack-gap">
+      <div className="grid gap-8 lg:grid-cols-[300px_1fr]">
+        <aside className="flex flex-col gap-6 rounded-[24px] border border-slate-200/50 bg-white/60 p-6 shadow-[0_8px_30px_rgb(0,0,0,0.02)] backdrop-blur-xl">
           <CreateShopForm
             onCreated={async (shop) => {
               setMessage("Shop created.");
@@ -175,25 +179,25 @@ export function ShopMaintenancePage() {
             }}
             onError={setError}
           />
-          <div className="border-t border-outline pt-stack-gap">
-            <h2 className="mb-2 text-headline-md text-primary">Shops</h2>
-            <div className="flex max-h-[calc(100vh-24rem)] min-h-32 flex-col gap-2 overflow-y-auto pr-1">
+          <div className="border-t border-slate-200/50 pt-6">
+            <h2 className="mb-4 text-xs font-semibold uppercase tracking-widest text-slate-500">Shops</h2>
+            <div className="flex max-h-[calc(100vh-28rem)] flex-col gap-2 overflow-y-auto pr-2 custom-scrollbar">
               {shops.map((shop) => (
                 <button
                   key={shop.id}
                   type="button"
                   onClick={() => selectShop(shop.id)}
-                  className={`min-h-touchTarget rounded-md border px-stack-gap py-3 text-left transition ${
+                  className={`group relative flex w-full flex-col items-start gap-1 rounded-xl p-4 text-left transition-all duration-300 ${
                     shop.id === selectedShopId
-                      ? "border-primary bg-primary text-on-primary shadow-sm"
-                      : "border-outline bg-surface text-on-surface hover:border-primary hover:bg-surface-container-high"
+                      ? "bg-action text-white shadow-md shadow-[var(--color-action)]/20"
+                      : "bg-white text-slate-700 shadow-sm ring-1 ring-slate-200/50 hover:bg-slate-50 hover:shadow"
                   }`}
                   aria-current={shop.id === selectedShopId ? "true" : undefined}
                 >
-                  <div className="text-body-md font-bold leading-tight">{shop.name}</div>
+                  <div className="text-sm font-bold tracking-tight">{shop.name}</div>
                   <div
-                    className={`mt-1 font-mono text-label-md ${
-                      shop.id === selectedShopId ? "text-on-primary" : "text-on-surface-variant"
+                    className={`font-mono text-xs ${
+                      shop.id === selectedShopId ? "text-white/80" : "text-slate-400"
                     }`}
                   >
                     {shop.code}
@@ -201,7 +205,7 @@ export function ShopMaintenancePage() {
                 </button>
               ))}
               {shops.length === 0 && (
-                <div className="rounded-md bg-surface px-stack-gap py-4 text-label-md text-on-surface-variant">
+                <div className="rounded-xl border border-dashed border-slate-300 py-8 text-center text-sm font-medium text-slate-500">
                   No shops yet.
                 </div>
               )}
@@ -210,13 +214,13 @@ export function ShopMaintenancePage() {
         </aside>
 
         {selectedShop && shopDetails ? (
-          <main className="flex min-w-0 flex-col rounded-lg bg-surface-container">
-            <div className="border-b border-outline px-gutter pt-gutter">
-              <div className="mb-3">
-                <div className="text-label-md text-on-surface-variant">Selected shop</div>
-                <h2 className="text-headline-md text-primary">{selectedShop.name}</h2>
+          <main className="flex min-w-0 flex-col rounded-[24px] border border-slate-200/50 bg-white/60 shadow-[0_8px_30px_rgb(0,0,0,0.02)] backdrop-blur-xl">
+            <div className="border-b border-slate-200/50 px-8 pt-8">
+              <div className="mb-6">
+                <div className="text-[11px] font-semibold uppercase tracking-widest text-slate-500">Selected shop</div>
+                <h2 className="text-2xl font-light tracking-tight text-slate-900">{selectedShop.name}</h2>
               </div>
-              <div className="flex flex-wrap gap-2" role="tablist" aria-label="Shop management tabs">
+              <div className="flex flex-wrap gap-6" role="tablist" aria-label="Shop management tabs">
                 {TABS.map((tab) => (
                   <button
                     key={tab.id}
@@ -224,18 +228,21 @@ export function ShopMaintenancePage() {
                     role="tab"
                     aria-selected={activeTab === tab.id}
                     onClick={() => setActiveTab(tab.id)}
-                    className={`min-h-touchTarget-sm rounded-t-md border border-b-0 px-stack-gap text-label-md transition ${
+                    className={`relative px-2 pb-4 text-sm font-medium transition-colors ${
                       activeTab === tab.id
-                        ? "border-primary bg-action text-on-action"
-                        : "border-outline bg-surface text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface"
+                        ? "text-action"
+                        : "text-slate-500 hover:text-slate-900"
                     }`}
                   >
                     {tab.label}
+                    {activeTab === tab.id && (
+                      <div className="absolute bottom-0 left-0 h-0.5 w-full bg-action" />
+                    )}
                   </button>
                 ))}
               </div>
             </div>
-            <div className="max-h-[calc(100vh-14rem)] overflow-y-auto p-gutter">
+            <div className="max-h-[calc(100vh-18rem)] overflow-y-auto p-8 custom-scrollbar">
               {activeTab === "details" && (
                 <EditShopForm
                   shop={shopDetails}
@@ -288,8 +295,10 @@ export function ShopMaintenancePage() {
             </div>
           </main>
         ) : (
-          <div className="rounded-md bg-surface-container p-gutter text-on-surface-variant">
-            Create or select a shop to manage its details.
+          <div className="flex h-[50vh] items-center justify-center rounded-[24px] border border-slate-200/50 bg-white/60 p-8 shadow-[0_8px_30px_rgb(0,0,0,0.02)] backdrop-blur-xl">
+            <div className="text-center text-sm font-medium text-slate-500">
+              Create or select a shop to manage its details.
+            </div>
           </div>
         )}
       </div>
@@ -325,14 +334,16 @@ function CreateShopForm({
   };
 
   return (
-    <form onSubmit={submit} className="flex flex-col gap-2">
-      <h2 className="text-headline-md text-primary">New shop</h2>
+    <form onSubmit={submit} className="flex flex-col gap-4">
+      <h2 className="flex items-center gap-2 text-lg font-light tracking-tight text-slate-900">
+        <Plus className="h-5 w-5 text-action" /> New shop
+      </h2>
       <Field label="Name" value={name} onChange={setName} required />
       <Field label="Code" value={code} onChange={setCode} required />
       <button
         type="submit"
         disabled={busy}
-        className="min-h-touchTarget-sm rounded-md bg-action px-stack-gap text-label-md text-on-action disabled:opacity-50"
+        className="mt-2 flex h-11 items-center justify-center rounded-xl bg-action px-6 text-sm font-bold tracking-wide text-white shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[var(--color-action)]/30 active:scale-95 disabled:pointer-events-none disabled:opacity-50"
       >
         {busy ? "Creating..." : "Create"}
       </button>
@@ -398,9 +409,11 @@ function EditShopForm({
   };
 
   return (
-    <form onSubmit={submit} className="flex flex-col gap-stack-gap">
-      <h2 className="text-headline-md text-primary">Shop details</h2>
-      <div className="grid gap-stack-gap md:grid-cols-2">
+    <form onSubmit={submit} className="flex flex-col gap-6">
+      <h2 className="flex items-center gap-2 text-xl font-light tracking-tight text-slate-900">
+        <Settings className="h-5 w-5 text-action" /> Shop details
+      </h2>
+      <div className="grid gap-6 md:grid-cols-2">
         <Field label="Name" value={name} onChange={setName} required />
         <Field label="Code" value={code} onChange={setCode} required />
         <Field label="GSTIN" value={gstin} onChange={setGstin} />
@@ -422,9 +435,9 @@ function EditShopForm({
       <button
         type="submit"
         disabled={busy}
-        className="min-h-touchTarget-sm w-fit rounded-md bg-action px-stack-gap text-label-md text-on-action disabled:opacity-50"
+        className="flex h-11 w-fit items-center justify-center gap-2 rounded-xl bg-action px-8 text-sm font-bold tracking-wide text-white shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[var(--color-action)]/30 active:scale-95 disabled:pointer-events-none disabled:opacity-50"
       >
-        {busy ? "Saving..." : "Save shop"}
+        <Save className="h-4 w-4" /> {busy ? "Saving..." : "Save shop"}
       </button>
     </form>
   );
@@ -501,21 +514,23 @@ function UserPanel({
   };
 
   return (
-    <section className="flex flex-col gap-stack-gap">
-      <div className="flex flex-wrap items-center justify-between gap-stack-gap">
-        <h2 className="text-headline-md text-primary">Allotted users</h2>
-        <div className="flex flex-wrap gap-stack-gap">
+    <section className="flex flex-col gap-6">
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <h2 className="flex items-center gap-2 text-xl font-light tracking-tight text-slate-900">
+          <Users className="h-5 w-5 text-action" /> Allotted users
+        </h2>
+        <div className="flex flex-wrap gap-4">
           <SelectFilter label="Role" value={roleFilter} options={ROLE_FILTERS} onChange={onRoleFilter} />
           <SelectFilter label="Status" value={statusFilter} options={STATUS_FILTERS} onChange={onStatusFilter} />
         </div>
       </div>
-      <form onSubmit={create} className="grid gap-stack-gap md:grid-cols-3">
-        <label className="flex flex-col gap-1 text-label-md">
+      <form onSubmit={create} className="grid items-end gap-4 rounded-2xl bg-slate-50 p-6 ring-1 ring-slate-200/50 md:grid-cols-[1fr_1fr_1fr_auto]">
+        <label className="flex flex-col gap-1.5 text-xs font-semibold uppercase tracking-wider text-slate-500">
           Role
           <select
             value={role}
             onChange={(e) => setRole(e.target.value as ShopUserRole)}
-            className="min-h-touchTarget-sm rounded-md border border-outline bg-surface px-stack-gap text-body-md"
+            className="h-11 w-full rounded-xl border border-slate-200 bg-white/50 px-4 text-sm font-medium text-slate-700 shadow-sm outline-none transition-all hover:bg-white focus:border-action focus:ring-1 focus:ring-action"
           >
             {ROLES.map((r) => (
               <option key={r} value={r}>
@@ -536,45 +551,54 @@ function UserPanel({
         <button
           type="submit"
           disabled={busy}
-          className="min-h-touchTarget-sm self-end rounded-md bg-action px-stack-gap text-label-md text-on-action disabled:opacity-50"
+          className="flex h-11 items-center justify-center gap-2 rounded-xl bg-action px-6 text-sm font-bold tracking-wide text-white shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[var(--color-action)]/30 active:scale-95 disabled:pointer-events-none disabled:opacity-50"
         >
-          {busy ? "Adding..." : "Add user"}
+          <Plus className="h-4 w-4" /> {busy ? "Adding..." : "Add user"}
         </button>
       </form>
 
-      <div className="max-h-[22rem] overflow-auto rounded-md bg-surface">
-        <table className="w-full border-collapse">
-          <thead>
-            <tr className="border-b border-outline text-label-md text-on-surface-variant">
-              <th className="px-stack-gap py-2 text-left">Name</th>
-              <th className="px-stack-gap py-2 text-left">Role</th>
-              <th className="px-stack-gap py-2 text-left">Username</th>
-              <th className="px-stack-gap py-2 text-left">Phone</th>
-              <th className="px-stack-gap py-2 text-left">Status</th>
-              <th className="px-stack-gap py-2 text-right">Actions</th>
+      <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white">
+        <table className="w-full text-left text-sm">
+          <thead className="bg-slate-50/80 text-[11px] uppercase tracking-widest text-slate-500">
+            <tr>
+              <th className="px-6 py-4 font-semibold">Name</th>
+              <th className="px-6 py-4 font-semibold">Role</th>
+              <th className="px-6 py-4 font-semibold">Username</th>
+              <th className="px-6 py-4 font-semibold">Phone</th>
+              <th className="px-6 py-4 font-semibold">Status</th>
+              <th className="px-6 py-4 text-right font-semibold">Actions</th>
             </tr>
           </thead>
-          <tbody>
+          <tbody className="divide-y divide-slate-100">
             {users.map((user) => (
-              <tr key={user.id} className="border-b border-outline/40">
-                <td className="px-stack-gap py-2">{user.full_name}</td>
-                <td className="px-stack-gap py-2">{formatRole(user.role)}</td>
-                <td className="px-stack-gap py-2 font-mono">{user.username}</td>
-                <td className="px-stack-gap py-2 font-mono">{user.phone}</td>
-                <td className="px-stack-gap py-2">{user.is_active ? "Active" : "Inactive"}</td>
-                <td className="px-stack-gap py-2 text-right">
-                  <div className="flex justify-end gap-2">
+              <tr key={user.id} className="transition-colors hover:bg-slate-50/50">
+                <td className="px-6 py-4 font-medium text-slate-900">{user.full_name}</td>
+                <td className="px-6 py-4">{formatRole(user.role)}</td>
+                <td className="px-6 py-4 font-mono text-slate-500">{user.username}</td>
+                <td className="px-6 py-4 font-mono text-slate-500">{user.phone}</td>
+                <td className="px-6 py-4">
+                  <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${
+                    user.is_active ? "bg-emerald-100 text-emerald-700" : "bg-slate-100 text-slate-600"
+                  }`}>
+                    {user.is_active ? "Active" : "Inactive"}
+                  </span>
+                </td>
+                <td className="px-6 py-4 text-right">
+                  <div className="flex justify-end gap-3">
                     <button
                       type="button"
                       onClick={() => resetPassword(user)}
-                      className="rounded-md bg-surface-container-high px-stack-gap py-1 text-label-md"
+                      className="text-slate-400 transition-colors hover:text-slate-700"
+                      title="Reset Password"
                     >
-                      Reset
+                      <Key className="h-4 w-4" />
                     </button>
                     <button
                       type="button"
                       onClick={() => toggleActive(user)}
-                      className="rounded-md bg-primary px-stack-gap py-1 text-label-md text-on-primary"
+                      className={`text-sm font-semibold transition-colors ${
+                        user.is_active ? "text-red-500 hover:text-red-700" : "text-emerald-500 hover:text-emerald-700"
+                      }`}
                     >
                       {user.is_active ? "Deactivate" : "Activate"}
                     </button>
@@ -584,7 +608,7 @@ function UserPanel({
             ))}
             {users.length === 0 && (
               <tr>
-                <td className="px-stack-gap py-4 text-on-surface-variant" colSpan={6}>
+                <td className="px-6 py-8 text-center text-slate-500" colSpan={6}>
                   No users match the current filter.
                 </td>
               </tr>
@@ -646,15 +670,19 @@ function DevicePanel({
   };
 
   return (
-    <section className="flex flex-col gap-stack-gap">
-      <div className="flex flex-wrap items-center justify-between gap-stack-gap">
-        <h2 className="text-headline-md text-primary">Device bindings</h2>
-        <div className="text-label-md text-on-surface-variant">
-          Bind each tablet or PC to this shop and counter.
+    <section className="flex flex-col gap-6">
+      <div className="flex flex-col gap-1">
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <h2 className="flex items-center gap-2 text-xl font-light tracking-tight text-slate-900">
+            <MonitorSmartphone className="h-5 w-5 text-action" /> Device bindings
+          </h2>
         </div>
+        <p className="text-sm font-medium text-slate-500">
+          Bind each tablet or PC to this shop and counter.
+        </p>
       </div>
 
-      <form onSubmit={registerCurrentDevice} className="grid gap-stack-gap md:grid-cols-[1.4fr_1fr_auto]">
+      <form onSubmit={registerCurrentDevice} className="grid items-end gap-4 rounded-2xl bg-slate-50 p-6 ring-1 ring-slate-200/50 md:grid-cols-[1.4fr_1fr_auto]">
         <Field label="Device key" value={deviceKey} onChange={setDeviceKey} required />
         <Field
           label="Counter name"
@@ -665,23 +693,23 @@ function DevicePanel({
         <button
           type="submit"
           disabled={busy}
-          className="min-h-touchTarget-sm self-end rounded-md bg-action px-stack-gap text-label-md text-on-action disabled:opacity-50"
+          className="flex h-11 items-center justify-center gap-2 rounded-xl bg-action px-6 text-sm font-bold tracking-wide text-white shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[var(--color-action)]/30 active:scale-95 disabled:pointer-events-none disabled:opacity-50"
         >
-          {busy ? "Saving..." : "Bind current device"}
+          <Plus className="h-4 w-4" /> {busy ? "Saving..." : "Bind current device"}
         </button>
       </form>
 
-      <div className="max-h-[24rem] overflow-auto rounded-md bg-surface">
-        <table className="w-full border-collapse">
-          <thead>
-            <tr className="border-b border-outline text-label-md text-on-surface-variant">
-              <th className="px-stack-gap py-2 text-left">Device key</th>
-              <th className="px-stack-gap py-2 text-left">Counter</th>
-              <th className="px-stack-gap py-2 text-left">Status</th>
-              <th className="px-stack-gap py-2 text-right">Actions</th>
+      <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white">
+        <table className="w-full text-left text-sm">
+          <thead className="bg-slate-50/80 text-[11px] uppercase tracking-widest text-slate-500">
+            <tr>
+              <th className="px-6 py-4 font-semibold">Device key</th>
+              <th className="px-6 py-4 font-semibold">Counter</th>
+              <th className="px-6 py-4 font-semibold">Status</th>
+              <th className="px-6 py-4 text-right font-semibold">Actions</th>
             </tr>
           </thead>
-          <tbody>
+          <tbody className="divide-y divide-slate-100">
             {devices.map((device) => (
               <DeviceRow
                 key={device.id}
@@ -692,7 +720,7 @@ function DevicePanel({
             ))}
             {devices.length === 0 && (
               <tr>
-                <td className="px-stack-gap py-4 text-on-surface-variant" colSpan={4}>
+                <td className="px-6 py-8 text-center text-slate-500" colSpan={4}>
                   No device bindings yet.
                 </td>
               </tr>
@@ -721,23 +749,29 @@ function DeviceRow({
     setCounterName(device.counter_name ?? "");
   }, [device.counter_name]);
   return (
-    <tr className="border-b border-outline/40">
-      <td className="px-stack-gap py-2 font-mono text-label-md">{device.device_key}</td>
-      <td className="px-stack-gap py-2">
+    <tr className="transition-colors hover:bg-slate-50/50">
+      <td className="px-6 py-4 font-mono text-slate-500">{device.device_key}</td>
+      <td className="px-6 py-4">
         <input
           value={counterName}
           onChange={(e) => setCounterName(e.target.value)}
-          className="min-h-touchTarget-sm w-full rounded-md border border-outline bg-surface px-2 text-body-md"
+          className="h-9 w-full rounded-lg border border-slate-200 bg-white/50 px-3 text-sm font-medium text-slate-700 shadow-sm outline-none transition-all hover:bg-white focus:border-action focus:ring-1 focus:ring-action"
         />
       </td>
-      <td className="px-stack-gap py-2">{device.is_active ? "Active" : "Inactive"}</td>
-      <td className="px-stack-gap py-2 text-right">
-        <div className="flex justify-end gap-2">
+      <td className="px-6 py-4">
+        <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${
+          device.is_active ? "bg-emerald-100 text-emerald-700" : "bg-slate-100 text-slate-600"
+        }`}>
+          {device.is_active ? "Active" : "Inactive"}
+        </span>
+      </td>
+      <td className="px-6 py-4 text-right">
+        <div className="flex justify-end gap-3">
           <button
             type="button"
             disabled={busy}
             onClick={() => void onSave(device, { counter_name: counterName.trim() || null })}
-            className="rounded-md bg-surface-container-high px-stack-gap py-1 text-label-md disabled:opacity-50"
+            className="text-sm font-semibold text-action transition-colors hover:text-action/80 disabled:opacity-50"
           >
             Save
           </button>
@@ -745,7 +779,9 @@ function DeviceRow({
             type="button"
             disabled={busy}
             onClick={() => void onSave(device, { is_active: !device.is_active })}
-            className="rounded-md bg-primary px-stack-gap py-1 text-label-md text-on-primary disabled:opacity-50"
+            className={`text-sm font-semibold transition-colors disabled:opacity-50 ${
+              device.is_active ? "text-red-500 hover:text-red-700" : "text-emerald-500 hover:text-emerald-700"
+            }`}
           >
             {device.is_active ? "Disable" : "Enable"}
           </button>
@@ -771,69 +807,75 @@ function InventoryPanel({
   onOpenProducts: () => void;
 }) {
   return (
-    <section className="flex flex-col gap-stack-gap">
-      <div className="flex flex-wrap items-center justify-between gap-stack-gap">
-        <h2 className="text-headline-md text-primary">Quick inventory check</h2>
+    <section className="flex flex-col gap-6">
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <h2 className="flex items-center gap-2 text-xl font-light tracking-tight text-slate-900">
+          <Package className="h-5 w-5 text-action" /> Quick inventory check
+        </h2>
         <button
           type="button"
           onClick={onOpenProducts}
-          className="min-h-touchTarget-sm rounded-md bg-primary px-stack-gap text-label-md text-on-primary"
+          className="flex h-10 items-center justify-center rounded-xl bg-action px-6 text-sm font-semibold tracking-wide text-white shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[var(--color-action)]/30 active:scale-95"
         >
           Open in Products
         </button>
       </div>
-      <div className="flex flex-wrap items-center gap-stack-gap">
+      <div className="flex flex-wrap items-center gap-4">
         <input
           type="search"
           value={query}
           onChange={(e) => onQuery(e.target.value)}
           placeholder="Search brand, barcode, or size"
-          className="min-h-touchTarget-sm flex-1 rounded-md border border-outline bg-surface px-stack-gap text-body-md"
+          className="h-11 flex-1 rounded-xl border border-slate-200 bg-white/50 px-4 text-sm font-medium text-slate-700 shadow-sm outline-none transition-all hover:bg-white focus:border-action focus:ring-1 focus:ring-action"
         />
-        <label className="flex items-center gap-2 text-label-md">
+        <label className="flex items-center gap-2 text-sm font-medium text-slate-600">
           <input
             type="checkbox"
             checked={includeInactive}
             onChange={(e) => onIncludeInactive(e.target.checked)}
+            className="h-4 w-4 rounded border-slate-300 text-action focus:ring-action"
           />
           Include inactive
         </label>
       </div>
-      <div className="max-h-[24rem] overflow-auto rounded-md bg-surface">
-        <table className="w-full border-collapse">
-          <thead>
-            <tr className="border-b border-outline text-label-md text-on-surface-variant">
-              <th className="px-stack-gap py-2 text-left">Brand</th>
-              <th className="px-stack-gap py-2 text-left">Size</th>
-              <th className="px-stack-gap py-2 text-left">Barcode</th>
-              <th className="px-stack-gap py-2 text-right">Price</th>
-              <th className="px-stack-gap py-2 text-left">Status</th>
-              <th className="px-stack-gap py-2 text-right">Current stock</th>
-              <th className="px-stack-gap py-2 text-right">Low-stock</th>
+      <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white">
+        <table className="w-full text-left text-sm">
+          <thead className="bg-slate-50/80 text-[11px] uppercase tracking-widest text-slate-500">
+            <tr>
+              <th className="px-6 py-4 font-semibold">Brand</th>
+              <th className="px-6 py-4 font-semibold">Size</th>
+              <th className="px-6 py-4 font-semibold">Barcode</th>
+              <th className="px-6 py-4 text-right font-semibold">Price</th>
+              <th className="px-6 py-4 font-semibold">Status</th>
+              <th className="px-6 py-4 text-right font-semibold">Current stock</th>
+              <th className="px-6 py-4 text-right font-semibold">Low-stock</th>
             </tr>
           </thead>
-          <tbody>
+          <tbody className="divide-y divide-slate-100">
             {products.map((product) => (
-              <tr key={product.id} className="border-b border-outline/40">
-                <td className="px-stack-gap py-2">{product.brand}</td>
-                <td className="px-stack-gap py-2">{product.size_label}</td>
-                <td className="px-stack-gap py-2 font-mono text-label-md">{product.barcode}</td>
-                <td className="px-stack-gap py-2 text-right font-mono">
+              <tr key={product.id} className="transition-colors hover:bg-slate-50/50">
+                <td className="px-6 py-4 font-medium text-slate-900">{product.brand}</td>
+                <td className="px-6 py-4 text-slate-500">{product.size_label}</td>
+                <td className="px-6 py-4 font-mono text-slate-500">{product.barcode}</td>
+                <td className="px-6 py-4 text-right font-mono font-medium text-slate-900">
                   {product.price == null ? "-" : `Rs ${product.price}`}
                 </td>
-                <td className="px-stack-gap py-2">
-                  {product.status}
-                  {!product.is_active ? " / inactive" : ""}
+                <td className="px-6 py-4">
+                  <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${
+                    product.is_active ? (product.status === "approved" ? "bg-emerald-100 text-emerald-700" : "bg-amber-100 text-amber-700") : "bg-slate-100 text-slate-600"
+                  }`}>
+                    {product.status} {!product.is_active && "(inactive)"}
+                  </span>
                 </td>
-                <td className="px-stack-gap py-2 text-right font-mono">{product.current_stock}</td>
-                <td className="px-stack-gap py-2 text-right font-mono">
+                <td className="px-6 py-4 text-right font-mono font-medium text-slate-900">{product.current_stock}</td>
+                <td className="px-6 py-4 text-right font-mono text-slate-500">
                   {product.low_stock_threshold ?? "-"}
                 </td>
               </tr>
             ))}
             {products.length === 0 && (
               <tr>
-                <td className="px-stack-gap py-4 text-on-surface-variant" colSpan={7}>
+                <td className="px-6 py-8 text-center text-slate-500" colSpan={7}>
                   No products match the current filter.
                 </td>
               </tr>
@@ -857,12 +899,12 @@ function SelectFilter<T extends string>({
   onChange: (value: T) => void;
 }) {
   return (
-    <label className="flex items-center gap-2 text-label-md">
+    <label className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-slate-500">
       {label}
       <select
         value={value}
         onChange={(e) => onChange(e.target.value as T)}
-        className="min-h-touchTarget-sm rounded-md border border-outline bg-surface px-2 text-body-md"
+        className="h-9 min-w-[120px] rounded-lg border border-slate-200 bg-white/50 px-3 text-sm font-medium normal-case text-slate-700 shadow-sm outline-none transition-all hover:bg-white focus:border-action focus:ring-1 focus:ring-action"
       >
         {options.map((option) => (
           <option key={option} value={option}>
@@ -903,7 +945,7 @@ function Field({
   placeholder?: string;
 }) {
   return (
-    <label className="flex flex-col gap-1 text-label-md">
+    <label className="flex flex-col gap-1.5 text-xs font-semibold uppercase tracking-wider text-slate-500">
       {label}
       <input
         type={type}
@@ -913,7 +955,7 @@ function Field({
         step={step}
         min={min}
         placeholder={placeholder}
-        className="min-h-touchTarget-sm rounded-md border border-outline bg-surface px-stack-gap text-body-md"
+        className="h-11 w-full rounded-xl border border-slate-200 bg-white/50 px-4 text-sm font-medium normal-case text-slate-700 shadow-sm outline-none transition-all hover:bg-white focus:border-action focus:ring-1 focus:ring-action"
       />
     </label>
   );
@@ -931,14 +973,14 @@ function TextAreaField({
   placeholder?: string;
 }) {
   return (
-    <label className="flex flex-col gap-1 text-label-md md:col-span-2">
+    <label className="flex flex-col gap-1.5 text-xs font-semibold uppercase tracking-wider text-slate-500 md:col-span-2">
       {label}
       <textarea
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
         rows={4}
-        className="min-h-[7rem] rounded-md border border-outline bg-surface px-stack-gap py-2 text-body-md"
+        className="min-h-[7rem] w-full rounded-xl border border-slate-200 bg-white/50 px-4 py-3 text-sm font-medium normal-case text-slate-700 shadow-sm outline-none transition-all hover:bg-white focus:border-action focus:ring-1 focus:ring-action"
       />
     </label>
   );
