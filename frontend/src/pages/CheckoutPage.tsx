@@ -949,20 +949,20 @@ export function CheckoutPage() {
           <div
             role="region"
             aria-label="Pending finalize queue"
-            className="flex flex-col gap-4 rounded-[24px] bg-slate-50 p-6 ring-1 ring-slate-200"
+            className="flex flex-col gap-stack-gap rounded-xl bg-slate-50 p-6 ring-1 ring-slate-200"
           >
             <div className="flex items-center justify-between">
               <div className="text-lg font-semibold tracking-tight text-slate-900">
                 Pending finalize queue ({queuedSnapshot.length})
               </div>
-              <div className="flex gap-4">
+              <div className="flex gap-stack-gap">
                 <button
                   type="button"
                   onClick={() => {
                     void retryQueue.flush();
                     refreshQueueSnapshot();
                   }}
-                  className="flex h-11 items-center justify-center rounded-xl bg-action px-6 text-sm font-bold tracking-wide text-white shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[var(--color-action)]/30 active:scale-95 disabled:pointer-events-none disabled:opacity-50"
+                  className="flex h-11 items-center justify-center rounded-xl bg-action px-6 text-sm font-bold tracking-wide text-white shadow-sm transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:-translate-y-0.5 hover:shadow-[var(--color-action)]/30 active:scale-[0.97] disabled:pointer-events-none disabled:opacity-50"
                   disabled={!online}
                 >
                   Retry now
@@ -999,9 +999,9 @@ export function CheckoutPage() {
           <div
             role="region"
             aria-label="Offline session"
-            className="flex flex-col gap-6 rounded-[24px] bg-slate-50 p-6 ring-1 ring-slate-200"
+            className="flex flex-col gap-gutter rounded-xl bg-slate-50 p-6 ring-1 ring-slate-200"
           >
-            <div className="flex flex-wrap items-center justify-between gap-4">
+            <div className="flex flex-wrap items-center justify-between gap-stack-gap">
               <div>
                 <div className="text-lg font-semibold tracking-tight text-slate-900">Offline session #{offlineSession.session.id}</div>
                 <div className="text-sm font-medium text-slate-500">
@@ -1017,8 +1017,8 @@ export function CheckoutPage() {
                 {offlineSession.session.failure_reason.message}
               </div>
             )}
-            <section className="flex flex-col gap-4 rounded-[20px] bg-white p-5 shadow-sm ring-1 ring-slate-200">
-              <div className="flex flex-wrap items-center justify-between gap-4">
+            <section className="flex flex-col gap-stack-gap rounded-xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
+              <div className="flex flex-wrap items-center justify-between gap-stack-gap">
                 <div>
                   <div className="text-base font-semibold tracking-tight text-slate-900">Offline receipts</div>
                   <div className="text-sm font-medium text-slate-500">
@@ -1031,7 +1031,7 @@ export function CheckoutPage() {
                   Session total ₹{moneyString(parseMoney(offlineSession.session.gross_total))}
                 </div>
               </div>
-              <ul className="flex flex-col gap-4">
+              <ul className="flex flex-col gap-stack-gap">
                 {offlineReceipts.length === 0 && (
                   <li className="rounded-xl bg-slate-50 px-4 py-3 text-sm font-medium text-slate-500 ring-1 ring-slate-200">
                     No temporary receipts yet.
@@ -1045,9 +1045,9 @@ export function CheckoutPage() {
                   return (
                     <li
                       key={receipt.temp_receipt_id}
-                      className="flex flex-col gap-4 rounded-xl bg-slate-50 p-4 ring-1 ring-slate-200"
+                      className="flex flex-col gap-stack-gap rounded-xl bg-slate-50 p-4 ring-1 ring-slate-200"
                     >
-                      <div className="flex flex-wrap items-start justify-between gap-4">
+                      <div className="flex flex-wrap items-start justify-between gap-stack-gap">
                         <div className="flex flex-col gap-1">
                           <div className="text-base font-semibold text-slate-900">{receipt.temp_receipt_id}</div>
                           <div className="text-sm font-medium text-slate-500">
@@ -1062,7 +1062,7 @@ export function CheckoutPage() {
                           type="button"
                           onClick={() => setEditingReceiptId(receipt.temp_receipt_id)}
                           disabled={checkoutLocked}
-                          className="flex h-9 items-center justify-center rounded-lg bg-slate-900 px-4 text-xs font-semibold text-white shadow-sm transition-all hover:bg-slate-800 disabled:opacity-50"
+                          className="flex h-9 items-center justify-center rounded-lg bg-slate-900 px-4 text-xs font-semibold text-white shadow-sm transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:bg-slate-800 disabled:opacity-50"
                         >
                           Edit
                         </button>
@@ -1079,12 +1079,12 @@ export function CheckoutPage() {
                 })}
               </ul>
             </section>
-            <div className="flex flex-wrap gap-4">
+            <div className="flex flex-wrap gap-stack-gap">
               <button
                 type="button"
                 onClick={extendCurrentOfflineSession}
                 disabled={checkoutLocked || offlineSession.session.extension_count >= 1 || offlineExpired}
-                className="flex h-11 items-center justify-center rounded-xl bg-amber-100 px-6 text-sm font-bold tracking-wide text-amber-700 shadow-sm transition-all duration-200 hover:bg-amber-200 disabled:pointer-events-none disabled:opacity-50"
+                className="flex h-11 items-center justify-center rounded-xl bg-amber-100 px-6 text-sm font-bold tracking-wide text-amber-700 shadow-sm transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:bg-amber-200 disabled:pointer-events-none disabled:opacity-50"
               >
                 Extend 2h
               </button>
@@ -1092,7 +1092,7 @@ export function CheckoutPage() {
                 type="button"
                 onClick={syncCurrentOfflineSession}
                 disabled={checkoutLocked || !online || offlineReceiptCount === 0}
-                className="flex h-11 items-center justify-center rounded-xl bg-action px-6 text-sm font-bold tracking-wide text-white shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[var(--color-action)]/30 active:scale-95 disabled:pointer-events-none disabled:opacity-50"
+                className="flex h-11 items-center justify-center rounded-xl bg-action px-6 text-sm font-bold tracking-wide text-white shadow-sm transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:-translate-y-0.5 hover:shadow-[var(--color-action)]/30 active:scale-[0.97] disabled:pointer-events-none disabled:opacity-50"
               >
                 Sync receipts
               </button>
@@ -1102,7 +1102,7 @@ export function CheckoutPage() {
                   void resumeOnline();
                 }}
                 disabled={checkoutLocked}
-                className="flex h-11 items-center justify-center rounded-xl bg-slate-900 px-6 text-sm font-bold tracking-wide text-white shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-slate-900/20 active:scale-95 disabled:pointer-events-none disabled:opacity-50"
+                className="flex h-11 items-center justify-center rounded-xl bg-slate-900 px-6 text-sm font-bold tracking-wide text-white shadow-sm transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:-translate-y-0.5 hover:shadow-lg hover:shadow-slate-900/20 active:scale-[0.97] disabled:pointer-events-none disabled:opacity-50"
               >
                 Resume Online
               </button>
@@ -1114,7 +1114,7 @@ export function CheckoutPage() {
               type="button"
               onClick={beginOfflineSession}
               disabled={checkoutLocked || !online}
-              className="flex h-11 items-center justify-center rounded-xl bg-slate-900 px-6 text-sm font-bold tracking-wide text-white shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-slate-900/20 active:scale-95 disabled:pointer-events-none disabled:opacity-50"
+              className="flex h-11 items-center justify-center rounded-xl bg-slate-900 px-6 text-sm font-bold tracking-wide text-white shadow-sm transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:-translate-y-0.5 hover:shadow-lg hover:shadow-slate-900/20 active:scale-[0.97] disabled:pointer-events-none disabled:opacity-50"
             >
               Work offline
             </button>
@@ -1162,9 +1162,9 @@ export function CheckoutPage() {
         </div>
       )}
 
-      <div className="grid gap-8 font-sans lg:grid-cols-[2fr_1fr]">
+      <div className="grid gap-section-gap font-sans lg:grid-cols-[2fr_1fr]">
       {/* LEFT — cart */}
-      <section className="flex flex-col gap-6 rounded-[32px] border border-slate-200/50 bg-white/60 p-8 shadow-[0_8px_40px_rgb(0,0,0,0.02)] backdrop-blur-xl">
+      <section className="flex flex-col gap-gutter rounded-xl border border-slate-200/50 bg-white/60 p-8 shadow-sm backdrop-blur-xl">
         <header className="flex items-center justify-between">
           <h1 className="flex items-center gap-2 text-2xl font-light tracking-tight text-slate-900">
             <ShoppingCart className="h-6 w-6 text-action" /> Checkout
@@ -1186,31 +1186,31 @@ export function CheckoutPage() {
           </div>
         </header>
 
-        <form onSubmit={handleSubmitBarcode} className="flex gap-4">
+        <form onSubmit={handleSubmitBarcode} className="flex gap-stack-gap">
           <input
             type="text"
             value={barcode}
             onChange={(e) => setBarcode(e.target.value)}
             placeholder="Scan or enter barcode"
-            className="h-14 flex-1 rounded-2xl border border-slate-200 bg-white px-5 text-lg font-medium text-slate-900 shadow-sm outline-none transition-all focus:border-action focus:ring-1 focus:ring-action disabled:opacity-50"
+            className="h-14 flex-1 rounded-2xl border border-slate-200 bg-white px-5 text-lg font-medium text-slate-900 shadow-sm outline-none transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out focus-visible:ring-2 focus-visible:ring-action/40 focus-visible:border-action disabled:opacity-50"
             autoFocus
             disabled={checkoutLocked}
           />
           <button
             type="submit"
-            className="flex h-14 items-center justify-center rounded-2xl bg-action px-8 text-lg font-bold tracking-wide text-white shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[var(--color-action)]/30 active:scale-95 disabled:pointer-events-none disabled:opacity-50"
+            className="flex h-14 items-center justify-center rounded-2xl bg-action px-8 text-lg font-bold tracking-wide text-white shadow-sm transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:-translate-y-0.5 hover:shadow-[var(--color-action)]/30 active:scale-[0.97] disabled:pointer-events-none disabled:opacity-50"
             disabled={!catalogReady || checkoutLocked}
           >
             ADD
           </button>
         </form>
 
-        <div className="flex flex-wrap items-center gap-4">
+        <div className="flex flex-wrap items-center gap-stack-gap">
           <button
             type="button"
             onClick={parkDraft}
             disabled={checkoutLocked || cart.length === 0}
-            className="flex h-11 items-center justify-center rounded-xl bg-amber-100 px-6 text-sm font-bold tracking-wide text-amber-700 shadow-sm transition-all duration-200 hover:bg-amber-200 disabled:pointer-events-none disabled:opacity-50"
+            className="flex h-11 items-center justify-center rounded-xl bg-amber-100 px-6 text-sm font-bold tracking-wide text-amber-700 shadow-sm transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:bg-amber-200 disabled:pointer-events-none disabled:opacity-50"
           >
             Park
           </button>
@@ -1222,7 +1222,7 @@ export function CheckoutPage() {
                   type="button"
                   onClick={() => restoreDraft(draft)}
                   disabled={checkoutLocked}
-                  className="flex h-11 items-center justify-center rounded-xl bg-slate-900 px-6 text-sm font-bold tracking-wide text-white shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-slate-900/20 active:scale-95 disabled:pointer-events-none disabled:opacity-50"
+                  className="flex h-11 items-center justify-center rounded-xl bg-slate-900 px-6 text-sm font-bold tracking-wide text-white shadow-sm transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:-translate-y-0.5 hover:shadow-lg hover:shadow-slate-900/20 active:scale-[0.97] disabled:pointer-events-none disabled:opacity-50"
                 >
                   {draft.label} ({draft.cart.length})
                 </button>
@@ -1234,7 +1234,7 @@ export function CheckoutPage() {
             type="button"
             onClick={clearActiveCheckout}
             disabled={checkoutLocked}
-            className="ml-auto flex h-11 items-center justify-center rounded-xl bg-slate-100 px-6 text-sm font-semibold tracking-wide text-slate-600 shadow-sm transition-all duration-200 hover:bg-slate-200 hover:text-slate-900 active:scale-95 disabled:pointer-events-none disabled:opacity-50"
+            className="ml-auto flex h-11 items-center justify-center rounded-xl bg-slate-100 px-6 text-sm font-semibold tracking-wide text-slate-600 shadow-sm transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:bg-slate-200 hover:text-slate-900 active:scale-[0.97] disabled:pointer-events-none disabled:opacity-50"
           >
             All Clear
           </button>
@@ -1258,7 +1258,7 @@ export function CheckoutPage() {
           {cart.map((l) => (
             <li
               key={l.lineId}
-              className="group flex flex-col gap-4 rounded-[24px] bg-white p-5 shadow-[0_4px_20px_rgba(0,0,0,0.03)] ring-1 ring-slate-200/50 transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_12px_40px_rgba(0,0,0,0.06)] sm:flex-row sm:items-center sm:justify-between"
+              className="group flex flex-col gap-stack-gap rounded-xl bg-white p-5 shadow-sm ring-1 ring-slate-200/50 animate-fade-in transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:-translate-y-1 hover:shadow-[0_12px_40px_rgba(0,0,0,0.06)] sm:flex-row sm:items-center sm:justify-between"
             >
               <div className="flex flex-col gap-0.5">
                               <span className="text-label-xl text-on-surface">{l.product.brand}</span>
@@ -1283,7 +1283,7 @@ export function CheckoutPage() {
                                 </span>
                               )}
                             </div>
-              <div className="flex items-center gap-4">
+              <div className="flex items-center gap-stack-gap">
                 <button
                   type="button"
                   onClick={() => changeQty(l.lineId, -1)}
@@ -1336,7 +1336,7 @@ export function CheckoutPage() {
                   type="button"
                   onClick={() => removeLine(l.lineId)}
                   disabled={checkoutLocked}
-                  className="flex h-11 w-11 items-center justify-center rounded-full bg-red-50 text-xl font-medium text-red-500 opacity-0 transition-all duration-300 hover:bg-red-100 active:bg-red-200 group-hover:opacity-100 disabled:opacity-50"
+                  className="flex h-11 w-11 items-center justify-center rounded-full bg-red-50 text-xl font-medium text-red-500 opacity-0 transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:bg-red-100 active:bg-red-200 group-hover:opacity-100 disabled:opacity-50"
                   aria-label="Remove line"
                 >
                   ×
@@ -1348,16 +1348,16 @@ export function CheckoutPage() {
       </section>
 
       {/* RIGHT — payment + finalize */}
-      <aside className="flex flex-col gap-6 rounded-[32px] border border-slate-200/50 bg-white/60 p-8 shadow-[0_8px_40px_rgb(0,0,0,0.02)] backdrop-blur-xl">
-        <div className="relative overflow-hidden rounded-[24px] bg-slate-900 p-8 text-white shadow-lg">
-          <div className="pointer-events-none absolute -right-10 -top-10 h-40 w-40 rounded-full bg-gradient-to-br from-indigo-500/30 to-purple-500/30 blur-2xl" />
+      <aside className="flex flex-col gap-gutter rounded-xl border border-slate-200/50 bg-white/60 p-8 shadow-sm backdrop-blur-xl">
+        <div className="relative overflow-hidden rounded-xl bg-slate-900 p-8 text-white shadow-lg">
+          <div className="pointer-events-none absolute -right-10 -top-10 h-40 w-40 rounded-full bg-gradient-to-br from-action/20 to-white/5 blur-2xl" />
           <div className="relative z-10 flex items-center gap-2 text-[11px] font-bold uppercase tracking-widest text-slate-400">
             <ShoppingBag className="h-4 w-4" /> Total Payable
           </div>
           <div className="relative z-10 mt-2 font-mono text-5xl font-light tracking-tight">{totalLabel}</div>
         </div>
 
-        <div className="flex flex-col gap-6">
+        <div className="flex flex-col gap-gutter">
           <div className="flex items-center justify-between">
             <h2 className="flex items-center gap-2 text-xl font-light tracking-tight text-slate-900">
               <CreditCard className="h-5 w-5 text-action" /> Payment
@@ -1377,7 +1377,7 @@ export function CheckoutPage() {
               <select
                 value={p.mode}
                 onChange={(e) => setPaymentMode(idx, e.target.value as PaymentMode)}
-                className="h-12 flex-1 rounded-xl border border-slate-200 bg-slate-50 px-4 text-sm font-semibold text-slate-900 shadow-sm outline-none transition-all focus:border-action focus:ring-1 focus:ring-action disabled:opacity-50"
+                className="h-12 flex-1 rounded-xl border border-slate-200 bg-slate-50 px-4 text-sm font-semibold text-slate-900 shadow-sm outline-none transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out focus-visible:ring-2 focus-visible:ring-action/40 focus-visible:border-action disabled:opacity-50"
                 aria-label="Payment mode"
                 disabled={checkoutLocked}
               >
@@ -1394,7 +1394,7 @@ export function CheckoutPage() {
                 value={p.amount}
                 onChange={(e) => setPaymentAmount(idx, e.target.value)}
                 onFocus={(e) => e.currentTarget.select()}
-                className="h-12 w-32 rounded-xl border border-slate-200 bg-white px-4 text-right font-mono text-sm font-semibold text-slate-900 shadow-sm outline-none transition-all focus:border-action focus:ring-1 focus:ring-action disabled:opacity-50"
+                className="h-12 w-32 rounded-xl border border-slate-200 bg-white px-4 text-right font-mono text-sm font-semibold text-slate-900 shadow-sm outline-none transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out focus-visible:ring-2 focus-visible:ring-action/40 focus-visible:border-action disabled:opacity-50"
                 aria-label="Payment amount"
                 disabled={checkoutLocked}
               />
@@ -1429,7 +1429,7 @@ export function CheckoutPage() {
             value={note}
             onChange={(e) => setNote(e.target.value)}
             maxLength={200}
-            className="h-12 rounded-xl border border-slate-200 bg-white px-4 text-sm font-medium text-slate-900 shadow-sm outline-none transition-all focus:border-action focus:ring-1 focus:ring-action disabled:opacity-50"
+            className="h-12 rounded-xl border border-slate-200 bg-white px-4 text-sm font-medium text-slate-900 shadow-sm outline-none transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out focus-visible:ring-2 focus-visible:ring-action/40 focus-visible:border-action disabled:opacity-50"
             disabled={checkoutLocked}
           />
         </label>
@@ -1438,7 +1438,7 @@ export function CheckoutPage() {
           type="button"
           onClick={finalize}
           disabled={!canFinalize}
-          className="group relative flex min-h-[64px] w-full items-center justify-center overflow-hidden rounded-[20px] bg-action text-lg font-bold tracking-wide text-on-action shadow-lg transition-all duration-300 hover:-translate-y-1 hover:shadow-[var(--color-action)]/30 active:scale-[0.98] disabled:opacity-50 disabled:hover:translate-y-0 disabled:hover:shadow-none"
+          className="group relative flex min-h-[64px] w-full items-center justify-center overflow-hidden rounded-xl bg-action text-lg font-bold tracking-wide text-on-action shadow-lg transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:-translate-y-1 hover:shadow-[var(--color-action)]/30 active:scale-[0.98] disabled:opacity-50 disabled:hover:translate-y-0 disabled:hover:shadow-none"
         >
           <div className="absolute inset-0 flex h-full w-full justify-center [transform:skew(-12deg)_translateX(-150%)] group-hover:duration-1000 group-hover:[transform:skew(-12deg)_translateX(150%)]">
             <div className="relative h-full w-8 bg-white/20" />
@@ -1465,8 +1465,8 @@ export function CheckoutPage() {
           role="dialog"
           aria-modal="true"
         >
-          <div className="flex max-h-[90vh] w-full max-w-2xl flex-col gap-6 overflow-y-auto rounded-[24px] bg-white p-8 shadow-[0_20px_60px_rgba(0,0,0,0.1)] ring-1 ring-slate-200/50">
-            <header className="flex items-start justify-between gap-4">
+          <div className="flex max-h-[90vh] w-full max-w-2xl flex-col gap-gutter overflow-y-auto rounded-xl bg-white p-8 shadow-lg ring-1 ring-slate-200/50">
+            <header className="flex items-start justify-between gap-stack-gap">
               <h2 className="text-xl font-light tracking-tight text-slate-900">
                 Invoice #{lastInvoice.invoice_number}
               </h2>
@@ -1474,7 +1474,7 @@ export function CheckoutPage() {
                 <button
                   type="button"
                   onClick={refreshInvoice}
-                  className="flex h-11 items-center justify-center rounded-xl bg-slate-100 px-4 text-sm font-semibold tracking-wide text-slate-600 shadow-sm transition-all duration-200 hover:bg-slate-200 hover:text-slate-900 active:scale-95"
+                  className="flex h-11 items-center justify-center rounded-xl bg-slate-100 px-4 text-sm font-semibold tracking-wide text-slate-600 shadow-sm transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:bg-slate-200 hover:text-slate-900 active:scale-[0.97]"
                 >
                   Refresh
                 </button>
@@ -1482,7 +1482,7 @@ export function CheckoutPage() {
                   type="button"
                   onClick={downloadPdf}
                   disabled={Boolean(offlineSession)}
-                  className="flex h-11 items-center justify-center rounded-xl bg-action px-6 text-sm font-bold tracking-wide text-white shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[var(--color-action)]/30 active:scale-95 disabled:pointer-events-none disabled:opacity-50"
+                  className="flex h-11 items-center justify-center rounded-xl bg-action px-6 text-sm font-bold tracking-wide text-white shadow-sm transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:-translate-y-0.5 hover:shadow-[var(--color-action)]/30 active:scale-[0.97] disabled:pointer-events-none disabled:opacity-50"
                 >
                   PDF
                 </button>

@@ -76,15 +76,15 @@ export function DashboardPage() {
     void reload();
   }, [actingShopId]);
   return (
-    <div className="flex flex-col gap-8 p-6 font-sans">
-      <header className="flex flex-wrap items-center justify-between gap-4 rounded-[24px] border border-slate-200/50 bg-white/60 p-6 shadow-sm backdrop-blur-xl">
+    <div className="flex flex-col gap-section-gap p-6 font-sans">
+      <header className="flex flex-wrap items-center justify-between gap-stack-gap rounded-xl border border-slate-200/50 bg-white/60 p-6 shadow-sm backdrop-blur-xl">
         <h1 className="flex items-center gap-3 text-2xl font-light tracking-tight text-slate-900">
           <LayoutDashboard className="h-6 w-6 text-action" /> Owner Dashboard
         </h1>
         <button
           type="button"
           onClick={() => void reload()}
-          className="group flex h-10 items-center justify-center rounded-xl bg-white px-5 text-sm font-semibold tracking-wide text-slate-700 shadow-sm ring-1 ring-slate-200 transition-all duration-300 hover:scale-[1.02] hover:bg-slate-50 hover:shadow-md active:scale-95"
+          className="group flex h-10 items-center justify-center rounded-xl bg-white px-5 text-sm font-semibold tracking-wide text-slate-700 shadow-sm ring-1 ring-slate-200 transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:scale-[1.02] hover:bg-slate-50 hover:shadow-md active:scale-[0.97]"
         >
           <RefreshCw className="h-4 w-4 text-slate-400 transition-transform duration-300 group-hover:rotate-180" />
           <span className="ml-2">Refresh</span>
@@ -108,7 +108,7 @@ export function DashboardPage() {
       {pendingCount != null && pendingCount > 0 && (
         <Link
           to="/admin/pending"
-          className="flex items-center justify-between rounded-2xl bg-amber-50 p-6 text-amber-950 shadow-sm ring-1 ring-amber-200 transition-all hover:-translate-y-0.5 hover:shadow-md active:scale-95"
+          className="flex items-center justify-between rounded-2xl bg-amber-50 p-6 text-amber-950 shadow-sm ring-1 ring-amber-200 transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:-translate-y-0.5 hover:shadow-md active:scale-[0.97]"
           data-testid="pending-badge"
           role="status"
         >
@@ -126,7 +126,7 @@ export function DashboardPage() {
       {voidApprovalCount != null && voidApprovalCount > 0 && (
         <Link
           to="/admin/voids"
-          className="flex items-center justify-between rounded-2xl bg-amber-50 p-6 text-amber-950 shadow-sm ring-1 ring-amber-200 transition-all hover:-translate-y-0.5 hover:shadow-md active:scale-95"
+          className="flex items-center justify-between rounded-2xl bg-amber-50 p-6 text-amber-950 shadow-sm ring-1 ring-amber-200 transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:-translate-y-0.5 hover:shadow-md active:scale-[0.97]"
           role="status"
         >
           <div>
@@ -142,14 +142,15 @@ export function DashboardPage() {
       )}
 
       {/* KPI cards */}
-      <section className="grid grid-cols-1 gap-8 md:grid-cols-2 xl:grid-cols-4">
-        <KpiCard icon={<Calendar className="h-5 w-5" />} title="Business date" value={today?.business_date ?? "—"} accent="primary" />
+      <section className="grid grid-cols-1 gap-section-gap md:grid-cols-2 xl:grid-cols-4">
+        <KpiCard icon={<Calendar className="h-5 w-5" />} title="Business date" value={today?.business_date ?? "—"} accent="primary" delayMs={0} />
         <KpiCard
           icon={<Banknote className="h-5 w-5" />}
           title="Revenue"
           value={today ? moneyFmt(today.revenue) : "—"}
           accent="primary"
           sub={`${today?.invoice_count ?? 0} invoice(s)`}
+          delayMs={60}
         />
         <KpiCard
           icon={<ShieldAlert className="h-5 w-5" />}
@@ -157,17 +158,19 @@ export function DashboardPage() {
           value={`${(today?.voided_count ?? 0) + (today?.reversal_count ?? 0)}`}
           accent="warning"
           sub={`${today?.voided_count ?? 0} voided + ${today?.reversal_count ?? 0} reversed`}
+          delayMs={120}
         />
         <KpiCard
           icon={<CheckCircle2 className="h-5 w-5" />}
           title="EOD status"
           value={today?.signed_off ? "Signed off" : "Open"}
           accent={today?.signed_off ? "success" : "warning"}
+          delayMs={180}
         />
       </section>
 
       {/* Payment mode split */}
-      <section className="rounded-[24px] border border-slate-200/50 bg-white/60 p-8 shadow-[0_8px_30px_rgb(0,0,0,0.02)] backdrop-blur-xl transition-all duration-500 hover:shadow-[0_8px_40px_rgb(0,0,0,0.04)]">
+      <section className="rounded-xl border border-slate-200/50 bg-white/60 p-8 shadow-[0_8px_30px_rgb(0,0,0,0.02)] backdrop-blur-xl transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:shadow-[0_8px_40px_rgb(0,0,0,0.04)]">
         <h2 className="mb-6 flex items-center gap-2 text-xl font-light tracking-tight text-slate-900">
           <Banknote className="h-5 w-5 text-slate-400" /> Payment Mode Split
         </h2>
@@ -191,7 +194,7 @@ export function DashboardPage() {
       </section>
 
       {/* Low-stock list */}
-      <section className="rounded-[24px] border border-slate-200/50 bg-white/60 p-8 shadow-[0_8px_30px_rgb(0,0,0,0.02)] backdrop-blur-xl transition-all duration-500 hover:shadow-[0_8px_40px_rgb(0,0,0,0.04)]">
+      <section className="rounded-xl border border-slate-200/50 bg-white/60 p-8 shadow-[0_8px_30px_rgb(0,0,0,0.02)] backdrop-blur-xl transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:shadow-[0_8px_40px_rgb(0,0,0,0.04)]">
         <h2 className="mb-6 flex items-center gap-2 text-xl font-light tracking-tight text-slate-900">
           <Box className="h-5 w-5 text-slate-400" /> Low Stock
         </h2>
@@ -239,7 +242,7 @@ export function DashboardPage() {
       {/* Issue #41 — cross-shop stock overview (owner/superadmin only).
           Hidden for other roles: stockOverview is null on 403. */}
       {stockOverview && stockOverview.shops.length > 0 && (
-        <section className="rounded-[24px] border border-slate-200/50 bg-white/60 p-8 shadow-[0_8px_30px_rgb(0,0,0,0.02)] backdrop-blur-xl transition-all duration-500 hover:shadow-[0_8px_40px_rgb(0,0,0,0.04)]">
+        <section className="rounded-xl border border-slate-200/50 bg-white/60 p-8 shadow-[0_8px_30px_rgb(0,0,0,0.02)] backdrop-blur-xl transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:shadow-[0_8px_40px_rgb(0,0,0,0.04)]">
           <h2 className="mb-6 flex items-center gap-2 text-xl font-light tracking-tight text-slate-900">
             <Map className="h-5 w-5 text-slate-400" /> Stock Across All Shops
           </h2>
@@ -295,7 +298,7 @@ export function DashboardPage() {
         </section>
       )}
       {/* Past sign-offs */}
-      <section className="rounded-[24px] border border-slate-200/50 bg-white/60 p-8 shadow-[0_8px_30px_rgb(0,0,0,0.02)] backdrop-blur-xl transition-all duration-500 hover:shadow-[0_8px_40px_rgb(0,0,0,0.04)]">
+      <section className="rounded-xl border border-slate-200/50 bg-white/60 p-8 shadow-[0_8px_30px_rgb(0,0,0,0.02)] backdrop-blur-xl transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:shadow-[0_8px_40px_rgb(0,0,0,0.04)]">
         <h2 className="mb-6 flex items-center gap-2 text-xl font-light tracking-tight text-slate-900">
           <History className="h-5 w-5 text-slate-400" /> Past Sign-offs
         </h2>
@@ -336,12 +339,14 @@ function KpiCard({
   value,
   sub,
   accent,
+  delayMs = 0,
 }: {
   icon?: React.ReactNode;
   title: string;
   value: string;
   sub?: string;
   accent: "primary" | "success" | "warning";
+  delayMs?: number;
 }) {
   const bg =
     accent === "success"
@@ -350,7 +355,10 @@ function KpiCard({
         ? "border border-amber-200/60 bg-amber-50/40 text-amber-950 shadow-sm"
         : "border border-slate-200/60 bg-white/60 text-slate-900 shadow-sm";
   return (
-    <div className={`group relative flex flex-col gap-1.5 overflow-hidden rounded-[20px] p-6 backdrop-blur-xl transition-all duration-500 hover:-translate-y-1 hover:shadow-[0_12px_40px_rgba(0,0,0,0.06)] ${bg}`}>
+    <div
+      style={{ animationDelay: `${delayMs}ms` }}
+      className={`group relative flex flex-col gap-1.5 overflow-hidden rounded-xl p-6 backdrop-blur-xl opacity-0 transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out animate-fade-in hover:-translate-y-1 hover:shadow-[0_12px_40px_rgba(0,0,0,0.06)] ${bg}`}
+    >
       <div className="pointer-events-none absolute -right-6 -top-6 h-28 w-28 rounded-full bg-gradient-to-br from-transparent to-slate-200/30 blur-2xl transition-transform duration-700 group-hover:scale-150" />
       <div className="relative z-10 flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.15em] text-slate-500">
         {icon && <span className="opacity-70">{icon}</span>}

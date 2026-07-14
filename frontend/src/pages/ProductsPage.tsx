@@ -91,7 +91,7 @@ export function ProductsPage() {
               key={t}
               type="button"
               onClick={() => setTab(t)}
-              className={`relative px-6 py-3 text-sm font-semibold transition-all duration-300 ${
+              className={`relative px-6 py-3 text-sm font-semibold transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out ${
                 active ? "text-action" : "text-slate-500 hover:text-slate-700"
               }`}
             >
@@ -232,7 +232,7 @@ function ListTab({
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="grid gap-6 rounded-[24px] border border-slate-200/50 bg-white/60 p-6 shadow-[0_8px_30px_rgb(0,0,0,0.02)] backdrop-blur-xl md:grid-cols-4">
+      <div className="grid gap-6 rounded-xl border border-slate-200/50 bg-white/60 p-6 shadow-[0_8px_30px_rgb(0,0,0,0.02)] backdrop-blur-xl md:grid-cols-4">
         <label className="flex flex-col gap-1.5 text-xs font-semibold uppercase tracking-wider text-slate-500 md:col-span-2">
           <span className="flex items-center gap-1.5"><Search className="h-4 w-4" /> Search</span>
           <input
@@ -240,7 +240,7 @@ function ListTab({
             value={q}
             onChange={(e) => onQueryChange(e.target.value)}
             placeholder="Search by brand or barcode"
-            className="h-11 w-full rounded-xl border border-slate-200 bg-white/50 px-4 text-sm font-medium text-slate-700 shadow-sm outline-none transition-all hover:bg-white focus:border-action focus:ring-1 focus:ring-action"
+            className="h-11 w-full rounded-xl border border-slate-200 bg-white/50 px-4 text-sm font-medium text-slate-700 shadow-sm outline-none transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:bg-white focus-visible:ring-2 focus-visible:ring-action/40 focus-visible:border-action"
           />
         </label>
         {isSuperadmin && (
@@ -250,7 +250,7 @@ function ListTab({
               aria-label="Shop"
               value={selectedShopId ?? ""}
               onChange={(e) => setSelectedShopId(e.target.value ? Number(e.target.value) : null)}
-              className="h-11 rounded-xl border border-slate-200 bg-white/50 px-4 text-sm font-medium text-slate-700 shadow-sm outline-none transition-all hover:bg-white focus:border-action focus:ring-1 focus:ring-action"
+              className="h-11 rounded-xl border border-slate-200 bg-white/50 px-4 text-sm font-medium text-slate-700 shadow-sm outline-none transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:bg-white focus-visible:ring-2 focus-visible:ring-action/40 focus-visible:border-action"
             >
               <option value="">All shops</option>
               {shops.map((shop) => (
@@ -290,11 +290,11 @@ function ListTab({
       {items === null ? (
         <div className="p-8 text-center text-sm font-medium text-slate-500">Loading…</div>
       ) : items.length === 0 ? (
-        <div className="rounded-[24px] border border-slate-200/50 bg-white/60 p-12 text-center text-sm font-medium text-slate-500 shadow-[0_8px_30px_rgb(0,0,0,0.02)] backdrop-blur-xl">
+        <div className="rounded-xl border border-slate-200/50 bg-white/60 p-12 text-center text-sm font-medium text-slate-500 shadow-[0_8px_30px_rgb(0,0,0,0.02)] backdrop-blur-xl">
           No products match the current filter.
         </div>
       ) : (
-        <div className="overflow-hidden rounded-[24px] border border-slate-200/50 bg-white/60 shadow-[0_8px_30px_rgb(0,0,0,0.02)] backdrop-blur-xl">
+        <div className="overflow-hidden rounded-xl border border-slate-200/50 bg-white/60 shadow-[0_8px_30px_rgb(0,0,0,0.02)] backdrop-blur-xl">
           <div className="overflow-x-auto">
             <table className="w-full min-w-[900px] text-left text-sm">
               <thead className="bg-slate-50/80 text-[11px] uppercase tracking-widest text-slate-500">
@@ -460,7 +460,7 @@ function DestructiveActionDialog({
       aria-labelledby="product-action-title"
       className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4 backdrop-blur-sm transition-opacity"
     >
-      <div className="w-full max-w-lg overflow-hidden rounded-[24px] bg-white shadow-[0_20px_60px_rgba(0,0,0,0.1)] ring-1 ring-slate-200/50">
+      <div className="w-full max-w-lg overflow-hidden rounded-xl bg-white shadow-lg ring-1 ring-slate-200/50">
         <div className="border-b border-slate-200/50 bg-slate-50/80 px-6 py-5">
           <h2 id="product-action-title" className="flex items-center gap-2 text-xl font-light tracking-tight text-slate-900">
             <AlertCircle className={`h-5 w-5 ${kind === "permanent-delete" ? "text-red-500" : "text-amber-500"}`} />
@@ -487,7 +487,7 @@ function DestructiveActionDialog({
                 value={confirmationText}
                 onChange={(e) => onConfirmationTextChange(e.target.value)}
                 autoFocus
-                className={`h-11 rounded-xl border px-4 text-sm font-medium shadow-sm outline-none transition-all focus:ring-1 ${
+                className={`h-11 rounded-xl border px-4 text-sm font-medium shadow-sm outline-none transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out focus:ring-1 ${
                   canSubmit ? "border-emerald-500 focus:border-emerald-500 focus:ring-emerald-500 bg-emerald-50 text-emerald-900" : "border-slate-200 focus:border-slate-400 focus:ring-slate-400 bg-white text-slate-900"
                 }`}
               />
@@ -506,7 +506,7 @@ function DestructiveActionDialog({
               type="button"
               onClick={onSubmit}
               disabled={!canSubmit}
-              className={`rounded-xl px-6 py-2.5 text-sm font-semibold shadow-sm transition-all disabled:opacity-50 disabled:shadow-none ${
+              className={`rounded-xl px-6 py-2.5 text-sm font-semibold shadow-sm transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out disabled:opacity-50 disabled:shadow-none ${
                 kind === "permanent-delete" ? "bg-red-600 text-white hover:bg-red-700 hover:shadow-red-500/30" : "bg-action text-on-action hover:shadow-[var(--color-action)]/30"
               }`}
             >
@@ -563,14 +563,14 @@ function CopyTab() {
   };
 
   return (
-    <section className="flex max-w-xl flex-col gap-6 rounded-[24px] border border-slate-200/50 bg-white/60 p-8 shadow-[0_8px_30px_rgb(0,0,0,0.02)] backdrop-blur-xl">
+    <section className="flex max-w-xl flex-col gap-6 rounded-xl border border-slate-200/50 bg-white/60 p-8 shadow-[0_8px_30px_rgb(0,0,0,0.02)] backdrop-blur-xl">
       <h2 className="text-xl font-light tracking-tight text-slate-900">Copy products</h2>
       <label className="flex flex-col gap-1.5 text-xs font-semibold uppercase tracking-wider text-slate-500">
         Source shop
         <select
           value={sourceShopId}
           onChange={(e) => setSourceShopId(e.target.value)}
-          className="h-12 w-full rounded-xl border border-slate-200 bg-white/50 px-4 text-sm font-medium text-slate-700 shadow-sm outline-none transition-all hover:bg-white focus:border-action focus:ring-1 focus:ring-action"
+          className="h-12 w-full rounded-xl border border-slate-200 bg-white/50 px-4 text-sm font-medium text-slate-700 shadow-sm outline-none transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:bg-white focus-visible:ring-2 focus-visible:ring-action/40 focus-visible:border-action"
         >
           <option value="">Select source shop</option>
           {shops
@@ -586,7 +586,7 @@ function CopyTab() {
         type="button"
         onClick={submit}
         disabled={busy}
-        className="flex h-12 w-full items-center justify-center rounded-xl bg-action px-6 text-sm font-bold tracking-wide text-on-action shadow-lg transition-all hover:-translate-y-0.5 hover:shadow-[var(--color-action)]/30 active:scale-95 disabled:opacity-50 disabled:hover:translate-y-0 disabled:hover:shadow-none"
+        className="flex h-12 w-full items-center justify-center rounded-xl bg-action px-6 text-sm font-bold tracking-wide text-on-action shadow-lg transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:-translate-y-0.5 hover:shadow-[var(--color-action)]/30 active:scale-[0.97] disabled:opacity-50 disabled:hover:translate-y-0 disabled:hover:shadow-none"
       >
         {busy ? "Copying..." : "Copy into selected shop"}
       </button>
@@ -672,7 +672,7 @@ function EditRow({
         <input
           value={brand}
           onChange={(e) => setBrand(e.target.value)}
-          className="w-full rounded-md border border-slate-300 bg-white px-3 py-1.5 text-sm shadow-inner outline-none focus:border-action focus:ring-1 focus:ring-action"
+          className="w-full rounded-md border border-slate-300 bg-white px-3 py-1.5 text-sm shadow-inner outline-none focus-visible:ring-2 focus-visible:ring-action/40 focus-visible:border-action"
         />
       </td>
       {showShop && <td className="px-6 py-4 text-slate-700">{shopLabel}</td>}
@@ -680,7 +680,7 @@ function EditRow({
         <input
           value={sizeLabel}
           onChange={(e) => setSizeLabel(e.target.value)}
-          className="w-full rounded-md border border-slate-300 bg-white px-3 py-1.5 text-sm shadow-inner outline-none focus:border-action focus:ring-1 focus:ring-action"
+          className="w-full rounded-md border border-slate-300 bg-white px-3 py-1.5 text-sm shadow-inner outline-none focus-visible:ring-2 focus-visible:ring-action/40 focus-visible:border-action"
         />
       </td>
       <td className="px-6 py-4 font-mono text-xs text-slate-500">{product.barcode}</td>
@@ -691,7 +691,7 @@ function EditRow({
           min="0"
           value={price}
           onChange={(e) => setPrice(e.target.value)}
-          className="w-24 rounded-md border border-slate-300 bg-white px-3 py-1.5 text-right font-mono text-sm shadow-inner outline-none focus:border-action focus:ring-1 focus:ring-action"
+          className="w-24 rounded-md border border-slate-300 bg-white px-3 py-1.5 text-right font-mono text-sm shadow-inner outline-none focus-visible:ring-2 focus-visible:ring-action/40 focus-visible:border-action"
         />
       </td>
       <td className="px-6 py-4">
@@ -701,7 +701,7 @@ function EditRow({
           value={threshold}
           placeholder="—"
           onChange={(e) => setThreshold(e.target.value)}
-          className="w-20 rounded-md border border-slate-300 bg-white px-3 py-1.5 text-right font-mono text-sm shadow-inner outline-none focus:border-action focus:ring-1 focus:ring-action"
+          className="w-20 rounded-md border border-slate-300 bg-white px-3 py-1.5 text-right font-mono text-sm shadow-inner outline-none focus-visible:ring-2 focus-visible:ring-action/40 focus-visible:border-action"
         />
       </td>
       <td className="px-6 py-4">
@@ -725,7 +725,7 @@ function EditRow({
             type="button"
             onClick={save}
             disabled={busy}
-            className="rounded-md bg-action px-3 py-1.5 text-xs font-semibold text-on-action transition-all hover:opacity-90 disabled:opacity-50"
+            className="rounded-md bg-action px-3 py-1.5 text-xs font-semibold text-on-action transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:opacity-90 disabled:opacity-50"
           >
             {busy ? "Saving…" : "Save"}
           </button>
@@ -803,7 +803,7 @@ function CreateTab({
   return (
     <form
       onSubmit={submit}
-      className="flex max-w-xl flex-col gap-6 rounded-[24px] border border-slate-200/50 bg-white/60 p-8 shadow-[0_8px_30px_rgb(0,0,0,0.02)] backdrop-blur-xl"
+      className="flex max-w-xl flex-col gap-6 rounded-xl border border-slate-200/50 bg-white/60 p-8 shadow-[0_8px_30px_rgb(0,0,0,0.02)] backdrop-blur-xl"
     >
       <h2 className="text-xl font-light tracking-tight text-slate-900">New product</h2>
       <Field label="Barcode" value={barcode} onChange={setBarcode} required />
@@ -820,7 +820,7 @@ function CreateTab({
       <button
         type="submit"
         disabled={busy}
-        className="mt-2 flex h-12 w-full items-center justify-center rounded-xl bg-action px-6 text-sm font-bold tracking-wide text-on-action shadow-lg transition-all hover:-translate-y-0.5 hover:shadow-[var(--color-action)]/30 active:scale-95 disabled:opacity-50 disabled:hover:translate-y-0 disabled:hover:shadow-none"
+        className="mt-2 flex h-12 w-full items-center justify-center rounded-xl bg-action px-6 text-sm font-bold tracking-wide text-on-action shadow-lg transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:-translate-y-0.5 hover:shadow-[var(--color-action)]/30 active:scale-[0.97] disabled:opacity-50 disabled:hover:translate-y-0 disabled:hover:shadow-none"
       >
         {busy ? "Creating…" : "Create product"}
       </button>
@@ -865,7 +865,7 @@ function Field({
         required={required}
         step={step}
         min={min}
-        className="h-12 w-full rounded-xl border border-slate-200 bg-white/50 px-4 text-sm font-medium text-slate-700 shadow-sm outline-none transition-all hover:bg-white focus:border-action focus:ring-1 focus:ring-action"
+        className="h-12 w-full rounded-xl border border-slate-200 bg-white/50 px-4 text-sm font-medium text-slate-700 shadow-sm outline-none transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:bg-white focus-visible:ring-2 focus-visible:ring-action/40 focus-visible:border-action"
       />
     </label>
   );
@@ -903,7 +903,7 @@ function ImportTab() {
   };
 
   return (
-    <div className="flex max-w-2xl flex-col gap-6 rounded-[24px] border border-slate-200/50 bg-white/60 p-8 shadow-[0_8px_30px_rgb(0,0,0,0.02)] backdrop-blur-xl">
+    <div className="flex max-w-2xl flex-col gap-6 rounded-xl border border-slate-200/50 bg-white/60 p-8 shadow-[0_8px_30px_rgb(0,0,0,0.02)] backdrop-blur-xl">
       <h2 className="text-xl font-light tracking-tight text-slate-900">Bulk CSV import</h2>
       <p className="text-sm text-slate-500">
         Required columns: <code className="rounded bg-slate-100 px-1.5 py-0.5 text-xs text-slate-700">barcode</code>, <code className="rounded bg-slate-100 px-1.5 py-0.5 text-xs text-slate-700">brand</code>, <code className="rounded bg-slate-100 px-1.5 py-0.5 text-xs text-slate-700">size_label</code>,{" "}
@@ -933,7 +933,7 @@ function ImportTab() {
         type="button"
         onClick={submit}
         disabled={!file || busy}
-        className="flex h-12 w-full items-center justify-center rounded-xl bg-action px-6 text-sm font-bold tracking-wide text-on-action shadow-lg transition-all hover:-translate-y-0.5 hover:shadow-[var(--color-action)]/30 active:scale-95 disabled:opacity-50 disabled:hover:translate-y-0 disabled:hover:shadow-none"
+        className="flex h-12 w-full items-center justify-center rounded-xl bg-action px-6 text-sm font-bold tracking-wide text-on-action shadow-lg transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:-translate-y-0.5 hover:shadow-[var(--color-action)]/30 active:scale-[0.97] disabled:opacity-50 disabled:hover:translate-y-0 disabled:hover:shadow-none"
       >
         {busy ? "Importing…" : "Upload CSV"}
       </button>

@@ -288,7 +288,7 @@ export function ReceivingPage() {
         />
       )}
 
-      <section className="flex flex-col gap-6 rounded-[24px] border border-slate-200/50 bg-white/60 p-8 shadow-[0_8px_30px_rgb(0,0,0,0.02)] backdrop-blur-xl">
+      <section className="flex flex-col gap-6 rounded-xl border border-slate-200/50 bg-white/60 p-8 shadow-[0_8px_30px_rgb(0,0,0,0.02)] backdrop-blur-xl">
         <header className="flex items-center justify-between">
           <h1 className="flex items-center gap-3 text-3xl font-light tracking-tight text-slate-900">
             <PackagePlus className="h-8 w-8 text-action" /> Stock Receiving
@@ -312,13 +312,13 @@ export function ReceivingPage() {
               value={barcode}
               onChange={(e) => setBarcode(e.target.value)}
               placeholder="Scan or enter barcode"
-              className="h-14 w-full rounded-xl border border-slate-200 bg-white/50 pl-11 pr-4 text-lg font-medium text-slate-700 shadow-sm outline-none transition-all hover:bg-white focus:border-action focus:ring-2 focus:ring-action/20"
+              className="h-14 w-full rounded-xl border border-slate-200 bg-white/50 pl-11 pr-4 text-lg font-medium text-slate-700 shadow-sm outline-none transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:bg-white focus:border-action focus:ring-2 focus:ring-action/20"
               autoFocus
             />
           </div>
           <button
             type="submit"
-            className="flex h-14 items-center justify-center rounded-xl bg-action px-8 text-sm font-bold tracking-wide text-white shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[var(--color-action)]/30 active:scale-95 disabled:pointer-events-none disabled:opacity-50"
+            className="flex h-14 items-center justify-center rounded-xl bg-action px-8 text-sm font-bold tracking-wide text-white shadow-sm transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:-translate-y-0.5 hover:shadow-[var(--color-action)]/30 active:scale-[0.97] disabled:pointer-events-none disabled:opacity-50"
             disabled={!catalogReady}
           >
             ADD
@@ -360,7 +360,7 @@ export function ReceivingPage() {
               <button
                 type="button"
                 onClick={() => removeLine(line.lineId)}
-                className="flex h-10 w-10 items-center justify-center rounded-lg bg-white text-red-500 shadow-sm ring-1 ring-slate-200 transition-all hover:bg-red-50 hover:text-red-600 hover:ring-red-200 active:scale-95"
+                className="flex h-10 w-10 items-center justify-center rounded-lg bg-white text-red-500 shadow-sm ring-1 ring-slate-200 transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:bg-red-50 hover:text-red-600 hover:ring-red-200 active:scale-[0.97]"
                 aria-label="Remove line"
               >
                 <Trash2 className="h-5 w-5" />
@@ -370,7 +370,7 @@ export function ReceivingPage() {
         </ul>
       </section>
 
-      <aside className="flex h-fit flex-col gap-6 rounded-[24px] border border-slate-200/50 bg-white/60 p-8 shadow-[0_8px_30px_rgb(0,0,0,0.02)] backdrop-blur-xl">
+      <aside className="flex h-fit flex-col gap-6 rounded-xl border border-slate-200/50 bg-white/60 p-8 shadow-[0_8px_30px_rgb(0,0,0,0.02)] backdrop-blur-xl">
         <h2 className="text-xl font-semibold tracking-tight text-slate-900">Lot Summary</h2>
 
         <div className="flex flex-col gap-4">
@@ -381,7 +381,7 @@ export function ReceivingPage() {
               value={reference}
               onChange={(e) => setReference(e.target.value)}
               maxLength={100}
-              className="h-11 w-full rounded-xl border border-slate-200 bg-white/50 px-4 text-sm font-medium text-slate-700 shadow-sm outline-none transition-all hover:bg-white focus:border-action focus:ring-1 focus:ring-action"
+              className="h-11 w-full rounded-xl border border-slate-200 bg-white/50 px-4 text-sm font-medium text-slate-700 shadow-sm outline-none transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:bg-white focus-visible:ring-2 focus-visible:ring-action/40 focus-visible:border-action"
             />
           </label>
           <label className="flex flex-col gap-1.5 text-xs font-semibold uppercase tracking-wider text-slate-500">
@@ -391,7 +391,7 @@ export function ReceivingPage() {
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               maxLength={500}
-              className="h-11 w-full rounded-xl border border-slate-200 bg-white/50 px-4 text-sm font-medium text-slate-700 shadow-sm outline-none transition-all hover:bg-white focus:border-action focus:ring-1 focus:ring-action"
+              className="h-11 w-full rounded-xl border border-slate-200 bg-white/50 px-4 text-sm font-medium text-slate-700 shadow-sm outline-none transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:bg-white focus-visible:ring-2 focus-visible:ring-action/40 focus-visible:border-action"
             />
           </label>
         </div>
@@ -412,7 +412,7 @@ export function ReceivingPage() {
           type="button"
           onClick={openReview}
           disabled={lines.length === 0 || busy}
-          className="flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-action px-6 text-sm font-bold tracking-wide text-white shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[var(--color-action)]/30 active:scale-95 disabled:pointer-events-none disabled:opacity-50"
+          className="flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-action px-6 text-sm font-bold tracking-wide text-white shadow-sm transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:-translate-y-0.5 hover:shadow-[var(--color-action)]/30 active:scale-[0.97] disabled:pointer-events-none disabled:opacity-50"
         >
           <Save className="h-5 w-5" /> Review & Save
         </button>
@@ -468,7 +468,7 @@ export function ReceivingPage() {
           role="dialog"
           aria-modal="true"
         >
-          <div className="flex max-h-[90vh] w-full max-w-2xl flex-col gap-6 overflow-y-auto rounded-[32px] bg-white p-8 shadow-2xl animate-in fade-in zoom-in-95 duration-200">
+          <div className="flex max-h-[90vh] w-full max-w-2xl flex-col gap-6 overflow-y-auto rounded-xl bg-white p-8 shadow-2xl animate-in fade-in zoom-in-95 duration-200">
             <header className="flex items-center justify-between border-b border-slate-100 pb-4">
               <h2 className="flex items-center gap-3 text-2xl font-light tracking-tight text-slate-900">
                 <CheckCircle2 className="h-8 w-8 text-emerald-500" /> Lot #{lastLot.id} saved
@@ -621,7 +621,7 @@ function PurchaseReviewModal({
     >
       <form
         onSubmit={submit}
-        className="flex max-h-[92vh] w-full max-w-4xl flex-col gap-6 overflow-y-auto rounded-[32px] bg-white p-8 shadow-2xl animate-in fade-in zoom-in-95 duration-200"
+        className="flex max-h-[92vh] w-full max-w-4xl flex-col gap-6 overflow-y-auto rounded-xl bg-white p-8 shadow-2xl animate-in fade-in zoom-in-95 duration-200"
       >
         <header className="flex items-center justify-between border-b border-slate-100 pb-4">
           <h2 id="purchase-review-title" className="flex items-center gap-3 text-2xl font-light tracking-tight text-slate-900">
@@ -645,7 +645,7 @@ function PurchaseReviewModal({
               onChange={(e) =>
                 setVendorId(e.target.value === "" ? "" : Number.parseInt(e.target.value, 10))
               }
-              className="h-11 w-full rounded-xl border border-slate-200 bg-white/50 px-4 text-sm font-medium text-slate-700 shadow-sm outline-none transition-all hover:bg-white focus:border-action focus:ring-1 focus:ring-action"
+              className="h-11 w-full rounded-xl border border-slate-200 bg-white/50 px-4 text-sm font-medium text-slate-700 shadow-sm outline-none transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:bg-white focus-visible:ring-2 focus-visible:ring-action/40 focus-visible:border-action"
             >
               <option value="">Select vendor</option>
               {vendors.map((vendor) => (
@@ -662,7 +662,7 @@ function PurchaseReviewModal({
               type="date"
               value={purchaseDate}
               onChange={(e) => setPurchaseDate(e.target.value)}
-              className="h-11 w-full rounded-xl border border-slate-200 bg-white/50 px-4 text-sm font-medium text-slate-700 shadow-sm outline-none transition-all hover:bg-white focus:border-action focus:ring-1 focus:ring-action"
+              className="h-11 w-full rounded-xl border border-slate-200 bg-white/50 px-4 text-sm font-medium text-slate-700 shadow-sm outline-none transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:bg-white focus-visible:ring-2 focus-visible:ring-action/40 focus-visible:border-action"
             />
           </label>
           <label className="flex flex-col gap-1.5 text-xs font-semibold uppercase tracking-wider text-slate-500">
@@ -671,7 +671,7 @@ function PurchaseReviewModal({
               type="text"
               value={vendorInvoiceNumber}
               onChange={(e) => setVendorInvoiceNumber(e.target.value)}
-              className="h-11 w-full rounded-xl border border-slate-200 bg-white/50 px-4 text-sm font-medium text-slate-700 shadow-sm outline-none transition-all hover:bg-white focus:border-action focus:ring-1 focus:ring-action"
+              className="h-11 w-full rounded-xl border border-slate-200 bg-white/50 px-4 text-sm font-medium text-slate-700 shadow-sm outline-none transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:bg-white focus-visible:ring-2 focus-visible:ring-action/40 focus-visible:border-action"
             />
           </label>
           <label className="flex flex-col gap-1.5 text-xs font-semibold uppercase tracking-wider text-slate-500">
@@ -682,7 +682,7 @@ function PurchaseReviewModal({
               step="0.01"
               value={invoiceValue}
               onChange={(e) => setInvoiceValue(e.target.value)}
-              className="h-11 w-full rounded-xl border border-slate-200 bg-white/50 px-4 text-sm font-medium text-slate-700 shadow-sm outline-none transition-all hover:bg-white focus:border-action focus:ring-1 focus:ring-action"
+              className="h-11 w-full rounded-xl border border-slate-200 bg-white/50 px-4 text-sm font-medium text-slate-700 shadow-sm outline-none transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:bg-white focus-visible:ring-2 focus-visible:ring-action/40 focus-visible:border-action"
             />
           </label>
         </div>
@@ -725,7 +725,7 @@ function PurchaseReviewModal({
                             Math.max(0, Math.floor(Number(e.target.value || 0)))
                           )
                         }
-                        className="w-24 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-right font-mono text-sm font-medium shadow-sm transition-all hover:border-slate-300 focus:border-action focus:ring-1 focus:ring-action outline-none"
+                        className="w-24 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-right font-mono text-sm font-medium shadow-sm transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:border-slate-300 focus-visible:ring-2 focus-visible:ring-action/40 focus-visible:border-action outline-none"
                       />
                     </td>
                     <td className="px-6 py-4 text-right font-mono font-medium text-slate-500">{line.quantity - good}</td>
@@ -746,14 +746,14 @@ function PurchaseReviewModal({
           <button
             type="button"
             onClick={onCancel}
-            className="flex h-11 items-center justify-center rounded-xl bg-white px-6 text-sm font-semibold text-slate-600 shadow-sm ring-1 ring-slate-200 transition-all hover:bg-slate-50 hover:text-slate-900 active:scale-95"
+            className="flex h-11 items-center justify-center rounded-xl bg-white px-6 text-sm font-semibold text-slate-600 shadow-sm ring-1 ring-slate-200 transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:bg-slate-50 hover:text-slate-900 active:scale-[0.97]"
           >
             Cancel
           </button>
           <button
             type="submit"
             disabled={busy}
-            className="flex h-11 items-center justify-center rounded-xl bg-action px-8 text-sm font-bold tracking-wide text-white shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[var(--color-action)]/30 active:scale-95 disabled:pointer-events-none disabled:opacity-50"
+            className="flex h-11 items-center justify-center rounded-xl bg-action px-8 text-sm font-bold tracking-wide text-white shadow-sm transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:-translate-y-0.5 hover:shadow-[var(--color-action)]/30 active:scale-[0.97] disabled:pointer-events-none disabled:opacity-50"
           >
             {busy ? "Saving..." : "Confirm save"}
           </button>
