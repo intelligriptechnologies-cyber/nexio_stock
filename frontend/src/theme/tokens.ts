@@ -6,7 +6,13 @@
 //   surface   #f8fafc (Light Gray — background)
 // Touch targets: min 64px (oversized, per design spec).
 
-const actionGreen = "var(--color-action)";
+// A function (not a plain var() string) so Tailwind can generate opacity-
+// modifier utilities (bg-action/40, ring-action/20, ...) — it can't decompose
+// an opaque CSS custom property into an alpha-composable color on its own.
+const actionGreen = ({ opacityValue }: { opacityValue?: string } = {}) =>
+  opacityValue === undefined
+    ? "var(--color-action)"
+    : `rgb(var(--color-action-rgb) / ${opacityValue})`;
 const onAction = "var(--color-on-action)";
 const activeTab = "var(--color-active-tab)";
 const onActiveTab = "var(--color-on-active-tab)";

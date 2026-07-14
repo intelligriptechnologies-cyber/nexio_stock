@@ -5,6 +5,8 @@
 @layer base {
   :root {
     --color-action: #22c55e;
+    /* R G B channels of --color-action, for opacity-modifier utilities (bg-action/40, ring-action/40, etc) — Tailwind can't decompose an opaque var() into an alpha-composable color on its own. */
+    --color-action-rgb: 34 197 94;
     --color-on-action: #ffffff;
     --color-active-tab: #5a5148;
     --color-on-active-tab: #ffffff;

@@ -299,7 +299,7 @@ export function OfflineReceiptEditorModal({
 
           <aside className="flex flex-col gap-6 rounded-xl border border-slate-200/50 bg-slate-50/50 p-6">
             <div className="relative overflow-hidden rounded-xl bg-slate-900 p-6 text-white shadow-lg">
-              <div className="pointer-events-none absolute -right-10 -top-10 h-32 w-32 rounded-full bg-gradient-to-br from-action/20 to-white/5 blur-2xl" />
+              <div className="pointer-events-none absolute -right-10 -top-10 h-32 w-32 rounded-full bg-gradient-to-br from-[rgba(34,197,94,0.2)] to-white/5 blur-2xl" />
               <div className="relative z-10 text-xs font-bold uppercase tracking-widest text-slate-400">Receipt total</div>
               <div className="relative z-10 mt-2 font-mono text-4xl font-light tracking-tight">₹{moneyString(lineTotalCents)}</div>
             </div>

@@ -132,7 +132,7 @@ export function LoginPage() {
   return (
     <div className="relative flex min-h-full items-center justify-center overflow-hidden bg-slate-50 p-6 font-sans">
       {/* Subtle single-tone brand wash, replacing the prior two-color mesh-orb decoration */}
-      <div className="pointer-events-none absolute left-0 top-0 h-[500px] w-[500px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-action/10 blur-[120px]" />
+      <div className="pointer-events-none absolute left-0 top-0 h-[500px] w-[500px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[rgba(34,197,94,0.25)] blur-[100px]" />
 
       <section className="relative w-full max-w-[460px] overflow-hidden rounded-2xl border border-slate-200/60 bg-white/70 shadow-sm backdrop-blur-xl transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out">
         <div className="border-b border-slate-200/50 px-8 py-8 text-center">

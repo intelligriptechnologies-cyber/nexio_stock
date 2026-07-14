@@ -1350,7 +1350,7 @@ export function CheckoutPage() {
       {/* RIGHT — payment + finalize */}
       <aside className="flex flex-col gap-gutter rounded-xl border border-slate-200/50 bg-white/60 p-8 shadow-sm backdrop-blur-xl">
         <div className="relative overflow-hidden rounded-xl bg-slate-900 p-8 text-white shadow-lg">
-          <div className="pointer-events-none absolute -right-10 -top-10 h-40 w-40 rounded-full bg-gradient-to-br from-action/20 to-white/5 blur-2xl" />
+          <div className="pointer-events-none absolute -right-10 -top-10 h-40 w-40 rounded-full bg-gradient-to-br from-[rgba(34,197,94,0.2)] to-white/5 blur-2xl" />
           <div className="relative z-10 flex items-center gap-2 text-[11px] font-bold uppercase tracking-widest text-slate-400">
             <ShoppingBag className="h-4 w-4" /> Total Payable
           </div>
