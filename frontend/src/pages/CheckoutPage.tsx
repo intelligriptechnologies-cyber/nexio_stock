@@ -42,6 +42,7 @@ import {
   upsertOfflineReceipt,
   type StoredOfflineSession,
 } from "../api/offline-session-store";
+import { FocusedModeActions } from "../components/FocusedModeActions";
 import { OfflineReceiptEditorModal } from "../components/OfflineReceiptEditorModal";
 import { QuickSearch } from "../components/QuickSearch";
 import { QuickAddModal } from "../components/QuickAddModal";
@@ -1243,7 +1244,9 @@ export function CheckoutPage() {
           <h1 className="flex items-center gap-2 text-2xl font-bold tracking-tight text-slate-900">
             <ShoppingCart className="h-6 w-6 text-action" /> Checkout
           </h1>
-          <div className="flex items-center gap-stack-gap text-label-md text-on-surface-variant">
+          <div className="flex flex-col items-end gap-2">
+            <FocusedModeActions />
+            <div className="flex items-center gap-stack-gap text-label-md text-on-surface-variant">
             <span>{catalogReady ? "Catalog cached" : "Loading catalog…"}</span>
             <button
               type="button"
@@ -1257,6 +1260,7 @@ export function CheckoutPage() {
             >
               <RefreshCw className="h-3 w-3 transition-transform duration-300 group-hover:rotate-180" /> Refresh
             </button>
+            </div>
           </div>
         </header>
 
@@ -1364,7 +1368,7 @@ export function CheckoutPage() {
                   type="button"
                   onClick={() => changeQty(l.lineId, -1)}
                   disabled={checkoutLocked}
-                  className="flex h-11 w-11 items-center justify-center rounded-full bg-slate-100 text-xl font-medium text-slate-600 transition-colors hover:bg-slate-200 active:bg-slate-300 disabled:opacity-50"
+                  className="app-stepper-button"
                   aria-label="Decrease quantity"
                 >
                   −
@@ -1400,7 +1404,7 @@ export function CheckoutPage() {
                   type="button"
                   onClick={() => changeQty(l.lineId, +1)}
                   disabled={checkoutLocked}
-                  className="flex h-11 w-11 items-center justify-center rounded-full bg-slate-100 text-xl font-medium text-slate-600 transition-colors hover:bg-slate-200 active:bg-slate-300 disabled:opacity-50"
+                  className="app-stepper-button"
                   aria-label="Increase quantity"
                 >
                   +
@@ -1442,7 +1446,7 @@ export function CheckoutPage() {
                 type="button"
                 onClick={addPayment}
                 disabled={checkoutLocked}
-                className="rounded-lg bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600 transition-colors hover:bg-slate-200"
+                className="app-split-button"
               >
                 + Split
             </button>

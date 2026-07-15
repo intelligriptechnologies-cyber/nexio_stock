@@ -58,6 +58,7 @@ async function seedSuperadmin(page: Page, actingShopId: number | null = 1) {
 
 async function mockShopMaintenanceApis(page: Page) {
   let shops: Shop[] = [{ ...baseShop }];
+  const resetPasswordCalls: Array<{ shopId: number; userId: number; password: string }> = [];
   const isApi = (url: URL) => url.origin === "http://127.0.0.1:8000";
 
   await page.route("**/settings/me**", async (route) => {
@@ -110,6 +111,33 @@ async function mockShopMaintenanceApis(page: Page) {
       ]),
     });
   });
+
+  await page.route(
+    (url) => isApi(url) && /\/shops\/\d+\/users\/\d+\/password$/.test(url.href),
+    async (route) => {
+      const request = route.request();
+      const match = new URL(request.url()).pathname.match(/\/shops\/(\d+)\/users\/(\d+)\/password$/);
+      const payload = request.postDataJSON() as { password: string };
+      resetPasswordCalls.push({
+        shopId: Number(match?.[1]),
+        userId: Number(match?.[2]),
+        password: payload.password,
+      });
+      await route.fulfill({
+        contentType: "application/json",
+        body: JSON.stringify({
+          id: 10,
+          shop_id: 1,
+          role: "owner",
+          username: "owner1",
+          full_name: "Owner One",
+          phone: "9999999999",
+          is_active: true,
+          created_at: "2026-01-01T00:00:00Z",
+        }),
+      });
+    }
+  );
 
   await page.route("**/products?**", async (route) => {
     await route.fulfill({
@@ -166,6 +194,8 @@ async function mockShopMaintenanceApis(page: Page) {
       ),
     });
   });
+
+  return { resetPasswordCalls };
 }
 
 test.describe("shop maintenance", () => {
@@ -207,5 +237,55 @@ test.describe("shop maintenance", () => {
       "true"
     );
     await expect(page.getByLabel("Working shop")).toContainText("Shop Two Updated (shop2u)");
+  });
+
+  test("resets a shop user password through an in-app dialog", async ({ page }) => {
+    await seedSuperadmin(page);
+    const { resetPasswordCalls } = await mockShopMaintenanceApis(page);
+
+    await page.addInitScript(() => {
+      Object.defineProperty(globalThis, "prompt", {
+        configurable: true,
+        value: () => {
+          const current = Reflect.get(globalThis, "__promptCalls") as number | undefined;
+          Reflect.set(globalThis, "__promptCalls", (current ?? 0) + 1);
+          return "should-not-be-used";
+        },
+      });
+    });
+
+    await page.goto("/admin/shops");
+    await page.getByRole("tab", { name: "Allotted Users" }).click();
+
+    const userRow = page.locator("tr", { hasText: "Owner One" });
+    await expect(userRow.getByRole("button", { name: /Reset password/i })).toBeVisible();
+
+    await userRow.getByRole("button", { name: /Reset password/i }).click();
+    const dialog = page.getByRole("dialog");
+    await expect(dialog).toBeVisible();
+    await expect(dialog.getByText("Owner One (owner1)")).toBeVisible();
+    await expect(dialog.getByLabel("New password/PIN")).toBeFocused();
+
+    await dialog.getByRole("button", { name: "Cancel" }).click();
+    await expect(dialog).toHaveCount(0);
+    expect(resetPasswordCalls).toHaveLength(0);
+
+    await userRow.getByRole("button", { name: /Reset password/i }).click();
+    await dialog.getByLabel("New password/PIN").fill("123");
+    await dialog.getByRole("button", { name: "Reset password" }).click();
+    await expect(dialog.getByText("Password/PIN must be at least 4 characters.")).toBeVisible();
+    expect(resetPasswordCalls).toHaveLength(0);
+
+    await dialog.getByLabel("New password/PIN").fill("1234");
+    await dialog.getByRole("button", { name: "Reset password" }).click();
+
+    await expect(dialog).toHaveCount(0);
+    await expect(page.getByRole("status")).toContainText("User updated.");
+    expect(resetPasswordCalls).toEqual([{ shopId: 1, userId: 10, password: "1234" }]);
+
+    const promptCalls = await page.evaluate(() => {
+      return (Reflect.get(globalThis, "__promptCalls") as number | undefined) ?? 0;
+    });
+    expect(promptCalls).toBe(0);
   });
 });

@@ -1,0 +1,2 @@
+logged_at,event_type,shop_id,shop_name,actor_user_id,actor_name,lot_id,vendor_id,vendor_name,vendor_gstin,purchase_date,vendor_invoice_number,invoice_value,reference,notes,product_id,product_name_snapshot,barcode,quantity,good_condition_quantity,breakage_quantity,current_price,row_total
+2026-07-15T16:57:41+05:30,lot.received,1,Shop One,1,Owner One,1,1,Vendor One,,2026-07-15,TEST-INVOICE,0.00,,,1,Copy Brand 750ml,COPY-1,5,5,0,123.45,617.25

@@ -1,6 +1,8 @@
-import { Navigate, Route, Routes } from "react-router-dom";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Navigate, Route, Routes, useLocation } from "react-router-dom";
 import { useAuth, type Role } from "./auth/AuthProvider";
 import { Sidebar } from "./components/Sidebar";
+import { FocusedModeContext, type FocusedModeContextValue } from "./components/FocusedModeContext";
 import { LoginPage } from "./pages/LoginPage";
 import { SuperadminLoginPage } from "./pages/SuperadminLoginPage";
 import { ForbiddenPage } from "./pages/ForbiddenPage";
@@ -21,6 +23,25 @@ import { InventoryPage } from "./pages/InventoryPage";
 import { ApprovalsPage } from "./pages/ApprovalsPage";
 import { StockTrackingPage } from "./pages/StockTrackingPage";
 
+const FOCUSED_MODE_STORAGE_KEY = "nexio.focused-mode-enabled";
+const FOCUSED_MODE_PATHS = new Set(["/checkout", "/receiving"]);
+
+function readFocusedModePreference(): boolean {
+  try {
+    return localStorage.getItem(FOCUSED_MODE_STORAGE_KEY) === "true";
+  } catch {
+    return false;
+  }
+}
+
+function writeFocusedModePreference(enabled: boolean) {
+  try {
+    localStorage.setItem(FOCUSED_MODE_STORAGE_KEY, enabled ? "true" : "false");
+  } catch {
+    // Ignore storage failures and keep the in-memory preference.
+  }
+}
+
 function Protected({ allow, children }: { allow: Role[]; children: JSX.Element }) {
   const { user, isReady } = useAuth();
   if (!isReady) {
@@ -37,17 +58,99 @@ function Protected({ allow, children }: { allow: Role[]; children: JSX.Element }
 
 function AuthedShell({ children }: { children: JSX.Element }) {
   const { user } = useAuth();
+  const location = useLocation();
+  const shellRef = useRef<HTMLDivElement | null>(null);
+  const supportsFocusedMode = FOCUSED_MODE_PATHS.has(location.pathname);
+  const supportsFocusedModeRef = useRef(supportsFocusedMode);
+  const [focusedModePreference, setFocusedModePreference] = useState(readFocusedModePreference);
+  const [isBrowserFullscreenActive, setIsBrowserFullscreenActive] = useState(
+    () => typeof document !== "undefined" && Boolean(document.fullscreenElement)
+  );
+  const previousFullscreenStateRef = useRef(isBrowserFullscreenActive);
+
+  useEffect(() => {
+    supportsFocusedModeRef.current = supportsFocusedMode;
+  }, [supportsFocusedMode]);
+
+  useEffect(() => {
+    writeFocusedModePreference(focusedModePreference);
+  }, [focusedModePreference]);
+
+  useEffect(() => {
+    const onFullscreenChange = () => {
+      const isActive = Boolean(document.fullscreenElement);
+      setIsBrowserFullscreenActive(isActive);
+      if (previousFullscreenStateRef.current && !isActive && supportsFocusedModeRef.current) {
+        setFocusedModePreference(false);
+      }
+      previousFullscreenStateRef.current = isActive;
+    };
+
+    document.addEventListener("fullscreenchange", onFullscreenChange);
+    return () => {
+      document.removeEventListener("fullscreenchange", onFullscreenChange);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (supportsFocusedMode || !document.fullscreenElement || !document.exitFullscreen) return;
+    void document.exitFullscreen().catch(() => {
+      // Ignore denied exits; the layout already returns to the normal shell.
+    });
+  }, [supportsFocusedMode]);
+
+  const enterFocusedMode = useCallback(async () => {
+    setFocusedModePreference(true);
+    if (document.fullscreenElement || !shellRef.current?.requestFullscreen) return;
+    try {
+      await shellRef.current.requestFullscreen();
+    } catch {
+      // Best effort only. Focused layout still stays enabled.
+    }
+  }, []);
+
+  const exitFocusedMode = useCallback(async () => {
+    setFocusedModePreference(false);
+    if (!document.fullscreenElement || !document.exitFullscreen) return;
+    try {
+      await document.exitFullscreen();
+    } catch {
+      // Ignore exit failures; preference is already cleared.
+    }
+  }, []);
+
+  const focusedModeValue = useMemo<FocusedModeContextValue>(
+    () => ({
+      supportsFocusedMode,
+      isFocusedModeEnabled: supportsFocusedMode && focusedModePreference,
+      isBrowserFullscreenActive,
+      enterFocusedMode,
+      exitFocusedMode,
+    }),
+    [
+      enterFocusedMode,
+      exitFocusedMode,
+      focusedModePreference,
+      isBrowserFullscreenActive,
+      supportsFocusedMode,
+    ]
+  );
+
   if (!user) return <Navigate to="/login" replace />;
   return (
-    <div className="h-full bg-slate-50 text-slate-900">
-      <Sidebar />
-      <main
-        data-app-shell-scroll-container="true"
-        className="h-full overflow-y-auto p-margin-mobile md:ml-64 md:p-margin-desktop animate-fade-in"
-      >
-        {children}
-      </main>
-    </div>
+    <FocusedModeContext.Provider value={focusedModeValue}>
+      <div ref={shellRef} className="h-full bg-slate-50 text-slate-900">
+        {!focusedModeValue.isFocusedModeEnabled && <Sidebar />}
+        <main
+          data-app-shell-scroll-container="true"
+          className={`h-full overflow-y-auto p-margin-mobile animate-fade-in ${
+            focusedModeValue.isFocusedModeEnabled ? "md:p-margin-desktop" : "md:ml-64 md:p-margin-desktop"
+          }`}
+        >
+          {children}
+        </main>
+      </div>
+    </FocusedModeContext.Provider>
   );
 }
 

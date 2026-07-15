@@ -85,46 +85,50 @@ export function ProductsPage() {
         </div>
       )}
 
-      <nav className="flex flex-wrap gap-2 border-b border-slate-200/60 pb-4" aria-label="Product sections">
-        {(["list", "create", "import", "copy"] as const).map((t) => {
-          const active = tab === t;
-          return (
-            <AppTabButton
-              key={t}
-              onClick={() => setTab(t)}
-              active={active}
-            >
-              <span className="flex items-center gap-2">
-                {t === "list" && <Search className="h-4 w-4" />}
-                {t === "create" && <PlusCircle className="h-4 w-4" />}
-                {t === "import" && <Upload className="h-4 w-4" />}
-                {t === "copy" && <Copy className="h-4 w-4" />}
-                {t === "list"
-                  ? "Catalog"
-                  : t === "create"
-                    ? "New product"
-                : t === "import"
-                      ? "Bulk import"
-                      : "Copy products"}
-              </span>
-            </AppTabButton>
-          );
-        })}
-      </nav>
+      <div className="flex flex-col">
+        <nav className="app-tab-strip" aria-label="Product sections">
+          {(["list", "create", "import", "copy"] as const).map((t) => {
+            const active = tab === t;
+            return (
+              <AppTabButton
+                key={t}
+                onClick={() => setTab(t)}
+                active={active}
+              >
+                <span className="flex items-center gap-2">
+                  {t === "list" && <Search className="h-4 w-4" />}
+                  {t === "create" && <PlusCircle className="h-4 w-4" />}
+                  {t === "import" && <Upload className="h-4 w-4" />}
+                  {t === "copy" && <Copy className="h-4 w-4" />}
+                  {t === "list"
+                    ? "Catalog"
+                    : t === "create"
+                      ? "New product"
+                      : t === "import"
+                        ? "Bulk import"
+                        : "Copy products"}
+                </span>
+              </AppTabButton>
+            );
+          })}
+        </nav>
 
-      {tab === "list" && (
-        <ListTab
-          q={catalogQuery}
-          onQueryChange={setCatalogQuery}
-          editingId={editingId}
-          onEditingIdChange={setEditingId}
-        />
-      )}
-      {tab === "create" && (
-        <CreateTab initialBarcode={initialBarcode} onCreated={() => setTab("list")} />
-      )}
-      {tab === "import" && <ImportTab />}
-      {tab === "copy" && <CopyTab />}
+        <div className="app-tab-panel">
+          {tab === "list" && (
+            <ListTab
+              q={catalogQuery}
+              onQueryChange={setCatalogQuery}
+              editingId={editingId}
+              onEditingIdChange={setEditingId}
+            />
+          )}
+          {tab === "create" && (
+            <CreateTab initialBarcode={initialBarcode} onCreated={() => setTab("list")} />
+          )}
+          {tab === "import" && <ImportTab />}
+          {tab === "copy" && <CopyTab />}
+        </div>
+      </div>
     </div>
   );
 }

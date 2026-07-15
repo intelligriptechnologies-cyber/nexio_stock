@@ -1,4 +1,4 @@
-import { createContext, useCallback, useContext, useMemo, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import type { ReactNode } from "react";
 import { useAuth } from "./AuthProvider";
 
@@ -26,14 +26,33 @@ function readStored(): number | null {
 }
 
 export function ShopScopeProvider({ children }: { children: ReactNode }) {
+  const { user } = useAuth();
   const [actingShopId, setActingShopIdState] = useState<number | null>(readStored);
   const [shopsVersion, setShopsVersion] = useState(0);
 
   const setActingShopId = useCallback((id: number | null) => {
+    if (user?.role !== "superadmin") {
+      sessionStorage.removeItem(KEY);
+      setActingShopIdState(user?.shopId ?? null);
+      return;
+    }
     if (id === null) sessionStorage.removeItem(KEY);
     else sessionStorage.setItem(KEY, String(id));
     setActingShopIdState(id);
-  }, []);
+  }, [user?.role, user?.shopId]);
+
+  useEffect(() => {
+    if (!user) {
+      setActingShopIdState(readStored());
+      return;
+    }
+    if (user.role === "superadmin") {
+      setActingShopIdState(readStored());
+      return;
+    }
+    sessionStorage.removeItem(KEY);
+    setActingShopIdState(user.shopId ?? null);
+  }, [user]);
 
   const refreshShops = useCallback(() => {
     setShopsVersion((version) => version + 1);

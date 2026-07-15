@@ -136,29 +136,31 @@ export function ApprovalsPage() {
         </div>
       )}
 
-      <div className="flex flex-wrap gap-2 border-b border-slate-200/60 pb-4">
-        <AppTabButton active={activeTab === "voids"} onClick={() => setActiveTab("voids")}>
-          Void Approvals ({voidCount})
-        </AppTabButton>
-        <AppTabButton active={activeTab === "inward"} onClick={() => setActiveTab("inward")}>
-          Inward Approvals ({inwardCount})
-        </AppTabButton>
-      </div>
+      <div className="flex flex-col">
+        <div className="app-tab-strip">
+          <AppTabButton active={activeTab === "voids"} onClick={() => setActiveTab("voids")}>
+            Void Approvals ({voidCount})
+          </AppTabButton>
+          <AppTabButton active={activeTab === "inward"} onClick={() => setActiveTab("inward")}>
+            Inward Approvals ({inwardCount})
+          </AppTabButton>
+        </div>
 
-      {visibleItems === null ? (
-        <div className="flex h-32 items-center justify-center rounded-xl border border-slate-200/50 bg-white/60 p-6 shadow-[0_8px_30px_rgb(0,0,0,0.02)] backdrop-blur-xl">
-          <div className="text-sm font-medium text-slate-500">Loading...</div>
-        </div>
-      ) : visibleItems.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-slate-300 bg-white/50 py-12 text-center text-sm font-medium text-slate-500">
-          {activeTab === "voids"
-            ? "No invoices are awaiting void approval."
-            : "No stock inward requests are waiting for approval."}
-        </div>
-      ) : (
-        <ul className="flex flex-col gap-4">
-          {activeTab === "voids"
-            ? voidItems?.map((invoice) => (
+        <div className="app-tab-panel">
+          {visibleItems === null ? (
+            <div className="flex h-32 items-center justify-center rounded-xl border border-slate-200/50 bg-white/60 p-6 shadow-[0_8px_30px_rgb(0,0,0,0.02)] backdrop-blur-xl">
+              <div className="text-sm font-medium text-slate-500">Loading...</div>
+            </div>
+          ) : visibleItems.length === 0 ? (
+            <div className="rounded-xl border border-dashed border-slate-300 bg-white/50 py-12 text-center text-sm font-medium text-slate-500">
+              {activeTab === "voids"
+                ? "No invoices are awaiting void approval."
+                : "No stock inward requests are waiting for approval."}
+            </div>
+          ) : (
+            <ul className="flex flex-col gap-4">
+              {activeTab === "voids"
+                ? voidItems?.map((invoice) => (
                 <li
                   key={`void-${invoice.id}`}
                   className="flex flex-wrap items-center justify-between gap-6 rounded-xl border border-slate-200/50 bg-white/60 p-6 shadow-[0_8px_30px_rgb(0,0,0,0.02)] backdrop-blur-xl transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:shadow-md"
@@ -215,8 +217,8 @@ export function ApprovalsPage() {
                     </button>
                   </div>
                 </li>
-              ))
-            : inwardItems?.map((item) => (
+                ))
+                : inwardItems?.map((item) => (
                 <li
                   key={`inward-${item.id}`}
                   className="rounded-xl border border-slate-200/50 bg-white/60 p-6 shadow-[0_8px_30px_rgb(0,0,0,0.02)] backdrop-blur-xl transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:shadow-md"
@@ -294,8 +296,10 @@ export function ApprovalsPage() {
                   </div>
                 </li>
               ))}
-        </ul>
-      )}
+            </ul>
+          )}
+        </div>
+      </div>
     </div>
   );
 }

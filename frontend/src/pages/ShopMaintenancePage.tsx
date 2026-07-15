@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Store, RefreshCw, Plus, Save, Users, Package, Key, Settings } from "lucide-react";
+import { Store, RefreshCw, Plus, Save, Users, Package, Settings } from "lucide-react";
 import { listProducts, type Product } from "../api/products";
 import { toUserMessage } from "../api/client";
 import {
@@ -19,6 +19,7 @@ import {
 } from "../api/shops";
 import { useShopScope } from "../auth/ShopScopeProvider";
 import { AppTabButton } from "../components/AppTabs";
+import { ModalDialog } from "../components/ModalDialog";
 
 const ROLES: ShopUserRole[] = ["owner", "cashier_user", "receiver_user"];
 const ROLE_FILTERS = ["all", ...ROLES] as const;
@@ -212,7 +213,7 @@ export function ShopMaintenancePage() {
                 <div className="text-[11px] font-bold uppercase tracking-widest text-slate-500">Selected shop</div>
                 <h2 className="text-2xl font-bold tracking-tight text-slate-900">{selectedShop.name}</h2>
               </div>
-              <div className="flex flex-wrap gap-2 border-b border-slate-200/60 pb-4" role="tablist" aria-label="Shop management tabs">
+              <div className="app-tab-strip" role="tablist" aria-label="Shop management tabs">
                 {TABS.map((tab) => (
                   <AppTabButton
                     key={tab.id}
@@ -227,7 +228,7 @@ export function ShopMaintenancePage() {
                 ))}
               </div>
             </div>
-            <div className="max-h-[calc(100vh-18rem)] overflow-y-auto p-8 custom-scrollbar">
+            <div className="app-tab-panel max-h-[calc(100vh-18rem)] overflow-y-auto custom-scrollbar">
               {activeTab === "details" && (
                 <EditShopForm
                   shop={shopDetails}
@@ -439,6 +440,10 @@ function UserPanel({
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
+  const [resetUser, setResetUser] = useState<ShopUser | null>(null);
+  const [resetDraftPassword, setResetDraftPassword] = useState("");
+  const [resetBusy, setResetBusy] = useState(false);
+  const [resetValidationError, setResetValidationError] = useState<string | null>(null);
 
   const create = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -464,14 +469,37 @@ function UserPanel({
     }
   };
 
-  const resetPassword = async (user: ShopUser) => {
-    const next = window.prompt(`New password/PIN for ${user.full_name}`);
-    if (!next) return;
+  const closeResetDialog = () => {
+    if (resetBusy) return;
+    setResetUser(null);
+    setResetDraftPassword("");
+    setResetValidationError(null);
+  };
+
+  const openResetDialog = (user: ShopUser) => {
+    setResetUser(user);
+    setResetDraftPassword("");
+    setResetValidationError(null);
+  };
+
+  const resetPassword = async () => {
+    if (!resetUser) return;
+    if (resetDraftPassword.length < 4) {
+      setResetValidationError("Password/PIN must be at least 4 characters.");
+      return;
+    }
+    setResetBusy(true);
+    setResetValidationError(null);
     try {
-      await resetShopUserPassword(shopId, user.id, next);
+      await resetShopUserPassword(shopId, resetUser.id, resetDraftPassword);
+      setResetUser(null);
+      setResetDraftPassword("");
+      setResetValidationError(null);
       onChanged();
     } catch (err) {
       onError(toUserMessage(err, "Password reset failed."));
+    } finally {
+      setResetBusy(false);
     }
   };
 
@@ -558,11 +586,10 @@ function UserPanel({
                   <div className="flex justify-end gap-3">
                     <button
                       type="button"
-                      onClick={() => resetPassword(user)}
-                      className="text-slate-400 transition-colors hover:text-slate-700"
-                      title="Reset Password"
+                      onClick={() => openResetDialog(user)}
+                      className="text-sm font-semibold text-action underline decoration-transparent underline-offset-4 transition-colors hover:decoration-current"
                     >
-                      <Key className="h-4 w-4" />
+                      Reset password
                     </button>
                     <button
                       type="button"
@@ -587,6 +614,65 @@ function UserPanel({
           </tbody>
         </table>
       </div>
+      {resetUser && (
+        <ModalDialog labelledBy="shop-user-reset-password-title" onDismiss={closeResetDialog}>
+          <div className="w-full max-w-md overflow-hidden rounded-2xl bg-white shadow-2xl ring-1 ring-slate-200/70">
+            <div className="border-b border-slate-200/70 bg-slate-50/80 px-6 py-5">
+              <h3
+                id="shop-user-reset-password-title"
+                className="text-xl font-semibold tracking-tight text-slate-900"
+              >
+                Reset password
+              </h3>
+            </div>
+            <div className="flex flex-col gap-5 px-6 py-6">
+              <p className="text-sm text-slate-600">
+                Set a new password/PIN for{" "}
+                <span className="font-semibold text-slate-900">
+                  {resetUser.full_name} ({resetUser.username})
+                </span>
+                .
+              </p>
+              <label className="flex flex-col gap-1.5 text-xs font-semibold uppercase tracking-wider text-slate-500">
+                New password/PIN
+                <input
+                  type="password"
+                  value={resetDraftPassword}
+                  onChange={(e) => {
+                    setResetDraftPassword(e.target.value);
+                    if (resetValidationError) setResetValidationError(null);
+                  }}
+                  autoFocus
+                  className="h-11 w-full rounded-xl border border-slate-200 bg-white/50 px-4 text-sm font-medium normal-case text-slate-700 shadow-sm outline-none transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:bg-white focus:border-action focus:ring-1 focus:ring-action"
+                />
+              </label>
+              {resetValidationError && (
+                <div role="alert" className="text-sm font-medium text-red-600">
+                  {resetValidationError}
+                </div>
+              )}
+              <div className="flex justify-end gap-3">
+                <button
+                  type="button"
+                  onClick={closeResetDialog}
+                  disabled={resetBusy}
+                  className="rounded-xl bg-slate-100 px-5 py-2.5 text-sm font-semibold text-slate-600 transition-colors hover:bg-slate-200 disabled:opacity-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={() => void resetPassword()}
+                  disabled={resetBusy}
+                  className="rounded-xl bg-action px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:shadow-[var(--color-action)]/30 disabled:opacity-50"
+                >
+                  {resetBusy ? "Resetting..." : "Reset password"}
+                </button>
+              </div>
+            </div>
+          </div>
+        </ModalDialog>
+      )}
     </section>
   );
 }

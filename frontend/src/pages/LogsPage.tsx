@@ -127,105 +127,109 @@ export function LogsPage() {
         </button>
       </header>
 
-      <div className="flex flex-wrap gap-2 border-b border-slate-200/60 pb-4" role="tablist" aria-label="Log sections">
-        {tabs.map((tab) => (
-          <AppTabButton
-            key={tab.type}
-            role="tab"
-            aria-selected={type === tab.type}
-            onClick={() => setType(tab.type)}
-            active={type === tab.type}
-          >
-            {tab.label}
-          </AppTabButton>
-        ))}
-      </div>
-
-      <section className="flex flex-col gap-6 rounded-xl border border-slate-200/50 bg-white/60 p-6 shadow-[0_8px_30px_rgb(0,0,0,0.02)] backdrop-blur-xl">
-        <div className="flex flex-wrap items-end gap-6">
-          <label className="flex flex-col gap-1.5 text-xs font-semibold uppercase tracking-wider text-slate-500">
-            Retention days
-            <input
-              value={draftRetentionDays}
-              onChange={(e) => setDraftRetentionDays(e.target.value)}
-              inputMode="numeric"
-              className="h-11 w-32 rounded-xl border border-slate-200 bg-white/50 px-4 text-sm font-medium text-slate-700 shadow-sm outline-none transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out focus:border-action focus:ring-1 focus:ring-action"
-            />
-          </label>
-          <button
-            type="button"
-            onClick={() => void saveRetention()}
-            disabled={retentionNeedsShop}
-            className="flex h-11 items-center justify-center gap-2 rounded-xl bg-action px-6 text-sm font-bold tracking-wide text-white shadow-sm transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:-translate-y-0.5 hover:shadow-[var(--color-action)]/30 active:scale-[0.97] disabled:pointer-events-none disabled:opacity-50"
-          >
-            <Save className="h-4 w-4" /> Save
-          </button>
-          <div className="mb-3 text-sm font-medium text-slate-500">
-            Current: <span className="font-semibold text-slate-700">{retentionDays}</span> days
-          </div>
+      <div className="flex flex-col">
+        <div className="app-tab-strip" role="tablist" aria-label="Log sections">
+          {tabs.map((tab) => (
+            <AppTabButton
+              key={tab.type}
+              role="tab"
+              aria-selected={type === tab.type}
+              onClick={() => setType(tab.type)}
+              active={type === tab.type}
+            >
+              {tab.label}
+            </AppTabButton>
+          ))}
         </div>
 
-        {retentionNeedsShop && (
-          <div role="status" className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-medium text-amber-700">
-            Pick a shop in the sidebar before changing retention for this tab.
-          </div>
-        )}
-        {error && <div role="alert" className="rounded-xl bg-red-50 px-4 py-3 text-sm font-medium text-red-600 ring-1 ring-red-200">{error}</div>}
-        {info && <div role="status" className="rounded-xl bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-600 ring-1 ring-emerald-200">{info}</div>}
-      </section>
+        <div className="app-tab-panel flex flex-col gap-6">
+          <section className="flex flex-col gap-6 rounded-xl border border-slate-200/50 bg-white/60 p-6 shadow-[0_8px_30px_rgb(0,0,0,0.02)] backdrop-blur-xl">
+            <div className="flex flex-wrap items-end gap-6">
+              <label className="flex flex-col gap-1.5 text-xs font-semibold uppercase tracking-wider text-slate-500">
+                Retention days
+                <input
+                  value={draftRetentionDays}
+                  onChange={(e) => setDraftRetentionDays(e.target.value)}
+                  inputMode="numeric"
+                  className="h-11 w-32 rounded-xl border border-slate-200 bg-white/50 px-4 text-sm font-medium text-slate-700 shadow-sm outline-none transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out focus:border-action focus:ring-1 focus:ring-action"
+                />
+              </label>
+              <button
+                type="button"
+                onClick={() => void saveRetention()}
+                disabled={retentionNeedsShop}
+                className="flex h-11 items-center justify-center gap-2 rounded-xl bg-action px-6 text-sm font-bold tracking-wide text-white shadow-sm transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:-translate-y-0.5 hover:shadow-[var(--color-action)]/30 active:scale-[0.97] disabled:pointer-events-none disabled:opacity-50"
+              >
+                <Save className="h-4 w-4" /> Save
+              </button>
+              <div className="mb-3 text-sm font-medium text-slate-500">
+                Current: <span className="font-semibold text-slate-700">{retentionDays}</span> days
+              </div>
+            </div>
 
-      <div className="max-h-[calc(100vh-22rem)] overflow-y-auto rounded-xl border border-slate-200/50 bg-white/60 shadow-[0_8px_30px_rgb(0,0,0,0.02)] backdrop-blur-xl custom-scrollbar">
-        <table className="app-list-table">
-          <thead className="sticky top-0 z-10 bg-slate-50/90 text-[11px] uppercase tracking-widest text-slate-500 backdrop-blur-sm">
-            <tr>
-              <th className="px-6 py-4 font-semibold">File</th>
-              <th className="px-6 py-4 font-semibold">Modified</th>
-              <th className="px-6 py-4 font-semibold">Size</th>
-              <th className="px-6 py-4 font-semibold">Age</th>
-              <th className="px-6 py-4 font-semibold">Expires in</th>
-              <th className="px-6 py-4 font-semibold text-right">Download</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-slate-100">
-            {files.map((file) => (
-              <tr key={file.relative_path} className="transition-colors hover:bg-slate-50/50">
-                <td className="px-6 py-4">
-                  <div className="font-medium text-slate-900">{file.filename}</div>
-                  <div className="mt-1 text-xs text-slate-500">{file.relative_path}</div>
-                </td>
-                <td className="px-6 py-4 text-slate-600">
-                  {new Date(file.modified_at).toLocaleString()}
-                </td>
-                <td className="px-6 py-4 font-mono text-slate-600">{formatBytes(file.size_bytes)}</td>
-                <td className="px-6 py-4 text-slate-600">{formatDays(file.age_days)}</td>
-                <td className="px-6 py-4">
-                  <span className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium ${
-                    file.expires_in_days === 0 ? "bg-red-50 text-red-700" : "bg-slate-100 text-slate-700"
-                  }`}>
-                    {file.expires_in_days === 0 ? "Expires today" : `${file.expires_in_days} days`}
-                  </span>
-                </td>
-                <td className="px-6 py-4 text-right">
-                  <button
-                    type="button"
-                    onClick={() => void download(file)}
-                    className="inline-flex h-9 items-center justify-center gap-1.5 rounded-xl bg-white px-4 text-xs font-bold tracking-wide text-action shadow-sm ring-1 ring-slate-200 transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:-translate-y-0.5 hover:bg-slate-50 hover:shadow-md active:scale-[0.97]"
-                  >
-                    <Download className="h-3.5 w-3.5" />
-                    Download
-                  </button>
-                </td>
-              </tr>
-            ))}
-            {files.length === 0 && (
-              <tr>
-                <td colSpan={6} className="px-6 py-12 text-center text-sm font-medium text-slate-500">
-                  No log files for this tab.
-                </td>
-              </tr>
+            {retentionNeedsShop && (
+              <div role="status" className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-medium text-amber-700">
+                Pick a shop in the sidebar before changing retention for this tab.
+              </div>
             )}
-          </tbody>
-        </table>
+            {error && <div role="alert" className="rounded-xl bg-red-50 px-4 py-3 text-sm font-medium text-red-600 ring-1 ring-red-200">{error}</div>}
+            {info && <div role="status" className="rounded-xl bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-600 ring-1 ring-emerald-200">{info}</div>}
+          </section>
+
+          <div className="max-h-[calc(100vh-22rem)] overflow-y-auto rounded-xl border border-slate-200/50 bg-white/60 shadow-[0_8px_30px_rgb(0,0,0,0.02)] backdrop-blur-xl custom-scrollbar">
+            <table className="app-list-table">
+              <thead className="sticky top-0 z-10 bg-slate-50/90 text-[11px] uppercase tracking-widest text-slate-500 backdrop-blur-sm">
+                <tr>
+                  <th className="px-6 py-4 font-semibold">File</th>
+                  <th className="px-6 py-4 font-semibold">Modified</th>
+                  <th className="px-6 py-4 font-semibold">Size</th>
+                  <th className="px-6 py-4 font-semibold">Age</th>
+                  <th className="px-6 py-4 font-semibold">Expires in</th>
+                  <th className="px-6 py-4 font-semibold text-right">Download</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {files.map((file) => (
+                  <tr key={file.relative_path} className="transition-colors hover:bg-slate-50/50">
+                    <td className="px-6 py-4">
+                      <div className="font-medium text-slate-900">{file.filename}</div>
+                      <div className="mt-1 text-xs text-slate-500">{file.relative_path}</div>
+                    </td>
+                    <td className="px-6 py-4 text-slate-600">
+                      {new Date(file.modified_at).toLocaleString()}
+                    </td>
+                    <td className="px-6 py-4 font-mono text-slate-600">{formatBytes(file.size_bytes)}</td>
+                    <td className="px-6 py-4 text-slate-600">{formatDays(file.age_days)}</td>
+                    <td className="px-6 py-4">
+                      <span className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium ${
+                        file.expires_in_days === 0 ? "bg-red-50 text-red-700" : "bg-slate-100 text-slate-700"
+                      }`}>
+                        {file.expires_in_days === 0 ? "Expires today" : `${file.expires_in_days} days`}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 text-right">
+                      <button
+                        type="button"
+                        onClick={() => void download(file)}
+                        className="inline-flex h-9 items-center justify-center gap-1.5 rounded-xl bg-white px-4 text-xs font-bold tracking-wide text-action shadow-sm ring-1 ring-slate-200 transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:-translate-y-0.5 hover:bg-slate-50 hover:shadow-md active:scale-[0.97]"
+                      >
+                        <Download className="h-3.5 w-3.5" />
+                        Download
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+                {files.length === 0 && (
+                  <tr>
+                    <td colSpan={6} className="px-6 py-12 text-center text-sm font-medium text-slate-500">
+                      No log files for this tab.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
       </div>
     </div>
   );

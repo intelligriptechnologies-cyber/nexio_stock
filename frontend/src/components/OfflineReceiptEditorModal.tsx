@@ -315,7 +315,7 @@ export function OfflineReceiptEditorModal({
                 type="button"
                 onClick={addPayment}
                 disabled={busy}
-                className="flex items-center justify-center rounded-xl bg-white px-3 py-1 text-xs font-bold tracking-wide text-slate-600 shadow-sm ring-1 ring-slate-200 transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:bg-slate-50 hover:text-slate-900 active:scale-[0.97] disabled:pointer-events-none disabled:opacity-50"
+                className="app-split-button"
               >
                 + Split
               </button>

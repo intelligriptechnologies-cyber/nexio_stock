@@ -1,0 +1,1 @@
+[2026-07-15T16:57:41+05:30] Receiving lot #1 for Shop One from Vendor One by Owner One (user #1); purchase date 2026-07-15; vendor invoice TEST-INVOICE; invoice value Rs. 0.00; reference no reference; notes no notes; products received: Copy Brand 750ml x 5 (good 5, breakage 0) at Rs. 123.45, row total Rs. 617.25.

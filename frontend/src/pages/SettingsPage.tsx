@@ -264,406 +264,414 @@ export function SettingsPage() {
         </div>
       ) : (
         <>
-          <div className="flex flex-wrap gap-2 border-b border-slate-200/60 pb-4">
-            <AppTabButton active={tab === "general"} onClick={() => setTab("general")}>
-              <Palette className="h-4 w-4" /> General Settings
-            </AppTabButton>
-            <AppTabButton active={tab === "email"} onClick={() => setTab("email")}>
-              <Mail className="h-4 w-4" /> Email Settings
-            </AppTabButton>
-            <AppTabButton active={tab === "invoice"} onClick={() => setTab("invoice")}>
-              <FileText className="h-4 w-4" /> Invoice Settings
-            </AppTabButton>
-            <AppTabButton active={tab === "security"} onClick={() => setTab("security")}>
-              <Shield className="h-4 w-4" /> Security
-            </AppTabButton>
-          </div>
-
-          {tab === "general" &&
-            (shopLoading ? (
-              <LoadingCard title="Loading general settings" />
-            ) : (
-              <ShopSettingsCard
-                title="General Settings"
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  void saveShopSettings(
-                    {
-                      app_display_name: shopForm.appName.trim() || DEFAULT_SIDEBAR_BRAND_NAME,
-                      action_color: shopForm.actionColor,
-                      active_tab_color: shopForm.activeTabColor,
-                      sidebar_menu_inactive_text_color: shopForm.menuInactiveTextColor,
-                      sidebar_menu_active_text_color: shopForm.menuActiveTextColor,
-                      receiving_vendor_link_enabled: shopForm.receivingVendorLinkEnabled,
-                    },
-                    "General settings saved."
-                  );
-                }}
-              >
-                <Field
-                  label="Sidebar Brand Name"
-                  value={shopForm.appName}
-                  onChange={(v) => setShopField("appName", v)}
-                  placeholder={DEFAULT_SIDEBAR_BRAND_NAME}
-                />
-
-                <ColorField
-                  label="Active/Button Color"
-                  value={shopForm.actionColor}
-                  onChange={(v) => setShopField("actionColor", v)}
-                  onReset={() => settings && setShopField("actionColor", settings.action_color)}
-                  resetLabel="Restore saved color"
-                />
-
-                <ColorField
-                  label="Highlighted Tab Color"
-                  value={shopForm.activeTabColor}
-                  onChange={(v) => setShopField("activeTabColor", v)}
-                  onReset={() => settings && setShopField("activeTabColor", settings.active_tab_color)}
-                  resetLabel="Restore saved color"
-                />
-
-                <ColorTextField
-                  label="Inactive Menu Text Color"
-                  value={shopForm.menuInactiveTextColor}
-                  onChange={(v) => setShopField("menuInactiveTextColor", v)}
-                  onReset={() =>
-                    settings &&
-                    setShopField("menuInactiveTextColor", settings.sidebar_menu_inactive_text_color)
-                  }
-                  resetLabel="Restore saved color"
-                />
-
-                <ColorTextField
-                  label="Active Menu Text Color"
-                  value={shopForm.menuActiveTextColor}
-                  onChange={(v) => setShopField("menuActiveTextColor", v)}
-                  onReset={() =>
-                    settings && setShopField("menuActiveTextColor", settings.sidebar_menu_active_text_color)
-                  }
-                  resetLabel="Restore saved color"
-                />
-
-                <div className="md:col-span-2 grid gap-4 md:grid-cols-1">
-                  <ToggleField
-                    label="Vendor link for receiving"
-                    description="Require vendor and invoice details during receiving."
-                    checked={shopForm.receivingVendorLinkEnabled}
-                    onChange={(v) => setShopField("receivingVendorLinkEnabled", v)}
-                  />
-                </div>
-
-                <PreviewRow
-                  actionColor={shopForm.actionColor}
-                  activeTabColor={shopForm.activeTabColor}
-                  menuActiveColor={shopForm.menuActiveTextColor}
-                  menuInactiveColor={shopForm.menuInactiveTextColor}
-                />
-
-                <div className="mt-4 flex md:col-span-2">
-                  <button
-                    type="submit"
-                    disabled={busySection === "shop"}
-                    className="flex h-11 items-center justify-center gap-2 rounded-xl bg-action px-8 text-sm font-bold tracking-wide text-white shadow-sm transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:-translate-y-0.5 hover:shadow-[var(--color-action)]/30 active:scale-[0.97] disabled:pointer-events-none disabled:opacity-50"
-                  >
-                    <Save className="h-4 w-4" /> {busySection === "shop" ? "Saving..." : "Save"}
-                  </button>
-                </div>
-              </ShopSettingsCard>
-            ))}
-
-          {tab === "email" &&
-            (shopLoading ? (
-              <LoadingCard title="Loading email settings" />
-            ) : (
-              <ShopSettingsCard
-                title="Email Settings"
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  void saveShopSettings(
-                    {
-                      email_enabled: shopForm.emailEnabled,
-                      smtp_host: shopForm.smtpHost.trim() || null,
-                      smtp_port: shopForm.smtpPort.trim() ? Number(shopForm.smtpPort) : null,
-                      smtp_username: shopForm.smtpUsername.trim() || null,
-                      smtp_password: shopForm.smtpPassword,
-                      smtp_from_email: shopForm.smtpFromEmail.trim() || null,
-                      smtp_from_name: shopForm.smtpFromName.trim() || null,
-                      smtp_use_tls: shopForm.smtpUseTls,
-                      receiving_vendor_link_enabled: shopForm.receivingVendorLinkEnabled,
-                    },
-                    "Email settings saved."
-                  );
-                }}
-              >
-                <label className="flex h-11 w-fit items-center gap-3 rounded-xl border border-slate-200 bg-white/50 px-4 text-sm font-semibold tracking-wide text-slate-700 shadow-sm md:col-span-2">
-                  <input
-                    type="checkbox"
-                    checked={shopForm.emailEnabled}
-                    onChange={(e) => setShopField("emailEnabled", e.target.checked)}
-                    className="h-5 w-5 rounded border-slate-300 text-action focus:ring-action"
-                  />
-                  Enable email
-                </label>
-                <Field
-                  label="SMTP Host"
-                  value={shopForm.smtpHost}
-                  onChange={(v) => setShopField("smtpHost", v)}
-                />
-                <Field
-                  label="SMTP Port"
-                  value={shopForm.smtpPort}
-                  onChange={(v) => setShopField("smtpPort", v)}
-                  type="number"
-                  min="1"
-                  max="65535"
-                />
-                <Field
-                  label="SMTP Username"
-                  value={shopForm.smtpUsername}
-                  onChange={(v) => setShopField("smtpUsername", v)}
-                />
-                <Field
-                  label="SMTP Password"
-                  value={shopForm.smtpPassword}
-                  onChange={(v) => setShopField("smtpPassword", v)}
-                  type="password"
-                  placeholder="Leave blank to keep current password"
-                />
-                <Field
-                  label="From Email"
-                  value={shopForm.smtpFromEmail}
-                  onChange={(v) => setShopField("smtpFromEmail", v)}
-                  type="email"
-                />
-                <Field
-                  label="From Name"
-                  value={shopForm.smtpFromName}
-                  onChange={(v) => setShopField("smtpFromName", v)}
-                />
-                <label className="flex h-11 w-fit items-center gap-3 rounded-xl border border-slate-200 bg-white/50 px-4 text-sm font-semibold tracking-wide text-slate-700 shadow-sm">
-                  <input
-                    type="checkbox"
-                    checked={shopForm.smtpUseTls}
-                    onChange={(e) => setShopField("smtpUseTls", e.target.checked)}
-                    className="h-5 w-5 rounded border-slate-300 text-action focus:ring-action"
-                  />
-                  Use TLS
-                </label>
-                <div className="mt-4 flex flex-wrap gap-4 md:col-span-2">
-                  <button
-                    type="submit"
-                    disabled={busySection === "shop"}
-                    className="flex h-11 items-center justify-center gap-2 rounded-xl bg-action px-8 text-sm font-bold tracking-wide text-white shadow-sm transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:-translate-y-0.5 hover:shadow-[var(--color-action)]/30 active:scale-[0.97] disabled:pointer-events-none disabled:opacity-50"
-                  >
-                    <Save className="h-4 w-4" /> {busySection === "shop" ? "Saving..." : "Save"}
-                  </button>
-                  <button
-                    type="button"
-                    disabled
-                    className="flex h-11 items-center justify-center rounded-xl bg-white px-6 text-sm font-semibold tracking-wide text-slate-500 shadow-sm ring-1 ring-slate-200 transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:bg-slate-50 active:scale-[0.97] disabled:pointer-events-none disabled:opacity-50"
-                  >
-                    Test SMTP
-                  </button>
-                  <button
-                    type="button"
-                    disabled
-                    className="flex h-11 items-center justify-center rounded-xl bg-white px-6 text-sm font-semibold tracking-wide text-slate-500 shadow-sm ring-1 ring-slate-200 transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:bg-slate-50 active:scale-[0.97] disabled:pointer-events-none disabled:opacity-50"
-                  >
-                    Send Test Mail
-                  </button>
-                </div>
-              </ShopSettingsCard>
-            ))}
-
-          {tab === "invoice" &&
-            (shopLoading ? (
-              <LoadingCard title="Loading invoice settings" />
-            ) : (
-              <ShopSettingsCard
-                title="Invoice Settings"
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  void saveShopSettings(
-                    {
-                      gstin: shopForm.gstin.trim() || null,
-                      excise_duty_rate: shopForm.dutyRate.trim() || null,
-                      low_stock_threshold_default: shopForm.threshold.trim()
-                        ? Number(shopForm.threshold.trim())
-                        : null,
-                      receiving_vendor_link_enabled: shopForm.receivingVendorLinkEnabled,
-                    },
-                    "Invoice settings saved."
-                  );
-                }}
-              >
-                <Field
-                  label="GSTIN (15 uppercase alphanumerics)"
-                  value={shopForm.gstin}
-                  onChange={(v) => setShopField("gstin", v)}
-                  maxLength={15}
-                  placeholder="e.g. 21ABCDE1234F1Z5"
-                />
-                <Field
-                  label="Excise duty rate (% placeholder, 0-100)"
-                  value={shopForm.dutyRate}
-                  onChange={(v) => setShopField("dutyRate", v)}
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  max="100"
-                />
-                <Field
-                  label="Default low-stock threshold"
-                  value={shopForm.threshold}
-                  onChange={(v) => setShopField("threshold", v)}
-                  type="number"
-                  min="0"
-                />
-                <div className="md:col-span-2 grid gap-4 md:grid-cols-1">
-                  <ToggleField
-                    label="Vendor link for receiving"
-                    description="Require vendor and invoice details during receiving."
-                    checked={shopForm.receivingVendorLinkEnabled}
-                    onChange={(v) => setShopField("receivingVendorLinkEnabled", v)}
-                  />
-                </div>
-                <div className="mt-4 flex md:col-span-2">
-                  <button
-                    type="submit"
-                    disabled={busySection === "shop"}
-                    className="flex h-11 items-center justify-center gap-2 rounded-xl bg-action px-8 text-sm font-bold tracking-wide text-white shadow-sm transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:-translate-y-0.5 hover:shadow-[var(--color-action)]/30 active:scale-[0.97] disabled:pointer-events-none disabled:opacity-50"
-                  >
-                    <Save className="h-4 w-4" /> {busySection === "shop" ? "Saving..." : "Save"}
-                  </button>
-                </div>
-              </ShopSettingsCard>
-            ))}
-        </>
-      )}
-
-      {tab === "security" && canEditProfile && (
-        <section className="rounded-xl border border-slate-200/50 bg-white/60 p-8 shadow-[0_8px_30px_rgb(0,0,0,0.02)] backdrop-blur-xl">
-          <div className="mb-6 flex items-center gap-3">
-            <Shield className="h-5 w-5 text-action" />
-            <h2 className="text-xl font-bold tracking-tight text-slate-900">Security</h2>
-          </div>
-
-          {profileLoading ? (
-            <LoadingCard title="Loading security profile" />
-          ) : (
-            <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
-              <div className="grid gap-4 md:col-span-2">
-                <Field
-                  label="Username"
-                  value={securityForm.username}
-                  onChange={() => undefined}
-                  readOnly
-                  leadingIcon={<Lock className="h-4 w-4" />}
-                  helperText="Locked login identifier."
-                />
-              </div>
-
-              <Field
-                label="Email"
-                value={securityForm.email}
-                onChange={(v) => setSecurityField("email", v)}
-                type="email"
-                autoComplete="email"
-              />
-              <Field
-                label="Phone"
-                value={securityForm.phone}
-                onChange={(v) => setSecurityField("phone", v)}
-                autoComplete="tel"
-              />
-              <Field
-                label="Date of Birth"
-                value={securityForm.dateOfBirth}
-                onChange={(v) => setSecurityField("dateOfBirth", v)}
-                type="date"
-              />
-              <Field
-                label="PAN"
-                value={securityForm.pan}
-                onChange={(v) => setSecurityField("pan", v)}
-                placeholder="ABCDE1234F"
-              />
-              <Field
-                label="GSTIN"
-                value={securityForm.gstin}
-                onChange={(v) => setSecurityField("gstin", v)}
-                placeholder="21ABCDE1234F1Z5"
-              />
-
-              <div className="md:col-span-2 flex flex-wrap items-center gap-3">
-                <button
-                  type="button"
-                  disabled={busySection === "profile"}
-                  onClick={() => void saveProfile()}
-                  className="flex h-11 items-center justify-center gap-2 rounded-xl bg-action px-8 text-sm font-bold tracking-wide text-white shadow-sm transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:-translate-y-0.5 hover:shadow-[var(--color-action)]/30 active:scale-[0.97] disabled:pointer-events-none disabled:opacity-50"
-                >
-                  <Save className="h-4 w-4" /> {busySection === "profile" ? "Saving..." : "Save profile"}
-                </button>
-              </div>
-
-              <form
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  void savePassword();
-                }}
-                className="md:col-span-2 rounded-xl border border-slate-200 bg-slate-50/80 p-5"
-              >
-                <div className="mb-4 flex items-center gap-3">
-                  <KeyRound className="h-5 w-5 text-action" />
-                  <h3 className="text-sm font-bold uppercase tracking-wider text-slate-600">
-                    Password / PIN
-                  </h3>
-                </div>
-
-                <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-                  <Field
-                    label="Current password"
-                    value={passwordForm.currentPassword}
-                    onChange={(v) => setPasswordField("currentPassword", v)}
-                    type="password"
-                    autoComplete="current-password"
-                    required={true}
-                    minLength={4}
-                  />
-                  <Field
-                    label="New password"
-                    value={passwordForm.newPassword}
-                    onChange={(v) => setPasswordField("newPassword", v)}
-                    type="password"
-                    autoComplete="new-password"
-                    required={true}
-                    minLength={4}
-                  />
-                  <Field
-                    label="Confirm password"
-                    value={passwordForm.confirmPassword}
-                    onChange={(v) => setPasswordField("confirmPassword", v)}
-                    type="password"
-                    autoComplete="new-password"
-                    required={true}
-                    minLength={4}
-                  />
-                </div>
-
-                <div className="mt-4 flex flex-wrap items-center gap-3">
-                  <button
-                    type="submit"
-                    disabled={busySection === "password"}
-                    className="flex h-11 items-center justify-center gap-2 rounded-xl bg-action px-8 text-sm font-bold tracking-wide text-white shadow-sm transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:-translate-y-0.5 hover:shadow-[var(--color-action)]/30 active:scale-[0.97] disabled:pointer-events-none disabled:opacity-50"
-                  >
-                    <Save className="h-4 w-4" /> {busySection === "password" ? "Saving..." : "Change password"}
-                  </button>
-                </div>
-              </form>
+          <div className="flex flex-col">
+            <div className="app-tab-strip">
+              <AppTabButton active={tab === "general"} onClick={() => setTab("general")}>
+                <Palette className="h-4 w-4" /> General Settings
+              </AppTabButton>
+              <AppTabButton active={tab === "email"} onClick={() => setTab("email")}>
+                <Mail className="h-4 w-4" /> Email Settings
+              </AppTabButton>
+              <AppTabButton active={tab === "invoice"} onClick={() => setTab("invoice")}>
+                <FileText className="h-4 w-4" /> Invoice Settings
+              </AppTabButton>
+              <AppTabButton active={tab === "security"} onClick={() => setTab("security")}>
+                <Shield className="h-4 w-4" /> Security
+              </AppTabButton>
             </div>
-          )}
-        </section>
+
+            <div className="app-tab-panel">
+              {tab === "general" &&
+                (shopLoading ? (
+                  <LoadingCard title="Loading general settings" />
+                ) : (
+                  <ShopSettingsCard
+                    title="General Settings"
+                    onSubmit={(e) => {
+                      e.preventDefault();
+                      void saveShopSettings(
+                        {
+                          app_display_name: shopForm.appName.trim() || DEFAULT_SIDEBAR_BRAND_NAME,
+                          action_color: shopForm.actionColor,
+                          active_tab_color: shopForm.activeTabColor,
+                          sidebar_menu_inactive_text_color: shopForm.menuInactiveTextColor,
+                          sidebar_menu_active_text_color: shopForm.menuActiveTextColor,
+                          receiving_vendor_link_enabled: shopForm.receivingVendorLinkEnabled,
+                        },
+                        "General settings saved."
+                      );
+                    }}
+                  >
+                    <Field
+                      label="Sidebar Brand Name"
+                      value={shopForm.appName}
+                      onChange={(v) => setShopField("appName", v)}
+                      placeholder={DEFAULT_SIDEBAR_BRAND_NAME}
+                    />
+
+                    <div className="md:col-span-2 py-1">
+                      <div className="h-px w-full bg-slate-200/80" aria-hidden="true" />
+                    </div>
+
+                    <ColorField
+                      label="Active/Button Color"
+                      value={shopForm.actionColor}
+                      onChange={(v) => setShopField("actionColor", v)}
+                      onReset={() => settings && setShopField("actionColor", settings.action_color)}
+                      resetLabel="Restore saved color"
+                    />
+
+                    <ColorField
+                      label="Highlighted Tab Color"
+                      value={shopForm.activeTabColor}
+                      onChange={(v) => setShopField("activeTabColor", v)}
+                      onReset={() => settings && setShopField("activeTabColor", settings.active_tab_color)}
+                      resetLabel="Restore saved color"
+                    />
+
+                    <ColorTextField
+                      label="Inactive Menu Text Color"
+                      value={shopForm.menuInactiveTextColor}
+                      onChange={(v) => setShopField("menuInactiveTextColor", v)}
+                      onReset={() =>
+                        settings &&
+                        setShopField("menuInactiveTextColor", settings.sidebar_menu_inactive_text_color)
+                      }
+                      resetLabel="Restore saved color"
+                    />
+
+                    <ColorTextField
+                      label="Active Menu Text Color"
+                      value={shopForm.menuActiveTextColor}
+                      onChange={(v) => setShopField("menuActiveTextColor", v)}
+                      onReset={() =>
+                        settings && setShopField("menuActiveTextColor", settings.sidebar_menu_active_text_color)
+                      }
+                      resetLabel="Restore saved color"
+                    />
+
+                    <div className="md:col-span-2 grid gap-4 md:grid-cols-1">
+                      <ToggleField
+                        label="Vendor link for receiving"
+                        description="Require vendor and invoice details during receiving."
+                        checked={shopForm.receivingVendorLinkEnabled}
+                        onChange={(v) => setShopField("receivingVendorLinkEnabled", v)}
+                      />
+                    </div>
+
+                    <PreviewRow
+                      actionColor={shopForm.actionColor}
+                      activeTabColor={shopForm.activeTabColor}
+                      menuActiveColor={shopForm.menuActiveTextColor}
+                      menuInactiveColor={shopForm.menuInactiveTextColor}
+                    />
+
+                    <div className="mt-4 flex md:col-span-2">
+                      <button
+                        type="submit"
+                        disabled={busySection === "shop"}
+                        className="flex h-11 items-center justify-center gap-2 rounded-xl bg-action px-8 text-sm font-bold tracking-wide text-white shadow-sm transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:-translate-y-0.5 hover:shadow-[var(--color-action)]/30 active:scale-[0.97] disabled:pointer-events-none disabled:opacity-50"
+                      >
+                        <Save className="h-4 w-4" /> {busySection === "shop" ? "Saving..." : "Save"}
+                      </button>
+                    </div>
+                  </ShopSettingsCard>
+                ))}
+
+              {tab === "email" &&
+                (shopLoading ? (
+                  <LoadingCard title="Loading email settings" />
+                ) : (
+                  <ShopSettingsCard
+                    title="Email Settings"
+                    onSubmit={(e) => {
+                      e.preventDefault();
+                      void saveShopSettings(
+                        {
+                          email_enabled: shopForm.emailEnabled,
+                          smtp_host: shopForm.smtpHost.trim() || null,
+                          smtp_port: shopForm.smtpPort.trim() ? Number(shopForm.smtpPort) : null,
+                          smtp_username: shopForm.smtpUsername.trim() || null,
+                          smtp_password: shopForm.smtpPassword,
+                          smtp_from_email: shopForm.smtpFromEmail.trim() || null,
+                          smtp_from_name: shopForm.smtpFromName.trim() || null,
+                          smtp_use_tls: shopForm.smtpUseTls,
+                          receiving_vendor_link_enabled: shopForm.receivingVendorLinkEnabled,
+                        },
+                        "Email settings saved."
+                      );
+                    }}
+                  >
+                    <label className="flex h-11 w-fit items-center gap-3 rounded-xl border border-slate-200 bg-white/50 px-4 text-sm font-semibold tracking-wide text-slate-700 shadow-sm md:col-span-2">
+                      <input
+                        type="checkbox"
+                        checked={shopForm.emailEnabled}
+                        onChange={(e) => setShopField("emailEnabled", e.target.checked)}
+                        className="h-5 w-5 rounded border-slate-300 text-action focus:ring-action"
+                      />
+                      Enable email
+                    </label>
+                    <Field
+                      label="SMTP Host"
+                      value={shopForm.smtpHost}
+                      onChange={(v) => setShopField("smtpHost", v)}
+                    />
+                    <Field
+                      label="SMTP Port"
+                      value={shopForm.smtpPort}
+                      onChange={(v) => setShopField("smtpPort", v)}
+                      type="number"
+                      min="1"
+                      max="65535"
+                    />
+                    <Field
+                      label="SMTP Username"
+                      value={shopForm.smtpUsername}
+                      onChange={(v) => setShopField("smtpUsername", v)}
+                    />
+                    <Field
+                      label="SMTP Password"
+                      value={shopForm.smtpPassword}
+                      onChange={(v) => setShopField("smtpPassword", v)}
+                      type="password"
+                      placeholder="Leave blank to keep current password"
+                    />
+                    <Field
+                      label="From Email"
+                      value={shopForm.smtpFromEmail}
+                      onChange={(v) => setShopField("smtpFromEmail", v)}
+                      type="email"
+                    />
+                    <Field
+                      label="From Name"
+                      value={shopForm.smtpFromName}
+                      onChange={(v) => setShopField("smtpFromName", v)}
+                    />
+                    <label className="flex h-11 w-fit items-center gap-3 rounded-xl border border-slate-200 bg-white/50 px-4 text-sm font-semibold tracking-wide text-slate-700 shadow-sm">
+                      <input
+                        type="checkbox"
+                        checked={shopForm.smtpUseTls}
+                        onChange={(e) => setShopField("smtpUseTls", e.target.checked)}
+                        className="h-5 w-5 rounded border-slate-300 text-action focus:ring-action"
+                      />
+                      Use TLS
+                    </label>
+                    <div className="mt-4 flex flex-wrap gap-4 md:col-span-2">
+                      <button
+                        type="submit"
+                        disabled={busySection === "shop"}
+                        className="flex h-11 items-center justify-center gap-2 rounded-xl bg-action px-8 text-sm font-bold tracking-wide text-white shadow-sm transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:-translate-y-0.5 hover:shadow-[var(--color-action)]/30 active:scale-[0.97] disabled:pointer-events-none disabled:opacity-50"
+                      >
+                        <Save className="h-4 w-4" /> {busySection === "shop" ? "Saving..." : "Save"}
+                      </button>
+                      <button
+                        type="button"
+                        disabled
+                        className="flex h-11 items-center justify-center rounded-xl bg-white px-6 text-sm font-semibold tracking-wide text-slate-500 shadow-sm ring-1 ring-slate-200 transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:bg-slate-50 active:scale-[0.97] disabled:pointer-events-none disabled:opacity-50"
+                      >
+                        Test SMTP
+                      </button>
+                      <button
+                        type="button"
+                        disabled
+                        className="flex h-11 items-center justify-center rounded-xl bg-white px-6 text-sm font-semibold tracking-wide text-slate-500 shadow-sm ring-1 ring-slate-200 transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:bg-slate-50 active:scale-[0.97] disabled:pointer-events-none disabled:opacity-50"
+                      >
+                        Send Test Mail
+                      </button>
+                    </div>
+                  </ShopSettingsCard>
+                ))}
+
+              {tab === "invoice" &&
+                (shopLoading ? (
+                  <LoadingCard title="Loading invoice settings" />
+                ) : (
+                  <ShopSettingsCard
+                    title="Invoice Settings"
+                    onSubmit={(e) => {
+                      e.preventDefault();
+                      void saveShopSettings(
+                        {
+                          gstin: shopForm.gstin.trim() || null,
+                          excise_duty_rate: shopForm.dutyRate.trim() || null,
+                          low_stock_threshold_default: shopForm.threshold.trim()
+                            ? Number(shopForm.threshold.trim())
+                            : null,
+                          receiving_vendor_link_enabled: shopForm.receivingVendorLinkEnabled,
+                        },
+                        "Invoice settings saved."
+                      );
+                    }}
+                  >
+                    <Field
+                      label="GSTIN (15 uppercase alphanumerics)"
+                      value={shopForm.gstin}
+                      onChange={(v) => setShopField("gstin", v)}
+                      maxLength={15}
+                      placeholder="e.g. 21ABCDE1234F1Z5"
+                    />
+                    <Field
+                      label="Excise duty rate (% placeholder, 0-100)"
+                      value={shopForm.dutyRate}
+                      onChange={(v) => setShopField("dutyRate", v)}
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      max="100"
+                    />
+                    <Field
+                      label="Default low-stock threshold"
+                      value={shopForm.threshold}
+                      onChange={(v) => setShopField("threshold", v)}
+                      type="number"
+                      min="0"
+                    />
+                    <div className="md:col-span-2 grid gap-4 md:grid-cols-1">
+                      <ToggleField
+                        label="Vendor link for receiving"
+                        description="Require vendor and invoice details during receiving."
+                        checked={shopForm.receivingVendorLinkEnabled}
+                        onChange={(v) => setShopField("receivingVendorLinkEnabled", v)}
+                      />
+                    </div>
+                    <div className="mt-4 flex md:col-span-2">
+                      <button
+                        type="submit"
+                        disabled={busySection === "shop"}
+                        className="flex h-11 items-center justify-center gap-2 rounded-xl bg-action px-8 text-sm font-bold tracking-wide text-white shadow-sm transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:-translate-y-0.5 hover:shadow-[var(--color-action)]/30 active:scale-[0.97] disabled:pointer-events-none disabled:opacity-50"
+                      >
+                        <Save className="h-4 w-4" /> {busySection === "shop" ? "Saving..." : "Save"}
+                      </button>
+                    </div>
+                  </ShopSettingsCard>
+                ))}
+
+              {tab === "security" && canEditProfile && (
+                <section className="rounded-xl border border-slate-200/50 bg-white/60 p-8 shadow-[0_8px_30px_rgb(0,0,0,0.02)] backdrop-blur-xl">
+                  <div className="mb-6 flex items-center gap-3">
+                    <Shield className="h-5 w-5 text-action" />
+                    <h2 className="text-xl font-bold tracking-tight text-slate-900">Security</h2>
+                  </div>
+
+                  {profileLoading ? (
+                    <LoadingCard title="Loading security profile" />
+                  ) : (
+                    <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
+                      <div className="grid gap-4 md:col-span-2">
+                        <Field
+                          label="Username"
+                          value={securityForm.username}
+                          onChange={() => undefined}
+                          readOnly
+                          leadingIcon={<Lock className="h-4 w-4" />}
+                          helperText="Locked login identifier."
+                        />
+                      </div>
+
+                      <Field
+                        label="Email"
+                        value={securityForm.email}
+                        onChange={(v) => setSecurityField("email", v)}
+                        type="email"
+                        autoComplete="email"
+                      />
+                      <Field
+                        label="Phone"
+                        value={securityForm.phone}
+                        onChange={(v) => setSecurityField("phone", v)}
+                        autoComplete="tel"
+                      />
+                      <Field
+                        label="Date of Birth"
+                        value={securityForm.dateOfBirth}
+                        onChange={(v) => setSecurityField("dateOfBirth", v)}
+                        type="date"
+                      />
+                      <Field
+                        label="PAN"
+                        value={securityForm.pan}
+                        onChange={(v) => setSecurityField("pan", v)}
+                        placeholder="ABCDE1234F"
+                      />
+                      <Field
+                        label="GSTIN"
+                        value={securityForm.gstin}
+                        onChange={(v) => setSecurityField("gstin", v)}
+                        placeholder="21ABCDE1234F1Z5"
+                      />
+
+                      <div className="md:col-span-2 flex flex-wrap items-center gap-3">
+                        <button
+                          type="button"
+                          disabled={busySection === "profile"}
+                          onClick={() => void saveProfile()}
+                          className="flex h-11 items-center justify-center gap-2 rounded-xl bg-action px-8 text-sm font-bold tracking-wide text-white shadow-sm transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:-translate-y-0.5 hover:shadow-[var(--color-action)]/30 active:scale-[0.97] disabled:pointer-events-none disabled:opacity-50"
+                        >
+                          <Save className="h-4 w-4" /> {busySection === "profile" ? "Saving..." : "Save profile"}
+                        </button>
+                      </div>
+
+                      <form
+                        onSubmit={(e) => {
+                          e.preventDefault();
+                          void savePassword();
+                        }}
+                        className="md:col-span-2 rounded-xl border border-slate-200 bg-slate-50/80 p-5"
+                      >
+                        <div className="mb-4 flex items-center gap-3">
+                          <KeyRound className="h-5 w-5 text-action" />
+                          <h3 className="text-sm font-bold uppercase tracking-wider text-slate-600">
+                            Password / PIN
+                          </h3>
+                        </div>
+
+                        <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+                          <Field
+                            label="Current password"
+                            value={passwordForm.currentPassword}
+                            onChange={(v) => setPasswordField("currentPassword", v)}
+                            type="password"
+                            autoComplete="current-password"
+                            required={true}
+                            minLength={4}
+                          />
+                          <Field
+                            label="New password"
+                            value={passwordForm.newPassword}
+                            onChange={(v) => setPasswordField("newPassword", v)}
+                            type="password"
+                            autoComplete="new-password"
+                            required={true}
+                            minLength={4}
+                          />
+                          <Field
+                            label="Confirm password"
+                            value={passwordForm.confirmPassword}
+                            onChange={(v) => setPasswordField("confirmPassword", v)}
+                            type="password"
+                            autoComplete="new-password"
+                            required={true}
+                            minLength={4}
+                          />
+                        </div>
+
+                        <div className="mt-4 flex flex-wrap items-center gap-3">
+                          <button
+                            type="submit"
+                            disabled={busySection === "password"}
+                            className="flex h-11 items-center justify-center gap-2 rounded-xl bg-action px-8 text-sm font-bold tracking-wide text-white shadow-sm transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:-translate-y-0.5 hover:shadow-[var(--color-action)]/30 active:scale-[0.97] disabled:pointer-events-none disabled:opacity-50"
+                          >
+                            <Save className="h-4 w-4" /> {busySection === "password" ? "Saving..." : "Change password"}
+                          </button>
+                        </div>
+                      </form>
+                    </div>
+                  )}
+                </section>
+              )}
+            </div>
+          </div>
+        </>
       )}
 
       {error && (

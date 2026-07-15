@@ -95,7 +95,7 @@
 
 @layer components {
   .app-list-table {
-    @apply w-full text-left text-sm;
+    @apply w-full text-left text-[0.95rem] leading-6 text-slate-700;
   }
 
   .app-list-table thead {
@@ -105,11 +105,47 @@
   }
 
   .app-list-table thead th {
-    @apply px-6 py-4 font-semibold text-slate-600;
+    @apply px-6 py-4 text-[0.72rem] font-bold uppercase tracking-[0.14em] text-slate-600;
   }
 
   .app-list-table tbody {
     @apply divide-y divide-slate-100;
+  }
+
+  .app-list-table tbody td {
+    @apply px-6 py-4 align-top leading-6 text-slate-700;
+  }
+
+  .app-form-label {
+    @apply flex flex-col gap-1.5 text-[0.78rem] font-bold uppercase tracking-[0.12em] text-slate-500;
+  }
+
+  .app-form-label-inline {
+    @apply flex items-center gap-1.5;
+  }
+
+  .app-control {
+    @apply h-11 rounded-xl border border-slate-200 bg-white/50 px-4 text-[0.95rem] font-semibold text-slate-700 shadow-sm outline-none transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:bg-white focus:border-action focus:ring-1 focus:ring-action;
+  }
+
+  .app-control-textarea {
+    @apply w-full rounded-xl border border-slate-200 bg-white/50 p-4 text-[0.95rem] font-semibold normal-case text-slate-700 shadow-sm outline-none transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:bg-white focus:border-action focus:ring-1 focus:ring-action;
+  }
+
+  .app-section-title {
+    @apply text-[0.78rem] font-bold uppercase tracking-[0.14em] text-slate-500;
+  }
+
+  .app-kicker {
+    @apply text-[0.82rem] font-semibold text-slate-500;
+  }
+
+  .app-inline-action {
+    @apply inline-flex items-center text-[0.94rem] font-bold tracking-[0.02em] underline-offset-4 transition-colors hover:underline;
+  }
+
+  .app-inline-action-muted {
+    @apply text-[0.94rem] font-bold tracking-[0.02em] text-slate-400;
   }
 
   .app-sidebar-nav-item {
@@ -128,16 +164,37 @@
     @apply relative inline-flex h-11 items-center justify-center gap-2 rounded-t-md rounded-b-none px-5 text-sm font-semibold tracking-wide transition-[transform,opacity,background-color,box-shadow,color] duration-200 ease-out;
   }
 
+  .app-tab-strip {
+    @apply flex flex-wrap gap-2 border-b border-slate-300/90;
+    box-shadow: inset 0 -1px 0 rgb(148 163 184 / 0.2);
+  }
+
   .app-tab-button-active {
-    @apply -mb-px bg-action text-white;
+    @apply -mb-px border-x border-t border-slate-300/90 bg-action text-white;
   }
 
   .app-tab-button-inactive {
-    @apply bg-transparent text-slate-500 hover:bg-slate-100/70 hover:text-slate-700;
+    @apply border border-transparent bg-transparent text-slate-500 hover:border-slate-200/80 hover:bg-slate-100/80 hover:text-slate-700;
   }
 
   .app-tab-button svg {
     width: 1.35rem;
     height: 1.35rem;
+  }
+
+  .app-tab-panel {
+    @apply rounded-b-xl border border-t-0 border-slate-300/90 bg-white/30 p-6 shadow-[inset_0_1px_0_rgba(255,255,255,0.7)];
+  }
+
+  .app-stepper-button {
+    @apply flex h-11 w-11 items-center justify-center rounded-full bg-slate-100 text-2xl font-black leading-none tracking-tight text-slate-700 transition-colors hover:bg-slate-200 active:bg-slate-300 disabled:opacity-50;
+  }
+
+  .app-stepper-button--sm {
+    @apply h-9 w-9 text-[1.55rem];
+  }
+
+  .app-split-button {
+    @apply flex items-center justify-center rounded-xl bg-white px-3 py-1 text-sm font-black tracking-wide text-slate-700 shadow-sm ring-1 ring-slate-200 transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:bg-slate-50 hover:text-slate-900 active:scale-[0.97] disabled:pointer-events-none disabled:opacity-50;
   }
 }

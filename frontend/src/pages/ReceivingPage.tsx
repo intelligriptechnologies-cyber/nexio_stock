@@ -5,6 +5,7 @@ import { createLotSafe, type LotPublic } from "../api/lots";
 import { notifyApprovalsChanged } from "../api/approvals-events";
 import { listVendors, type VendorPublic } from "../api/vendors";
 import { getMyShop } from "../api/shops";
+import { FocusedModeActions } from "../components/FocusedModeActions";
 import { QuickSearch } from "../components/QuickSearch";
 import { QuickAddModal } from "../components/QuickAddModal";
 import { ModalDialog } from "../components/ModalDialog";
@@ -342,12 +343,15 @@ export function ReceivingPage() {
           <h1 className="flex items-center gap-3 text-3xl font-bold tracking-tight text-slate-900">
             <PackagePlus className="h-8 w-8 text-action" /> Stock Inward
           </h1>
-          <div className="flex items-center gap-2 text-sm font-medium text-slate-500">
-            {catalogReady ? (
-              <><CheckCircle2 className="h-4 w-4 text-emerald-500" /> Catalog ready</>
-            ) : (
-              "Loading catalog..."
-            )}
+          <div className="flex flex-col items-end gap-2">
+            <FocusedModeActions />
+            <div className="flex items-center gap-2 text-sm font-medium text-slate-500">
+              {catalogReady ? (
+                <><CheckCircle2 className="h-4 w-4 text-emerald-500" /> Catalog ready</>
+              ) : (
+                "Loading catalog..."
+              )}
+            </div>
           </div>
         </header>
 
@@ -405,7 +409,7 @@ export function ReceivingPage() {
                 <button
                   type="button"
                   onClick={() => changeLineQuantity(line.lineId, -1)}
-                  className="flex h-11 w-11 items-center justify-center rounded-full bg-slate-100 text-xl font-medium text-slate-600 transition-colors hover:bg-slate-200 active:bg-slate-300"
+                  className="app-stepper-button"
                   aria-label="Decrease quantity"
                 >
                   -
@@ -429,7 +433,7 @@ export function ReceivingPage() {
                 <button
                   type="button"
                   onClick={() => changeLineQuantity(line.lineId, +1)}
-                  className="flex h-11 w-11 items-center justify-center rounded-full bg-slate-100 text-xl font-medium text-slate-600 transition-colors hover:bg-slate-200 active:bg-slate-300"
+                  className="app-stepper-button"
                   aria-label="Increase quantity"
                 >
                   +
@@ -834,7 +838,7 @@ function PurchaseReviewModal({
                         <button
                           type="button"
                           onClick={() => updateCondition(line.lineId, Math.max(0, good - 1))}
-                          className="flex h-9 w-9 items-center justify-center rounded-full bg-slate-100 text-lg font-medium text-slate-600 transition-colors hover:bg-slate-200 active:bg-slate-300"
+                          className="app-stepper-button app-stepper-button--sm"
                           aria-label="Decrease good quantity"
                         >
                           -
@@ -856,7 +860,7 @@ function PurchaseReviewModal({
                         <button
                           type="button"
                           onClick={() => updateCondition(line.lineId, Math.min(line.quantity, good + 1))}
-                          className="flex h-9 w-9 items-center justify-center rounded-full bg-slate-100 text-lg font-medium text-slate-600 transition-colors hover:bg-slate-200 active:bg-slate-300"
+                          className="app-stepper-button app-stepper-button--sm"
                           aria-label="Increase good quantity"
                         >
                           +
