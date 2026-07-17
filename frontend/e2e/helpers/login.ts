@@ -2,12 +2,6 @@ import { expect, type Page } from "@playwright/test";
 
 export type Role = "Cashier" | "Receiver" | "Owner";
 
-const ROLE_TO_API_ROLE: Record<Role, string> = {
-  Cashier: "cashier_user",
-  Receiver: "receiver_user",
-  Owner: "owner",
-};
-
 const ROLE_TO_USERNAME: Record<Role, string> = {
   Cashier: "cashier1",
   Receiver: "receiver1",
@@ -27,13 +21,14 @@ export async function loginAsRole(page: Page, role: Role, pin: string) {
     localStorage.setItem("barstock.deviceKey", deviceKey);
   }, DEVICE_KEY);
   await page.goto("/login");
-  await expect(page.getByRole("heading", { name: "Shop sign in" })).toBeVisible({
+  await expect(page.getByRole("heading", { name: "Terminal Access" })).toBeVisible({
     timeout: 5000,
   });
-  await page.getByLabel("Role").selectOption(ROLE_TO_API_ROLE[role]);
-  await page.getByLabel("Username").fill(ROLE_TO_USERNAME[role]);
-  await page.getByLabel(/PIN \/ Password|Password \/ PIN/).fill(pin);
-  await page.getByRole("button", { name: "Sign in", exact: true }).click();
+  const roleLabel = role === "Receiver" ? "Stock Keeper" : role === "Owner" ? "Shop Owner" : "Cashier";
+  await page.getByRole("radio", { name: roleLabel }).check({ force: true });
+  await page.getByLabel("Terminal ID / Username").fill(ROLE_TO_USERNAME[role]);
+  await page.getByLabel("Security PIN").fill(pin);
+  await page.getByRole("button", { name: "Open Terminal", exact: true }).click();
   await expect(page).toHaveURL(ROLE_TO_HOME[role]);
 }
 

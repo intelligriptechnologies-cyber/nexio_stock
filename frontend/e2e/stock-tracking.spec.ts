@@ -212,6 +212,7 @@ test.describe("stock tracking", () => {
 
     await expect(page.getByRole("heading", { name: "Stock Tracking" })).toBeVisible();
     await expect(page.getByRole("table", { name: "Stock tracking table" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Download stock tracking CSV" })).toBeEnabled();
     await expect(page.getByText("Royal Stag")).toHaveCount(0);
     await expect(page.getByRole("button", { name: "Open inward 901 details" })).toBeVisible();
     await expect(page.getByRole("button", { name: "View inward 901 details" })).toBeVisible();

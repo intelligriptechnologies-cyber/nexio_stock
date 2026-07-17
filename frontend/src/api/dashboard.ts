@@ -18,6 +18,7 @@
 // client depends on.
 
 import { api, withShopId, withShopIdParams } from "./client";
+import { downloadAuthedFile } from "../utils/csv";
 
 export function todayLocalDateString(): string {
   // Local "today" matches the server's `today_local_date()` convention
@@ -39,6 +40,8 @@ export interface PaymentModeTotal {
 export interface EodTotalsResponse {
   business_date: string;
   signed_off: boolean;
+  range_start_business_date: string | null;
+  range_end_business_date: string | null;
   invoice_count: number;
   revenue: string;
   voided_count: number;
@@ -47,10 +50,15 @@ export interface EodTotalsResponse {
 }
 
 export interface SignOffResponse {
+  id: number;
   business_date: string;
   signed_off_at: string;
   signed_off_by_user_id: number;
+  signed_off_by_name: string;
   invoices_signed_off: number;
+  revenue: string;
+  payments_by_mode: PaymentModeTotal[];
+  notes: string | null;
 }
 
 export interface SignOffHistoryResponse {
@@ -95,14 +103,18 @@ export interface StockOverviewResponse {
 
 export function getEodTotals(
   businessDate?: string,
-  shopId?: number | null
+  shopId?: number | null,
+  scope: "day" | "open_backlog" = "day"
 ): Promise<EodTotalsResponse> {
   const params = withShopIdParams(new URLSearchParams(), shopId);
-  // Issue #37: explicitly pass today's local date instead of relying on
-  // the server's default. The server-side default stays as a safety net,
-  // but the dashboard's "Mark day end" button must reflect the exact
-  // day the user sees on screen, with no implicit-resolution risk.
-  params.set("business_date", businessDate ?? todayLocalDateString());
+  params.set("scope", scope);
+  if (scope === "day") {
+    // Issue #37: explicitly pass today's local date instead of relying on
+    // the server's default. The server-side default stays as a safety net,
+    // but the dashboard's "Mark day end" button must reflect the exact
+    // day the user sees on screen, with no implicit-resolution risk.
+    params.set("business_date", businessDate ?? todayLocalDateString());
+  }
   const qs = params.toString();
   return api<EodTotalsResponse>(`/dashboard/eod-totals${qs ? `?${qs}` : ""}`);
 }
@@ -122,9 +134,52 @@ export function signOffEod(
   });
 }
 
-export function getEodHistory(limit = 30, shopId?: number | null): Promise<SignOffHistoryResponse> {
-  const params = withShopIdParams(new URLSearchParams({ limit: String(limit) }), shopId);
+export function getEodHistory(
+  optionsOrLimit: number | { limit?: number; fromDate?: string; toDate?: string; shopId?: number | null } = 30,
+  shopIdArg?: number | null
+): Promise<SignOffHistoryResponse> {
+  const options =
+    typeof optionsOrLimit === "number"
+      ? { limit: optionsOrLimit, shopId: shopIdArg }
+      : optionsOrLimit;
+  const params = withShopIdParams(
+    new URLSearchParams({ limit: String(options.limit ?? 30) }),
+    options.shopId
+  );
+  if (options.fromDate) params.set("from_date", options.fromDate);
+  if (options.toDate) params.set("to_date", options.toDate);
   return api<SignOffHistoryResponse>(`/dashboard/eod-history?${params.toString()}`);
+}
+
+export function getEodHistoryEntry(
+  signoffId: number,
+  shopId?: number | null
+): Promise<SignOffResponse> {
+  const params = withShopIdParams(new URLSearchParams(), shopId);
+  const qs = params.toString();
+  return api<SignOffResponse>(
+    `/dashboard/eod-history/${signoffId}${qs ? `?${qs}` : ""}`
+  );
+}
+
+export function updateEodHistoryEntry(
+  signoffId: number,
+  payload: { notes: string | null },
+  shopId?: number | null
+): Promise<SignOffResponse> {
+  return api<SignOffResponse>(`/dashboard/eod-history/${signoffId}`, {
+    method: "PATCH",
+    json: withShopId(payload, shopId),
+  });
+}
+
+export function downloadEodHistoryExport(
+  signoffIds: number[],
+  shopId?: number | null
+): Promise<{ blob: Blob; filename: string | null }> {
+  const params = withShopIdParams(new URLSearchParams(), shopId);
+  for (const signoffId of signoffIds) params.append("signoff_id", String(signoffId));
+  return downloadAuthedFile(`/dashboard/eod-history/export?${params.toString()}`);
 }
 
 export function getLowStock(limit = 50, shopId?: number | null): Promise<LowStockResponse> {

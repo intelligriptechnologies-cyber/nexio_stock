@@ -144,6 +144,7 @@ test.describe("inventory", () => {
 
     await expect(page.getByRole("heading", { name: "Inventory" })).toBeVisible();
     await expect(page.getByRole("table", { name: "Inventory table" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Download inventory CSV" })).toBeEnabled();
     await expect(page.getByRole("link", { name: "Inventory" })).toBeVisible();
     await expect(page.getByText("Healthy Brand")).toBeVisible();
     await expect(page.getByRole("columnheader", { name: "Available stock" })).toBeVisible();
@@ -156,9 +157,10 @@ test.describe("inventory", () => {
     await page.goto("/inventory");
 
     await expect(page.getByRole("heading", { name: "Inventory" })).toBeVisible();
-    await expect(page.getByRole("table", { name: "Inventory table" })).toBeVisible();
+    const table = page.getByRole("table", { name: "Inventory table" });
+    await expect(table).toBeVisible();
     await expect(page.getByRole("link", { name: "Inventory" })).toBeVisible();
-    await expect(page.getByRole("link", { name: "Stock Inward" })).toHaveCount(products.length);
+    await expect(table.getByRole("link", { name: "Stock Inward" })).toHaveCount(products.length);
     await expect(page.getByRole("link", { name: "Checkout" })).toHaveCount(0);
     await expect(page.getByRole("link", { name: "Edit product" })).toHaveCount(0);
   });

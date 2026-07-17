@@ -22,6 +22,7 @@ import { useBarcodeScanner } from "../hooks/useBarcodeScanner";
 import { AppTabButton } from "../components/AppTabs";
 import { ModalDialog } from "../components/ModalDialog";
 import { Package, Search, Filter, RefreshCw, Edit3, Trash2, RotateCcw, XOctagon, Download, Upload, Copy, AlertCircle, PlusCircle } from "lucide-react";
+import { csvTimestamp, downloadCsv } from "../utils/csv";
 
 type Tab = "list" | "create" | "import" | "copy";
 interface InitialBarcode {
@@ -230,6 +231,31 @@ function ListTab({
     }
   };
 
+  const exportRows = () => {
+    if (items === null || items.length === 0) return;
+    downloadCsv(
+      items.map((product) => ({
+        brand: product.brand,
+        ...(isSuperadmin ? { shop: formatShopLabel(product.shop_id, shopById) } : {}),
+        size_label: product.size_label,
+        barcode: product.barcode,
+        price: product.price ?? "",
+        low_stock_threshold: product.low_stock_threshold ?? "",
+        status: product.is_active ? "Active" : "Inactive",
+      })),
+      `products-catalog-${csvTimestamp()}.csv`,
+      [
+        "brand",
+        ...(isSuperadmin ? ["shop"] : []),
+        "size_label",
+        "barcode",
+        "price",
+        "low_stock_threshold",
+        "status",
+      ]
+    );
+  };
+
   return (
     <div className="flex flex-col gap-6">
       <div className="grid gap-6 rounded-xl border border-slate-200/50 bg-white/60 p-6 shadow-[0_8px_30px_rgb(0,0,0,0.02)] backdrop-blur-xl md:grid-cols-4">
@@ -262,13 +288,25 @@ function ListTab({
           </label>
         )}
         <div className="flex flex-col justify-end gap-1.5">
-          <button
-            type="button"
-            onClick={reload}
-            className="group flex h-11 items-center justify-center gap-2 rounded-xl bg-slate-100 px-4 text-sm font-semibold text-slate-600 transition-colors hover:bg-slate-200"
-          >
-            <RefreshCw className="h-4 w-4 transition-transform duration-300 group-hover:rotate-180" /> Refresh
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={exportRows}
+              disabled={items === null || items.length === 0 || (isSuperadmin && selectedShopId === null)}
+              className="flex h-11 w-11 items-center justify-center rounded-xl bg-white text-slate-600 shadow-sm ring-1 ring-slate-200 transition-colors hover:bg-slate-50 hover:text-slate-900 disabled:pointer-events-none disabled:opacity-50"
+              aria-label="Download catalog CSV"
+              title="Download CSV"
+            >
+              <Download className="h-4 w-4" />
+            </button>
+            <button
+              type="button"
+              onClick={reload}
+              className="group flex h-11 items-center justify-center gap-2 rounded-xl bg-slate-100 px-4 text-sm font-semibold text-slate-600 transition-colors hover:bg-slate-200"
+            >
+              <RefreshCw className="h-4 w-4 transition-transform duration-300 group-hover:rotate-180" /> Refresh
+            </button>
+          </div>
         </div>
         <label className="flex items-center gap-2 text-sm font-medium text-slate-600 md:col-span-4">
           <input

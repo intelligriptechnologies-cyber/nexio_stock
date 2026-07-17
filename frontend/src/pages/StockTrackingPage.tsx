@@ -1,9 +1,10 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { FileClock, RefreshCw, X } from "lucide-react";
+import { Download, FileClock, RefreshCw, X } from "lucide-react";
 import { toUserMessage } from "../api/client";
 import { listStockInwards, type LotPublic } from "../api/lots";
 import { useShopScope } from "../auth/ShopScopeProvider";
 import { ModalDialog } from "../components/ModalDialog";
+import { csvTimestamp, downloadCsv } from "../utils/csv";
 
 function statusClass(status: LotPublic["status"]): string {
   switch (status) {
@@ -81,6 +82,54 @@ export function StockTrackingPage() {
     };
   }, [selectedLot]);
 
+  const exportRows = () => {
+    if (items === null || items.length === 0) return;
+    downloadCsv(
+      items.map((item) => ({
+        inward_id: item.id,
+        shop_id: item.shop_id,
+        status: item.status,
+        vendor_name: item.vendor?.name ?? "",
+        vendor_invoice_number: item.vendor_invoice_number || "",
+        purchase_date: item.purchase_date || "",
+        invoice_value: item.invoice_value || "",
+        reference: item.reference ?? "",
+        notes: item.notes ?? "",
+        received_at: item.received_at,
+        created_at: item.created_at,
+        approved_at: item.approved_at ?? "",
+        completed_at: item.completed_at ?? "",
+        created_by_name: item.created_by_name ?? "",
+        approved_by_name: item.approved_by_name ?? "",
+        line_items: item.lines
+          .map(
+            (line) =>
+              `${line.product_brand} ${line.product_size_label} x${line.quantity} (good ${line.good_condition_quantity}, breakage ${line.breakage_quantity})`
+          )
+          .join("; "),
+      })),
+      `stock-tracking-${csvTimestamp()}.csv`,
+      [
+        "inward_id",
+        "shop_id",
+        "status",
+        "vendor_name",
+        "vendor_invoice_number",
+        "purchase_date",
+        "invoice_value",
+        "reference",
+        "notes",
+        "received_at",
+        "created_at",
+        "approved_at",
+        "completed_at",
+        "created_by_name",
+        "approved_by_name",
+        "line_items",
+      ]
+    );
+  };
+
   return (
     <div className="flex flex-col gap-8 font-sans">
       <header className="flex flex-wrap items-center justify-between gap-4 rounded-xl border border-slate-200/50 bg-white/60 p-6 shadow-[0_8px_30px_rgb(0,0,0,0.02)] backdrop-blur-xl">
@@ -92,14 +141,26 @@ export function StockTrackingPage() {
             Compact inward history with a full read-only details view on demand.
           </p>
         </div>
-        <button
-          type="button"
-          onClick={() => void reload()}
-          className="group flex h-10 items-center justify-center rounded-xl bg-white px-5 text-sm font-semibold tracking-wide text-slate-700 shadow-sm ring-1 ring-slate-200 transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:scale-[1.02] hover:bg-slate-50 hover:shadow-md active:scale-[0.97]"
-        >
-          <RefreshCw className="h-4 w-4 text-slate-400 transition-transform duration-300 group-hover:rotate-180" />
-          <span className="ml-2">Refresh</span>
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={exportRows}
+            disabled={items === null || items.length === 0}
+            className="flex h-10 w-10 items-center justify-center rounded-xl bg-white text-slate-600 shadow-sm ring-1 ring-slate-200 transition-colors hover:bg-slate-50 hover:text-slate-900 disabled:pointer-events-none disabled:opacity-50"
+            aria-label="Download stock tracking CSV"
+            title="Download CSV"
+          >
+            <Download className="h-4 w-4" />
+          </button>
+          <button
+            type="button"
+            onClick={() => void reload()}
+            className="group flex h-10 items-center justify-center rounded-xl bg-white px-5 text-sm font-semibold tracking-wide text-slate-700 shadow-sm ring-1 ring-slate-200 transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:scale-[1.02] hover:bg-slate-50 hover:shadow-md active:scale-[0.97]"
+          >
+            <RefreshCw className="h-4 w-4 text-slate-400 transition-transform duration-300 group-hover:rotate-180" />
+            <span className="ml-2">Refresh</span>
+          </button>
+        </div>
       </header>
 
       {error && (

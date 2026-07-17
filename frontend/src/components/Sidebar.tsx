@@ -163,13 +163,14 @@ export function Sidebar() {
         }`}
         aria-label="Main navigation"
       >
-        <div className="shrink-0 border-b border-slate-200/50 pb-3">
+        <div className="app-sidebar-header shrink-0 pb-3">
           <div className="flex h-20 items-center justify-start px-8 text-left text-2xl font-bold tracking-tight text-slate-900">
             {displayName}
           </div>
           <div className="px-3 pt-0">
             <ShopPicker />
           </div>
+          <div className="app-sidebar-section-divider mx-6 mt-3" aria-hidden="true" />
         </div>
         <nav className="custom-scrollbar flex flex-1 flex-col gap-1 overflow-y-auto pb-6 pt-2">
           {mainItems.map(renderNavItem)}

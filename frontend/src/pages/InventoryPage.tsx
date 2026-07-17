@@ -4,7 +4,8 @@ import { toUserMessage } from "../api/client";
 import { listProducts, type Product } from "../api/products";
 import { useAuth } from "../auth/AuthProvider";
 import { useShopScope, useShopScopeGuard } from "../auth/ShopScopeProvider";
-import { PackageOpen, Search, Filter, ArrowDownUp, ArrowDownToLine, ShoppingCart, Edit3 } from "lucide-react";
+import { PackageOpen, Search, Filter, ArrowDownUp, ArrowDownToLine, ShoppingCart, Edit3, Download } from "lucide-react";
+import { csvTimestamp, downloadCsv } from "../utils/csv";
 
 type StockFilter = "all" | "in_stock" | "low_stock" | "out_of_stock";
 type SortMode = "name" | "stock_asc" | "stock_desc";
@@ -109,6 +110,31 @@ export function InventoryPage() {
     user?.role === "receiver_user" || user?.role === "owner" || user?.role === "superadmin";
   const canCheckout = user?.role === "cashier_user";
   const canEditProduct = user?.role === "owner" || user?.role === "superadmin";
+  const exportDisabled = items === null || visibleItems.length === 0 || shopScopeGuard.blocked;
+
+  const exportRows = () => {
+    downloadCsv(
+      visibleItems.map((item) => ({
+        brand: item.brand,
+        size_label: item.size_label,
+        barcode: item.barcode,
+        price: item.price ?? "",
+        current_stock: item.current_stock,
+        low_stock_threshold: item.low_stock_threshold ?? "",
+        stock_state: stockLabel(stockState(item)),
+      })),
+      `inventory-${csvTimestamp()}.csv`,
+      [
+        "brand",
+        "size_label",
+        "barcode",
+        "price",
+        "current_stock",
+        "low_stock_threshold",
+        "stock_state",
+      ]
+    );
+  };
 
   return (
     <div className="flex flex-col gap-8 font-sans">
@@ -121,6 +147,16 @@ export function InventoryPage() {
             Active catalog with derived available stock.
           </p>
         </div>
+        <button
+          type="button"
+          onClick={exportRows}
+          disabled={exportDisabled}
+          className="flex h-10 w-10 items-center justify-center rounded-xl bg-white text-slate-600 shadow-sm ring-1 ring-slate-200 transition-colors hover:bg-slate-50 hover:text-slate-900 disabled:pointer-events-none disabled:opacity-50"
+          aria-label="Download inventory CSV"
+          title="Download CSV"
+        >
+          <Download className="h-4 w-4" />
+        </button>
       </header>
 
       {error && (

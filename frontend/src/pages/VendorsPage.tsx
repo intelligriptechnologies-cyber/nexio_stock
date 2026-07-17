@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Truck, RefreshCw, Plus, Save } from "lucide-react";
+import { Truck, RefreshCw, Plus, Save, Download } from "lucide-react";
 import { ApiError, toUserMessage } from "../api/client";
 import {
   createVendor,
@@ -8,6 +8,7 @@ import {
   type VendorPublic,
 } from "../api/vendors";
 import { useShopScope } from "../auth/ShopScopeProvider";
+import { csvTimestamp, downloadCsv } from "../utils/csv";
 
 export function VendorsPage() {
   const { actingShopId } = useShopScope();
@@ -95,6 +96,24 @@ export function VendorsPage() {
     }
   };
 
+  const exportRows = () => {
+    downloadCsv(
+      vendors.map((vendor) => ({
+        id: vendor.id,
+        name: vendor.name,
+        gstin: vendor.gstin ?? "",
+        phone: vendor.phone ?? "",
+        email: vendor.email ?? "",
+        address: vendor.address ?? "",
+        status: vendor.is_active ? "Active" : "Inactive",
+        created_at: vendor.created_at,
+        updated_at: vendor.updated_at,
+      })),
+      `vendors-${csvTimestamp()}.csv`,
+      ["id", "name", "gstin", "phone", "email", "address", "status", "created_at", "updated_at"]
+    );
+  };
+
   return (
     <div className="flex flex-col gap-8 font-sans">
       <header className="flex flex-wrap items-center justify-between gap-4 rounded-xl border border-slate-200/50 bg-white/60 p-6 shadow-[0_8px_30px_rgb(0,0,0,0.02)] backdrop-blur-xl">
@@ -115,6 +134,16 @@ export function VendorsPage() {
           />
           Include inactive
         </label>
+        <button
+          type="button"
+          onClick={exportRows}
+          disabled={busy || vendors.length === 0}
+          className="flex h-10 w-10 items-center justify-center rounded-xl bg-white text-slate-600 shadow-sm ring-1 ring-slate-200 transition-colors hover:bg-slate-50 hover:text-slate-900 disabled:pointer-events-none disabled:opacity-50"
+          aria-label="Download vendors CSV"
+          title="Download CSV"
+        >
+          <Download className="h-4 w-4" />
+        </button>
       </header>
 
       {error && (

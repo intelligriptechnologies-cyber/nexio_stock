@@ -14,6 +14,7 @@ test.describe("product catalog — owner", () => {
     await page.goto("/admin/products");
     await expect(page.getByRole("heading", { name: "Products" })).toBeVisible();
     await expect(page.getByRole("button", { name: "Catalog" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Download catalog CSV" })).toBeVisible();
     await expect(page.getByRole("button", { name: "New product" })).toBeVisible();
     await expect(page.getByRole("button", { name: "Bulk import" })).toBeVisible();
     await page.getByPlaceholder("Search by brand").fill("XYZ-NO-MATCH");
@@ -47,6 +48,7 @@ test.describe("product catalog — owner", () => {
     await page.goto("/admin/products");
     await page.getByRole("button", { name: "New product" }).click();
     await expect(page.getByRole("heading", { name: "New product" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Download catalog CSV" })).toHaveCount(0);
     await expect(page.getByRole("button", { name: "Create product" })).toBeVisible();
   });
 

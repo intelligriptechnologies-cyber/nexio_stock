@@ -1,18 +1,15 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Api, ApiError, getOrCreateDeviceKey } from "../api/client";
 import { homePathFor, type AuthUser, type Role, useAuth } from "../auth/AuthProvider";
 import { AuthShell } from "../components/AuthShell";
 
 type ShopLoginRole = Exclude<Role, "superadmin">;
 
-const FIELD_CLASS =
-  "h-12 w-full rounded-2xl border border-white/10 bg-[#1c1714] px-4 text-sm text-white shadow-sm transition-[background-color,box-shadow,border-color] duration-200 ease-out hover:border-amber-300/45 hover:bg-[#241d1a] focus:border-amber-300 focus:bg-[#241d1a] focus:outline-none focus:ring-4 focus:ring-amber-300/10";
-
 const ROLE_OPTIONS: Array<{ value: ShopLoginRole; label: string }> = [
   { value: "cashier_user", label: "Cashier" },
   { value: "receiver_user", label: "Stock Keeper" },
-  { value: "owner", label: "Owner" },
+  { value: "owner", label: "Shop Owner" },
 ];
 
 export function LoginPage() {
@@ -70,86 +67,85 @@ export function LoginPage() {
   return (
     <AuthShell
       variant="shop"
-      title="Shop sign in"
-      subcopy="Use your assigned role, username, and PIN to open the live stock workflow."
-      footerActionLabel="Superadmin login"
-      footerActionTo="/login/superadmin"
-      footerActionText="Need cross-shop access?"
+      badge="SHOP OPERATIONS"
+      title="Terminal Access"
+      subcopy="Initialize secure bridge connection for live inventory movement."
     >
-      <form onSubmit={handleSubmit} className="flex flex-col gap-4 text-white">
-        <div className="grid gap-4">
-          <label className="flex flex-col gap-1.5 text-sm font-medium text-slate-200">
-            Role
-            <div className="relative">
-              <select
-                value={role}
-                onChange={(e) => setRole(e.target.value as ShopLoginRole)}
-                className={`${FIELD_CLASS} appearance-none pr-11`}
-              >
-                {ROLE_OPTIONS.map((option) => (
-                  <option key={option.value} value={option.value} className="bg-slate-950 text-white">
-                    {option.label}
-                  </option>
-                ))}
-              </select>
-              <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-4 text-amber-200/80">
-                <svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true" className="h-4 w-4">
-                  <path
-                    fillRule="evenodd"
-                    d="M5.23 7.21a.75.75 0 0 1 1.06.02L10 11.168l3.71-3.938a.75.75 0 1 1 1.08 1.04l-4.25 4.51a.75.75 0 0 1-1.08 0l-4.25-4.51a.75.75 0 0 1 .02-1.06Z"
-                    clipRule="evenodd"
+      <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+        <fieldset>
+          <legend className="auth-terminal-label">Access Role</legend>
+          <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
+            {ROLE_OPTIONS.map((option) => {
+              const checked = role === option.value;
+              return (
+                <label key={option.value} className="block">
+                  <input
+                    type="radio"
+                    name="role"
+                    value={option.value}
+                    checked={checked}
+                    onChange={() => setRole(option.value)}
+                    className="peer sr-only"
+                    aria-label={option.label}
                   />
-                </svg>
-              </div>
-            </div>
-          </label>
+                  <span className="flex min-h-[48px] cursor-pointer items-center justify-center rounded-2xl border border-[#2a3139] bg-[#0b1015] px-3 py-3 text-center text-sm font-medium text-[#b8c5d2] transition-[border-color,background-color,color,box-shadow] duration-200 peer-hover:border-[#42505e] peer-focus-visible:border-[#8ae6ff] peer-focus-visible:ring-4 peer-focus-visible:ring-cyan-300/10 peer-checked:border-[#8fe8ff] peer-checked:bg-[#10202a] peer-checked:text-white">
+                    {option.label}
+                  </span>
+                </label>
+              );
+            })}
+          </div>
+        </fieldset>
 
-          <label className="flex flex-col gap-1.5 text-sm font-medium text-slate-200">
-            Username
-            <input
-              type="text"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              placeholder="Username"
-              className={FIELD_CLASS}
-              autoComplete="username"
-              autoFocus
-              required
-            />
-          </label>
+        <label className="block">
+          <span className="auth-terminal-label">Terminal ID / Username</span>
+          <input
+            type="text"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+            placeholder="Enter terminal username"
+            className="auth-terminal-field"
+            autoComplete="username"
+            autoFocus
+            required
+            aria-label="Terminal ID / Username"
+          />
+        </label>
 
-          <label className="flex flex-col gap-1.5 text-sm font-medium text-slate-200">
-            Password / PIN
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => {
-                setPassword(e.target.value);
-                if (error) setError(null);
-              }}
-              className={FIELD_CLASS}
-              autoComplete="current-password"
-              required
-            />
-          </label>
-        </div>
+        <label className="block">
+          <span className="auth-terminal-label">Security PIN</span>
+          <input
+            type="password"
+            value={password}
+            onChange={(e) => {
+              setPassword(e.target.value);
+              if (error) setError(null);
+            }}
+            className="auth-terminal-field"
+            autoComplete="current-password"
+            required
+            aria-label="Security PIN"
+          />
+        </label>
 
-        {error && (
+        {error ? (
           <div
             role="alert"
-            className="animate-fade-in rounded-2xl border border-rose-400/20 bg-rose-400/10 p-4 text-sm text-rose-100 backdrop-blur-sm"
+            className="animate-fade-in rounded-2xl border border-rose-400/20 bg-rose-400/10 px-4 py-3 text-sm text-rose-100"
           >
             {error}
           </div>
-        )}
+        ) : null}
 
-        <button
-          type="submit"
-          disabled={!canSubmit}
-          className="group mt-1 flex h-12 items-center justify-center rounded-2xl bg-amber-400 px-4 text-sm font-semibold tracking-wide text-slate-950 shadow-[0_18px_45px_rgba(251,191,36,0.2)] transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:-translate-y-0.5 hover:bg-amber-300 hover:shadow-[0_24px_60px_rgba(251,191,36,0.24)] active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:translate-y-0 disabled:hover:shadow-[0_18px_45px_rgba(251,191,36,0.2)]"
-        >
-          <span className="relative z-10">{submitting ? "Signing in..." : "Sign in"}</span>
+        <button type="submit" disabled={!canSubmit} className="auth-terminal-submit mt-1">
+          {submitting ? "Signing in..." : "Open Terminal"}
         </button>
+
+        <div className="border-t border-white/8 pt-4 text-center">
+          <Link to="/login/superadmin" className="auth-terminal-link">
+            Need superadmin access?
+          </Link>
+        </div>
       </form>
     </AuthShell>
   );
