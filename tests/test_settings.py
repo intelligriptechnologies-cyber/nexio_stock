@@ -67,11 +67,18 @@ async def test_owner_can_read_and_update_own_settings(
 
 
 @pytest.mark.usefixtures("owner", "receiver", "cashier")
-async def test_cashier_and_receiver_cannot_access_settings(
-    cashier_client: AsyncClient, receiver_client: AsyncClient
+async def test_cashier_and_receiver_can_read_but_not_update_settings(
+    owner_client: AsyncClient, cashier_client: AsyncClient, receiver_client: AsyncClient
 ) -> None:
+    owner_read = await owner_client.get("/settings/me")
+    assert owner_read.status_code == 200
+    owner_body = owner_read.json()
+
     for ac in (cashier_client, receiver_client):
-        assert (await ac.get("/settings/me")).status_code == 403
+        read_resp = await ac.get("/settings/me")
+        assert read_resp.status_code == 200
+        assert read_resp.json()["app_display_name"] == owner_body["app_display_name"]
+        assert read_resp.json()["action_color"] == owner_body["action_color"]
         assert (await ac.patch("/settings/me", json={"action_color": "#2563eb"})).status_code == 403
 
 

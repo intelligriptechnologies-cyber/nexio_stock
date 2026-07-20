@@ -16,7 +16,13 @@ from app.schemas.settings import SettingsPublic, SettingsUpdate
 router = APIRouter(prefix="/settings", tags=["settings"])
 log = get_logger(__name__)
 
-_settings_roles = (UserRole.OWNER, UserRole.SUPERADMIN)
+_settings_read_roles = (
+    UserRole.OWNER,
+    UserRole.RECEIVER_USER,
+    UserRole.CASHIER_USER,
+    UserRole.SUPERADMIN,
+)
+_settings_write_roles = (UserRole.OWNER, UserRole.SUPERADMIN)
 
 
 async def _resolve_settings_shop_id(
@@ -52,7 +58,7 @@ async def _resolve_settings_shop_id(
 )
 async def get_my_settings(
     db: DbSession,
-    user: User = Depends(require_role(*_settings_roles)),
+    user: User = Depends(require_role(*_settings_read_roles)),
     shop_id: Annotated[int | None, Query(description="Superadmin-only target shop")] = None,
 ) -> SettingsPublic:
     shop_id = await _resolve_settings_shop_id(db, user, shop_id)
@@ -68,7 +74,7 @@ async def get_my_settings(
 async def update_my_settings(
     payload: SettingsUpdate,
     db: DbSession,
-    user: User = Depends(require_role(*_settings_roles)),
+    user: User = Depends(require_role(*_settings_write_roles)),
 ) -> SettingsPublic:
     actor_id = user.id
     shop_id = await _resolve_settings_shop_id(db, user, payload.shop_id)
