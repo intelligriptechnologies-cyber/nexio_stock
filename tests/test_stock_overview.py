@@ -29,13 +29,16 @@ async def _seed_product(
 
 
 async def _seed_lot(
-    receiver_client: AsyncClient, *, items: list[tuple[str, int]]
+    receiver_client: AsyncClient, owner_client: AsyncClient, *, items: list[tuple[str, int]]
 ) -> None:
     resp = await receiver_client.post(
         "/lots",
         json={"lines": [{"barcode": bc, "quantity": q} for bc, q in items]},
     )
     assert resp.status_code == 201, resp.text
+    inward_id = resp.json()["id"]
+    approved = await owner_client.post(f"/lots/{inward_id}/approve")
+    assert approved.status_code == 200, approved.text
 
 
 async def _finalize(
@@ -68,7 +71,7 @@ async def test_owner_sees_their_own_shop(
     """An owner of a single shop gets exactly one shop group in the
     response, scoped to their shop_id."""
     await _seed_product(owner_client, "8903000000060")
-    await _seed_lot(receiver_client, items=[("8903000000060", 5)])
+    await _seed_lot(receiver_client, owner_client, items=[("8903000000060", 5)])
     await _finalize(
         cashier_client, barcode="8903000000060", quantity=1, amount="100.00"
     )
@@ -111,7 +114,7 @@ async def test_superadmin_sees_every_shop_with_correct_groupings(
     shop shape with two non-overlapping product sets."""
     # Shop #1: existing fixture shop. Seed a known product + stock.
     await _seed_product(owner_client, "8903000000061")
-    await _seed_lot(receiver_client, items=[("8903000000061", 7)])
+    await _seed_lot(receiver_client, owner_client, items=[("8903000000061", 7)])
 
     # Provision a second shop directly via the model layer (D-58 shop
     # provisioning flow isn't built yet, but for this test the row

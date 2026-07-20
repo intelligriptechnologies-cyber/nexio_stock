@@ -50,6 +50,8 @@ async function seedSuperadmin(page: Page, actingShopId: number | null = 1) {
       );
       if (seededActingShopId !== null) {
         sessionStorage.setItem("barstock.actingShopId", String(seededActingShopId));
+      } else {
+        sessionStorage.removeItem("barstock.actingShopId");
       }
     },
     { token: tokenForSuperadmin(), actingShopId }
@@ -58,6 +60,7 @@ async function seedSuperadmin(page: Page, actingShopId: number | null = 1) {
 
 async function mockShopMaintenanceApis(page: Page) {
   let shops: Shop[] = [{ ...baseShop }];
+  const resetPasswordCalls: Array<{ shopId: number; userId: number; password: string }> = [];
   const isApi = (url: URL) => url.origin === "http://127.0.0.1:8000";
 
   await page.route("**/settings/me**", async (route) => {
@@ -78,6 +81,24 @@ async function mockShopMaintenanceApis(page: Page) {
         smtp_from_email: null,
         smtp_from_name: null,
         smtp_use_tls: true,
+      }),
+    });
+  });
+
+  await page.route("**/users/me**", async (route) => {
+    await route.fulfill({
+      contentType: "application/json",
+      body: JSON.stringify({
+        id: 1,
+        shop_id: null,
+        role: "superadmin",
+        username: "sa",
+        full_name: "Superadmin",
+        phone: "0000000000",
+        email: null,
+        date_of_birth: null,
+        pan: null,
+        gstin: null,
       }),
     });
   });
@@ -110,6 +131,33 @@ async function mockShopMaintenanceApis(page: Page) {
       ]),
     });
   });
+
+  await page.route(
+    (url) => isApi(url) && /\/shops\/\d+\/users\/\d+\/password$/.test(url.href),
+    async (route) => {
+      const request = route.request();
+      const match = new URL(request.url()).pathname.match(/\/shops\/(\d+)\/users\/(\d+)\/password$/);
+      const payload = request.postDataJSON() as { password: string };
+      resetPasswordCalls.push({
+        shopId: Number(match?.[1]),
+        userId: Number(match?.[2]),
+        password: payload.password,
+      });
+      await route.fulfill({
+        contentType: "application/json",
+        body: JSON.stringify({
+          id: 10,
+          shop_id: 1,
+          role: "owner",
+          username: "owner1",
+          full_name: "Owner One",
+          phone: "9999999999",
+          is_active: true,
+          created_at: "2026-01-01T00:00:00Z",
+        }),
+      });
+    }
+  );
 
   await page.route("**/products?**", async (route) => {
     await route.fulfill({
@@ -166,9 +214,24 @@ async function mockShopMaintenanceApis(page: Page) {
       ),
     });
   });
+
+  return { resetPasswordCalls };
 }
 
 test.describe("shop maintenance", () => {
+  test("sidebar shop picker shows explicit empty state before a shop is selected", async ({ page }) => {
+    await seedSuperadmin(page, null);
+    await mockShopMaintenanceApis(page);
+
+    await page.goto("/admin/settings");
+
+    const status = page.getByTestId("shop-picker-status");
+    await expect(status).toHaveText("Select before edit/billing");
+    await expect(status).not.toHaveText("Working shop");
+    await expect(page.getByLabel("Working shop")).toHaveValue("");
+    await expect(page.getByLabel("Working shop")).toContainText("Select working shop");
+  });
+
   test("uses tabs and refreshes shop lists after create and update", async ({ page }) => {
     await seedSuperadmin(page);
     await mockShopMaintenanceApis(page);
@@ -195,6 +258,8 @@ test.describe("shop maintenance", () => {
     await page.getByLabel("Code").first().fill("shop2");
     await page.getByRole("button", { name: "Create" }).click();
     await expect(page.getByRole("button", { name: /Shop Two/ })).toHaveAttribute("aria-current", "true");
+    await expect(page.getByTestId("shop-picker-status")).toHaveText("Working shop");
+    await expect(page.getByTestId("shop-picker-status")).not.toContainText("Shop Two (shop2)");
     await expect(page.getByLabel("Working shop")).toContainText("Shop Two (shop2)");
 
     await page.getByRole("tab", { name: "Shop Details" }).click();
@@ -206,6 +271,58 @@ test.describe("shop maintenance", () => {
       "aria-current",
       "true"
     );
+    await expect(page.getByTestId("shop-picker-status")).toHaveText("Working shop");
+    await expect(page.getByTestId("shop-picker-status")).not.toContainText("Shop Two Updated (shop2u)");
     await expect(page.getByLabel("Working shop")).toContainText("Shop Two Updated (shop2u)");
+  });
+
+  test("resets a shop user password through an in-app dialog", async ({ page }) => {
+    await seedSuperadmin(page);
+    const { resetPasswordCalls } = await mockShopMaintenanceApis(page);
+
+    await page.addInitScript(() => {
+      Object.defineProperty(globalThis, "prompt", {
+        configurable: true,
+        value: () => {
+          const current = Reflect.get(globalThis, "__promptCalls") as number | undefined;
+          Reflect.set(globalThis, "__promptCalls", (current ?? 0) + 1);
+          return "should-not-be-used";
+        },
+      });
+    });
+
+    await page.goto("/admin/shops");
+    await page.getByRole("tab", { name: "Allotted Users" }).click();
+
+    const userRow = page.locator("tr", { hasText: "Owner One" });
+    await expect(userRow.getByRole("button", { name: /Reset password/i })).toBeVisible();
+
+    await userRow.getByRole("button", { name: /Reset password/i }).click();
+    const dialog = page.getByRole("dialog");
+    await expect(dialog).toBeVisible();
+    await expect(dialog.getByText("Owner One (owner1)")).toBeVisible();
+    await expect(dialog.getByLabel("New password/PIN")).toBeFocused();
+
+    await dialog.getByRole("button", { name: "Cancel" }).click();
+    await expect(dialog).toHaveCount(0);
+    expect(resetPasswordCalls).toHaveLength(0);
+
+    await userRow.getByRole("button", { name: /Reset password/i }).click();
+    await dialog.getByLabel("New password/PIN").fill("123");
+    await dialog.getByRole("button", { name: "Reset password" }).click();
+    await expect(dialog.getByText("Password/PIN must be at least 4 characters.")).toBeVisible();
+    expect(resetPasswordCalls).toHaveLength(0);
+
+    await dialog.getByLabel("New password/PIN").fill("1234");
+    await dialog.getByRole("button", { name: "Reset password" }).click();
+
+    await expect(dialog).toHaveCount(0);
+    await expect(page.getByRole("status")).toContainText("User updated.");
+    expect(resetPasswordCalls).toEqual([{ shopId: 1, userId: 10, password: "1234" }]);
+
+    const promptCalls = await page.evaluate(() => {
+      return (Reflect.get(globalThis, "__promptCalls") as number | undefined) ?? 0;
+    });
+    expect(promptCalls).toBe(0);
   });
 });

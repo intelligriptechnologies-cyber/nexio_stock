@@ -81,6 +81,8 @@ async def create_shop(
         name=payload.name,
         code=payload.code,
         low_stock_threshold_default=payload.low_stock_threshold_default,
+        cashier_login_restriction_enabled=payload.cashier_login_restriction_enabled,
+        receiving_vendor_link_enabled=payload.receiving_vendor_link_enabled,
         allowed_login_cidrs=payload.allowed_login_cidrs,
     )
     db.add(shop)
@@ -435,6 +437,9 @@ async def get_my_shop(
             gstin=None,
             excise_duty_rate=None,
             low_stock_threshold_default=None,
+            cashier_login_restriction_enabled=False,
+            receiving_vendor_link_enabled=True,
+            allowed_login_cidrs=[],
         )
     return ShopPublic.model_validate(shop)
 

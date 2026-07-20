@@ -4,7 +4,7 @@
 
 import { api, withShopId } from "./client";
 
-export type PaymentMode = "cash" | "upi" | "card";
+export type PaymentMode = "cash" | "upi" | "card" | "other";
 
 export interface CheckoutLine {
   barcode: string;
@@ -39,6 +39,7 @@ export interface InvoicePublic {
   id: number;
   shop_id: number;
   cashier_user_id: number;
+  cashier_name: string | null;
   invoice_number: number;
   status: "finalized" | "voided" | "reversal" | "pending_void";
   total_amount: string;

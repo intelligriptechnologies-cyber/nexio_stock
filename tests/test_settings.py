@@ -18,6 +18,8 @@ async def test_owner_can_read_and_update_own_settings(
     assert resp.json()["active_tab_color"] == "#5a5148"
     assert resp.json()["sidebar_menu_inactive_text_color"] == "#535353cf"
     assert resp.json()["sidebar_menu_active_text_color"] == "#ffffff"
+    assert resp.json()["cashier_login_restriction_enabled"] is False
+    assert resp.json()["receiving_vendor_link_enabled"] is True
     assert resp.json()["allowed_login_cidrs"] == []
 
     resp = await owner_client.patch(
@@ -29,6 +31,8 @@ async def test_owner_can_read_and_update_own_settings(
             "sidebar_menu_inactive_text_color": "#535353cf",
             "sidebar_menu_active_text_color": "#111827",
             "email_enabled": True,
+            "cashier_login_restriction_enabled": True,
+            "receiving_vendor_link_enabled": False,
             "smtp_host": "smtp.example.com",
             "smtp_port": 587,
             "smtp_username": "mailer",
@@ -49,6 +53,8 @@ async def test_owner_can_read_and_update_own_settings(
     assert body["active_tab_color"] == "#5a5148"
     assert body["sidebar_menu_inactive_text_color"] == "#535353cf"
     assert body["sidebar_menu_active_text_color"] == "#111827"
+    assert body["cashier_login_restriction_enabled"] is True
+    assert body["receiving_vendor_link_enabled"] is False
     assert body["smtp_host"] == "smtp.example.com"
     assert "smtp_password" not in body
     assert body["gstin"] == "21ABCDE1234F1Z5"

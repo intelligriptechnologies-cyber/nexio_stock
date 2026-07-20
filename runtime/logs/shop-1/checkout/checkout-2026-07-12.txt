@@ -1,0 +1,5 @@
+[2026-07-12T22:56:08+05:30] Checkout finalized for Shop One; invoice #1 (id 1) by Cashier One (user #3); total Rs. 100.00; payment mode cash; payments: cash Rs. 100.00; lines: X 750ml x 1 at Rs. 100.00.
+[2026-07-12T22:56:17+05:30] Checkout finalized for Shop One; invoice #1 (id 1) by Cashier One (user #3); total Rs. 100.00; payment mode cash; payments: cash Rs. 100.00; lines: X 750ml x 1 at Rs. 100.00.
+[2026-07-12T22:56:25+05:30] Checkout finalized for Shop One; invoice #1 (id 1) by Cashier One (user #3); total Rs. 100.00; payment mode cash; payments: cash Rs. 100.00; lines: X 750ml x 1 at Rs. 100.00.
+[2026-07-12T22:56:32+05:30] Checkout finalized for Shop One; invoice #1 (id 1) by Cashier One (user #3); total Rs. 100.00; payment mode cash; payments: cash Rs. 100.00; lines: X 750ml x 1 at Rs. 100.00.
+[2026-07-12T22:56:40+05:30] Checkout finalized for Test Liquor Corner; invoice #1 (id 1) by Cashier One (user #3); total Rs. 100.00; payment mode cash; payments: cash Rs. 100.00; lines: X 750ml x 1 at Rs. 100.00.

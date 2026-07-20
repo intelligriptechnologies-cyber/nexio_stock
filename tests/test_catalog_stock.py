@@ -25,13 +25,16 @@ async def _seed_product(
 
 
 async def _seed_lot(
-    receiver_client: AsyncClient, *, items: list[tuple[str, int]]
+    receiver_client: AsyncClient, owner_client: AsyncClient, *, items: list[tuple[str, int]]
 ) -> None:
     resp = await receiver_client.post(
         "/lots",
         json={"lines": [{"barcode": bc, "quantity": q} for bc, q in items]},
     )
     assert resp.status_code == 201, resp.text
+    inward_id = resp.json()["id"]
+    approved = await owner_client.post(f"/lots/{inward_id}/approve")
+    assert approved.status_code == 200, approved.text
 
 
 async def _finalize(
@@ -65,6 +68,7 @@ async def test_product_list_carries_current_stock(
 
     await _seed_lot(
         receiver_client,
+        owner_client,
         items=[("8903000000051", 5), ("8903000000052", 10)],
     )
     await _finalize(
@@ -108,7 +112,7 @@ async def test_catalog_stock_matches_dashboard_low_stock(
     assert resp.status_code == 201, resp.text
     product_id = resp.json()["id"]
 
-    await _seed_lot(receiver_client, items=[("8903000000053", 10)])
+    await _seed_lot(receiver_client, owner_client, items=[("8903000000053", 10)])
 
     # Catalog endpoint value.
     catalog = await owner_client.get("/products?active_only=false")
@@ -136,7 +140,7 @@ async def test_product_lookup_returns_current_stock(
     """The single-product lookup endpoint also carries current_stock
     (so the cashier's scanner-cache miss path shows the same number)."""
     await _seed_product(owner_client, "8903000000054")
-    await _seed_lot(receiver_client, items=[("8903000000054", 6)])
+    await _seed_lot(receiver_client, owner_client, items=[("8903000000054", 6)])
 
     resp = await owner_client.get("/products/lookup?barcode=8903000000054")
     assert resp.status_code == 200

@@ -4,6 +4,8 @@ import { toUserMessage } from "../api/client";
 import { listProducts, type Product } from "../api/products";
 import { useAuth } from "../auth/AuthProvider";
 import { useShopScope, useShopScopeGuard } from "../auth/ShopScopeProvider";
+import { PackageOpen, Search, Filter, ArrowDownUp, ArrowDownToLine, ShoppingCart, Edit3, Download } from "lucide-react";
+import { csvTimestamp, downloadCsv } from "../utils/csv";
 
 type StockFilter = "all" | "in_stock" | "low_stock" | "out_of_stock";
 type SortMode = "name" | "stock_asc" | "stock_desc";
@@ -108,42 +110,79 @@ export function InventoryPage() {
     user?.role === "receiver_user" || user?.role === "owner" || user?.role === "superadmin";
   const canCheckout = user?.role === "cashier_user";
   const canEditProduct = user?.role === "owner" || user?.role === "superadmin";
+  const exportDisabled = items === null || visibleItems.length === 0 || shopScopeGuard.blocked;
+
+  const exportRows = () => {
+    downloadCsv(
+      visibleItems.map((item) => ({
+        brand: item.brand,
+        size_label: item.size_label,
+        barcode: item.barcode,
+        price: item.price ?? "",
+        current_stock: item.current_stock,
+        low_stock_threshold: item.low_stock_threshold ?? "",
+        stock_state: stockLabel(stockState(item)),
+      })),
+      `inventory-${csvTimestamp()}.csv`,
+      [
+        "brand",
+        "size_label",
+        "barcode",
+        "price",
+        "current_stock",
+        "low_stock_threshold",
+        "stock_state",
+      ]
+    );
+  };
 
   return (
-    <div className="flex flex-col gap-stack-gap">
-      <div className="flex flex-wrap items-end justify-between gap-stack-gap">
+    <div className="flex flex-col gap-8 font-sans">
+      <header className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h1 className="text-headline-lg text-primary">Inventory</h1>
-          <p className="mt-1 text-body-md text-on-surface-variant">
+          <h1 className="flex items-center gap-3 text-3xl font-bold tracking-tight text-slate-900">
+            <PackageOpen className="h-8 w-8 text-action" /> Inventory
+          </h1>
+          <p className="mt-2 text-sm text-slate-500">
             Active catalog with derived available stock.
           </p>
         </div>
-      </div>
+        <button
+          type="button"
+          onClick={exportRows}
+          disabled={exportDisabled}
+          className="flex h-10 w-10 items-center justify-center rounded-xl bg-white text-slate-600 shadow-sm ring-1 ring-slate-200 transition-colors hover:bg-slate-50 hover:text-slate-900 disabled:pointer-events-none disabled:opacity-50"
+          aria-label="Download inventory CSV"
+          title="Download CSV"
+        >
+          <Download className="h-4 w-4" />
+        </button>
+      </header>
 
       {error && (
-        <div role="alert" className="rounded-md bg-error px-stack-gap py-3 text-on-error">
+        <div role="alert" className="rounded-xl bg-red-50 px-6 py-4 text-sm font-medium text-red-600 shadow-sm ring-1 ring-red-200">
           {error}
         </div>
       )}
 
       {!shopScopeGuard.blocked && (
-        <div className="flex flex-wrap gap-stack-gap bg-surface-container p-stack-gap">
-          <label className="flex min-w-64 flex-1 flex-col gap-1 text-label-md">
-            Search
+        <div className="grid gap-6 rounded-xl border border-slate-200/50 bg-white/60 p-6 shadow-[0_8px_30px_rgb(0,0,0,0.02)] backdrop-blur-xl md:grid-cols-3">
+          <label className="flex flex-col gap-1.5 text-xs font-semibold uppercase tracking-wider text-slate-500">
+            <span className="flex items-center gap-1.5"><Search className="h-4 w-4" /> Search</span>
             <input
               type="search"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Brand, size, or barcode"
-              className="min-h-touchTarget-sm rounded-md border border-outline bg-surface px-stack-gap text-body-md"
+              className="h-11 w-full rounded-xl border border-slate-200 bg-white/50 px-4 text-sm font-medium text-slate-700 shadow-sm outline-none transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:bg-white focus-visible:ring-2 focus-visible:ring-action/40 focus-visible:border-action"
             />
           </label>
-          <label className="flex min-w-48 flex-col gap-1 text-label-md">
-            Stock state
+          <label className="flex flex-col gap-1.5 text-xs font-semibold uppercase tracking-wider text-slate-500">
+            <span className="flex items-center gap-1.5"><Filter className="h-4 w-4" /> Stock state</span>
             <select
               value={stockFilter}
               onChange={(e) => setStockFilter(e.target.value as StockFilter)}
-              className="min-h-touchTarget-sm rounded-md border border-outline bg-surface px-stack-gap text-body-md"
+              className="h-11 w-full rounded-xl border border-slate-200 bg-white/50 px-4 text-sm font-medium text-slate-700 shadow-sm outline-none transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:bg-white focus-visible:ring-2 focus-visible:ring-action/40 focus-visible:border-action"
             >
               <option value="all">All</option>
               <option value="in_stock">In stock</option>
@@ -151,12 +190,12 @@ export function InventoryPage() {
               <option value="out_of_stock">Out of stock</option>
             </select>
           </label>
-          <label className="flex min-w-52 flex-col gap-1 text-label-md">
-            Sort
+          <label className="flex flex-col gap-1.5 text-xs font-semibold uppercase tracking-wider text-slate-500">
+            <span className="flex items-center gap-1.5"><ArrowDownUp className="h-4 w-4" /> Sort</span>
             <select
               value={sortMode}
               onChange={(e) => setSortMode(e.target.value as SortMode)}
-              className="min-h-touchTarget-sm rounded-md border border-outline bg-surface px-stack-gap text-body-md"
+              className="h-11 w-full rounded-xl border border-slate-200 bg-white/50 px-4 text-sm font-medium text-slate-700 shadow-sm outline-none transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:bg-white focus-visible:ring-2 focus-visible:ring-action/40 focus-visible:border-action"
             >
               <option value="name">Product name</option>
               <option value="stock_asc">Stock low-to-high</option>
@@ -167,87 +206,92 @@ export function InventoryPage() {
       )}
 
       {items === null ? (
-        <div className="text-on-surface-variant">Loading...</div>
+        <div className="p-8 text-center text-sm font-medium text-slate-500">Loading...</div>
       ) : visibleItems.length === 0 && !shopScopeGuard.blocked ? (
-        <div className="rounded-md bg-surface-container p-stack-gap text-on-surface-variant">
+        <div className="rounded-xl border border-slate-200/50 bg-white/60 p-12 text-center text-sm font-medium text-slate-500 shadow-[0_8px_30px_rgb(0,0,0,0.02)] backdrop-blur-xl">
           No inventory rows match the current filters.
         </div>
       ) : visibleItems.length > 0 ? (
-        <div className="overflow-x-auto bg-surface-container">
-          <table className="w-full min-w-[960px] border-collapse" aria-label="Inventory table">
-            <thead>
-              <tr className="border-b border-outline text-label-md text-on-surface-variant">
-                <th className="px-stack-gap py-2 text-left">Product / brand</th>
-                <th className="px-stack-gap py-2 text-left">Size / variant</th>
-                <th className="px-stack-gap py-2 text-left">Barcode</th>
-                <th className="px-stack-gap py-2 text-right">Price</th>
-                <th className="px-stack-gap py-2 text-right">Available stock</th>
-                <th className="px-stack-gap py-2 text-right">Low-stock threshold</th>
-                <th className="px-stack-gap py-2 text-left">Stock state</th>
-                <th className="px-stack-gap py-2 text-right">Shortcuts</th>
-              </tr>
-            </thead>
-            <tbody>
-              {visibleItems.map((item) => {
-                const state = stockState(item);
-                return (
-                  <tr key={item.id} className="border-b border-outline/40">
-                    <td className="px-stack-gap py-2 font-medium">{item.brand}</td>
-                    <td className="px-stack-gap py-2">{item.size_label}</td>
-                    <td className="px-stack-gap py-2 font-mono text-label-md">{item.barcode}</td>
-                    <td className="px-stack-gap py-2 text-right font-mono">{money(item.price)}</td>
-                    <td className="px-stack-gap py-2 text-right font-mono">
-                      {item.current_stock}
-                    </td>
-                    <td className="px-stack-gap py-2 text-right font-mono">
-                      {item.low_stock_threshold ?? "--"}
-                    </td>
-                    <td className="px-stack-gap py-2">
-                      <span
-                        className={`inline-flex rounded-md px-2 py-1 text-label-md ${
-                          state === "out_of_stock"
-                            ? "bg-error text-on-error"
-                            : state === "low_stock"
-                              ? "bg-warning text-on-warning"
-                              : "bg-success text-on-secondary"
-                        }`}
-                      >
-                        {stockLabel(state)}
-                      </span>
-                    </td>
-                    <td className="px-stack-gap py-2">
-                      <div className="flex justify-end gap-2">
-                        {canReceive && (
-                          <Link
-                            to="/receiving"
-                            className="rounded-md bg-action px-stack-gap py-1 text-label-md text-on-action"
-                          >
-                            Receive
-                          </Link>
-                        )}
-                        {canCheckout && (
-                          <Link
-                            to="/checkout"
-                            className="rounded-md bg-action px-stack-gap py-1 text-label-md text-on-action"
-                          >
-                            Checkout
-                          </Link>
-                        )}
-                        {canEditProduct && (
-                          <Link
-                            to="/admin/products"
-                            className="rounded-md bg-primary px-stack-gap py-1 text-label-md text-on-primary"
-                          >
-                            Edit product
-                          </Link>
-                        )}
-                      </div>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+        <div className="overflow-hidden rounded-xl border border-slate-200/50 bg-white/60 shadow-[0_8px_30px_rgb(0,0,0,0.02)] backdrop-blur-xl">
+          <div className="overflow-x-auto">
+            <table className="app-list-table min-w-[1000px]" aria-label="Inventory table">
+              <thead className="bg-slate-50/80 text-[11px] uppercase tracking-widest text-slate-500">
+                <tr>
+                  <th className="px-6 py-4 font-semibold">Product / brand</th>
+                  <th className="px-6 py-4 font-semibold">Size / variant</th>
+                  <th className="px-6 py-4 font-semibold">Barcode</th>
+                  <th className="px-6 py-4 text-right font-semibold">Price</th>
+                  <th className="px-6 py-4 text-right font-semibold">Available stock</th>
+                  <th className="px-6 py-4 text-right font-semibold">Low-stock threshold</th>
+                  <th className="px-6 py-4 font-semibold">Stock state</th>
+                  <th className="px-6 py-4 text-right font-semibold">Shortcuts</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {visibleItems.map((item) => {
+                  const state = stockState(item);
+                  return (
+                    <tr key={item.id} className="group bg-white transition-colors duration-200 hover:bg-slate-50/50">
+                      <td className="px-6 py-4 font-medium text-slate-900">{item.brand}</td>
+                      <td className="px-6 py-4 text-slate-700">{item.size_label}</td>
+                      <td className="px-6 py-4 font-mono text-xs text-slate-500">{item.barcode}</td>
+                      <td className="px-6 py-4 text-right font-mono font-semibold text-slate-900">{money(item.price)}</td>
+                      <td className="px-6 py-4 text-right font-mono text-base font-bold text-slate-900">
+                        {item.current_stock}
+                      </td>
+                      <td className="px-6 py-4 text-right font-mono text-slate-500">
+                        {item.low_stock_threshold ?? "--"}
+                      </td>
+                      <td className="px-6 py-4">
+                        <span
+                          className={`inline-flex items-center rounded-md px-2.5 py-1 text-xs font-semibold ${
+                            state === "out_of_stock"
+                              ? "bg-red-50 text-red-700 ring-1 ring-red-600/20"
+                              : state === "low_stock"
+                                ? "bg-amber-50 text-amber-700 ring-1 ring-amber-600/20"
+                                : "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-600/20"
+                          }`}
+                        >
+                          {stockLabel(state)}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="flex items-center justify-end gap-1">
+                          {canReceive && (
+                            <Link
+                              to="/receiving"
+                              title="Stock Inward"
+                              className="flex h-8 w-8 items-center justify-center rounded-md bg-white text-action shadow-sm ring-1 ring-slate-200 transition-colors hover:bg-slate-50"
+                            >
+                              <ArrowDownToLine className="h-4 w-4" />
+                            </Link>
+                          )}
+                          {canCheckout && (
+                            <Link
+                              to="/checkout"
+                              title="Checkout"
+                              className="flex h-8 w-8 items-center justify-center rounded-md bg-white text-action shadow-sm ring-1 ring-slate-200 transition-colors hover:bg-slate-50"
+                            >
+                              <ShoppingCart className="h-4 w-4" />
+                            </Link>
+                          )}
+                          {canEditProduct && (
+                            <Link
+                              to="/admin/products"
+                              title="Edit product"
+                              className="flex h-8 w-8 items-center justify-center rounded-md bg-white text-slate-600 shadow-sm ring-1 ring-slate-200 transition-colors hover:bg-slate-50 hover:text-slate-900"
+                            >
+                              <Edit3 className="h-4 w-4" />
+                            </Link>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
         </div>
       ) : null}
     </div>

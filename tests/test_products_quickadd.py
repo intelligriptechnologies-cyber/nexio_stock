@@ -204,6 +204,9 @@ async def test_pending_product_can_be_received_into_lot(
         json={"lines": [{"barcode": "8900000000110", "quantity": 12}]},
     )
     assert lot_resp.status_code == 201, lot_resp.text
+    inward_id = lot_resp.json()["id"]
+    approved = await owner_client.post(f"/lots/{inward_id}/approve")
+    assert approved.status_code == 200, approved.text
     lot_body = lot_resp.json()
     assert len(lot_body["lines"]) == 1
     assert lot_body["lines"][0]["product_id"] == pending_id

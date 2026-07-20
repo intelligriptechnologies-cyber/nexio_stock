@@ -1,6 +1,7 @@
 """Invoice listing, validation, and editable-current-invoice workflow."""
 from __future__ import annotations
 
+from collections.abc import Sequence
 from dataclasses import dataclass
 from datetime import date
 from decimal import Decimal
@@ -18,7 +19,8 @@ from app.models.invoice import (
     PaymentMode,
 )
 from app.models.product import Product
-from app.services.checkout import CartLine, CheckoutError, PaymentLine
+from app.models.user import User
+from app.services.checkout import CartLine, CheckoutError, PaymentLine, validate_note_for_payments
 from app.services.stock import compute_derived_stock
 
 
@@ -36,6 +38,23 @@ class InvoiceEditResult:
     invoice: Invoice
     before: dict
     after: dict
+
+
+async def attach_cashier_names(
+    db: AsyncSession, invoices: Sequence[Invoice | PastInvoice]
+) -> None:
+    """Attach `cashier_name` to invoice ORM rows before serialization."""
+    if not invoices:
+        return
+    cashier_ids = {invoice.cashier_user_id for invoice in invoices}
+    rows = (
+        await db.execute(
+            select(User.id, User.full_name).where(User.id.in_(cashier_ids))
+        )
+    ).all()
+    cashier_name_by_id = {row.id: row.full_name for row in rows}
+    for invoice in invoices:
+        invoice.cashier_name = cashier_name_by_id.get(invoice.cashier_user_id)
 
 
 def _invoice_snapshot(invoice: Invoice) -> dict:
@@ -244,6 +263,7 @@ async def edit_current_invoice(
         line_specs.append((product, qty, line_total))
         total += line_total
     total = total.quantize(Decimal("0.01"))
+    validate_note_for_payments(payments=payments, note=note)
     paid = sum((payment.amount for payment in payments), Decimal("0")).quantize(Decimal("0.01"))
     if paid != total:
         raise CheckoutError("payment_mismatch", f"payment total {paid} does not match invoice total {total}")

@@ -10,6 +10,8 @@ export interface SettingsPublic {
   sidebar_menu_inactive_text_color: string;
   sidebar_menu_active_text_color: string;
   email_enabled: boolean;
+  cashier_login_restriction_enabled: boolean;
+  receiving_vendor_link_enabled: boolean;
   smtp_host: string | null;
   smtp_port: number | null;
   smtp_username: string | null;
@@ -19,6 +21,7 @@ export interface SettingsPublic {
   gstin: string | null;
   excise_duty_rate: string | null;
   low_stock_threshold_default: number | null;
+  allowed_login_cidrs: string[];
 }
 
 export interface SettingsUpdatePayload {
@@ -35,6 +38,9 @@ export interface SettingsUpdatePayload {
   smtp_from_email?: string | null;
   smtp_from_name?: string | null;
   smtp_use_tls?: boolean;
+  cashier_login_restriction_enabled?: boolean;
+  receiving_vendor_link_enabled?: boolean;
+  allowed_login_cidrs?: string[] | null;
   gstin?: string | null;
   excise_duty_rate?: string | null;
   low_stock_threshold_default?: number | null;

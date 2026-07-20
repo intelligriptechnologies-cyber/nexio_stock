@@ -1,0 +1,7 @@
+logged_at,event_type,shop_id,shop_name,actor_user_id,actor_name,lot_id,reference,notes,product_id,product_name_snapshot,barcode,quantity,current_price,row_total
+2026-07-12T22:55:36+05:30,lot.received,1,Shop One,3,Receiver One,1,,,1,Copy Brand 750ml,COPY-1,5,123.45,617.25
+2026-07-12T22:56:07+05:30,lot.received,1,Shop One,2,Receiver One,1,,,1,X 750ml,8908000000001,2,100.00,200.00
+2026-07-12T22:56:16+05:30,lot.received,1,Shop One,2,Receiver One,1,,,1,X 750ml,8908000000002,2,100.00,200.00
+2026-07-12T22:56:24+05:30,lot.received,1,Shop One,2,Receiver One,1,,,1,X 750ml,8908000000003,2,100.00,200.00
+2026-07-12T22:56:31+05:30,lot.received,1,Shop One,2,Receiver One,1,,,1,X 750ml,8908000000004,2,100.00,200.00
+2026-07-12T22:56:39+05:30,lot.received,1,Test Liquor Corner,2,Receiver One,1,,,1,X 750ml,8908000000005,2,100.00,200.00

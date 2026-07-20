@@ -22,6 +22,7 @@ from app.models.invoice import (
 from app.models.device import DeviceBinding
 from app.models.log import AdminLog, InvoicingLog, LogFileRetentionSetting, StockinLog
 from app.models.lot import Lot, LotLine
+from app.models.stock_inward import StockInward, StockInwardLine, StockInwardStatus
 from app.models.offline_session import (
     LOCKING_OFFLINE_STATES,
     OfflineSession,
@@ -57,6 +58,9 @@ __all__ = [
     "Product",
     "ProductStatus",
     "Shop",
+    "StockInward",
+    "StockInwardLine",
+    "StockInwardStatus",
     "StockinLog",
     "User",
     "UserRole",

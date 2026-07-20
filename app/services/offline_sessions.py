@@ -19,6 +19,7 @@ from app.models.offline_session import (
 )
 from app.models.product import Product, ProductStatus
 from app.models.shop import Shop
+from app.services.calendar import today_local_date
 from app.schemas.offline_session import (
     OfflineCatalogItem,
     OfflineReceiptIn,
@@ -174,7 +175,7 @@ async def start_offline_session(
         shop_id=shop_id,
         cashier_user_id=cashier_user_id,
         state=OfflineSessionState.ACTIVE,
-        baseline_business_date=shop.current_business_date,
+        baseline_business_date=today_local_date(),
         baseline_catalog_snapshot={
             "captured_at": now.isoformat(),
             "item_count": len(catalog),

@@ -20,6 +20,9 @@ export default {
       fontFamily: tokens.fontFamily as unknown as Record<string, string[]>,
       fontSize: tokens.fontSize as unknown as Record<string, [string, Record<string, string | number>]>,
       borderRadius: tokens.borderRadius as unknown as Record<string, string>,
+      boxShadow: tokens.boxShadow as unknown as Record<string, string>,
+      transitionDuration: tokens.transitionDuration as unknown as Record<string, string>,
+      zIndex: tokens.zIndex as unknown as Record<string, string>,
       spacing: tokens.spacing as unknown as Record<string, string>,
       minHeight: {
         touchTarget: tokens.touchTarget.DEFAULT,

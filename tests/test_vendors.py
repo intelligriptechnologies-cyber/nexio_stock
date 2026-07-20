@@ -127,6 +127,8 @@ async def test_historical_lot_still_shows_deactivated_vendor(
     )
     assert lot.status_code == 201, lot.text
     lot_id = lot.json()["id"]
+    approved = await owner_client.post(f"/lots/{lot_id}/approve")
+    assert approved.status_code == 200, approved.text
 
     deactivated = await owner_client.patch(f"/vendors/{vendor_id}", json={"is_active": False})
     assert deactivated.status_code == 200, deactivated.text

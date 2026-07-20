@@ -1,0 +1,6 @@
+logged_at,event_type,shop_id,shop_name,actor_user_id,actor_name,invoice_id,invoice_number,source,product_id,product_name_snapshot,barcode,quantity,unit_price,line_total,invoice_total,payment_mode,payment_details
+2026-07-12T22:56:08+05:30,invoice.finalized,1,Shop One,3,Cashier One,1,1,checkout,1,X 750ml,8908000000001,1,100.00,100.00,100.00,cash,"[{""amount"": ""100.00"", ""mode"": ""cash""}]"
+2026-07-12T22:56:17+05:30,invoice.finalized,1,Shop One,3,Cashier One,1,1,checkout,1,X 750ml,8908000000002,1,100.00,100.00,100.00,cash,"[{""amount"": ""100.00"", ""mode"": ""cash""}]"
+2026-07-12T22:56:25+05:30,invoice.finalized,1,Shop One,3,Cashier One,1,1,checkout,1,X 750ml,8908000000003,1,100.00,100.00,100.00,cash,"[{""amount"": ""100.00"", ""mode"": ""cash""}]"
+2026-07-12T22:56:32+05:30,invoice.finalized,1,Shop One,3,Cashier One,1,1,checkout,1,X 750ml,8908000000004,1,100.00,100.00,100.00,cash,"[{""amount"": ""100.00"", ""mode"": ""cash""}]"
+2026-07-12T22:56:40+05:30,invoice.finalized,1,Test Liquor Corner,3,Cashier One,1,1,checkout,1,X 750ml,8908000000005,1,100.00,100.00,100.00,cash,"[{""amount"": ""100.00"", ""mode"": ""cash""}]"

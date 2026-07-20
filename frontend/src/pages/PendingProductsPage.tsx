@@ -6,6 +6,7 @@
 // the product becomes sellable at checkout.
 
 import { useCallback, useEffect, useState } from "react";
+import { Clock, RefreshCw, Pencil, XCircle, CheckCircle2 } from "lucide-react";
 import { ApiError } from "../api/client";
 import {
   activateProduct,
@@ -146,10 +147,12 @@ export function PendingProductsPage() {
   };
 
   return (
-    <div className="flex flex-col gap-gutter">
-      <header className="flex flex-wrap items-center justify-between gap-stack-gap">
-        <h1 className="text-headline-lg text-primary">Pending</h1>
-        <div className="flex items-center gap-stack-gap text-label-md text-on-surface-variant">
+    <div className="flex flex-col gap-8 font-sans">
+      <header className="flex flex-wrap items-center justify-between gap-4 rounded-xl border border-slate-200/50 bg-white/60 p-6 shadow-[0_8px_30px_rgb(0,0,0,0.02)] backdrop-blur-xl">
+        <h1 className="flex items-center gap-3 text-2xl font-bold tracking-tight text-slate-900">
+          <Clock className="h-6 w-6 text-action" /> Pending
+        </h1>
+        <div className="flex items-center gap-4 text-sm font-medium text-slate-500">
           <span>
             {rows.length === 0
               ? "No products pending."
@@ -158,83 +161,78 @@ export function PendingProductsPage() {
           <button
             type="button"
             onClick={() => void reload()}
-            className="rounded-md bg-surface-container-high px-stack-gap py-1 text-on-surface-variant"
+            className="group flex h-10 items-center justify-center rounded-xl bg-white px-5 text-sm font-semibold tracking-wide text-slate-700 shadow-sm ring-1 ring-slate-200 transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:scale-[1.02] hover:bg-slate-50 hover:shadow-md active:scale-[0.97] disabled:opacity-50"
             disabled={loading}
           >
-            {loading ? "Refreshing…" : "Refresh"}
+            <RefreshCw className={`h-4 w-4 text-slate-400 transition-transform duration-300 group-hover:rotate-180 ${loading ? "animate-spin" : ""}`} />
+            <span className="ml-2">Refresh</span>
           </button>
         </div>
       </header>
 
       {error && (
-        <div
-          role="alert"
-          className="rounded-md bg-error px-stack-gap py-3 text-on-error"
-        >
+        <div role="alert" className="rounded-xl bg-red-50 px-4 py-3 text-sm font-medium text-red-600 ring-1 ring-red-200">
           {error}
         </div>
       )}
       {info && (
-        <div
-          role="status"
-          className="rounded-md bg-success px-stack-gap py-3 text-on-secondary"
-        >
+        <div role="status" className="rounded-xl bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-600 ring-1 ring-emerald-200">
           {info}
         </div>
       )}
 
-      <ul className="flex flex-col gap-stack-gap">
+      <ul className="flex flex-col gap-4">
         {rows.length === 0 && !loading && !error && (
-          <li className="rounded-md bg-surface p-stack-gap text-center text-on-surface-variant">
+          <li className="rounded-xl border border-dashed border-slate-300 bg-white/50 py-12 text-center text-sm font-medium text-slate-500">
             Nothing pending. Quick-added products will appear here until you set a price.
           </li>
         )}
         {rows.map((row) => (
           <li
             key={row.id}
-            className="rounded-md bg-surface-container p-stack-gap shadow-sm"
+            className="rounded-xl border border-slate-200/50 bg-white/60 p-6 shadow-[0_8px_30px_rgb(0,0,0,0.02)] backdrop-blur-xl transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:shadow-md"
             data-testid="pending-row"
             data-pending-id={row.id}
           >
-            <div className="flex flex-wrap items-start justify-between gap-stack-gap">
+            <div className="flex flex-wrap items-start justify-between gap-6">
               <div className="flex flex-col">
-                <span className="text-label-xl text-on-surface">
-                  {row.brand} <span className="text-on-surface-variant">· {row.size_label}</span>
+                <span className="text-xl font-bold tracking-tight text-slate-900">
+                  {row.brand} <span className="text-slate-400">· {row.size_label}</span>
                 </span>
-                <span className="font-mono text-label-md text-on-surface-variant">
+                <span className="font-mono text-sm text-slate-500">
                   {row.barcode}
                 </span>
-                <div className="mt-1 flex flex-wrap gap-stack-gap text-label-md text-on-surface-variant">
+                <div className="mt-2 flex flex-wrap items-center gap-3 text-xs font-semibold uppercase tracking-wider text-slate-500">
                   <span>
                     Added by{" "}
-                    <span className="text-on-surface">
+                    <span className="text-slate-700">
                       {row.last_event_actor_name ?? "Unknown"}
                     </span>{" "}
                     via{" "}
-                    <span className="text-on-surface">
+                    <span className="text-slate-700">
                       {originLabel(row.last_event_origin)}
                     </span>
                   </span>
-                  <span aria-hidden="true">·</span>
+                  <span aria-hidden="true" className="text-slate-300">·</span>
                   <span>{formatTimestamp(row.created_at)}</span>
                 </div>
               </div>
               {!editing || editing.productId !== row.id ? (
-                <div className="flex gap-stack-gap">
+                <div className="flex gap-3">
                   <button
                     type="button"
                     onClick={() => startEdit(row)}
-                    className="min-h-touchTarget-sm rounded-md bg-action px-gutter text-label-md text-on-action"
+                    className="flex h-10 items-center justify-center gap-2 rounded-xl bg-action px-5 text-sm font-semibold tracking-wide text-white shadow-sm transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:-translate-y-0.5 hover:shadow-[var(--color-action)]/30 active:scale-[0.97]"
                   >
-                    Edit
+                    <Pencil className="h-4 w-4" /> Edit
                   </button>
                   <button
                     type="button"
                     onClick={() => void submitReject(row)}
                     disabled={busyId === row.id}
-                    className="min-h-touchTarget-sm rounded-md bg-error px-gutter text-label-md text-on-error disabled:opacity-50"
+                    className="flex h-10 items-center justify-center gap-2 rounded-xl bg-red-50 px-5 text-sm font-semibold tracking-wide text-red-600 shadow-sm ring-1 ring-red-200 transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:bg-red-100 disabled:opacity-50"
                   >
-                    Reject
+                    <XCircle className="h-4 w-4" /> Reject
                   </button>
                 </div>
               ) : null}
@@ -242,10 +240,10 @@ export function PendingProductsPage() {
             {editing && editing.productId === row.id && (
               <form
                 onSubmit={submitActivate}
-                className="mt-stack-gap flex flex-col gap-stack-gap rounded-md bg-surface p-stack-gap"
+                className="mt-6 flex flex-col gap-6 rounded-2xl bg-slate-50 p-6 ring-1 ring-slate-200/50"
               >
-                <div className="grid gap-stack-gap md:grid-cols-2">
-                  <label className="flex flex-col gap-1 text-label-md">
+                <div className="grid gap-6 md:grid-cols-2">
+                  <label className="flex flex-col gap-1.5 text-xs font-semibold uppercase tracking-wider text-slate-500">
                     Brand/name
                     <input
                       type="text"
@@ -255,10 +253,10 @@ export function PendingProductsPage() {
                         setEditing({ ...editing, brand: e.target.value })
                       }
                       autoFocus
-                      className="min-h-touchTarget-sm rounded-md border border-outline bg-surface px-stack-gap text-body-md"
+                      className="h-11 w-full rounded-xl border border-slate-200 bg-white/50 px-4 text-sm font-medium text-slate-700 shadow-sm outline-none transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:bg-white focus:border-action focus:ring-1 focus:ring-action"
                     />
                   </label>
-                  <label className="flex flex-col gap-1 text-label-md">
+                  <label className="flex flex-col gap-1.5 text-xs font-semibold uppercase tracking-wider text-slate-500">
                     ML/Mg/size
                     <input
                       type="text"
@@ -267,10 +265,10 @@ export function PendingProductsPage() {
                       onChange={(e) =>
                         setEditing({ ...editing, sizeLabel: e.target.value })
                       }
-                      className="min-h-touchTarget-sm rounded-md border border-outline bg-surface px-stack-gap text-body-md"
+                      className="h-11 w-full rounded-xl border border-slate-200 bg-white/50 px-4 text-sm font-medium text-slate-700 shadow-sm outline-none transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:bg-white focus:border-action focus:ring-1 focus:ring-action"
                     />
                   </label>
-                  <label className="flex flex-col gap-1 text-label-md">
+                  <label className="flex flex-col gap-1.5 text-xs font-semibold uppercase tracking-wider text-slate-500">
                     Price (₹)
                     <input
                       type="number"
@@ -282,10 +280,10 @@ export function PendingProductsPage() {
                         setEditing({ ...editing, price: e.target.value })
                       }
                       autoFocus
-                      className="min-h-touchTarget-sm rounded-md border border-outline bg-surface px-stack-gap text-body-md"
+                      className="h-11 w-full rounded-xl border border-slate-200 bg-white/50 px-4 text-sm font-medium text-slate-700 shadow-sm outline-none transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:bg-white focus:border-action focus:ring-1 focus:ring-action"
                     />
                   </label>
-                  <label className="flex flex-col gap-1 text-label-md">
+                  <label className="flex flex-col gap-1.5 text-xs font-semibold uppercase tracking-wider text-slate-500">
                     Low-stock threshold (optional)
                     <input
                       type="number"
@@ -296,24 +294,25 @@ export function PendingProductsPage() {
                         setEditing({ ...editing, threshold: e.target.value })
                       }
                       placeholder="e.g. 5"
-                      className="min-h-touchTarget-sm rounded-md border border-outline bg-surface px-stack-gap text-body-md"
+                      className="h-11 w-full rounded-xl border border-slate-200 bg-white/50 px-4 text-sm font-medium text-slate-700 shadow-sm outline-none transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:bg-white focus:border-action focus:ring-1 focus:ring-action"
                     />
                   </label>
                 </div>
-                <div className="flex gap-stack-gap">
+                <div className="flex gap-4">
                   <button
                     type="button"
                     onClick={cancelEdit}
-                    className="min-h-touchTarget-sm flex-1 rounded-md bg-surface-container-high text-label-md text-on-surface"
+                    className="flex h-11 flex-1 items-center justify-center rounded-xl bg-white text-sm font-semibold tracking-wide text-slate-700 shadow-sm ring-1 ring-slate-200 transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:bg-slate-50 active:scale-[0.97] disabled:pointer-events-none disabled:opacity-50"
                     disabled={busyId === row.id}
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
-                    className="min-h-touchTarget-sm flex-1 rounded-md bg-action text-label-md text-on-action disabled:opacity-50"
+                    className="flex h-11 flex-1 items-center justify-center gap-2 rounded-xl bg-action text-sm font-bold tracking-wide text-white shadow-sm transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:-translate-y-0.5 hover:shadow-[var(--color-action)]/30 active:scale-[0.97] disabled:pointer-events-none disabled:opacity-50"
                     disabled={busyId === row.id}
                   >
+                    <CheckCircle2 className="h-4 w-4" />
                     {busyId === row.id ? "Activating…" : "Activate"}
                   </button>
                 </div>

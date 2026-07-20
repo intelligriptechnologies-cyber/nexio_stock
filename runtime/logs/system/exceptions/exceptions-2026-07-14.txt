@@ -1,0 +1,2325 @@
+[2026-07-14T17:05:03+05:30] Unhandled exception during GET /dashboard/void-queue; user=1; shop=unknown; ProgrammingError: (sqlalchemy.dialects.postgresql.asyncpg.ProgrammingError) <class 'asyncpg.exceptions.UndefinedColumnError'>: column shops.cashier_login_restriction_enabled does not exist
+[SQL: SELECT shops.id AS shops_id, shops.name AS shops_name, shops.code AS shops_code, shops.low_stock_threshold_default AS shops_low_stock_threshold_default, shops.last_invoice_number AS shops_last_invoice_number, shops.current_business_date AS shops_current_business_date, shops.gstin AS shops_gstin, shops.excise_duty_rate AS shops_excise_duty_rate, shops.app_display_name AS shops_app_display_name, shops.action_color AS shops_action_color, shops.sidebar_menu_inactive_text_color AS shops_sidebar_menu_inactive_text_color, shops.sidebar_menu_active_text_color AS shops_sidebar_menu_active_text_color, shops.active_tab_color AS shops_active_tab_color, shops.email_enabled AS shops_email_enabled, shops.cashier_login_restriction_enabled AS shops_cashier_login_restriction_enabled, shops.receiving_vendor_link_enabled AS shops_receiving_vendor_link_enabled, shops.allowed_login_cidrs AS shops_allowed_login_cidrs, shops.smtp_host AS shops_smtp_host, shops.smtp_port AS shops_smtp_port, shops.smtp_username AS shops_smtp_username, shops.smtp_password AS shops_smtp_password, shops.smtp_from_email AS shops_smtp_from_email, shops.smtp_from_name AS shops_smtp_from_name, shops.smtp_use_tls AS shops_smtp_use_tls, shops.created_at AS shops_created_at, shops.updated_at AS shops_updated_at 
+FROM shops 
+WHERE shops.id = $1::INTEGER]
+[parameters: (2,)]
+(Background on this error at: https://sqlalche.me/e/20/f405)
+Traceback (most recent call last):
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\dialects\postgresql\asyncpg.py", line 526, in _prepare_and_execute
+    prepared_stmt, attributes = await adapt_connection._prepare(
+                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\dialects\postgresql\asyncpg.py", line 773, in _prepare
+    prepared_stmt = await self._connection.prepare(
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\asyncpg\connection.py", line 638, in prepare
+    return await self._prepare(
+           ^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\asyncpg\connection.py", line 657, in _prepare
+    stmt = await self._get_statement(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\asyncpg\connection.py", line 443, in _get_statement
+    statement = await self._protocol.prepare(
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "asyncpg/protocol/protocol.pyx", line 165, in prepare
+asyncpg.exceptions.UndefinedColumnError: column shops.cashier_login_restriction_enabled does not exist
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\engine\base.py", line 1969, in _exec_single_context
+    self.dialect.do_execute(
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\engine\default.py", line 952, in do_execute
+    cursor.execute(statement, parameters)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\dialects\postgresql\asyncpg.py", line 585, in execute
+    self._adapt_connection.await_(
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\util\_concurrency_py3k.py", line 132, in await_only
+    return current.parent.switch(awaitable)  # type: ignore[no-any-return,attr-defined] # noqa: E501
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\util\_concurrency_py3k.py", line 196, in greenlet_spawn
+    value = await result
+            ^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\dialects\postgresql\asyncpg.py", line 563, in _prepare_and_execute
+    self._handle_exception(error)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\dialects\postgresql\asyncpg.py", line 513, in _handle_exception
+    self._adapt_connection._handle_exception(error)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\dialects\postgresql\asyncpg.py", line 797, in _handle_exception
+    raise translated_error from error
+sqlalchemy.dialects.postgresql.asyncpg.AsyncAdapt_asyncpg_dbapi.ProgrammingError: <class 'asyncpg.exceptions.UndefinedColumnError'>: column shops.cashier_login_restriction_enabled does not exist
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\middleware\errors.py", line 164, in __call__
+    await self.app(scope, receive, _send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\middleware\cors.py", line 96, in __call__
+    await self.simple_response(scope, receive, send, request_headers=headers)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\middleware\cors.py", line 154, in simple_response
+    await self.app(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\middleware\exceptions.py", line 63, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\middleware\asyncexitstack.py", line 18, in __call__
+    await self.app(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\routing.py", line 660, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 2683, in app
+    await route.handle(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 1753, in handle
+    await self.original_router.handle(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 2738, in handle
+    await included_router._handle_selected(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 1773, in _handle_selected
+    await original_route.handle(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 1264, in handle
+    await app(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 150, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 136, in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 690, in app
+    raw_response = await run_endpoint_function(
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 344, in run_endpoint_function
+    return await dependant.call(**values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\app\api\dashboard.py", line 231, in void_queue
+    actor_shop_id = await resolve_write_shop_id(db, _user, shop_id)
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\app\api\deps.py", line 115, in resolve_write_shop_id
+    shop = await db.get(Shop, requested_shop_id)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\ext\asyncio\session.py", line 591, in get
+    return await greenlet_spawn(
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\util\_concurrency_py3k.py", line 201, in greenlet_spawn
+    result = context.throw(*sys.exc_info())
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\orm\session.py", line 3702, in get
+    return self._get_impl(
+           ^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\orm\session.py", line 3881, in _get_impl
+    return db_load_fn(
+           ^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\orm\loading.py", line 695, in load_on_pk_identity
+    session.execute(
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\orm\session.py", line 2373, in execute
+    return self._execute_internal(
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\orm\session.py", line 2271, in _execute_internal
+    result: Result[Any] = compile_state_cls.orm_execute_statement(
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\orm\context.py", line 306, in orm_execute_statement
+    result = conn.execute(
+             ^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\engine\base.py", line 1421, in execute
+    return meth(
+           ^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\sql\elements.py", line 526, in _execute_on_connection
+    return connection._execute_clauseelement(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\engine\base.py", line 1643, in _execute_clauseelement
+    ret = self._execute_context(
+          ^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\engine\base.py", line 1848, in _execute_context
+    return self._exec_single_context(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\engine\base.py", line 1988, in _exec_single_context
+    self._handle_dbapi_exception(
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\engine\base.py", line 2365, in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\engine\base.py", line 1969, in _exec_single_context
+    self.dialect.do_execute(
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\engine\default.py", line 952, in do_execute
+    cursor.execute(statement, parameters)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\dialects\postgresql\asyncpg.py", line 585, in execute
+    self._adapt_connection.await_(
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\util\_concurrency_py3k.py", line 132, in await_only
+    return current.parent.switch(awaitable)  # type: ignore[no-any-return,attr-defined] # noqa: E501
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\util\_concurrency_py3k.py", line 196, in greenlet_spawn
+    value = await result
+            ^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\dialects\postgresql\asyncpg.py", line 563, in _prepare_and_execute
+    self._handle_exception(error)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\dialects\postgresql\asyncpg.py", line 513, in _handle_exception
+    self._adapt_connection._handle_exception(error)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\dialects\postgresql\asyncpg.py", line 797, in _handle_exception
+    raise translated_error from error
+sqlalchemy.exc.ProgrammingError: (sqlalchemy.dialects.postgresql.asyncpg.ProgrammingError) <class 'asyncpg.exceptions.UndefinedColumnError'>: column shops.cashier_login_restriction_enabled does not exist
+[SQL: SELECT shops.id AS shops_id, shops.name AS shops_name, shops.code AS shops_code, shops.low_stock_threshold_default AS shops_low_stock_threshold_default, shops.last_invoice_number AS shops_last_invoice_number, shops.current_business_date AS shops_current_business_date, shops.gstin AS shops_gstin, shops.excise_duty_rate AS shops_excise_duty_rate, shops.app_display_name AS shops_app_display_name, shops.action_color AS shops_action_color, shops.sidebar_menu_inactive_text_color AS shops_sidebar_menu_inactive_text_color, shops.sidebar_menu_active_text_color AS shops_sidebar_menu_active_text_color, shops.active_tab_color AS shops_active_tab_color, shops.email_enabled AS shops_email_enabled, shops.cashier_login_restriction_enabled AS shops_cashier_login_restriction_enabled, shops.receiving_vendor_link_enabled AS shops_receiving_vendor_link_enabled, shops.allowed_login_cidrs AS shops_allowed_login_cidrs, shops.smtp_host AS shops_smtp_host, shops.smtp_port AS shops_smtp_port, shops.smtp_username AS shops_smtp_username, shops.smtp_password AS shops_smtp_password, shops.smtp_from_email AS shops_smtp_from_email, shops.smtp_from_name AS shops_smtp_from_name, shops.smtp_use_tls AS shops_smtp_use_tls, shops.created_at AS shops_created_at, shops.updated_at AS shops_updated_at 
+FROM shops 
+WHERE shops.id = $1::INTEGER]
+[parameters: (2,)]
+(Background on this error at: https://sqlalche.me/e/20/f405)
+[2026-07-14T17:07:31+05:30] Unhandled exception during GET /shops; user=1; shop=unknown; ProgrammingError: (sqlalchemy.dialects.postgresql.asyncpg.ProgrammingError) <class 'asyncpg.exceptions.UndefinedColumnError'>: column shops.cashier_login_restriction_enabled does not exist
+[SQL: SELECT shops.id, shops.name, shops.code, shops.low_stock_threshold_default, shops.last_invoice_number, shops.current_business_date, shops.gstin, shops.excise_duty_rate, shops.app_display_name, shops.action_color, shops.sidebar_menu_inactive_text_color, shops.sidebar_menu_active_text_color, shops.active_tab_color, shops.email_enabled, shops.cashier_login_restriction_enabled, shops.receiving_vendor_link_enabled, shops.allowed_login_cidrs, shops.smtp_host, shops.smtp_port, shops.smtp_username, shops.smtp_password, shops.smtp_from_email, shops.smtp_from_name, shops.smtp_use_tls, shops.created_at, shops.updated_at 
+FROM shops ORDER BY shops.name]
+(Background on this error at: https://sqlalche.me/e/20/f405)
+Traceback (most recent call last):
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\dialects\postgresql\asyncpg.py", line 526, in _prepare_and_execute
+    prepared_stmt, attributes = await adapt_connection._prepare(
+                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\dialects\postgresql\asyncpg.py", line 773, in _prepare
+    prepared_stmt = await self._connection.prepare(
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\asyncpg\connection.py", line 638, in prepare
+    return await self._prepare(
+           ^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\asyncpg\connection.py", line 657, in _prepare
+    stmt = await self._get_statement(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\asyncpg\connection.py", line 443, in _get_statement
+    statement = await self._protocol.prepare(
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "asyncpg/protocol/protocol.pyx", line 165, in prepare
+asyncpg.exceptions.UndefinedColumnError: column shops.cashier_login_restriction_enabled does not exist
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\engine\base.py", line 1969, in _exec_single_context
+    self.dialect.do_execute(
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\engine\default.py", line 952, in do_execute
+    cursor.execute(statement, parameters)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\dialects\postgresql\asyncpg.py", line 585, in execute
+    self._adapt_connection.await_(
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\util\_concurrency_py3k.py", line 132, in await_only
+    return current.parent.switch(awaitable)  # type: ignore[no-any-return,attr-defined] # noqa: E501
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\util\_concurrency_py3k.py", line 196, in greenlet_spawn
+    value = await result
+            ^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\dialects\postgresql\asyncpg.py", line 563, in _prepare_and_execute
+    self._handle_exception(error)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\dialects\postgresql\asyncpg.py", line 513, in _handle_exception
+    self._adapt_connection._handle_exception(error)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\dialects\postgresql\asyncpg.py", line 797, in _handle_exception
+    raise translated_error from error
+sqlalchemy.dialects.postgresql.asyncpg.AsyncAdapt_asyncpg_dbapi.ProgrammingError: <class 'asyncpg.exceptions.UndefinedColumnError'>: column shops.cashier_login_restriction_enabled does not exist
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\middleware\errors.py", line 164, in __call__
+    await self.app(scope, receive, _send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\middleware\cors.py", line 96, in __call__
+    await self.simple_response(scope, receive, send, request_headers=headers)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\middleware\cors.py", line 154, in simple_response
+    await self.app(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\middleware\exceptions.py", line 63, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\middleware\asyncexitstack.py", line 18, in __call__
+    await self.app(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\routing.py", line 660, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 2683, in app
+    await route.handle(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 1753, in handle
+    await self.original_router.handle(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 2738, in handle
+    await included_router._handle_selected(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 1773, in _handle_selected
+    await original_route.handle(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 1264, in handle
+    await app(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 150, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 136, in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 690, in app
+    raw_response = await run_endpoint_function(
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 344, in run_endpoint_function
+    return await dependant.call(**values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\app\api\shops.py", line 65, in list_shops
+    rows = (await db.execute(select(Shop).order_by(Shop.name))).scalars().all()
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\ext\asyncio\session.py", line 448, in execute
+    result = await greenlet_spawn(
+             ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\util\_concurrency_py3k.py", line 201, in greenlet_spawn
+    result = context.throw(*sys.exc_info())
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\orm\session.py", line 2373, in execute
+    return self._execute_internal(
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\orm\session.py", line 2271, in _execute_internal
+    result: Result[Any] = compile_state_cls.orm_execute_statement(
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\orm\context.py", line 306, in orm_execute_statement
+    result = conn.execute(
+             ^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\engine\base.py", line 1421, in execute
+    return meth(
+           ^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\sql\elements.py", line 526, in _execute_on_connection
+    return connection._execute_clauseelement(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\engine\base.py", line 1643, in _execute_clauseelement
+    ret = self._execute_context(
+          ^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\engine\base.py", line 1848, in _execute_context
+    return self._exec_single_context(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\engine\base.py", line 1988, in _exec_single_context
+    self._handle_dbapi_exception(
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\engine\base.py", line 2365, in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\engine\base.py", line 1969, in _exec_single_context
+    self.dialect.do_execute(
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\engine\default.py", line 952, in do_execute
+    cursor.execute(statement, parameters)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\dialects\postgresql\asyncpg.py", line 585, in execute
+    self._adapt_connection.await_(
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\util\_concurrency_py3k.py", line 132, in await_only
+    return current.parent.switch(awaitable)  # type: ignore[no-any-return,attr-defined] # noqa: E501
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\util\_concurrency_py3k.py", line 196, in greenlet_spawn
+    value = await result
+            ^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\dialects\postgresql\asyncpg.py", line 563, in _prepare_and_execute
+    self._handle_exception(error)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\dialects\postgresql\asyncpg.py", line 513, in _handle_exception
+    self._adapt_connection._handle_exception(error)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\dialects\postgresql\asyncpg.py", line 797, in _handle_exception
+    raise translated_error from error
+sqlalchemy.exc.ProgrammingError: (sqlalchemy.dialects.postgresql.asyncpg.ProgrammingError) <class 'asyncpg.exceptions.UndefinedColumnError'>: column shops.cashier_login_restriction_enabled does not exist
+[SQL: SELECT shops.id, shops.name, shops.code, shops.low_stock_threshold_default, shops.last_invoice_number, shops.current_business_date, shops.gstin, shops.excise_duty_rate, shops.app_display_name, shops.action_color, shops.sidebar_menu_inactive_text_color, shops.sidebar_menu_active_text_color, shops.active_tab_color, shops.email_enabled, shops.cashier_login_restriction_enabled, shops.receiving_vendor_link_enabled, shops.allowed_login_cidrs, shops.smtp_host, shops.smtp_port, shops.smtp_username, shops.smtp_password, shops.smtp_from_email, shops.smtp_from_name, shops.smtp_use_tls, shops.created_at, shops.updated_at 
+FROM shops ORDER BY shops.name]
+(Background on this error at: https://sqlalche.me/e/20/f405)
+[2026-07-14T17:07:31+05:30] Unhandled exception during GET /shops; user=1; shop=unknown; ProgrammingError: (sqlalchemy.dialects.postgresql.asyncpg.ProgrammingError) <class 'asyncpg.exceptions.UndefinedColumnError'>: column shops.cashier_login_restriction_enabled does not exist
+[SQL: SELECT shops.id, shops.name, shops.code, shops.low_stock_threshold_default, shops.last_invoice_number, shops.current_business_date, shops.gstin, shops.excise_duty_rate, shops.app_display_name, shops.action_color, shops.sidebar_menu_inactive_text_color, shops.sidebar_menu_active_text_color, shops.active_tab_color, shops.email_enabled, shops.cashier_login_restriction_enabled, shops.receiving_vendor_link_enabled, shops.allowed_login_cidrs, shops.smtp_host, shops.smtp_port, shops.smtp_username, shops.smtp_password, shops.smtp_from_email, shops.smtp_from_name, shops.smtp_use_tls, shops.created_at, shops.updated_at 
+FROM shops ORDER BY shops.name]
+(Background on this error at: https://sqlalche.me/e/20/f405)
+Traceback (most recent call last):
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\dialects\postgresql\asyncpg.py", line 526, in _prepare_and_execute
+    prepared_stmt, attributes = await adapt_connection._prepare(
+                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\dialects\postgresql\asyncpg.py", line 773, in _prepare
+    prepared_stmt = await self._connection.prepare(
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\asyncpg\connection.py", line 638, in prepare
+    return await self._prepare(
+           ^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\asyncpg\connection.py", line 657, in _prepare
+    stmt = await self._get_statement(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\asyncpg\connection.py", line 443, in _get_statement
+    statement = await self._protocol.prepare(
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "asyncpg/protocol/protocol.pyx", line 165, in prepare
+asyncpg.exceptions.UndefinedColumnError: column shops.cashier_login_restriction_enabled does not exist
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\engine\base.py", line 1969, in _exec_single_context
+    self.dialect.do_execute(
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\engine\default.py", line 952, in do_execute
+    cursor.execute(statement, parameters)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\dialects\postgresql\asyncpg.py", line 585, in execute
+    self._adapt_connection.await_(
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\util\_concurrency_py3k.py", line 132, in await_only
+    return current.parent.switch(awaitable)  # type: ignore[no-any-return,attr-defined] # noqa: E501
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\util\_concurrency_py3k.py", line 196, in greenlet_spawn
+    value = await result
+            ^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\dialects\postgresql\asyncpg.py", line 563, in _prepare_and_execute
+    self._handle_exception(error)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\dialects\postgresql\asyncpg.py", line 513, in _handle_exception
+    self._adapt_connection._handle_exception(error)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\dialects\postgresql\asyncpg.py", line 797, in _handle_exception
+    raise translated_error from error
+sqlalchemy.dialects.postgresql.asyncpg.AsyncAdapt_asyncpg_dbapi.ProgrammingError: <class 'asyncpg.exceptions.UndefinedColumnError'>: column shops.cashier_login_restriction_enabled does not exist
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\middleware\errors.py", line 164, in __call__
+    await self.app(scope, receive, _send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\middleware\cors.py", line 96, in __call__
+    await self.simple_response(scope, receive, send, request_headers=headers)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\middleware\cors.py", line 154, in simple_response
+    await self.app(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\middleware\exceptions.py", line 63, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\middleware\asyncexitstack.py", line 18, in __call__
+    await self.app(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\routing.py", line 660, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 2683, in app
+    await route.handle(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 1753, in handle
+    await self.original_router.handle(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 2738, in handle
+    await included_router._handle_selected(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 1773, in _handle_selected
+    await original_route.handle(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 1264, in handle
+    await app(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 150, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 136, in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 690, in app
+    raw_response = await run_endpoint_function(
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 344, in run_endpoint_function
+    return await dependant.call(**values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\app\api\shops.py", line 65, in list_shops
+    rows = (await db.execute(select(Shop).order_by(Shop.name))).scalars().all()
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\ext\asyncio\session.py", line 448, in execute
+    result = await greenlet_spawn(
+             ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\util\_concurrency_py3k.py", line 201, in greenlet_spawn
+    result = context.throw(*sys.exc_info())
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\orm\session.py", line 2373, in execute
+    return self._execute_internal(
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\orm\session.py", line 2271, in _execute_internal
+    result: Result[Any] = compile_state_cls.orm_execute_statement(
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\orm\context.py", line 306, in orm_execute_statement
+    result = conn.execute(
+             ^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\engine\base.py", line 1421, in execute
+    return meth(
+           ^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\sql\elements.py", line 526, in _execute_on_connection
+    return connection._execute_clauseelement(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\engine\base.py", line 1643, in _execute_clauseelement
+    ret = self._execute_context(
+          ^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\engine\base.py", line 1848, in _execute_context
+    return self._exec_single_context(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\engine\base.py", line 1988, in _exec_single_context
+    self._handle_dbapi_exception(
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\engine\base.py", line 2365, in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\engine\base.py", line 1969, in _exec_single_context
+    self.dialect.do_execute(
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\engine\default.py", line 952, in do_execute
+    cursor.execute(statement, parameters)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\dialects\postgresql\asyncpg.py", line 585, in execute
+    self._adapt_connection.await_(
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\util\_concurrency_py3k.py", line 132, in await_only
+    return current.parent.switch(awaitable)  # type: ignore[no-any-return,attr-defined] # noqa: E501
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\util\_concurrency_py3k.py", line 196, in greenlet_spawn
+    value = await result
+            ^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\dialects\postgresql\asyncpg.py", line 563, in _prepare_and_execute
+    self._handle_exception(error)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\dialects\postgresql\asyncpg.py", line 513, in _handle_exception
+    self._adapt_connection._handle_exception(error)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\dialects\postgresql\asyncpg.py", line 797, in _handle_exception
+    raise translated_error from error
+sqlalchemy.exc.ProgrammingError: (sqlalchemy.dialects.postgresql.asyncpg.ProgrammingError) <class 'asyncpg.exceptions.UndefinedColumnError'>: column shops.cashier_login_restriction_enabled does not exist
+[SQL: SELECT shops.id, shops.name, shops.code, shops.low_stock_threshold_default, shops.last_invoice_number, shops.current_business_date, shops.gstin, shops.excise_duty_rate, shops.app_display_name, shops.action_color, shops.sidebar_menu_inactive_text_color, shops.sidebar_menu_active_text_color, shops.active_tab_color, shops.email_enabled, shops.cashier_login_restriction_enabled, shops.receiving_vendor_link_enabled, shops.allowed_login_cidrs, shops.smtp_host, shops.smtp_port, shops.smtp_username, shops.smtp_password, shops.smtp_from_email, shops.smtp_from_name, shops.smtp_use_tls, shops.created_at, shops.updated_at 
+FROM shops ORDER BY shops.name]
+(Background on this error at: https://sqlalche.me/e/20/f405)
+[2026-07-14T17:07:31+05:30] Unhandled exception during GET /dashboard/eod-totals; user=1; shop=unknown; ProgrammingError: (sqlalchemy.dialects.postgresql.asyncpg.ProgrammingError) <class 'asyncpg.exceptions.UndefinedColumnError'>: column shops.cashier_login_restriction_enabled does not exist
+[SQL: SELECT shops.id AS shops_id, shops.name AS shops_name, shops.code AS shops_code, shops.low_stock_threshold_default AS shops_low_stock_threshold_default, shops.last_invoice_number AS shops_last_invoice_number, shops.current_business_date AS shops_current_business_date, shops.gstin AS shops_gstin, shops.excise_duty_rate AS shops_excise_duty_rate, shops.app_display_name AS shops_app_display_name, shops.action_color AS shops_action_color, shops.sidebar_menu_inactive_text_color AS shops_sidebar_menu_inactive_text_color, shops.sidebar_menu_active_text_color AS shops_sidebar_menu_active_text_color, shops.active_tab_color AS shops_active_tab_color, shops.email_enabled AS shops_email_enabled, shops.cashier_login_restriction_enabled AS shops_cashier_login_restriction_enabled, shops.receiving_vendor_link_enabled AS shops_receiving_vendor_link_enabled, shops.allowed_login_cidrs AS shops_allowed_login_cidrs, shops.smtp_host AS shops_smtp_host, shops.smtp_port AS shops_smtp_port, shops.smtp_username AS shops_smtp_username, shops.smtp_password AS shops_smtp_password, shops.smtp_from_email AS shops_smtp_from_email, shops.smtp_from_name AS shops_smtp_from_name, shops.smtp_use_tls AS shops_smtp_use_tls, shops.created_at AS shops_created_at, shops.updated_at AS shops_updated_at 
+FROM shops 
+WHERE shops.id = $1::INTEGER]
+[parameters: (2,)]
+(Background on this error at: https://sqlalche.me/e/20/f405)
+Traceback (most recent call last):
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\dialects\postgresql\asyncpg.py", line 526, in _prepare_and_execute
+    prepared_stmt, attributes = await adapt_connection._prepare(
+                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\dialects\postgresql\asyncpg.py", line 773, in _prepare
+    prepared_stmt = await self._connection.prepare(
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\asyncpg\connection.py", line 638, in prepare
+    return await self._prepare(
+           ^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\asyncpg\connection.py", line 657, in _prepare
+    stmt = await self._get_statement(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\asyncpg\connection.py", line 443, in _get_statement
+    statement = await self._protocol.prepare(
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "asyncpg/protocol/protocol.pyx", line 165, in prepare
+asyncpg.exceptions.UndefinedColumnError: column shops.cashier_login_restriction_enabled does not exist
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\engine\base.py", line 1969, in _exec_single_context
+    self.dialect.do_execute(
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\engine\default.py", line 952, in do_execute
+    cursor.execute(statement, parameters)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\dialects\postgresql\asyncpg.py", line 585, in execute
+    self._adapt_connection.await_(
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\util\_concurrency_py3k.py", line 132, in await_only
+    return current.parent.switch(awaitable)  # type: ignore[no-any-return,attr-defined] # noqa: E501
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\util\_concurrency_py3k.py", line 196, in greenlet_spawn
+    value = await result
+            ^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\dialects\postgresql\asyncpg.py", line 563, in _prepare_and_execute
+    self._handle_exception(error)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\dialects\postgresql\asyncpg.py", line 513, in _handle_exception
+    self._adapt_connection._handle_exception(error)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\dialects\postgresql\asyncpg.py", line 797, in _handle_exception
+    raise translated_error from error
+sqlalchemy.dialects.postgresql.asyncpg.AsyncAdapt_asyncpg_dbapi.ProgrammingError: <class 'asyncpg.exceptions.UndefinedColumnError'>: column shops.cashier_login_restriction_enabled does not exist
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\middleware\errors.py", line 164, in __call__
+    await self.app(scope, receive, _send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\middleware\cors.py", line 96, in __call__
+    await self.simple_response(scope, receive, send, request_headers=headers)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\middleware\cors.py", line 154, in simple_response
+    await self.app(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\middleware\exceptions.py", line 63, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\middleware\asyncexitstack.py", line 18, in __call__
+    await self.app(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\routing.py", line 660, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 2683, in app
+    await route.handle(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 1753, in handle
+    await self.original_router.handle(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 2738, in handle
+    await included_router._handle_selected(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 1773, in _handle_selected
+    await original_route.handle(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 1264, in handle
+    await app(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 150, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 136, in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 690, in app
+    raw_response = await run_endpoint_function(
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 344, in run_endpoint_function
+    return await dependant.call(**values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\app\api\dashboard.py", line 159, in eod_totals
+    actor_shop_id = await resolve_write_shop_id(db, _user, shop_id)
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\app\api\deps.py", line 115, in resolve_write_shop_id
+    shop = await db.get(Shop, requested_shop_id)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\ext\asyncio\session.py", line 591, in get
+    return await greenlet_spawn(
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\util\_concurrency_py3k.py", line 201, in greenlet_spawn
+    result = context.throw(*sys.exc_info())
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\orm\session.py", line 3702, in get
+    return self._get_impl(
+           ^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\orm\session.py", line 3881, in _get_impl
+    return db_load_fn(
+           ^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\orm\loading.py", line 695, in load_on_pk_identity
+    session.execute(
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\orm\session.py", line 2373, in execute
+    return self._execute_internal(
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\orm\session.py", line 2271, in _execute_internal
+    result: Result[Any] = compile_state_cls.orm_execute_statement(
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\orm\context.py", line 306, in orm_execute_statement
+    result = conn.execute(
+             ^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\engine\base.py", line 1421, in execute
+    return meth(
+           ^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\sql\elements.py", line 526, in _execute_on_connection
+    return connection._execute_clauseelement(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\engine\base.py", line 1643, in _execute_clauseelement
+    ret = self._execute_context(
+          ^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\engine\base.py", line 1848, in _execute_context
+    return self._exec_single_context(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\engine\base.py", line 1988, in _exec_single_context
+    self._handle_dbapi_exception(
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\engine\base.py", line 2365, in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\engine\base.py", line 1969, in _exec_single_context
+    self.dialect.do_execute(
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\engine\default.py", line 952, in do_execute
+    cursor.execute(statement, parameters)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\dialects\postgresql\asyncpg.py", line 585, in execute
+    self._adapt_connection.await_(
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\util\_concurrency_py3k.py", line 132, in await_only
+    return current.parent.switch(awaitable)  # type: ignore[no-any-return,attr-defined] # noqa: E501
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\util\_concurrency_py3k.py", line 196, in greenlet_spawn
+    value = await result
+            ^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\dialects\postgresql\asyncpg.py", line 563, in _prepare_and_execute
+    self._handle_exception(error)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\dialects\postgresql\asyncpg.py", line 513, in _handle_exception
+    self._adapt_connection._handle_exception(error)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\dialects\postgresql\asyncpg.py", line 797, in _handle_exception
+    raise translated_error from error
+sqlalchemy.exc.ProgrammingError: (sqlalchemy.dialects.postgresql.asyncpg.ProgrammingError) <class 'asyncpg.exceptions.UndefinedColumnError'>: column shops.cashier_login_restriction_enabled does not exist
+[SQL: SELECT shops.id AS shops_id, shops.name AS shops_name, shops.code AS shops_code, shops.low_stock_threshold_default AS shops_low_stock_threshold_default, shops.last_invoice_number AS shops_last_invoice_number, shops.current_business_date AS shops_current_business_date, shops.gstin AS shops_gstin, shops.excise_duty_rate AS shops_excise_duty_rate, shops.app_display_name AS shops_app_display_name, shops.action_color AS shops_action_color, shops.sidebar_menu_inactive_text_color AS shops_sidebar_menu_inactive_text_color, shops.sidebar_menu_active_text_color AS shops_sidebar_menu_active_text_color, shops.active_tab_color AS shops_active_tab_color, shops.email_enabled AS shops_email_enabled, shops.cashier_login_restriction_enabled AS shops_cashier_login_restriction_enabled, shops.receiving_vendor_link_enabled AS shops_receiving_vendor_link_enabled, shops.allowed_login_cidrs AS shops_allowed_login_cidrs, shops.smtp_host AS shops_smtp_host, shops.smtp_port AS shops_smtp_port, shops.smtp_username AS shops_smtp_username, shops.smtp_password AS shops_smtp_password, shops.smtp_from_email AS shops_smtp_from_email, shops.smtp_from_name AS shops_smtp_from_name, shops.smtp_use_tls AS shops_smtp_use_tls, shops.created_at AS shops_created_at, shops.updated_at AS shops_updated_at 
+FROM shops 
+WHERE shops.id = $1::INTEGER]
+[parameters: (2,)]
+(Background on this error at: https://sqlalche.me/e/20/f405)
+[2026-07-14T17:07:40+05:30] Unhandled exception during GET /settings/me; user=1; shop=unknown; ProgrammingError: (sqlalchemy.dialects.postgresql.asyncpg.ProgrammingError) <class 'asyncpg.exceptions.UndefinedColumnError'>: column shops.cashier_login_restriction_enabled does not exist
+[SQL: SELECT shops.id AS shops_id, shops.name AS shops_name, shops.code AS shops_code, shops.low_stock_threshold_default AS shops_low_stock_threshold_default, shops.last_invoice_number AS shops_last_invoice_number, shops.current_business_date AS shops_current_business_date, shops.gstin AS shops_gstin, shops.excise_duty_rate AS shops_excise_duty_rate, shops.app_display_name AS shops_app_display_name, shops.action_color AS shops_action_color, shops.sidebar_menu_inactive_text_color AS shops_sidebar_menu_inactive_text_color, shops.sidebar_menu_active_text_color AS shops_sidebar_menu_active_text_color, shops.active_tab_color AS shops_active_tab_color, shops.email_enabled AS shops_email_enabled, shops.cashier_login_restriction_enabled AS shops_cashier_login_restriction_enabled, shops.receiving_vendor_link_enabled AS shops_receiving_vendor_link_enabled, shops.allowed_login_cidrs AS shops_allowed_login_cidrs, shops.smtp_host AS shops_smtp_host, shops.smtp_port AS shops_smtp_port, shops.smtp_username AS shops_smtp_username, shops.smtp_password AS shops_smtp_password, shops.smtp_from_email AS shops_smtp_from_email, shops.smtp_from_name AS shops_smtp_from_name, shops.smtp_use_tls AS shops_smtp_use_tls, shops.created_at AS shops_created_at, shops.updated_at AS shops_updated_at 
+FROM shops 
+WHERE shops.id = $1::INTEGER]
+[parameters: (2,)]
+(Background on this error at: https://sqlalche.me/e/20/f405)
+Traceback (most recent call last):
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\dialects\postgresql\asyncpg.py", line 526, in _prepare_and_execute
+    prepared_stmt, attributes = await adapt_connection._prepare(
+                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\dialects\postgresql\asyncpg.py", line 773, in _prepare
+    prepared_stmt = await self._connection.prepare(
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\asyncpg\connection.py", line 638, in prepare
+    return await self._prepare(
+           ^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\asyncpg\connection.py", line 657, in _prepare
+    stmt = await self._get_statement(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\asyncpg\connection.py", line 443, in _get_statement
+    statement = await self._protocol.prepare(
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "asyncpg/protocol/protocol.pyx", line 165, in prepare
+asyncpg.exceptions.UndefinedColumnError: column shops.cashier_login_restriction_enabled does not exist
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\engine\base.py", line 1969, in _exec_single_context
+    self.dialect.do_execute(
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\engine\default.py", line 952, in do_execute
+    cursor.execute(statement, parameters)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\dialects\postgresql\asyncpg.py", line 585, in execute
+    self._adapt_connection.await_(
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\util\_concurrency_py3k.py", line 132, in await_only
+    return current.parent.switch(awaitable)  # type: ignore[no-any-return,attr-defined] # noqa: E501
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\util\_concurrency_py3k.py", line 196, in greenlet_spawn
+    value = await result
+            ^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\dialects\postgresql\asyncpg.py", line 563, in _prepare_and_execute
+    self._handle_exception(error)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\dialects\postgresql\asyncpg.py", line 513, in _handle_exception
+    self._adapt_connection._handle_exception(error)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\dialects\postgresql\asyncpg.py", line 797, in _handle_exception
+    raise translated_error from error
+sqlalchemy.dialects.postgresql.asyncpg.AsyncAdapt_asyncpg_dbapi.ProgrammingError: <class 'asyncpg.exceptions.UndefinedColumnError'>: column shops.cashier_login_restriction_enabled does not exist
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\middleware\errors.py", line 164, in __call__
+    await self.app(scope, receive, _send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\middleware\cors.py", line 96, in __call__
+    await self.simple_response(scope, receive, send, request_headers=headers)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\middleware\cors.py", line 154, in simple_response
+    await self.app(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\middleware\exceptions.py", line 63, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\middleware\asyncexitstack.py", line 18, in __call__
+    await self.app(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\routing.py", line 660, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 2683, in app
+    await route.handle(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 1753, in handle
+    await self.original_router.handle(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 2738, in handle
+    await included_router._handle_selected(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 1773, in _handle_selected
+    await original_route.handle(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 1264, in handle
+    await app(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 150, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 136, in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 690, in app
+    raw_response = await run_endpoint_function(
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 344, in run_endpoint_function
+    return await dependant.call(**values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\app\api\settings.py", line 58, in get_my_settings
+    shop_id = await _resolve_settings_shop_id(db, user, shop_id)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\app\api\settings.py", line 31, in _resolve_settings_shop_id
+    shop = await db.get(Shop, requested_shop_id)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\ext\asyncio\session.py", line 591, in get
+    return await greenlet_spawn(
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\util\_concurrency_py3k.py", line 201, in greenlet_spawn
+    result = context.throw(*sys.exc_info())
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\orm\session.py", line 3702, in get
+    return self._get_impl(
+           ^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\orm\session.py", line 3881, in _get_impl
+    return db_load_fn(
+           ^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\orm\loading.py", line 695, in load_on_pk_identity
+    session.execute(
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\orm\session.py", line 2373, in execute
+    return self._execute_internal(
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\orm\session.py", line 2271, in _execute_internal
+    result: Result[Any] = compile_state_cls.orm_execute_statement(
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\orm\context.py", line 306, in orm_execute_statement
+    result = conn.execute(
+             ^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\engine\base.py", line 1421, in execute
+    return meth(
+           ^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\sql\elements.py", line 526, in _execute_on_connection
+    return connection._execute_clauseelement(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\engine\base.py", line 1643, in _execute_clauseelement
+    ret = self._execute_context(
+          ^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\engine\base.py", line 1848, in _execute_context
+    return self._exec_single_context(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\engine\base.py", line 1988, in _exec_single_context
+    self._handle_dbapi_exception(
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\engine\base.py", line 2365, in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\engine\base.py", line 1969, in _exec_single_context
+    self.dialect.do_execute(
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\engine\default.py", line 952, in do_execute
+    cursor.execute(statement, parameters)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\dialects\postgresql\asyncpg.py", line 585, in execute
+    self._adapt_connection.await_(
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\util\_concurrency_py3k.py", line 132, in await_only
+    return current.parent.switch(awaitable)  # type: ignore[no-any-return,attr-defined] # noqa: E501
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\util\_concurrency_py3k.py", line 196, in greenlet_spawn
+    value = await result
+            ^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\dialects\postgresql\asyncpg.py", line 563, in _prepare_and_execute
+    self._handle_exception(error)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\dialects\postgresql\asyncpg.py", line 513, in _handle_exception
+    self._adapt_connection._handle_exception(error)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\dialects\postgresql\asyncpg.py", line 797, in _handle_exception
+    raise translated_error from error
+sqlalchemy.exc.ProgrammingError: (sqlalchemy.dialects.postgresql.asyncpg.ProgrammingError) <class 'asyncpg.exceptions.UndefinedColumnError'>: column shops.cashier_login_restriction_enabled does not exist
+[SQL: SELECT shops.id AS shops_id, shops.name AS shops_name, shops.code AS shops_code, shops.low_stock_threshold_default AS shops_low_stock_threshold_default, shops.last_invoice_number AS shops_last_invoice_number, shops.current_business_date AS shops_current_business_date, shops.gstin AS shops_gstin, shops.excise_duty_rate AS shops_excise_duty_rate, shops.app_display_name AS shops_app_display_name, shops.action_color AS shops_action_color, shops.sidebar_menu_inactive_text_color AS shops_sidebar_menu_inactive_text_color, shops.sidebar_menu_active_text_color AS shops_sidebar_menu_active_text_color, shops.active_tab_color AS shops_active_tab_color, shops.email_enabled AS shops_email_enabled, shops.cashier_login_restriction_enabled AS shops_cashier_login_restriction_enabled, shops.receiving_vendor_link_enabled AS shops_receiving_vendor_link_enabled, shops.allowed_login_cidrs AS shops_allowed_login_cidrs, shops.smtp_host AS shops_smtp_host, shops.smtp_port AS shops_smtp_port, shops.smtp_username AS shops_smtp_username, shops.smtp_password AS shops_smtp_password, shops.smtp_from_email AS shops_smtp_from_email, shops.smtp_from_name AS shops_smtp_from_name, shops.smtp_use_tls AS shops_smtp_use_tls, shops.created_at AS shops_created_at, shops.updated_at AS shops_updated_at 
+FROM shops 
+WHERE shops.id = $1::INTEGER]
+[parameters: (2,)]
+(Background on this error at: https://sqlalche.me/e/20/f405)
+[2026-07-14T17:21:30+05:30] Unhandled exception during GET /shops; user=1; shop=unknown; ProgrammingError: (sqlalchemy.dialects.postgresql.asyncpg.ProgrammingError) <class 'asyncpg.exceptions.UndefinedColumnError'>: column shops.cashier_login_restriction_enabled does not exist
+[SQL: SELECT shops.id, shops.name, shops.code, shops.low_stock_threshold_default, shops.last_invoice_number, shops.current_business_date, shops.gstin, shops.excise_duty_rate, shops.app_display_name, shops.action_color, shops.sidebar_menu_inactive_text_color, shops.sidebar_menu_active_text_color, shops.active_tab_color, shops.email_enabled, shops.cashier_login_restriction_enabled, shops.receiving_vendor_link_enabled, shops.allowed_login_cidrs, shops.smtp_host, shops.smtp_port, shops.smtp_username, shops.smtp_password, shops.smtp_from_email, shops.smtp_from_name, shops.smtp_use_tls, shops.created_at, shops.updated_at 
+FROM shops ORDER BY shops.name]
+(Background on this error at: https://sqlalche.me/e/20/f405)
+Traceback (most recent call last):
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\dialects\postgresql\asyncpg.py", line 526, in _prepare_and_execute
+    prepared_stmt, attributes = await adapt_connection._prepare(
+                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\dialects\postgresql\asyncpg.py", line 773, in _prepare
+    prepared_stmt = await self._connection.prepare(
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\asyncpg\connection.py", line 638, in prepare
+    return await self._prepare(
+           ^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\asyncpg\connection.py", line 657, in _prepare
+    stmt = await self._get_statement(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\asyncpg\connection.py", line 443, in _get_statement
+    statement = await self._protocol.prepare(
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "asyncpg/protocol/protocol.pyx", line 165, in prepare
+asyncpg.exceptions.UndefinedColumnError: column shops.cashier_login_restriction_enabled does not exist
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\engine\base.py", line 1969, in _exec_single_context
+    self.dialect.do_execute(
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\engine\default.py", line 952, in do_execute
+    cursor.execute(statement, parameters)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\dialects\postgresql\asyncpg.py", line 585, in execute
+    self._adapt_connection.await_(
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\util\_concurrency_py3k.py", line 132, in await_only
+    return current.parent.switch(awaitable)  # type: ignore[no-any-return,attr-defined] # noqa: E501
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\util\_concurrency_py3k.py", line 196, in greenlet_spawn
+    value = await result
+            ^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\dialects\postgresql\asyncpg.py", line 563, in _prepare_and_execute
+    self._handle_exception(error)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\dialects\postgresql\asyncpg.py", line 513, in _handle_exception
+    self._adapt_connection._handle_exception(error)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\dialects\postgresql\asyncpg.py", line 797, in _handle_exception
+    raise translated_error from error
+sqlalchemy.dialects.postgresql.asyncpg.AsyncAdapt_asyncpg_dbapi.ProgrammingError: <class 'asyncpg.exceptions.UndefinedColumnError'>: column shops.cashier_login_restriction_enabled does not exist
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\middleware\errors.py", line 164, in __call__
+    await self.app(scope, receive, _send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\middleware\cors.py", line 96, in __call__
+    await self.simple_response(scope, receive, send, request_headers=headers)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\middleware\cors.py", line 154, in simple_response
+    await self.app(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\middleware\exceptions.py", line 63, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\middleware\asyncexitstack.py", line 18, in __call__
+    await self.app(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\routing.py", line 660, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 2683, in app
+    await route.handle(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 1753, in handle
+    await self.original_router.handle(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 2738, in handle
+    await included_router._handle_selected(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 1773, in _handle_selected
+    await original_route.handle(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 1264, in handle
+    await app(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 150, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 136, in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 690, in app
+    raw_response = await run_endpoint_function(
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 344, in run_endpoint_function
+    return await dependant.call(**values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\app\api\shops.py", line 65, in list_shops
+    rows = (await db.execute(select(Shop).order_by(Shop.name))).scalars().all()
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\ext\asyncio\session.py", line 448, in execute
+    result = await greenlet_spawn(
+             ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\util\_concurrency_py3k.py", line 201, in greenlet_spawn
+    result = context.throw(*sys.exc_info())
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\orm\session.py", line 2373, in execute
+    return self._execute_internal(
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\orm\session.py", line 2271, in _execute_internal
+    result: Result[Any] = compile_state_cls.orm_execute_statement(
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\orm\context.py", line 306, in orm_execute_statement
+    result = conn.execute(
+             ^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\engine\base.py", line 1421, in execute
+    return meth(
+           ^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\sql\elements.py", line 526, in _execute_on_connection
+    return connection._execute_clauseelement(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\engine\base.py", line 1643, in _execute_clauseelement
+    ret = self._execute_context(
+          ^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\engine\base.py", line 1848, in _execute_context
+    return self._exec_single_context(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\engine\base.py", line 1988, in _exec_single_context
+    self._handle_dbapi_exception(
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\engine\base.py", line 2365, in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\engine\base.py", line 1969, in _exec_single_context
+    self.dialect.do_execute(
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\engine\default.py", line 952, in do_execute
+    cursor.execute(statement, parameters)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\dialects\postgresql\asyncpg.py", line 585, in execute
+    self._adapt_connection.await_(
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\util\_concurrency_py3k.py", line 132, in await_only
+    return current.parent.switch(awaitable)  # type: ignore[no-any-return,attr-defined] # noqa: E501
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\util\_concurrency_py3k.py", line 196, in greenlet_spawn
+    value = await result
+            ^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\dialects\postgresql\asyncpg.py", line 563, in _prepare_and_execute
+    self._handle_exception(error)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\dialects\postgresql\asyncpg.py", line 513, in _handle_exception
+    self._adapt_connection._handle_exception(error)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\dialects\postgresql\asyncpg.py", line 797, in _handle_exception
+    raise translated_error from error
+sqlalchemy.exc.ProgrammingError: (sqlalchemy.dialects.postgresql.asyncpg.ProgrammingError) <class 'asyncpg.exceptions.UndefinedColumnError'>: column shops.cashier_login_restriction_enabled does not exist
+[SQL: SELECT shops.id, shops.name, shops.code, shops.low_stock_threshold_default, shops.last_invoice_number, shops.current_business_date, shops.gstin, shops.excise_duty_rate, shops.app_display_name, shops.action_color, shops.sidebar_menu_inactive_text_color, shops.sidebar_menu_active_text_color, shops.active_tab_color, shops.email_enabled, shops.cashier_login_restriction_enabled, shops.receiving_vendor_link_enabled, shops.allowed_login_cidrs, shops.smtp_host, shops.smtp_port, shops.smtp_username, shops.smtp_password, shops.smtp_from_email, shops.smtp_from_name, shops.smtp_use_tls, shops.created_at, shops.updated_at 
+FROM shops ORDER BY shops.name]
+(Background on this error at: https://sqlalche.me/e/20/f405)
+[2026-07-14T17:21:30+05:30] Unhandled exception during GET /dashboard/void-queue; user=1; shop=unknown; ProgrammingError: (sqlalchemy.dialects.postgresql.asyncpg.ProgrammingError) <class 'asyncpg.exceptions.UndefinedColumnError'>: column shops.cashier_login_restriction_enabled does not exist
+[SQL: SELECT shops.id AS shops_id, shops.name AS shops_name, shops.code AS shops_code, shops.low_stock_threshold_default AS shops_low_stock_threshold_default, shops.last_invoice_number AS shops_last_invoice_number, shops.current_business_date AS shops_current_business_date, shops.gstin AS shops_gstin, shops.excise_duty_rate AS shops_excise_duty_rate, shops.app_display_name AS shops_app_display_name, shops.action_color AS shops_action_color, shops.sidebar_menu_inactive_text_color AS shops_sidebar_menu_inactive_text_color, shops.sidebar_menu_active_text_color AS shops_sidebar_menu_active_text_color, shops.active_tab_color AS shops_active_tab_color, shops.email_enabled AS shops_email_enabled, shops.cashier_login_restriction_enabled AS shops_cashier_login_restriction_enabled, shops.receiving_vendor_link_enabled AS shops_receiving_vendor_link_enabled, shops.allowed_login_cidrs AS shops_allowed_login_cidrs, shops.smtp_host AS shops_smtp_host, shops.smtp_port AS shops_smtp_port, shops.smtp_username AS shops_smtp_username, shops.smtp_password AS shops_smtp_password, shops.smtp_from_email AS shops_smtp_from_email, shops.smtp_from_name AS shops_smtp_from_name, shops.smtp_use_tls AS shops_smtp_use_tls, shops.created_at AS shops_created_at, shops.updated_at AS shops_updated_at 
+FROM shops 
+WHERE shops.id = $1::INTEGER]
+[parameters: (2,)]
+(Background on this error at: https://sqlalche.me/e/20/f405)
+Traceback (most recent call last):
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\dialects\postgresql\asyncpg.py", line 526, in _prepare_and_execute
+    prepared_stmt, attributes = await adapt_connection._prepare(
+                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\dialects\postgresql\asyncpg.py", line 773, in _prepare
+    prepared_stmt = await self._connection.prepare(
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\asyncpg\connection.py", line 638, in prepare
+    return await self._prepare(
+           ^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\asyncpg\connection.py", line 657, in _prepare
+    stmt = await self._get_statement(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\asyncpg\connection.py", line 443, in _get_statement
+    statement = await self._protocol.prepare(
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "asyncpg/protocol/protocol.pyx", line 165, in prepare
+asyncpg.exceptions.UndefinedColumnError: column shops.cashier_login_restriction_enabled does not exist
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\engine\base.py", line 1969, in _exec_single_context
+    self.dialect.do_execute(
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\engine\default.py", line 952, in do_execute
+    cursor.execute(statement, parameters)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\dialects\postgresql\asyncpg.py", line 585, in execute
+    self._adapt_connection.await_(
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\util\_concurrency_py3k.py", line 132, in await_only
+    return current.parent.switch(awaitable)  # type: ignore[no-any-return,attr-defined] # noqa: E501
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\util\_concurrency_py3k.py", line 196, in greenlet_spawn
+    value = await result
+            ^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\dialects\postgresql\asyncpg.py", line 563, in _prepare_and_execute
+    self._handle_exception(error)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\dialects\postgresql\asyncpg.py", line 513, in _handle_exception
+    self._adapt_connection._handle_exception(error)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\dialects\postgresql\asyncpg.py", line 797, in _handle_exception
+    raise translated_error from error
+sqlalchemy.dialects.postgresql.asyncpg.AsyncAdapt_asyncpg_dbapi.ProgrammingError: <class 'asyncpg.exceptions.UndefinedColumnError'>: column shops.cashier_login_restriction_enabled does not exist
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\middleware\errors.py", line 164, in __call__
+    await self.app(scope, receive, _send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\middleware\cors.py", line 96, in __call__
+    await self.simple_response(scope, receive, send, request_headers=headers)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\middleware\cors.py", line 154, in simple_response
+    await self.app(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\middleware\exceptions.py", line 63, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\middleware\asyncexitstack.py", line 18, in __call__
+    await self.app(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\routing.py", line 660, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 2683, in app
+    await route.handle(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 1753, in handle
+    await self.original_router.handle(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 2738, in handle
+    await included_router._handle_selected(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 1773, in _handle_selected
+    await original_route.handle(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 1264, in handle
+    await app(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 150, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 136, in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 690, in app
+    raw_response = await run_endpoint_function(
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 344, in run_endpoint_function
+    return await dependant.call(**values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\app\api\dashboard.py", line 231, in void_queue
+    actor_shop_id = await resolve_write_shop_id(db, _user, shop_id)
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\app\api\deps.py", line 115, in resolve_write_shop_id
+    shop = await db.get(Shop, requested_shop_id)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\ext\asyncio\session.py", line 591, in get
+    return await greenlet_spawn(
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\util\_concurrency_py3k.py", line 201, in greenlet_spawn
+    result = context.throw(*sys.exc_info())
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\orm\session.py", line 3702, in get
+    return self._get_impl(
+           ^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\orm\session.py", line 3881, in _get_impl
+    return db_load_fn(
+           ^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\orm\loading.py", line 695, in load_on_pk_identity
+    session.execute(
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\orm\session.py", line 2373, in execute
+    return self._execute_internal(
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\orm\session.py", line 2271, in _execute_internal
+    result: Result[Any] = compile_state_cls.orm_execute_statement(
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\orm\context.py", line 306, in orm_execute_statement
+    result = conn.execute(
+             ^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\engine\base.py", line 1421, in execute
+    return meth(
+           ^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\sql\elements.py", line 526, in _execute_on_connection
+    return connection._execute_clauseelement(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\engine\base.py", line 1643, in _execute_clauseelement
+    ret = self._execute_context(
+          ^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\engine\base.py", line 1848, in _execute_context
+    return self._exec_single_context(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\engine\base.py", line 1988, in _exec_single_context
+    self._handle_dbapi_exception(
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\engine\base.py", line 2365, in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\engine\base.py", line 1969, in _exec_single_context
+    self.dialect.do_execute(
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\engine\default.py", line 952, in do_execute
+    cursor.execute(statement, parameters)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\dialects\postgresql\asyncpg.py", line 585, in execute
+    self._adapt_connection.await_(
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\util\_concurrency_py3k.py", line 132, in await_only
+    return current.parent.switch(awaitable)  # type: ignore[no-any-return,attr-defined] # noqa: E501
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\util\_concurrency_py3k.py", line 196, in greenlet_spawn
+    value = await result
+            ^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\dialects\postgresql\asyncpg.py", line 563, in _prepare_and_execute
+    self._handle_exception(error)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\dialects\postgresql\asyncpg.py", line 513, in _handle_exception
+    self._adapt_connection._handle_exception(error)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\dialects\postgresql\asyncpg.py", line 797, in _handle_exception
+    raise translated_error from error
+sqlalchemy.exc.ProgrammingError: (sqlalchemy.dialects.postgresql.asyncpg.ProgrammingError) <class 'asyncpg.exceptions.UndefinedColumnError'>: column shops.cashier_login_restriction_enabled does not exist
+[SQL: SELECT shops.id AS shops_id, shops.name AS shops_name, shops.code AS shops_code, shops.low_stock_threshold_default AS shops_low_stock_threshold_default, shops.last_invoice_number AS shops_last_invoice_number, shops.current_business_date AS shops_current_business_date, shops.gstin AS shops_gstin, shops.excise_duty_rate AS shops_excise_duty_rate, shops.app_display_name AS shops_app_display_name, shops.action_color AS shops_action_color, shops.sidebar_menu_inactive_text_color AS shops_sidebar_menu_inactive_text_color, shops.sidebar_menu_active_text_color AS shops_sidebar_menu_active_text_color, shops.active_tab_color AS shops_active_tab_color, shops.email_enabled AS shops_email_enabled, shops.cashier_login_restriction_enabled AS shops_cashier_login_restriction_enabled, shops.receiving_vendor_link_enabled AS shops_receiving_vendor_link_enabled, shops.allowed_login_cidrs AS shops_allowed_login_cidrs, shops.smtp_host AS shops_smtp_host, shops.smtp_port AS shops_smtp_port, shops.smtp_username AS shops_smtp_username, shops.smtp_password AS shops_smtp_password, shops.smtp_from_email AS shops_smtp_from_email, shops.smtp_from_name AS shops_smtp_from_name, shops.smtp_use_tls AS shops_smtp_use_tls, shops.created_at AS shops_created_at, shops.updated_at AS shops_updated_at 
+FROM shops 
+WHERE shops.id = $1::INTEGER]
+[parameters: (2,)]
+(Background on this error at: https://sqlalche.me/e/20/f405)
+[2026-07-14T17:21:30+05:30] Unhandled exception during GET /shops; user=1; shop=unknown; ProgrammingError: (sqlalchemy.dialects.postgresql.asyncpg.ProgrammingError) <class 'asyncpg.exceptions.UndefinedColumnError'>: column shops.cashier_login_restriction_enabled does not exist
+[SQL: SELECT shops.id, shops.name, shops.code, shops.low_stock_threshold_default, shops.last_invoice_number, shops.current_business_date, shops.gstin, shops.excise_duty_rate, shops.app_display_name, shops.action_color, shops.sidebar_menu_inactive_text_color, shops.sidebar_menu_active_text_color, shops.active_tab_color, shops.email_enabled, shops.cashier_login_restriction_enabled, shops.receiving_vendor_link_enabled, shops.allowed_login_cidrs, shops.smtp_host, shops.smtp_port, shops.smtp_username, shops.smtp_password, shops.smtp_from_email, shops.smtp_from_name, shops.smtp_use_tls, shops.created_at, shops.updated_at 
+FROM shops ORDER BY shops.name]
+(Background on this error at: https://sqlalche.me/e/20/f405)
+Traceback (most recent call last):
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\dialects\postgresql\asyncpg.py", line 526, in _prepare_and_execute
+    prepared_stmt, attributes = await adapt_connection._prepare(
+                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\dialects\postgresql\asyncpg.py", line 773, in _prepare
+    prepared_stmt = await self._connection.prepare(
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\asyncpg\connection.py", line 638, in prepare
+    return await self._prepare(
+           ^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\asyncpg\connection.py", line 657, in _prepare
+    stmt = await self._get_statement(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\asyncpg\connection.py", line 443, in _get_statement
+    statement = await self._protocol.prepare(
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "asyncpg/protocol/protocol.pyx", line 165, in prepare
+asyncpg.exceptions.UndefinedColumnError: column shops.cashier_login_restriction_enabled does not exist
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\engine\base.py", line 1969, in _exec_single_context
+    self.dialect.do_execute(
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\engine\default.py", line 952, in do_execute
+    cursor.execute(statement, parameters)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\dialects\postgresql\asyncpg.py", line 585, in execute
+    self._adapt_connection.await_(
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\util\_concurrency_py3k.py", line 132, in await_only
+    return current.parent.switch(awaitable)  # type: ignore[no-any-return,attr-defined] # noqa: E501
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\util\_concurrency_py3k.py", line 196, in greenlet_spawn
+    value = await result
+            ^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\dialects\postgresql\asyncpg.py", line 563, in _prepare_and_execute
+    self._handle_exception(error)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\dialects\postgresql\asyncpg.py", line 513, in _handle_exception
+    self._adapt_connection._handle_exception(error)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\dialects\postgresql\asyncpg.py", line 797, in _handle_exception
+    raise translated_error from error
+sqlalchemy.dialects.postgresql.asyncpg.AsyncAdapt_asyncpg_dbapi.ProgrammingError: <class 'asyncpg.exceptions.UndefinedColumnError'>: column shops.cashier_login_restriction_enabled does not exist
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\middleware\errors.py", line 164, in __call__
+    await self.app(scope, receive, _send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\middleware\cors.py", line 96, in __call__
+    await self.simple_response(scope, receive, send, request_headers=headers)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\middleware\cors.py", line 154, in simple_response
+    await self.app(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\middleware\exceptions.py", line 63, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\middleware\asyncexitstack.py", line 18, in __call__
+    await self.app(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\routing.py", line 660, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 2683, in app
+    await route.handle(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 1753, in handle
+    await self.original_router.handle(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 2738, in handle
+    await included_router._handle_selected(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 1773, in _handle_selected
+    await original_route.handle(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 1264, in handle
+    await app(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 150, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 136, in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 690, in app
+    raw_response = await run_endpoint_function(
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 344, in run_endpoint_function
+    return await dependant.call(**values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\app\api\shops.py", line 65, in list_shops
+    rows = (await db.execute(select(Shop).order_by(Shop.name))).scalars().all()
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\ext\asyncio\session.py", line 448, in execute
+    result = await greenlet_spawn(
+             ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\util\_concurrency_py3k.py", line 201, in greenlet_spawn
+    result = context.throw(*sys.exc_info())
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\orm\session.py", line 2373, in execute
+    return self._execute_internal(
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\orm\session.py", line 2271, in _execute_internal
+    result: Result[Any] = compile_state_cls.orm_execute_statement(
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\orm\context.py", line 306, in orm_execute_statement
+    result = conn.execute(
+             ^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\engine\base.py", line 1421, in execute
+    return meth(
+           ^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\sql\elements.py", line 526, in _execute_on_connection
+    return connection._execute_clauseelement(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\engine\base.py", line 1643, in _execute_clauseelement
+    ret = self._execute_context(
+          ^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\engine\base.py", line 1848, in _execute_context
+    return self._exec_single_context(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\engine\base.py", line 1988, in _exec_single_context
+    self._handle_dbapi_exception(
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\engine\base.py", line 2365, in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\engine\base.py", line 1969, in _exec_single_context
+    self.dialect.do_execute(
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\engine\default.py", line 952, in do_execute
+    cursor.execute(statement, parameters)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\dialects\postgresql\asyncpg.py", line 585, in execute
+    self._adapt_connection.await_(
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\util\_concurrency_py3k.py", line 132, in await_only
+    return current.parent.switch(awaitable)  # type: ignore[no-any-return,attr-defined] # noqa: E501
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\util\_concurrency_py3k.py", line 196, in greenlet_spawn
+    value = await result
+            ^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\dialects\postgresql\asyncpg.py", line 563, in _prepare_and_execute
+    self._handle_exception(error)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\dialects\postgresql\asyncpg.py", line 513, in _handle_exception
+    self._adapt_connection._handle_exception(error)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\dialects\postgresql\asyncpg.py", line 797, in _handle_exception
+    raise translated_error from error
+sqlalchemy.exc.ProgrammingError: (sqlalchemy.dialects.postgresql.asyncpg.ProgrammingError) <class 'asyncpg.exceptions.UndefinedColumnError'>: column shops.cashier_login_restriction_enabled does not exist
+[SQL: SELECT shops.id, shops.name, shops.code, shops.low_stock_threshold_default, shops.last_invoice_number, shops.current_business_date, shops.gstin, shops.excise_duty_rate, shops.app_display_name, shops.action_color, shops.sidebar_menu_inactive_text_color, shops.sidebar_menu_active_text_color, shops.active_tab_color, shops.email_enabled, shops.cashier_login_restriction_enabled, shops.receiving_vendor_link_enabled, shops.allowed_login_cidrs, shops.smtp_host, shops.smtp_port, shops.smtp_username, shops.smtp_password, shops.smtp_from_email, shops.smtp_from_name, shops.smtp_use_tls, shops.created_at, shops.updated_at 
+FROM shops ORDER BY shops.name]
+(Background on this error at: https://sqlalche.me/e/20/f405)
+[2026-07-14T17:21:30+05:30] Unhandled exception during GET /shops; user=1; shop=unknown; ProgrammingError: (sqlalchemy.dialects.postgresql.asyncpg.ProgrammingError) <class 'asyncpg.exceptions.UndefinedColumnError'>: column shops.cashier_login_restriction_enabled does not exist
+[SQL: SELECT shops.id, shops.name, shops.code, shops.low_stock_threshold_default, shops.last_invoice_number, shops.current_business_date, shops.gstin, shops.excise_duty_rate, shops.app_display_name, shops.action_color, shops.sidebar_menu_inactive_text_color, shops.sidebar_menu_active_text_color, shops.active_tab_color, shops.email_enabled, shops.cashier_login_restriction_enabled, shops.receiving_vendor_link_enabled, shops.allowed_login_cidrs, shops.smtp_host, shops.smtp_port, shops.smtp_username, shops.smtp_password, shops.smtp_from_email, shops.smtp_from_name, shops.smtp_use_tls, shops.created_at, shops.updated_at 
+FROM shops ORDER BY shops.name]
+(Background on this error at: https://sqlalche.me/e/20/f405)
+Traceback (most recent call last):
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\dialects\postgresql\asyncpg.py", line 526, in _prepare_and_execute
+    prepared_stmt, attributes = await adapt_connection._prepare(
+                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\dialects\postgresql\asyncpg.py", line 773, in _prepare
+    prepared_stmt = await self._connection.prepare(
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\asyncpg\connection.py", line 638, in prepare
+    return await self._prepare(
+           ^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\asyncpg\connection.py", line 657, in _prepare
+    stmt = await self._get_statement(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\asyncpg\connection.py", line 443, in _get_statement
+    statement = await self._protocol.prepare(
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "asyncpg/protocol/protocol.pyx", line 165, in prepare
+asyncpg.exceptions.UndefinedColumnError: column shops.cashier_login_restriction_enabled does not exist
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\engine\base.py", line 1969, in _exec_single_context
+    self.dialect.do_execute(
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\engine\default.py", line 952, in do_execute
+    cursor.execute(statement, parameters)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\dialects\postgresql\asyncpg.py", line 585, in execute
+    self._adapt_connection.await_(
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\util\_concurrency_py3k.py", line 132, in await_only
+    return current.parent.switch(awaitable)  # type: ignore[no-any-return,attr-defined] # noqa: E501
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\util\_concurrency_py3k.py", line 196, in greenlet_spawn
+    value = await result
+            ^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\dialects\postgresql\asyncpg.py", line 563, in _prepare_and_execute
+    self._handle_exception(error)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\dialects\postgresql\asyncpg.py", line 513, in _handle_exception
+    self._adapt_connection._handle_exception(error)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\dialects\postgresql\asyncpg.py", line 797, in _handle_exception
+    raise translated_error from error
+sqlalchemy.dialects.postgresql.asyncpg.AsyncAdapt_asyncpg_dbapi.ProgrammingError: <class 'asyncpg.exceptions.UndefinedColumnError'>: column shops.cashier_login_restriction_enabled does not exist
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\middleware\errors.py", line 164, in __call__
+    await self.app(scope, receive, _send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\middleware\cors.py", line 96, in __call__
+    await self.simple_response(scope, receive, send, request_headers=headers)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\middleware\cors.py", line 154, in simple_response
+    await self.app(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\middleware\exceptions.py", line 63, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\middleware\asyncexitstack.py", line 18, in __call__
+    await self.app(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\routing.py", line 660, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 2683, in app
+    await route.handle(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 1753, in handle
+    await self.original_router.handle(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 2738, in handle
+    await included_router._handle_selected(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 1773, in _handle_selected
+    await original_route.handle(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 1264, in handle
+    await app(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 150, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 136, in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 690, in app
+    raw_response = await run_endpoint_function(
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 344, in run_endpoint_function
+    return await dependant.call(**values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\app\api\shops.py", line 65, in list_shops
+    rows = (await db.execute(select(Shop).order_by(Shop.name))).scalars().all()
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\ext\asyncio\session.py", line 448, in execute
+    result = await greenlet_spawn(
+             ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\util\_concurrency_py3k.py", line 201, in greenlet_spawn
+    result = context.throw(*sys.exc_info())
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\orm\session.py", line 2373, in execute
+    return self._execute_internal(
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\orm\session.py", line 2271, in _execute_internal
+    result: Result[Any] = compile_state_cls.orm_execute_statement(
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\orm\context.py", line 306, in orm_execute_statement
+    result = conn.execute(
+             ^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\engine\base.py", line 1421, in execute
+    return meth(
+           ^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\sql\elements.py", line 526, in _execute_on_connection
+    return connection._execute_clauseelement(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\engine\base.py", line 1643, in _execute_clauseelement
+    ret = self._execute_context(
+          ^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\engine\base.py", line 1848, in _execute_context
+    return self._exec_single_context(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\engine\base.py", line 1988, in _exec_single_context
+    self._handle_dbapi_exception(
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\engine\base.py", line 2365, in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\engine\base.py", line 1969, in _exec_single_context
+    self.dialect.do_execute(
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\engine\default.py", line 952, in do_execute
+    cursor.execute(statement, parameters)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\dialects\postgresql\asyncpg.py", line 585, in execute
+    self._adapt_connection.await_(
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\util\_concurrency_py3k.py", line 132, in await_only
+    return current.parent.switch(awaitable)  # type: ignore[no-any-return,attr-defined] # noqa: E501
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\util\_concurrency_py3k.py", line 196, in greenlet_spawn
+    value = await result
+            ^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\dialects\postgresql\asyncpg.py", line 563, in _prepare_and_execute
+    self._handle_exception(error)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\dialects\postgresql\asyncpg.py", line 513, in _handle_exception
+    self._adapt_connection._handle_exception(error)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\dialects\postgresql\asyncpg.py", line 797, in _handle_exception
+    raise translated_error from error
+sqlalchemy.exc.ProgrammingError: (sqlalchemy.dialects.postgresql.asyncpg.ProgrammingError) <class 'asyncpg.exceptions.UndefinedColumnError'>: column shops.cashier_login_restriction_enabled does not exist
+[SQL: SELECT shops.id, shops.name, shops.code, shops.low_stock_threshold_default, shops.last_invoice_number, shops.current_business_date, shops.gstin, shops.excise_duty_rate, shops.app_display_name, shops.action_color, shops.sidebar_menu_inactive_text_color, shops.sidebar_menu_active_text_color, shops.active_tab_color, shops.email_enabled, shops.cashier_login_restriction_enabled, shops.receiving_vendor_link_enabled, shops.allowed_login_cidrs, shops.smtp_host, shops.smtp_port, shops.smtp_username, shops.smtp_password, shops.smtp_from_email, shops.smtp_from_name, shops.smtp_use_tls, shops.created_at, shops.updated_at 
+FROM shops ORDER BY shops.name]
+(Background on this error at: https://sqlalche.me/e/20/f405)
+[2026-07-14T17:21:30+05:30] Unhandled exception during GET /shops; user=1; shop=unknown; ProgrammingError: (sqlalchemy.dialects.postgresql.asyncpg.ProgrammingError) <class 'asyncpg.exceptions.UndefinedColumnError'>: column shops.cashier_login_restriction_enabled does not exist
+[SQL: SELECT shops.id, shops.name, shops.code, shops.low_stock_threshold_default, shops.last_invoice_number, shops.current_business_date, shops.gstin, shops.excise_duty_rate, shops.app_display_name, shops.action_color, shops.sidebar_menu_inactive_text_color, shops.sidebar_menu_active_text_color, shops.active_tab_color, shops.email_enabled, shops.cashier_login_restriction_enabled, shops.receiving_vendor_link_enabled, shops.allowed_login_cidrs, shops.smtp_host, shops.smtp_port, shops.smtp_username, shops.smtp_password, shops.smtp_from_email, shops.smtp_from_name, shops.smtp_use_tls, shops.created_at, shops.updated_at 
+FROM shops ORDER BY shops.name]
+(Background on this error at: https://sqlalche.me/e/20/f405)
+Traceback (most recent call last):
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\dialects\postgresql\asyncpg.py", line 526, in _prepare_and_execute
+    prepared_stmt, attributes = await adapt_connection._prepare(
+                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\dialects\postgresql\asyncpg.py", line 773, in _prepare
+    prepared_stmt = await self._connection.prepare(
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\asyncpg\connection.py", line 638, in prepare
+    return await self._prepare(
+           ^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\asyncpg\connection.py", line 657, in _prepare
+    stmt = await self._get_statement(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\asyncpg\connection.py", line 443, in _get_statement
+    statement = await self._protocol.prepare(
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "asyncpg/protocol/protocol.pyx", line 165, in prepare
+asyncpg.exceptions.UndefinedColumnError: column shops.cashier_login_restriction_enabled does not exist
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\engine\base.py", line 1969, in _exec_single_context
+    self.dialect.do_execute(
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\engine\default.py", line 952, in do_execute
+    cursor.execute(statement, parameters)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\dialects\postgresql\asyncpg.py", line 585, in execute
+    self._adapt_connection.await_(
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\util\_concurrency_py3k.py", line 132, in await_only
+    return current.parent.switch(awaitable)  # type: ignore[no-any-return,attr-defined] # noqa: E501
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\util\_concurrency_py3k.py", line 196, in greenlet_spawn
+    value = await result
+            ^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\dialects\postgresql\asyncpg.py", line 563, in _prepare_and_execute
+    self._handle_exception(error)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\dialects\postgresql\asyncpg.py", line 513, in _handle_exception
+    self._adapt_connection._handle_exception(error)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\dialects\postgresql\asyncpg.py", line 797, in _handle_exception
+    raise translated_error from error
+sqlalchemy.dialects.postgresql.asyncpg.AsyncAdapt_asyncpg_dbapi.ProgrammingError: <class 'asyncpg.exceptions.UndefinedColumnError'>: column shops.cashier_login_restriction_enabled does not exist
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\middleware\errors.py", line 164, in __call__
+    await self.app(scope, receive, _send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\middleware\cors.py", line 96, in __call__
+    await self.simple_response(scope, receive, send, request_headers=headers)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\middleware\cors.py", line 154, in simple_response
+    await self.app(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\middleware\exceptions.py", line 63, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\middleware\asyncexitstack.py", line 18, in __call__
+    await self.app(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\routing.py", line 660, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 2683, in app
+    await route.handle(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 1753, in handle
+    await self.original_router.handle(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 2738, in handle
+    await included_router._handle_selected(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 1773, in _handle_selected
+    await original_route.handle(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 1264, in handle
+    await app(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 150, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 136, in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 690, in app
+    raw_response = await run_endpoint_function(
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 344, in run_endpoint_function
+    return await dependant.call(**values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\app\api\shops.py", line 65, in list_shops
+    rows = (await db.execute(select(Shop).order_by(Shop.name))).scalars().all()
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\ext\asyncio\session.py", line 448, in execute
+    result = await greenlet_spawn(
+             ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\util\_concurrency_py3k.py", line 201, in greenlet_spawn
+    result = context.throw(*sys.exc_info())
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\orm\session.py", line 2373, in execute
+    return self._execute_internal(
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\orm\session.py", line 2271, in _execute_internal
+    result: Result[Any] = compile_state_cls.orm_execute_statement(
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\orm\context.py", line 306, in orm_execute_statement
+    result = conn.execute(
+             ^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\engine\base.py", line 1421, in execute
+    return meth(
+           ^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\sql\elements.py", line 526, in _execute_on_connection
+    return connection._execute_clauseelement(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\engine\base.py", line 1643, in _execute_clauseelement
+    ret = self._execute_context(
+          ^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\engine\base.py", line 1848, in _execute_context
+    return self._exec_single_context(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\engine\base.py", line 1988, in _exec_single_context
+    self._handle_dbapi_exception(
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\engine\base.py", line 2365, in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\engine\base.py", line 1969, in _exec_single_context
+    self.dialect.do_execute(
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\engine\default.py", line 952, in do_execute
+    cursor.execute(statement, parameters)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\dialects\postgresql\asyncpg.py", line 585, in execute
+    self._adapt_connection.await_(
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\util\_concurrency_py3k.py", line 132, in await_only
+    return current.parent.switch(awaitable)  # type: ignore[no-any-return,attr-defined] # noqa: E501
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\util\_concurrency_py3k.py", line 196, in greenlet_spawn
+    value = await result
+            ^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\dialects\postgresql\asyncpg.py", line 563, in _prepare_and_execute
+    self._handle_exception(error)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\dialects\postgresql\asyncpg.py", line 513, in _handle_exception
+    self._adapt_connection._handle_exception(error)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\dialects\postgresql\asyncpg.py", line 797, in _handle_exception
+    raise translated_error from error
+sqlalchemy.exc.ProgrammingError: (sqlalchemy.dialects.postgresql.asyncpg.ProgrammingError) <class 'asyncpg.exceptions.UndefinedColumnError'>: column shops.cashier_login_restriction_enabled does not exist
+[SQL: SELECT shops.id, shops.name, shops.code, shops.low_stock_threshold_default, shops.last_invoice_number, shops.current_business_date, shops.gstin, shops.excise_duty_rate, shops.app_display_name, shops.action_color, shops.sidebar_menu_inactive_text_color, shops.sidebar_menu_active_text_color, shops.active_tab_color, shops.email_enabled, shops.cashier_login_restriction_enabled, shops.receiving_vendor_link_enabled, shops.allowed_login_cidrs, shops.smtp_host, shops.smtp_port, shops.smtp_username, shops.smtp_password, shops.smtp_from_email, shops.smtp_from_name, shops.smtp_use_tls, shops.created_at, shops.updated_at 
+FROM shops ORDER BY shops.name]
+(Background on this error at: https://sqlalche.me/e/20/f405)
+[2026-07-14T17:21:30+05:30] Unhandled exception during GET /settings/me; user=1; shop=unknown; ProgrammingError: (sqlalchemy.dialects.postgresql.asyncpg.ProgrammingError) <class 'asyncpg.exceptions.UndefinedColumnError'>: column shops.cashier_login_restriction_enabled does not exist
+[SQL: SELECT shops.id AS shops_id, shops.name AS shops_name, shops.code AS shops_code, shops.low_stock_threshold_default AS shops_low_stock_threshold_default, shops.last_invoice_number AS shops_last_invoice_number, shops.current_business_date AS shops_current_business_date, shops.gstin AS shops_gstin, shops.excise_duty_rate AS shops_excise_duty_rate, shops.app_display_name AS shops_app_display_name, shops.action_color AS shops_action_color, shops.sidebar_menu_inactive_text_color AS shops_sidebar_menu_inactive_text_color, shops.sidebar_menu_active_text_color AS shops_sidebar_menu_active_text_color, shops.active_tab_color AS shops_active_tab_color, shops.email_enabled AS shops_email_enabled, shops.cashier_login_restriction_enabled AS shops_cashier_login_restriction_enabled, shops.receiving_vendor_link_enabled AS shops_receiving_vendor_link_enabled, shops.allowed_login_cidrs AS shops_allowed_login_cidrs, shops.smtp_host AS shops_smtp_host, shops.smtp_port AS shops_smtp_port, shops.smtp_username AS shops_smtp_username, shops.smtp_password AS shops_smtp_password, shops.smtp_from_email AS shops_smtp_from_email, shops.smtp_from_name AS shops_smtp_from_name, shops.smtp_use_tls AS shops_smtp_use_tls, shops.created_at AS shops_created_at, shops.updated_at AS shops_updated_at 
+FROM shops 
+WHERE shops.id = $1::INTEGER]
+[parameters: (2,)]
+(Background on this error at: https://sqlalche.me/e/20/f405)
+Traceback (most recent call last):
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\dialects\postgresql\asyncpg.py", line 526, in _prepare_and_execute
+    prepared_stmt, attributes = await adapt_connection._prepare(
+                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\dialects\postgresql\asyncpg.py", line 773, in _prepare
+    prepared_stmt = await self._connection.prepare(
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\asyncpg\connection.py", line 638, in prepare
+    return await self._prepare(
+           ^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\asyncpg\connection.py", line 657, in _prepare
+    stmt = await self._get_statement(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\asyncpg\connection.py", line 443, in _get_statement
+    statement = await self._protocol.prepare(
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "asyncpg/protocol/protocol.pyx", line 165, in prepare
+asyncpg.exceptions.UndefinedColumnError: column shops.cashier_login_restriction_enabled does not exist
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\engine\base.py", line 1969, in _exec_single_context
+    self.dialect.do_execute(
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\engine\default.py", line 952, in do_execute
+    cursor.execute(statement, parameters)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\dialects\postgresql\asyncpg.py", line 585, in execute
+    self._adapt_connection.await_(
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\util\_concurrency_py3k.py", line 132, in await_only
+    return current.parent.switch(awaitable)  # type: ignore[no-any-return,attr-defined] # noqa: E501
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\util\_concurrency_py3k.py", line 196, in greenlet_spawn
+    value = await result
+            ^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\dialects\postgresql\asyncpg.py", line 563, in _prepare_and_execute
+    self._handle_exception(error)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\dialects\postgresql\asyncpg.py", line 513, in _handle_exception
+    self._adapt_connection._handle_exception(error)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\dialects\postgresql\asyncpg.py", line 797, in _handle_exception
+    raise translated_error from error
+sqlalchemy.dialects.postgresql.asyncpg.AsyncAdapt_asyncpg_dbapi.ProgrammingError: <class 'asyncpg.exceptions.UndefinedColumnError'>: column shops.cashier_login_restriction_enabled does not exist
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\middleware\errors.py", line 164, in __call__
+    await self.app(scope, receive, _send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\middleware\cors.py", line 96, in __call__
+    await self.simple_response(scope, receive, send, request_headers=headers)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\middleware\cors.py", line 154, in simple_response
+    await self.app(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\middleware\exceptions.py", line 63, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\middleware\asyncexitstack.py", line 18, in __call__
+    await self.app(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\routing.py", line 660, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 2683, in app
+    await route.handle(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 1753, in handle
+    await self.original_router.handle(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 2738, in handle
+    await included_router._handle_selected(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 1773, in _handle_selected
+    await original_route.handle(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 1264, in handle
+    await app(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 150, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 136, in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 690, in app
+    raw_response = await run_endpoint_function(
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 344, in run_endpoint_function
+    return await dependant.call(**values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\app\api\settings.py", line 58, in get_my_settings
+    shop_id = await _resolve_settings_shop_id(db, user, shop_id)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\app\api\settings.py", line 31, in _resolve_settings_shop_id
+    shop = await db.get(Shop, requested_shop_id)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\ext\asyncio\session.py", line 591, in get
+    return await greenlet_spawn(
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\util\_concurrency_py3k.py", line 201, in greenlet_spawn
+    result = context.throw(*sys.exc_info())
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\orm\session.py", line 3702, in get
+    return self._get_impl(
+           ^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\orm\session.py", line 3881, in _get_impl
+    return db_load_fn(
+           ^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\orm\loading.py", line 695, in load_on_pk_identity
+    session.execute(
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\orm\session.py", line 2373, in execute
+    return self._execute_internal(
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\orm\session.py", line 2271, in _execute_internal
+    result: Result[Any] = compile_state_cls.orm_execute_statement(
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\orm\context.py", line 306, in orm_execute_statement
+    result = conn.execute(
+             ^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\engine\base.py", line 1421, in execute
+    return meth(
+           ^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\sql\elements.py", line 526, in _execute_on_connection
+    return connection._execute_clauseelement(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\engine\base.py", line 1643, in _execute_clauseelement
+    ret = self._execute_context(
+          ^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\engine\base.py", line 1848, in _execute_context
+    return self._exec_single_context(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\engine\base.py", line 1988, in _exec_single_context
+    self._handle_dbapi_exception(
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\engine\base.py", line 2365, in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\engine\base.py", line 1969, in _exec_single_context
+    self.dialect.do_execute(
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\engine\default.py", line 952, in do_execute
+    cursor.execute(statement, parameters)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\dialects\postgresql\asyncpg.py", line 585, in execute
+    self._adapt_connection.await_(
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\util\_concurrency_py3k.py", line 132, in await_only
+    return current.parent.switch(awaitable)  # type: ignore[no-any-return,attr-defined] # noqa: E501
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\util\_concurrency_py3k.py", line 196, in greenlet_spawn
+    value = await result
+            ^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\dialects\postgresql\asyncpg.py", line 563, in _prepare_and_execute
+    self._handle_exception(error)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\dialects\postgresql\asyncpg.py", line 513, in _handle_exception
+    self._adapt_connection._handle_exception(error)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\dialects\postgresql\asyncpg.py", line 797, in _handle_exception
+    raise translated_error from error
+sqlalchemy.exc.ProgrammingError: (sqlalchemy.dialects.postgresql.asyncpg.ProgrammingError) <class 'asyncpg.exceptions.UndefinedColumnError'>: column shops.cashier_login_restriction_enabled does not exist
+[SQL: SELECT shops.id AS shops_id, shops.name AS shops_name, shops.code AS shops_code, shops.low_stock_threshold_default AS shops_low_stock_threshold_default, shops.last_invoice_number AS shops_last_invoice_number, shops.current_business_date AS shops_current_business_date, shops.gstin AS shops_gstin, shops.excise_duty_rate AS shops_excise_duty_rate, shops.app_display_name AS shops_app_display_name, shops.action_color AS shops_action_color, shops.sidebar_menu_inactive_text_color AS shops_sidebar_menu_inactive_text_color, shops.sidebar_menu_active_text_color AS shops_sidebar_menu_active_text_color, shops.active_tab_color AS shops_active_tab_color, shops.email_enabled AS shops_email_enabled, shops.cashier_login_restriction_enabled AS shops_cashier_login_restriction_enabled, shops.receiving_vendor_link_enabled AS shops_receiving_vendor_link_enabled, shops.allowed_login_cidrs AS shops_allowed_login_cidrs, shops.smtp_host AS shops_smtp_host, shops.smtp_port AS shops_smtp_port, shops.smtp_username AS shops_smtp_username, shops.smtp_password AS shops_smtp_password, shops.smtp_from_email AS shops_smtp_from_email, shops.smtp_from_name AS shops_smtp_from_name, shops.smtp_use_tls AS shops_smtp_use_tls, shops.created_at AS shops_created_at, shops.updated_at AS shops_updated_at 
+FROM shops 
+WHERE shops.id = $1::INTEGER]
+[parameters: (2,)]
+(Background on this error at: https://sqlalche.me/e/20/f405)
+[2026-07-14T17:21:30+05:30] Unhandled exception during GET /dashboard/void-queue; user=1; shop=unknown; ProgrammingError: (sqlalchemy.dialects.postgresql.asyncpg.ProgrammingError) <class 'asyncpg.exceptions.UndefinedColumnError'>: column shops.cashier_login_restriction_enabled does not exist
+[SQL: SELECT shops.id AS shops_id, shops.name AS shops_name, shops.code AS shops_code, shops.low_stock_threshold_default AS shops_low_stock_threshold_default, shops.last_invoice_number AS shops_last_invoice_number, shops.current_business_date AS shops_current_business_date, shops.gstin AS shops_gstin, shops.excise_duty_rate AS shops_excise_duty_rate, shops.app_display_name AS shops_app_display_name, shops.action_color AS shops_action_color, shops.sidebar_menu_inactive_text_color AS shops_sidebar_menu_inactive_text_color, shops.sidebar_menu_active_text_color AS shops_sidebar_menu_active_text_color, shops.active_tab_color AS shops_active_tab_color, shops.email_enabled AS shops_email_enabled, shops.cashier_login_restriction_enabled AS shops_cashier_login_restriction_enabled, shops.receiving_vendor_link_enabled AS shops_receiving_vendor_link_enabled, shops.allowed_login_cidrs AS shops_allowed_login_cidrs, shops.smtp_host AS shops_smtp_host, shops.smtp_port AS shops_smtp_port, shops.smtp_username AS shops_smtp_username, shops.smtp_password AS shops_smtp_password, shops.smtp_from_email AS shops_smtp_from_email, shops.smtp_from_name AS shops_smtp_from_name, shops.smtp_use_tls AS shops_smtp_use_tls, shops.created_at AS shops_created_at, shops.updated_at AS shops_updated_at 
+FROM shops 
+WHERE shops.id = $1::INTEGER]
+[parameters: (2,)]
+(Background on this error at: https://sqlalche.me/e/20/f405)
+Traceback (most recent call last):
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\dialects\postgresql\asyncpg.py", line 526, in _prepare_and_execute
+    prepared_stmt, attributes = await adapt_connection._prepare(
+                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\dialects\postgresql\asyncpg.py", line 773, in _prepare
+    prepared_stmt = await self._connection.prepare(
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\asyncpg\connection.py", line 638, in prepare
+    return await self._prepare(
+           ^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\asyncpg\connection.py", line 657, in _prepare
+    stmt = await self._get_statement(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\asyncpg\connection.py", line 443, in _get_statement
+    statement = await self._protocol.prepare(
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "asyncpg/protocol/protocol.pyx", line 165, in prepare
+asyncpg.exceptions.UndefinedColumnError: column shops.cashier_login_restriction_enabled does not exist
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\engine\base.py", line 1969, in _exec_single_context
+    self.dialect.do_execute(
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\engine\default.py", line 952, in do_execute
+    cursor.execute(statement, parameters)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\dialects\postgresql\asyncpg.py", line 585, in execute
+    self._adapt_connection.await_(
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\util\_concurrency_py3k.py", line 132, in await_only
+    return current.parent.switch(awaitable)  # type: ignore[no-any-return,attr-defined] # noqa: E501
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\util\_concurrency_py3k.py", line 196, in greenlet_spawn
+    value = await result
+            ^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\dialects\postgresql\asyncpg.py", line 563, in _prepare_and_execute
+    self._handle_exception(error)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\dialects\postgresql\asyncpg.py", line 513, in _handle_exception
+    self._adapt_connection._handle_exception(error)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\dialects\postgresql\asyncpg.py", line 797, in _handle_exception
+    raise translated_error from error
+sqlalchemy.dialects.postgresql.asyncpg.AsyncAdapt_asyncpg_dbapi.ProgrammingError: <class 'asyncpg.exceptions.UndefinedColumnError'>: column shops.cashier_login_restriction_enabled does not exist
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\middleware\errors.py", line 164, in __call__
+    await self.app(scope, receive, _send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\middleware\cors.py", line 96, in __call__
+    await self.simple_response(scope, receive, send, request_headers=headers)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\middleware\cors.py", line 154, in simple_response
+    await self.app(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\middleware\exceptions.py", line 63, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\middleware\asyncexitstack.py", line 18, in __call__
+    await self.app(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\routing.py", line 660, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 2683, in app
+    await route.handle(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 1753, in handle
+    await self.original_router.handle(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 2738, in handle
+    await included_router._handle_selected(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 1773, in _handle_selected
+    await original_route.handle(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 1264, in handle
+    await app(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 150, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 136, in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 690, in app
+    raw_response = await run_endpoint_function(
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 344, in run_endpoint_function
+    return await dependant.call(**values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\app\api\dashboard.py", line 231, in void_queue
+    actor_shop_id = await resolve_write_shop_id(db, _user, shop_id)
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\app\api\deps.py", line 115, in resolve_write_shop_id
+    shop = await db.get(Shop, requested_shop_id)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\ext\asyncio\session.py", line 591, in get
+    return await greenlet_spawn(
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\util\_concurrency_py3k.py", line 201, in greenlet_spawn
+    result = context.throw(*sys.exc_info())
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\orm\session.py", line 3702, in get
+    return self._get_impl(
+           ^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\orm\session.py", line 3881, in _get_impl
+    return db_load_fn(
+           ^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\orm\loading.py", line 695, in load_on_pk_identity
+    session.execute(
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\orm\session.py", line 2373, in execute
+    return self._execute_internal(
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\orm\session.py", line 2271, in _execute_internal
+    result: Result[Any] = compile_state_cls.orm_execute_statement(
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\orm\context.py", line 306, in orm_execute_statement
+    result = conn.execute(
+             ^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\engine\base.py", line 1421, in execute
+    return meth(
+           ^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\sql\elements.py", line 526, in _execute_on_connection
+    return connection._execute_clauseelement(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\engine\base.py", line 1643, in _execute_clauseelement
+    ret = self._execute_context(
+          ^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\engine\base.py", line 1848, in _execute_context
+    return self._exec_single_context(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\engine\base.py", line 1988, in _exec_single_context
+    self._handle_dbapi_exception(
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\engine\base.py", line 2365, in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\engine\base.py", line 1969, in _exec_single_context
+    self.dialect.do_execute(
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\engine\default.py", line 952, in do_execute
+    cursor.execute(statement, parameters)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\dialects\postgresql\asyncpg.py", line 585, in execute
+    self._adapt_connection.await_(
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\util\_concurrency_py3k.py", line 132, in await_only
+    return current.parent.switch(awaitable)  # type: ignore[no-any-return,attr-defined] # noqa: E501
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\util\_concurrency_py3k.py", line 196, in greenlet_spawn
+    value = await result
+            ^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\dialects\postgresql\asyncpg.py", line 563, in _prepare_and_execute
+    self._handle_exception(error)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\dialects\postgresql\asyncpg.py", line 513, in _handle_exception
+    self._adapt_connection._handle_exception(error)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\dialects\postgresql\asyncpg.py", line 797, in _handle_exception
+    raise translated_error from error
+sqlalchemy.exc.ProgrammingError: (sqlalchemy.dialects.postgresql.asyncpg.ProgrammingError) <class 'asyncpg.exceptions.UndefinedColumnError'>: column shops.cashier_login_restriction_enabled does not exist
+[SQL: SELECT shops.id AS shops_id, shops.name AS shops_name, shops.code AS shops_code, shops.low_stock_threshold_default AS shops_low_stock_threshold_default, shops.last_invoice_number AS shops_last_invoice_number, shops.current_business_date AS shops_current_business_date, shops.gstin AS shops_gstin, shops.excise_duty_rate AS shops_excise_duty_rate, shops.app_display_name AS shops_app_display_name, shops.action_color AS shops_action_color, shops.sidebar_menu_inactive_text_color AS shops_sidebar_menu_inactive_text_color, shops.sidebar_menu_active_text_color AS shops_sidebar_menu_active_text_color, shops.active_tab_color AS shops_active_tab_color, shops.email_enabled AS shops_email_enabled, shops.cashier_login_restriction_enabled AS shops_cashier_login_restriction_enabled, shops.receiving_vendor_link_enabled AS shops_receiving_vendor_link_enabled, shops.allowed_login_cidrs AS shops_allowed_login_cidrs, shops.smtp_host AS shops_smtp_host, shops.smtp_port AS shops_smtp_port, shops.smtp_username AS shops_smtp_username, shops.smtp_password AS shops_smtp_password, shops.smtp_from_email AS shops_smtp_from_email, shops.smtp_from_name AS shops_smtp_from_name, shops.smtp_use_tls AS shops_smtp_use_tls, shops.created_at AS shops_created_at, shops.updated_at AS shops_updated_at 
+FROM shops 
+WHERE shops.id = $1::INTEGER]
+[parameters: (2,)]
+(Background on this error at: https://sqlalche.me/e/20/f405)
+[2026-07-14T17:21:30+05:30] Unhandled exception during GET /dashboard/eod-totals; user=1; shop=unknown; ProgrammingError: (sqlalchemy.dialects.postgresql.asyncpg.ProgrammingError) <class 'asyncpg.exceptions.UndefinedColumnError'>: column shops.cashier_login_restriction_enabled does not exist
+[SQL: SELECT shops.id AS shops_id, shops.name AS shops_name, shops.code AS shops_code, shops.low_stock_threshold_default AS shops_low_stock_threshold_default, shops.last_invoice_number AS shops_last_invoice_number, shops.current_business_date AS shops_current_business_date, shops.gstin AS shops_gstin, shops.excise_duty_rate AS shops_excise_duty_rate, shops.app_display_name AS shops_app_display_name, shops.action_color AS shops_action_color, shops.sidebar_menu_inactive_text_color AS shops_sidebar_menu_inactive_text_color, shops.sidebar_menu_active_text_color AS shops_sidebar_menu_active_text_color, shops.active_tab_color AS shops_active_tab_color, shops.email_enabled AS shops_email_enabled, shops.cashier_login_restriction_enabled AS shops_cashier_login_restriction_enabled, shops.receiving_vendor_link_enabled AS shops_receiving_vendor_link_enabled, shops.allowed_login_cidrs AS shops_allowed_login_cidrs, shops.smtp_host AS shops_smtp_host, shops.smtp_port AS shops_smtp_port, shops.smtp_username AS shops_smtp_username, shops.smtp_password AS shops_smtp_password, shops.smtp_from_email AS shops_smtp_from_email, shops.smtp_from_name AS shops_smtp_from_name, shops.smtp_use_tls AS shops_smtp_use_tls, shops.created_at AS shops_created_at, shops.updated_at AS shops_updated_at 
+FROM shops 
+WHERE shops.id = $1::INTEGER]
+[parameters: (2,)]
+(Background on this error at: https://sqlalche.me/e/20/f405)
+Traceback (most recent call last):
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\dialects\postgresql\asyncpg.py", line 526, in _prepare_and_execute
+    prepared_stmt, attributes = await adapt_connection._prepare(
+                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\dialects\postgresql\asyncpg.py", line 773, in _prepare
+    prepared_stmt = await self._connection.prepare(
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\asyncpg\connection.py", line 638, in prepare
+    return await self._prepare(
+           ^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\asyncpg\connection.py", line 657, in _prepare
+    stmt = await self._get_statement(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\asyncpg\connection.py", line 443, in _get_statement
+    statement = await self._protocol.prepare(
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "asyncpg/protocol/protocol.pyx", line 165, in prepare
+asyncpg.exceptions.UndefinedColumnError: column shops.cashier_login_restriction_enabled does not exist
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\engine\base.py", line 1969, in _exec_single_context
+    self.dialect.do_execute(
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\engine\default.py", line 952, in do_execute
+    cursor.execute(statement, parameters)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\dialects\postgresql\asyncpg.py", line 585, in execute
+    self._adapt_connection.await_(
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\util\_concurrency_py3k.py", line 132, in await_only
+    return current.parent.switch(awaitable)  # type: ignore[no-any-return,attr-defined] # noqa: E501
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\util\_concurrency_py3k.py", line 196, in greenlet_spawn
+    value = await result
+            ^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\dialects\postgresql\asyncpg.py", line 563, in _prepare_and_execute
+    self._handle_exception(error)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\dialects\postgresql\asyncpg.py", line 513, in _handle_exception
+    self._adapt_connection._handle_exception(error)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\dialects\postgresql\asyncpg.py", line 797, in _handle_exception
+    raise translated_error from error
+sqlalchemy.dialects.postgresql.asyncpg.AsyncAdapt_asyncpg_dbapi.ProgrammingError: <class 'asyncpg.exceptions.UndefinedColumnError'>: column shops.cashier_login_restriction_enabled does not exist
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\middleware\errors.py", line 164, in __call__
+    await self.app(scope, receive, _send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\middleware\cors.py", line 96, in __call__
+    await self.simple_response(scope, receive, send, request_headers=headers)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\middleware\cors.py", line 154, in simple_response
+    await self.app(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\middleware\exceptions.py", line 63, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\middleware\asyncexitstack.py", line 18, in __call__
+    await self.app(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\routing.py", line 660, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 2683, in app
+    await route.handle(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 1753, in handle
+    await self.original_router.handle(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 2738, in handle
+    await included_router._handle_selected(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 1773, in _handle_selected
+    await original_route.handle(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 1264, in handle
+    await app(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 150, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 136, in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 690, in app
+    raw_response = await run_endpoint_function(
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 344, in run_endpoint_function
+    return await dependant.call(**values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\app\api\dashboard.py", line 159, in eod_totals
+    actor_shop_id = await resolve_write_shop_id(db, _user, shop_id)
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\app\api\deps.py", line 115, in resolve_write_shop_id
+    shop = await db.get(Shop, requested_shop_id)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\ext\asyncio\session.py", line 591, in get
+    return await greenlet_spawn(
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\util\_concurrency_py3k.py", line 201, in greenlet_spawn
+    result = context.throw(*sys.exc_info())
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\orm\session.py", line 3702, in get
+    return self._get_impl(
+           ^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\orm\session.py", line 3881, in _get_impl
+    return db_load_fn(
+           ^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\orm\loading.py", line 695, in load_on_pk_identity
+    session.execute(
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\orm\session.py", line 2373, in execute
+    return self._execute_internal(
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\orm\session.py", line 2271, in _execute_internal
+    result: Result[Any] = compile_state_cls.orm_execute_statement(
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\orm\context.py", line 306, in orm_execute_statement
+    result = conn.execute(
+             ^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\engine\base.py", line 1421, in execute
+    return meth(
+           ^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\sql\elements.py", line 526, in _execute_on_connection
+    return connection._execute_clauseelement(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\engine\base.py", line 1643, in _execute_clauseelement
+    ret = self._execute_context(
+          ^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\engine\base.py", line 1848, in _execute_context
+    return self._exec_single_context(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\engine\base.py", line 1988, in _exec_single_context
+    self._handle_dbapi_exception(
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\engine\base.py", line 2365, in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\engine\base.py", line 1969, in _exec_single_context
+    self.dialect.do_execute(
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\engine\default.py", line 952, in do_execute
+    cursor.execute(statement, parameters)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\dialects\postgresql\asyncpg.py", line 585, in execute
+    self._adapt_connection.await_(
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\util\_concurrency_py3k.py", line 132, in await_only
+    return current.parent.switch(awaitable)  # type: ignore[no-any-return,attr-defined] # noqa: E501
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\util\_concurrency_py3k.py", line 196, in greenlet_spawn
+    value = await result
+            ^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\dialects\postgresql\asyncpg.py", line 563, in _prepare_and_execute
+    self._handle_exception(error)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\dialects\postgresql\asyncpg.py", line 513, in _handle_exception
+    self._adapt_connection._handle_exception(error)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\dialects\postgresql\asyncpg.py", line 797, in _handle_exception
+    raise translated_error from error
+sqlalchemy.exc.ProgrammingError: (sqlalchemy.dialects.postgresql.asyncpg.ProgrammingError) <class 'asyncpg.exceptions.UndefinedColumnError'>: column shops.cashier_login_restriction_enabled does not exist
+[SQL: SELECT shops.id AS shops_id, shops.name AS shops_name, shops.code AS shops_code, shops.low_stock_threshold_default AS shops_low_stock_threshold_default, shops.last_invoice_number AS shops_last_invoice_number, shops.current_business_date AS shops_current_business_date, shops.gstin AS shops_gstin, shops.excise_duty_rate AS shops_excise_duty_rate, shops.app_display_name AS shops_app_display_name, shops.action_color AS shops_action_color, shops.sidebar_menu_inactive_text_color AS shops_sidebar_menu_inactive_text_color, shops.sidebar_menu_active_text_color AS shops_sidebar_menu_active_text_color, shops.active_tab_color AS shops_active_tab_color, shops.email_enabled AS shops_email_enabled, shops.cashier_login_restriction_enabled AS shops_cashier_login_restriction_enabled, shops.receiving_vendor_link_enabled AS shops_receiving_vendor_link_enabled, shops.allowed_login_cidrs AS shops_allowed_login_cidrs, shops.smtp_host AS shops_smtp_host, shops.smtp_port AS shops_smtp_port, shops.smtp_username AS shops_smtp_username, shops.smtp_password AS shops_smtp_password, shops.smtp_from_email AS shops_smtp_from_email, shops.smtp_from_name AS shops_smtp_from_name, shops.smtp_use_tls AS shops_smtp_use_tls, shops.created_at AS shops_created_at, shops.updated_at AS shops_updated_at 
+FROM shops 
+WHERE shops.id = $1::INTEGER]
+[parameters: (2,)]
+(Background on this error at: https://sqlalche.me/e/20/f405)
+[2026-07-14T17:21:30+05:30] Unhandled exception during GET /dashboard/eod-totals; user=1; shop=unknown; ProgrammingError: (sqlalchemy.dialects.postgresql.asyncpg.ProgrammingError) <class 'asyncpg.exceptions.UndefinedColumnError'>: column shops.cashier_login_restriction_enabled does not exist
+[SQL: SELECT shops.id AS shops_id, shops.name AS shops_name, shops.code AS shops_code, shops.low_stock_threshold_default AS shops_low_stock_threshold_default, shops.last_invoice_number AS shops_last_invoice_number, shops.current_business_date AS shops_current_business_date, shops.gstin AS shops_gstin, shops.excise_duty_rate AS shops_excise_duty_rate, shops.app_display_name AS shops_app_display_name, shops.action_color AS shops_action_color, shops.sidebar_menu_inactive_text_color AS shops_sidebar_menu_inactive_text_color, shops.sidebar_menu_active_text_color AS shops_sidebar_menu_active_text_color, shops.active_tab_color AS shops_active_tab_color, shops.email_enabled AS shops_email_enabled, shops.cashier_login_restriction_enabled AS shops_cashier_login_restriction_enabled, shops.receiving_vendor_link_enabled AS shops_receiving_vendor_link_enabled, shops.allowed_login_cidrs AS shops_allowed_login_cidrs, shops.smtp_host AS shops_smtp_host, shops.smtp_port AS shops_smtp_port, shops.smtp_username AS shops_smtp_username, shops.smtp_password AS shops_smtp_password, shops.smtp_from_email AS shops_smtp_from_email, shops.smtp_from_name AS shops_smtp_from_name, shops.smtp_use_tls AS shops_smtp_use_tls, shops.created_at AS shops_created_at, shops.updated_at AS shops_updated_at 
+FROM shops 
+WHERE shops.id = $1::INTEGER]
+[parameters: (2,)]
+(Background on this error at: https://sqlalche.me/e/20/f405)
+Traceback (most recent call last):
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\dialects\postgresql\asyncpg.py", line 526, in _prepare_and_execute
+    prepared_stmt, attributes = await adapt_connection._prepare(
+                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\dialects\postgresql\asyncpg.py", line 773, in _prepare
+    prepared_stmt = await self._connection.prepare(
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\asyncpg\connection.py", line 638, in prepare
+    return await self._prepare(
+           ^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\asyncpg\connection.py", line 657, in _prepare
+    stmt = await self._get_statement(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\asyncpg\connection.py", line 443, in _get_statement
+    statement = await self._protocol.prepare(
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "asyncpg/protocol/protocol.pyx", line 165, in prepare
+asyncpg.exceptions.UndefinedColumnError: column shops.cashier_login_restriction_enabled does not exist
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\engine\base.py", line 1969, in _exec_single_context
+    self.dialect.do_execute(
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\engine\default.py", line 952, in do_execute
+    cursor.execute(statement, parameters)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\dialects\postgresql\asyncpg.py", line 585, in execute
+    self._adapt_connection.await_(
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\util\_concurrency_py3k.py", line 132, in await_only
+    return current.parent.switch(awaitable)  # type: ignore[no-any-return,attr-defined] # noqa: E501
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\util\_concurrency_py3k.py", line 196, in greenlet_spawn
+    value = await result
+            ^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\dialects\postgresql\asyncpg.py", line 563, in _prepare_and_execute
+    self._handle_exception(error)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\dialects\postgresql\asyncpg.py", line 513, in _handle_exception
+    self._adapt_connection._handle_exception(error)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\dialects\postgresql\asyncpg.py", line 797, in _handle_exception
+    raise translated_error from error
+sqlalchemy.dialects.postgresql.asyncpg.AsyncAdapt_asyncpg_dbapi.ProgrammingError: <class 'asyncpg.exceptions.UndefinedColumnError'>: column shops.cashier_login_restriction_enabled does not exist
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\middleware\errors.py", line 164, in __call__
+    await self.app(scope, receive, _send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\middleware\cors.py", line 96, in __call__
+    await self.simple_response(scope, receive, send, request_headers=headers)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\middleware\cors.py", line 154, in simple_response
+    await self.app(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\middleware\exceptions.py", line 63, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\middleware\asyncexitstack.py", line 18, in __call__
+    await self.app(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\routing.py", line 660, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 2683, in app
+    await route.handle(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 1753, in handle
+    await self.original_router.handle(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 2738, in handle
+    await included_router._handle_selected(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 1773, in _handle_selected
+    await original_route.handle(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 1264, in handle
+    await app(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 150, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 136, in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 690, in app
+    raw_response = await run_endpoint_function(
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 344, in run_endpoint_function
+    return await dependant.call(**values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\app\api\dashboard.py", line 159, in eod_totals
+    actor_shop_id = await resolve_write_shop_id(db, _user, shop_id)
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\app\api\deps.py", line 115, in resolve_write_shop_id
+    shop = await db.get(Shop, requested_shop_id)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\ext\asyncio\session.py", line 591, in get
+    return await greenlet_spawn(
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\util\_concurrency_py3k.py", line 201, in greenlet_spawn
+    result = context.throw(*sys.exc_info())
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\orm\session.py", line 3702, in get
+    return self._get_impl(
+           ^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\orm\session.py", line 3881, in _get_impl
+    return db_load_fn(
+           ^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\orm\loading.py", line 695, in load_on_pk_identity
+    session.execute(
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\orm\session.py", line 2373, in execute
+    return self._execute_internal(
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\orm\session.py", line 2271, in _execute_internal
+    result: Result[Any] = compile_state_cls.orm_execute_statement(
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\orm\context.py", line 306, in orm_execute_statement
+    result = conn.execute(
+             ^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\engine\base.py", line 1421, in execute
+    return meth(
+           ^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\sql\elements.py", line 526, in _execute_on_connection
+    return connection._execute_clauseelement(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\engine\base.py", line 1643, in _execute_clauseelement
+    ret = self._execute_context(
+          ^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\engine\base.py", line 1848, in _execute_context
+    return self._exec_single_context(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\engine\base.py", line 1988, in _exec_single_context
+    self._handle_dbapi_exception(
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\engine\base.py", line 2365, in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\engine\base.py", line 1969, in _exec_single_context
+    self.dialect.do_execute(
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\engine\default.py", line 952, in do_execute
+    cursor.execute(statement, parameters)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\dialects\postgresql\asyncpg.py", line 585, in execute
+    self._adapt_connection.await_(
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\util\_concurrency_py3k.py", line 132, in await_only
+    return current.parent.switch(awaitable)  # type: ignore[no-any-return,attr-defined] # noqa: E501
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\util\_concurrency_py3k.py", line 196, in greenlet_spawn
+    value = await result
+            ^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\dialects\postgresql\asyncpg.py", line 563, in _prepare_and_execute
+    self._handle_exception(error)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\dialects\postgresql\asyncpg.py", line 513, in _handle_exception
+    self._adapt_connection._handle_exception(error)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\dialects\postgresql\asyncpg.py", line 797, in _handle_exception
+    raise translated_error from error
+sqlalchemy.exc.ProgrammingError: (sqlalchemy.dialects.postgresql.asyncpg.ProgrammingError) <class 'asyncpg.exceptions.UndefinedColumnError'>: column shops.cashier_login_restriction_enabled does not exist
+[SQL: SELECT shops.id AS shops_id, shops.name AS shops_name, shops.code AS shops_code, shops.low_stock_threshold_default AS shops_low_stock_threshold_default, shops.last_invoice_number AS shops_last_invoice_number, shops.current_business_date AS shops_current_business_date, shops.gstin AS shops_gstin, shops.excise_duty_rate AS shops_excise_duty_rate, shops.app_display_name AS shops_app_display_name, shops.action_color AS shops_action_color, shops.sidebar_menu_inactive_text_color AS shops_sidebar_menu_inactive_text_color, shops.sidebar_menu_active_text_color AS shops_sidebar_menu_active_text_color, shops.active_tab_color AS shops_active_tab_color, shops.email_enabled AS shops_email_enabled, shops.cashier_login_restriction_enabled AS shops_cashier_login_restriction_enabled, shops.receiving_vendor_link_enabled AS shops_receiving_vendor_link_enabled, shops.allowed_login_cidrs AS shops_allowed_login_cidrs, shops.smtp_host AS shops_smtp_host, shops.smtp_port AS shops_smtp_port, shops.smtp_username AS shops_smtp_username, shops.smtp_password AS shops_smtp_password, shops.smtp_from_email AS shops_smtp_from_email, shops.smtp_from_name AS shops_smtp_from_name, shops.smtp_use_tls AS shops_smtp_use_tls, shops.created_at AS shops_created_at, shops.updated_at AS shops_updated_at 
+FROM shops 
+WHERE shops.id = $1::INTEGER]
+[parameters: (2,)]
+(Background on this error at: https://sqlalche.me/e/20/f405)
+[2026-07-14T17:31:06+05:30] Unhandled exception during GET /settings/me; user=1; shop=unknown; ProgrammingError: (sqlalchemy.dialects.postgresql.asyncpg.ProgrammingError) <class 'asyncpg.exceptions.UndefinedColumnError'>: column shops.cashier_login_restriction_enabled does not exist
+[SQL: SELECT shops.id AS shops_id, shops.name AS shops_name, shops.code AS shops_code, shops.low_stock_threshold_default AS shops_low_stock_threshold_default, shops.last_invoice_number AS shops_last_invoice_number, shops.current_business_date AS shops_current_business_date, shops.gstin AS shops_gstin, shops.excise_duty_rate AS shops_excise_duty_rate, shops.app_display_name AS shops_app_display_name, shops.action_color AS shops_action_color, shops.sidebar_menu_inactive_text_color AS shops_sidebar_menu_inactive_text_color, shops.sidebar_menu_active_text_color AS shops_sidebar_menu_active_text_color, shops.active_tab_color AS shops_active_tab_color, shops.email_enabled AS shops_email_enabled, shops.cashier_login_restriction_enabled AS shops_cashier_login_restriction_enabled, shops.receiving_vendor_link_enabled AS shops_receiving_vendor_link_enabled, shops.allowed_login_cidrs AS shops_allowed_login_cidrs, shops.smtp_host AS shops_smtp_host, shops.smtp_port AS shops_smtp_port, shops.smtp_username AS shops_smtp_username, shops.smtp_password AS shops_smtp_password, shops.smtp_from_email AS shops_smtp_from_email, shops.smtp_from_name AS shops_smtp_from_name, shops.smtp_use_tls AS shops_smtp_use_tls, shops.created_at AS shops_created_at, shops.updated_at AS shops_updated_at 
+FROM shops 
+WHERE shops.id = $1::INTEGER]
+[parameters: (2,)]
+(Background on this error at: https://sqlalche.me/e/20/f405)
+Traceback (most recent call last):
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\dialects\postgresql\asyncpg.py", line 526, in _prepare_and_execute
+    prepared_stmt, attributes = await adapt_connection._prepare(
+                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\dialects\postgresql\asyncpg.py", line 773, in _prepare
+    prepared_stmt = await self._connection.prepare(
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\asyncpg\connection.py", line 638, in prepare
+    return await self._prepare(
+           ^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\asyncpg\connection.py", line 657, in _prepare
+    stmt = await self._get_statement(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\asyncpg\connection.py", line 443, in _get_statement
+    statement = await self._protocol.prepare(
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "asyncpg/protocol/protocol.pyx", line 165, in prepare
+asyncpg.exceptions.UndefinedColumnError: column shops.cashier_login_restriction_enabled does not exist
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\engine\base.py", line 1969, in _exec_single_context
+    self.dialect.do_execute(
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\engine\default.py", line 952, in do_execute
+    cursor.execute(statement, parameters)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\dialects\postgresql\asyncpg.py", line 585, in execute
+    self._adapt_connection.await_(
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\util\_concurrency_py3k.py", line 132, in await_only
+    return current.parent.switch(awaitable)  # type: ignore[no-any-return,attr-defined] # noqa: E501
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\util\_concurrency_py3k.py", line 196, in greenlet_spawn
+    value = await result
+            ^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\dialects\postgresql\asyncpg.py", line 563, in _prepare_and_execute
+    self._handle_exception(error)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\dialects\postgresql\asyncpg.py", line 513, in _handle_exception
+    self._adapt_connection._handle_exception(error)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\dialects\postgresql\asyncpg.py", line 797, in _handle_exception
+    raise translated_error from error
+sqlalchemy.dialects.postgresql.asyncpg.AsyncAdapt_asyncpg_dbapi.ProgrammingError: <class 'asyncpg.exceptions.UndefinedColumnError'>: column shops.cashier_login_restriction_enabled does not exist
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\middleware\errors.py", line 164, in __call__
+    await self.app(scope, receive, _send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\middleware\cors.py", line 96, in __call__
+    await self.simple_response(scope, receive, send, request_headers=headers)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\middleware\cors.py", line 154, in simple_response
+    await self.app(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\middleware\exceptions.py", line 63, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\middleware\asyncexitstack.py", line 18, in __call__
+    await self.app(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\routing.py", line 660, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 2683, in app
+    await route.handle(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 1753, in handle
+    await self.original_router.handle(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 2738, in handle
+    await included_router._handle_selected(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 1773, in _handle_selected
+    await original_route.handle(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 1264, in handle
+    await app(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 150, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 136, in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 690, in app
+    raw_response = await run_endpoint_function(
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 344, in run_endpoint_function
+    return await dependant.call(**values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\app\api\settings.py", line 58, in get_my_settings
+    shop_id = await _resolve_settings_shop_id(db, user, shop_id)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\app\api\settings.py", line 31, in _resolve_settings_shop_id
+    shop = await db.get(Shop, requested_shop_id)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\ext\asyncio\session.py", line 591, in get
+    return await greenlet_spawn(
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\util\_concurrency_py3k.py", line 201, in greenlet_spawn
+    result = context.throw(*sys.exc_info())
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\orm\session.py", line 3702, in get
+    return self._get_impl(
+           ^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\orm\session.py", line 3881, in _get_impl
+    return db_load_fn(
+           ^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\orm\loading.py", line 695, in load_on_pk_identity
+    session.execute(
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\orm\session.py", line 2373, in execute
+    return self._execute_internal(
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\orm\session.py", line 2271, in _execute_internal
+    result: Result[Any] = compile_state_cls.orm_execute_statement(
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\orm\context.py", line 306, in orm_execute_statement
+    result = conn.execute(
+             ^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\engine\base.py", line 1421, in execute
+    return meth(
+           ^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\sql\elements.py", line 526, in _execute_on_connection
+    return connection._execute_clauseelement(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\engine\base.py", line 1643, in _execute_clauseelement
+    ret = self._execute_context(
+          ^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\engine\base.py", line 1848, in _execute_context
+    return self._exec_single_context(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\engine\base.py", line 1988, in _exec_single_context
+    self._handle_dbapi_exception(
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\engine\base.py", line 2365, in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\engine\base.py", line 1969, in _exec_single_context
+    self.dialect.do_execute(
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\engine\default.py", line 952, in do_execute
+    cursor.execute(statement, parameters)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\dialects\postgresql\asyncpg.py", line 585, in execute
+    self._adapt_connection.await_(
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\util\_concurrency_py3k.py", line 132, in await_only
+    return current.parent.switch(awaitable)  # type: ignore[no-any-return,attr-defined] # noqa: E501
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\util\_concurrency_py3k.py", line 196, in greenlet_spawn
+    value = await result
+            ^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\dialects\postgresql\asyncpg.py", line 563, in _prepare_and_execute
+    self._handle_exception(error)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\dialects\postgresql\asyncpg.py", line 513, in _handle_exception
+    self._adapt_connection._handle_exception(error)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\dialects\postgresql\asyncpg.py", line 797, in _handle_exception
+    raise translated_error from error
+sqlalchemy.exc.ProgrammingError: (sqlalchemy.dialects.postgresql.asyncpg.ProgrammingError) <class 'asyncpg.exceptions.UndefinedColumnError'>: column shops.cashier_login_restriction_enabled does not exist
+[SQL: SELECT shops.id AS shops_id, shops.name AS shops_name, shops.code AS shops_code, shops.low_stock_threshold_default AS shops_low_stock_threshold_default, shops.last_invoice_number AS shops_last_invoice_number, shops.current_business_date AS shops_current_business_date, shops.gstin AS shops_gstin, shops.excise_duty_rate AS shops_excise_duty_rate, shops.app_display_name AS shops_app_display_name, shops.action_color AS shops_action_color, shops.sidebar_menu_inactive_text_color AS shops_sidebar_menu_inactive_text_color, shops.sidebar_menu_active_text_color AS shops_sidebar_menu_active_text_color, shops.active_tab_color AS shops_active_tab_color, shops.email_enabled AS shops_email_enabled, shops.cashier_login_restriction_enabled AS shops_cashier_login_restriction_enabled, shops.receiving_vendor_link_enabled AS shops_receiving_vendor_link_enabled, shops.allowed_login_cidrs AS shops_allowed_login_cidrs, shops.smtp_host AS shops_smtp_host, shops.smtp_port AS shops_smtp_port, shops.smtp_username AS shops_smtp_username, shops.smtp_password AS shops_smtp_password, shops.smtp_from_email AS shops_smtp_from_email, shops.smtp_from_name AS shops_smtp_from_name, shops.smtp_use_tls AS shops_smtp_use_tls, shops.created_at AS shops_created_at, shops.updated_at AS shops_updated_at 
+FROM shops 
+WHERE shops.id = $1::INTEGER]
+[parameters: (2,)]
+(Background on this error at: https://sqlalche.me/e/20/f405)

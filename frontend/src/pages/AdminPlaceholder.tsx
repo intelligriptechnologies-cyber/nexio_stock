@@ -6,8 +6,8 @@ import { useLocation } from "react-router-dom";
 export function AdminPlaceholder() {
   const loc = useLocation();
   return (
-    <div className="rounded-lg bg-surface-container p-gutter shadow">
-      <h1 className="mb-stack-gap text-headline-lg text-primary">Admin</h1>
+    <div className="rounded-xl bg-white p-8 shadow-lg ring-1 ring-slate-200">
+      <h1 className="mb-4 text-2xl font-semibold tracking-tight text-slate-900">Admin Section</h1>
       <p className="text-body-md text-on-surface-variant">
         Owner-only admin section. Current path: <code>{loc.pathname}</code>. Per-screen
         implementations arrive with issues #14 (Products), #15 (Void Approvals), #17 (Staff),

@@ -1,0 +1,24 @@
+logged_at,event_type,shop_id,shop_name,actor_user_id,actor_name,lot_id,vendor_id,vendor_name,vendor_gstin,purchase_date,vendor_invoice_number,invoice_value,reference,notes,product_id,product_name_snapshot,barcode,quantity,good_condition_quantity,breakage_quantity,current_price,row_total
+2026-07-17T14:55:37+05:30,lot.received,1,Shop One,1,Owner One,1,1,Vendor One,,2026-07-17,TEST-INVOICE,0.00,,,1,X 750ml,8903000000001,5,5,0,100.00,500.00
+2026-07-17T14:55:44+05:30,lot.received,1,Shop One,1,Owner One,1,1,Vendor One,,2026-07-17,TEST-INVOICE,0.00,,,1,X 750ml,8903000000002,5,5,0,100.00,500.00
+2026-07-17T14:55:57+05:30,lot.received,1,Shop One,1,Owner One,1,1,Vendor One,,2026-07-17,TEST-INVOICE,0.00,,,1,X 750ml,8903000000003,5,5,0,100.00,500.00
+2026-07-17T14:56:02+05:30,lot.received,1,Shop One,1,Owner One,1,1,Vendor One,,2026-07-17,TEST-INVOICE,0.00,,,1,X 750ml,8903000000004,5,5,0,100.00,500.00
+2026-07-17T14:56:09+05:30,lot.received,1,Shop One,1,Owner One,1,1,Vendor One,,2026-07-17,TEST-INVOICE,0.00,,,1,X 750ml,8903000000005,5,5,0,100.00,500.00
+2026-07-17T14:56:14+05:30,lot.received,1,Shop One,1,Owner One,1,1,Vendor One,,2026-07-17,TEST-INVOICE,0.00,,,1,X 750ml,8903000000006,5,5,0,100.00,500.00
+2026-07-17T14:56:21+05:30,lot.received,1,Shop One,1,Owner One,1,1,Vendor One,,2026-07-17,TEST-INVOICE,0.00,,,1,X 750ml,8903000000014,5,5,0,100.00,500.00
+2026-07-17T14:56:27+05:30,lot.received,1,Shop One,1,Owner One,1,1,Vendor One,,2026-07-17,TEST-INVOICE,0.00,,,1,X 750ml,8903000000015,5,5,0,100.00,500.00
+2026-07-17T14:56:32+05:30,lot.received,1,Shop One,1,Owner One,1,1,Vendor One,,2026-07-17,TEST-INVOICE,0.00,,,1,X 750ml,8903000000101,10,10,0,100.00,1000.00
+2026-07-17T14:56:39+05:30,lot.received,1,Shop One,1,Owner One,1,1,Vendor One,,2026-07-17,TEST-INVOICE,0.00,,,1,X 750ml,8903000000102,10,10,0,100.00,1000.00
+2026-07-17T14:56:45+05:30,lot.received,1,Shop One,1,Owner One,1,1,Vendor One,,2026-07-17,TEST-INVOICE,0.00,,,1,X 750ml,8903000000103,10,10,0,100.00,1000.00
+2026-07-17T14:56:51+05:30,lot.received,1,Shop One,1,Owner One,1,1,Vendor One,,2026-07-17,TEST-INVOICE,0.00,,,1,X 750ml,8903000000104,10,10,0,100.00,1000.00
+2026-07-17T14:56:57+05:30,lot.received,1,Shop One,1,Owner One,1,1,Vendor One,,2026-07-17,TEST-INVOICE,0.00,,,1,X 750ml,8903000000105,10,10,0,100.00,1000.00
+2026-07-17T14:57:07+05:30,lot.received,1,Shop One,1,Owner One,1,1,Vendor One,,2026-07-17,TEST-INVOICE,0.00,,,1,X 750ml,8903000000007,5,5,0,100.00,500.00
+2026-07-17T14:57:12+05:30,lot.received,1,Shop One,1,Owner One,1,1,Vendor One,,2026-07-17,TEST-INVOICE,0.00,,,1,X 750ml,8903000000008,5,5,0,100.00,500.00
+2026-07-17T14:57:19+05:30,lot.received,1,Shop One,1,Owner One,1,1,Vendor One,,2026-07-17,TEST-INVOICE,0.00,,,1,X 750ml,8903000000016,5,5,0,100.00,500.00
+2026-07-17T14:57:26+05:30,lot.received,1,Shop One,1,Owner One,1,1,Vendor One,,2026-07-17,TEST-INVOICE,0.00,,,1,X 750ml,8903000000017,5,5,0,100.00,500.00
+2026-07-17T14:57:50+05:30,lot.received,1,Shop One,1,Owner One,1,1,Vendor One,,2026-07-17,TEST-INVOICE,0.00,,,1,X 750ml,8903000000030,5,5,0,100.00,500.00
+2026-07-17T14:57:58+05:30,lot.received,1,Shop One,1,Owner One,1,1,Vendor One,,2026-07-17,TEST-INVOICE,0.00,,,1,X 750ml,8903000000031,10,10,0,100.00,1000.00
+2026-07-17T14:58:07+05:30,lot.received,1,Shop One,1,Owner One,1,1,Vendor One,,2026-07-17,TEST-INVOICE,0.00,,,1,X 750ml,8903000000032,5,5,0,100.00,500.00
+2026-07-17T15:01:47+05:30,lot.received,1,Shop One,1,Owner One,1,1,Vendor One,,2026-07-17,TEST-INVOICE,0.00,,,1,X 750ml,8903000000030,5,5,0,100.00,500.00
+2026-07-17T15:01:53+05:30,lot.received,1,Shop One,1,Owner One,1,1,Vendor One,,2026-07-17,TEST-INVOICE,0.00,,,1,X 750ml,8903000000031,10,10,0,100.00,1000.00
+2026-07-17T15:02:00+05:30,lot.received,1,Shop One,1,Owner One,1,1,Vendor One,,2026-07-17,TEST-INVOICE,0.00,,,1,X 750ml,8903000000032,5,5,0,100.00,500.00

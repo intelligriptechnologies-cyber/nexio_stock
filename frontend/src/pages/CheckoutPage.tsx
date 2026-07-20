@@ -15,8 +15,14 @@ import {
   type PaymentMode,
   type InvoicePublic,
 } from "../api/checkout";
+import {
+  PAYMENT_MODES,
+  formatPaymentLabel,
+  requiresPaymentNote,
+} from "../payment-modes";
 import { listQueued, clearQueued } from "../api/finalize-queue";
 import {
+  discardOfflineSession,
   extendOfflineSession,
   offlineItemToCatalogProduct,
   type OfflineReceiptPayload,
@@ -36,15 +42,19 @@ import {
   upsertOfflineReceipt,
   type StoredOfflineSession,
 } from "../api/offline-session-store";
+import { FocusedModeActions } from "../components/FocusedModeActions";
 import { OfflineReceiptEditorModal } from "../components/OfflineReceiptEditorModal";
 import { QuickSearch } from "../components/QuickSearch";
 import { QuickAddModal } from "../components/QuickAddModal";
+import { ModalDialog } from "../components/ModalDialog";
 import { ScanSuccessOverlay } from "../components/ScanSuccessOverlay";
 import { useBarcodeScanner } from "../hooks/useBarcodeScanner";
 import { useQuickAdd } from "../hooks/useQuickAdd";
 import { probeHealthz, useConnectivityStatus } from "../hooks/useOnlineStatus";
 import { useRetryQueue } from "../hooks/useRetryQueue";
 import { useShopScope } from "../auth/ShopScopeProvider";
+import { useAuth } from "../auth/AuthProvider";
+import { RefreshCw, ShoppingBag, CreditCard, ShoppingCart } from "lucide-react";
 
 interface CartLine {
   lineId: string;
@@ -60,6 +70,7 @@ interface PaymentSplit {
 interface LineValidation {
   message: string;
   invalid: boolean;
+  tone: "danger" | "warning";
 }
 
 interface CheckoutDraft {
@@ -80,8 +91,6 @@ interface ScanOverlayProduct {
   sizeLabel: string;
 }
 
-const PAYMENT_MODES: PaymentMode[] = ["cash", "upi", "card"];
-
 function moneyString(cents: number): string {
   return (cents / 100).toFixed(2);
 }
@@ -94,10 +103,6 @@ function parseMoney(s: string): number {
 
 function uid(): string {
   return Math.random().toString(36).slice(2, 10);
-}
-
-function formatPaymentLabel(m: PaymentMode): string {
-  return { cash: "Cash", upi: "UPI", card: "Card" }[m];
 }
 
 function formatRemaining(ms: number): string {
@@ -114,16 +119,17 @@ function stockValidationMessage(
   requestedQuantity: number
 ): LineValidation | null {
   if (availableQuantity <= 0) {
-    return { message: "Out of stock", invalid: true };
+    return { message: "Out of stock", invalid: true, tone: "danger" };
   }
   if (requestedQuantity > availableQuantity) {
     return {
       message: `Only ${availableQuantity} available; reduce quantity or remove this item.`,
       invalid: true,
+      tone: "warning",
     };
   }
   if (availableQuantity <= 3) {
-    return { message: `Last ${availableQuantity} remaining`, invalid: false };
+    return { message: `Last ${availableQuantity} remaining`, invalid: false, tone: "warning" };
   }
   return null;
 }
@@ -131,10 +137,14 @@ function stockValidationMessage(
 export function CheckoutPage() {
   const connectivity = useConnectivityStatus();
   const online = connectivity.online;
+  const { user } = useAuth();
   const { actingShopId } = useShopScope();
   const retryQueue = useRetryQueue({
     onFlush: (outcomes) => {
       const failed = outcomes.filter((o) => !o.ok);
+      if (outcomes.some((o) => o.ok)) {
+        void refreshCatalogAfterInvoice();
+      }
       if (failed.length === 0) return;
       const lines = failed
         .map((o) => `Queued sale ${o.key.slice(0, 6)}: HTTP ${o.status} — ${o.detail}`)
@@ -191,6 +201,46 @@ export function CheckoutPage() {
     const timer = window.setTimeout(() => setInfo(null), 4000);
     return () => window.clearTimeout(timer);
   }, [info]);
+
+  const applyValidatedStock = useCallback(
+    (validatedLines: Array<{ barcode: string; available_quantity: number }>) => {
+      const stockByBarcode = new Map(
+        validatedLines.map((line) => [line.barcode, line.available_quantity] as const)
+      );
+      setCart((prev) => {
+        let changed = false;
+        const next = prev.map((line) => {
+          const availableQuantity = stockByBarcode.get(line.product.barcode);
+          if (availableQuantity == null || line.product.current_stock === availableQuantity) {
+            return line;
+          }
+          changed = true;
+          return {
+            ...line,
+            product: {
+              ...line.product,
+              current_stock: availableQuantity,
+            },
+          };
+        });
+        return changed ? next : prev;
+      });
+    },
+    []
+  );
+
+  const refreshCatalogAfterInvoice = useCallback(async () => {
+    setCatalogReady(false);
+    invalidateCache();
+    try {
+      await prefetchCatalog(actingShopId);
+      setCatalogReady(true);
+      return true;
+    } catch (e) {
+      setError(`Catalog refresh failed: ${toUserMessage(e, "unknown error")}`);
+      return false;
+    }
+  }, [actingShopId]);
 
   const applyOfflineCatalog = useCallback(
     (record: StoredOfflineSession) => {
@@ -441,6 +491,10 @@ export function CheckoutPage() {
         actingShopId
       );
       const checked = result.lines[0];
+      if (!checked) return;
+      if (checked) {
+        applyValidatedStock([checked]);
+      }
       const message = stockValidationMessage(
         checked.available_quantity,
         checked.requested_quantity
@@ -555,11 +609,13 @@ export function CheckoutPage() {
     () => payments.reduce((acc, p) => acc + parseMoney(p.amount), 0),
     [payments]
   );
+  const noteRequired = requiresPaymentNote(payments, note);
 
   const canFinalize =
     cart.length > 0 &&
     payments.length > 0 &&
     paymentsCents === totalCents &&
+    !noteRequired &&
     !busy &&
     !offlineExpired;
 
@@ -601,6 +657,7 @@ export function CheckoutPage() {
       cart.map((l) => ({ barcode: l.product.barcode, quantity: l.quantity })),
       actingShopId
     );
+    applyValidatedStock(result.lines);
     const checkedByBarcode = new Map(result.lines.map((line) => [line.barcode, line]));
     const nextValidation: Record<string, LineValidation> = {};
     const blockingMessages: string[] = [];
@@ -631,7 +688,15 @@ export function CheckoutPage() {
     setError(null);
     setInfo(null);
     if (!canFinalize) {
-      setError(offlineExpired ? "Offline session expired. Temporary receipts cannot be edited." : "Payments must equal the cart total.");
+      if (offlineExpired) {
+        setError("Offline session expired. Temporary receipts cannot be edited.");
+      } else if (paymentsCents !== totalCents) {
+        setError("Payments must equal the cart total.");
+      } else if (noteRequired) {
+        setError("Add a note when any payment split uses Other.");
+      } else {
+        setError("Checkout cannot be finalized yet.");
+      }
       return;
     }
     setBusy(true);
@@ -666,6 +731,7 @@ export function CheckoutPage() {
       setLastInvoice(res.invoice);
       clearActiveCheckout();
       idempotencyKeyRef.current = uid();
+      await refreshCatalogAfterInvoice();
       setInfo(res.is_replay ? "Idempotent replay — same invoice shown." : "Invoice created.");
     } catch (e) {
       if (e instanceof ApiError) {
@@ -734,7 +800,23 @@ export function CheckoutPage() {
       await probeHealthz(controller.signal);
       const receipts = await listOfflineReceipts(offlineSession.session.id);
       if (receipts.length === 0) {
-        setError("No offline receipts to sync. Save a temporary receipt before resuming online.");
+        if (user?.role === "owner" || user?.role === "superadmin") {
+          await discardOfflineSession(
+            offlineSession.session.id,
+            "Discarded while resuming online with no temporary receipts saved."
+          );
+          await clearOfflineSessionData(offlineSession.session.id);
+          setOfflineSession(null);
+          setOfflineReceipts([]);
+          setOfflineReceiptCount(0);
+          setEditingReceiptId(null);
+          clearActiveCheckout();
+          idempotencyKeyRef.current = uid();
+          await refreshCatalogAfterInvoice();
+          setInfo("Resumed online. Empty offline session discarded.");
+          return;
+        }
+        setError("No offline receipts to sync. Ask an owner to discard this session.");
         return;
       }
       const result = await syncOfflineSession(
@@ -749,8 +831,7 @@ export function CheckoutPage() {
       setEditingReceiptId(null);
       clearActiveCheckout();
       idempotencyKeyRef.current = uid();
-      invalidateCache();
-      void prefetchCatalog(actingShopId).then(() => setCatalogReady(true));
+      await refreshCatalogAfterInvoice();
       setInfo(
         `Resumed online after syncing ${result.mappings.length} receipt(s). Official invoice numbers: ${result.mappings
           .map((m) => `#${m.invoice_number}`)
@@ -764,6 +845,7 @@ export function CheckoutPage() {
         )}`
       );
     } finally {
+      setTimerNow(Date.now());
       window.clearTimeout(timeout);
       setBusy(false);
     }
@@ -860,8 +942,7 @@ export function CheckoutPage() {
       setOfflineReceipts([]);
       setOfflineReceiptCount(0);
       setEditingReceiptId(null);
-      invalidateCache();
-      void prefetchCatalog(actingShopId).then(() => setCatalogReady(true));
+      await refreshCatalogAfterInvoice();
       setInfo(
         `Synced ${result.mappings.length} receipt(s). Official invoice numbers: ${result.mappings
           .map((m) => `#${m.invoice_number}`)
@@ -948,10 +1029,10 @@ export function CheckoutPage() {
           <div
             role="region"
             aria-label="Pending finalize queue"
-            className="flex flex-col gap-stack-gap rounded-md bg-surface-container p-stack-gap"
+            className="flex flex-col gap-stack-gap rounded-xl bg-slate-50 p-6 ring-1 ring-slate-200"
           >
             <div className="flex items-center justify-between">
-              <div className="text-label-xl text-primary">
+              <div className="text-lg font-semibold tracking-tight text-slate-900">
                 Pending finalize queue ({queuedSnapshot.length})
               </div>
               <div className="flex gap-stack-gap">
@@ -961,22 +1042,22 @@ export function CheckoutPage() {
                     void retryQueue.flush();
                     refreshQueueSnapshot();
                   }}
-                  className="min-h-touchTarget-sm rounded-md bg-action px-stack-gap text-label-md text-on-action disabled:opacity-50"
+                  className="flex h-11 items-center justify-center rounded-xl bg-action px-6 text-sm font-bold tracking-wide text-white shadow-sm transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:-translate-y-0.5 hover:shadow-[var(--color-action)]/30 active:scale-[0.97] disabled:pointer-events-none disabled:opacity-50"
                   disabled={!online}
                 >
                   Retry now
                 </button>
               </div>
             </div>
-            <ul className="flex flex-col gap-stack-gap">
+            <ul className="flex flex-col gap-3">
               {queuedSnapshot.map((q) => (
                 <li
                   key={q.idempotencyKey}
-                  className="flex items-center justify-between rounded-md bg-surface px-stack-gap py-2 text-label-md"
+                  className="flex items-center justify-between rounded-xl bg-white px-4 py-3 text-sm shadow-sm ring-1 ring-slate-200"
                 >
                   <div className="flex flex-col">
-                    <span className="font-mono">{q.idempotencyKey.slice(0, 12)}…</span>
-                    <span className="text-on-surface-variant">
+                    <span className="font-mono font-medium text-slate-900">{q.idempotencyKey.slice(0, 12)}…</span>
+                    <span className="text-slate-500">
                       {q.body.lines.length} line(s) · attempts {q.attempts}
                       {q.lastError ? ` · last error: ${q.lastError}` : ""}
                     </span>
@@ -984,7 +1065,7 @@ export function CheckoutPage() {
                   <button
                     type="button"
                     onClick={() => handleDismissQueued(q.idempotencyKey)}
-                    className="flex h-12 w-12 items-center justify-center rounded-md bg-error text-[28px] font-black leading-none text-on-error"
+                    className="flex h-8 w-8 items-center justify-center rounded-full bg-red-50 text-red-500 transition-colors hover:bg-red-100 hover:text-red-700 active:bg-red-200"
                     aria-label="Dismiss queued sale"
                   >
                     ×
@@ -998,41 +1079,41 @@ export function CheckoutPage() {
           <div
             role="region"
             aria-label="Offline session"
-            className="flex flex-col gap-stack-gap rounded-md bg-surface-container p-stack-gap"
+            className="flex flex-col gap-gutter rounded-xl bg-slate-50 p-6 ring-1 ring-slate-200"
           >
             <div className="flex flex-wrap items-center justify-between gap-stack-gap">
               <div>
-                <div className="text-label-xl text-primary">Offline session #{offlineSession.session.id}</div>
-                <div className="text-label-md text-on-surface-variant">
+                <div className="text-lg font-semibold tracking-tight text-slate-900">Offline session #{offlineSession.session.id}</div>
+                <div className="text-sm font-medium text-slate-500">
                   {offlineReceiptCount} temporary receipt(s) saved · sync required for official invoice numbers
                 </div>
               </div>
-              <div className={`font-mono text-headline-md ${offlineExpired ? "text-error" : "text-on-surface"}`}>
+              <div className={`font-mono text-xl font-bold tracking-tight ${offlineExpired ? "text-red-500" : "text-slate-900"}`}>
                 {formatRemaining(offlineRemainingMs)}
               </div>
             </div>
             {offlineSession.session.failure_reason?.message && (
-              <div role="alert" className="rounded-md bg-error px-stack-gap py-2 text-on-error">
+              <div role="alert" className="rounded-xl bg-red-50 px-4 py-3 text-sm font-medium text-red-600 ring-1 ring-red-200">
                 {offlineSession.session.failure_reason.message}
               </div>
             )}
-            <section className="flex flex-col gap-stack-gap rounded-md bg-surface p-stack-gap">
+            <section className="flex flex-col gap-stack-gap rounded-xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
               <div className="flex flex-wrap items-center justify-between gap-stack-gap">
                 <div>
-                  <div className="text-label-xl text-primary">Offline receipts</div>
-                  <div className="text-label-md text-on-surface-variant">
+                  <div className="text-base font-semibold tracking-tight text-slate-900">Offline receipts</div>
+                  <div className="text-sm font-medium text-slate-500">
                     {offlineReceipts.length} editable temporary receipt(s) · next temp number {String(
                       offlineSession.nextReceiptNumber ?? offlineSession.session.receipt_counter + 1
                     ).padStart(4, "0")}
                   </div>
                 </div>
-                <div className="text-label-md text-on-surface-variant">
+                <div className="text-sm font-semibold text-slate-700">
                   Session total ₹{moneyString(parseMoney(offlineSession.session.gross_total))}
                 </div>
               </div>
               <ul className="flex flex-col gap-stack-gap">
                 {offlineReceipts.length === 0 && (
-                  <li className="rounded-md bg-surface-container-high px-stack-gap py-3 text-label-md text-on-surface-variant">
+                  <li className="rounded-xl bg-slate-50 px-4 py-3 text-sm font-medium text-slate-500 ring-1 ring-slate-200">
                     No temporary receipts yet.
                   </li>
                 )}
@@ -1044,16 +1125,16 @@ export function CheckoutPage() {
                   return (
                     <li
                       key={receipt.temp_receipt_id}
-                      className="flex flex-col gap-3 rounded-md border border-outline/60 bg-surface-container-high p-stack-gap"
+                      className="flex flex-col gap-stack-gap rounded-xl bg-slate-50 p-4 ring-1 ring-slate-200"
                     >
                       <div className="flex flex-wrap items-start justify-between gap-stack-gap">
                         <div className="flex flex-col gap-1">
-                          <div className="text-label-xl text-on-surface">{receipt.temp_receipt_id}</div>
-                          <div className="text-label-md text-on-surface-variant">
+                          <div className="text-base font-semibold text-slate-900">{receipt.temp_receipt_id}</div>
+                          <div className="text-sm font-medium text-slate-500">
                             {receipt.lines.length} line(s) · {receipt.payments.length} payment split(s)
                             {receipt.note ? ` · note: ${receipt.note}` : ""}
                           </div>
-                          <div className="font-mono text-label-md text-on-surface-variant">
+                          <div className="font-mono text-sm font-bold text-slate-700">
                             Total ₹{moneyString(totalCents)}
                           </div>
                         </div>
@@ -1061,14 +1142,14 @@ export function CheckoutPage() {
                           type="button"
                           onClick={() => setEditingReceiptId(receipt.temp_receipt_id)}
                           disabled={checkoutLocked}
-                          className="rounded-md bg-primary px-stack-gap py-2 text-label-md text-on-primary"
+                          className="flex h-9 items-center justify-center rounded-lg bg-slate-900 px-4 text-xs font-semibold text-white shadow-sm transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:bg-slate-800 disabled:opacity-50"
                         >
                           Edit
                         </button>
                       </div>
-                      <div className="flex flex-wrap gap-2 text-label-md text-on-surface-variant">
+                      <div className="flex flex-wrap gap-2 text-xs font-medium text-slate-600">
                         {receipt.lines.map((line) => (
-                          <span key={`${receipt.temp_receipt_id}-${line.barcode}`} className="rounded-full bg-surface px-3 py-1">
+                          <span key={`${receipt.temp_receipt_id}-${line.barcode}`} className="rounded-lg bg-white px-3 py-1 shadow-sm ring-1 ring-slate-200">
                             {line.barcode} x{line.quantity}
                           </span>
                         ))}
@@ -1083,7 +1164,7 @@ export function CheckoutPage() {
                 type="button"
                 onClick={extendCurrentOfflineSession}
                 disabled={checkoutLocked || offlineSession.session.extension_count >= 1 || offlineExpired}
-                className="min-h-touchTarget-sm rounded-md bg-warning px-stack-gap text-label-md text-on-warning disabled:opacity-50"
+                className="flex h-11 items-center justify-center rounded-xl bg-amber-100 px-6 text-sm font-bold tracking-wide text-amber-700 shadow-sm transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:bg-amber-200 disabled:pointer-events-none disabled:opacity-50"
               >
                 Extend 2h
               </button>
@@ -1091,7 +1172,7 @@ export function CheckoutPage() {
                 type="button"
                 onClick={syncCurrentOfflineSession}
                 disabled={checkoutLocked || !online || offlineReceiptCount === 0}
-                className="min-h-touchTarget-sm rounded-md bg-action px-stack-gap text-label-md text-on-action disabled:opacity-50"
+                className="flex h-11 items-center justify-center rounded-xl bg-action px-6 text-sm font-bold tracking-wide text-white shadow-sm transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:-translate-y-0.5 hover:shadow-[var(--color-action)]/30 active:scale-[0.97] disabled:pointer-events-none disabled:opacity-50"
               >
                 Sync receipts
               </button>
@@ -1101,7 +1182,7 @@ export function CheckoutPage() {
                   void resumeOnline();
                 }}
                 disabled={checkoutLocked}
-                className="min-h-touchTarget-sm rounded-md bg-primary px-stack-gap text-label-md text-on-primary disabled:opacity-50"
+                className="flex h-11 items-center justify-center rounded-xl bg-slate-900 px-6 text-sm font-bold tracking-wide text-white shadow-sm transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:-translate-y-0.5 hover:shadow-lg hover:shadow-slate-900/20 active:scale-[0.97] disabled:pointer-events-none disabled:opacity-50"
               >
                 Resume Online
               </button>
@@ -1109,14 +1190,24 @@ export function CheckoutPage() {
           </div>
         ) : (
           <div className="flex justify-end">
-            <button
-              type="button"
-              onClick={beginOfflineSession}
-              disabled={checkoutLocked || !online}
-              className="min-h-touchTarget-sm rounded-md bg-primary px-stack-gap text-label-md text-on-primary disabled:opacity-50"
-            >
-              Work offline
-            </button>
+            <div className="flex flex-wrap items-center gap-4">
+              <button
+                type="button"
+                onClick={beginOfflineSession}
+                disabled={checkoutLocked || !online}
+                className="app-inline-action text-slate-800 disabled:pointer-events-none disabled:text-slate-400"
+              >
+                Work offline
+              </button>
+              <a
+                href="/help/checkout"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="app-inline-action text-slate-600 hover:text-slate-900"
+              >
+                Help
+              </a>
+            </div>
           </div>
         )}
       </div>
@@ -1143,12 +1234,7 @@ export function CheckoutPage() {
           the "Pending — no price yet" message and continues with the
           rest of the sale. */}
       {quickAdd && (
-        <div
-          className="fixed inset-0 z-30 flex items-center justify-center bg-black/50 p-stack-gap"
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="quick-add-title"
-        >
+        <ModalDialog labelledBy="quick-add-title" onDismiss={closeQuickAdd} className="animate-fade-in fixed inset-0 z-30 flex items-center justify-center bg-slate-900/40 p-4 backdrop-blur-sm transition-opacity">
           <QuickAddModal
             barcode={quickAdd.barcode}
             busy={quickAddBusy}
@@ -1158,15 +1244,19 @@ export function CheckoutPage() {
               void submitQuickAdd({ brand, size });
             }}
           />
-        </div>
+        </ModalDialog>
       )}
 
-      <div className="grid gap-gutter lg:grid-cols-[2fr_1fr]">
+      <div className="grid gap-section-gap font-sans lg:grid-cols-[2fr_1fr]">
       {/* LEFT — cart */}
-      <section className="flex flex-col gap-stack-gap rounded-lg bg-surface-container p-gutter">
+      <section className="flex flex-col gap-gutter rounded-xl border border-slate-200/50 bg-white/60 p-8 shadow-sm backdrop-blur-xl">
         <header className="flex items-center justify-between">
-          <h1 className="text-headline-md text-primary">Checkout</h1>
-          <div className="flex items-center gap-stack-gap text-label-md text-on-surface-variant">
+          <h1 className="flex items-center gap-2 text-2xl font-bold tracking-tight text-slate-900">
+            <ShoppingCart className="h-6 w-6 text-action" /> Checkout
+          </h1>
+          <div className="flex flex-col items-end gap-2">
+            <FocusedModeActions />
+            <div className="flex items-center gap-stack-gap text-label-md text-on-surface-variant">
             <span>{catalogReady ? "Catalog cached" : "Loading catalog…"}</span>
             <button
               type="button"
@@ -1176,10 +1266,11 @@ export function CheckoutPage() {
                 void prefetchCatalog(actingShopId).then(() => setCatalogReady(true));
               }}
               disabled={Boolean(offlineSession) || checkoutLocked}
-              className="rounded-md bg-surface-container-high px-stack-gap py-1 text-on-surface-variant disabled:opacity-50"
+              className="group flex h-8 items-center gap-2 rounded-md bg-slate-100 px-3 text-xs font-semibold text-slate-600 transition-colors hover:bg-slate-200 disabled:opacity-50"
             >
-              Refresh
+              <RefreshCw className="h-3 w-3 transition-transform duration-300 group-hover:rotate-180" /> Refresh
             </button>
+            </div>
           </div>
         </header>
 
@@ -1189,13 +1280,13 @@ export function CheckoutPage() {
             value={barcode}
             onChange={(e) => setBarcode(e.target.value)}
             placeholder="Scan or enter barcode"
-            className="min-h-touchTarget flex-1 rounded-md border border-outline bg-surface px-stack-gap text-body-lg"
+            className="h-14 flex-1 rounded-2xl border border-slate-200 bg-white px-5 text-lg font-medium text-slate-900 shadow-sm outline-none transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out focus-visible:ring-2 focus-visible:ring-action/40 focus-visible:border-action disabled:opacity-50"
             autoFocus
             disabled={checkoutLocked}
           />
           <button
             type="submit"
-            className="min-h-touchTarget rounded-md bg-action px-gutter text-label-xl text-on-action"
+            className="flex h-14 items-center justify-center rounded-2xl bg-action px-8 text-lg font-bold tracking-wide text-white shadow-sm transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:-translate-y-0.5 hover:shadow-[var(--color-action)]/30 active:scale-[0.97] disabled:pointer-events-none disabled:opacity-50"
             disabled={!catalogReady || checkoutLocked}
           >
             ADD
@@ -1207,23 +1298,23 @@ export function CheckoutPage() {
             type="button"
             onClick={parkDraft}
             disabled={checkoutLocked || cart.length === 0}
-            className="min-h-touchTarget-sm rounded-md bg-warning px-stack-gap text-label-md text-on-warning disabled:opacity-50"
+            className="group relative flex h-11 items-center justify-center overflow-hidden rounded-xl bg-logout px-6 text-sm font-bold tracking-wide text-on-logout shadow-sm transition-[transform,box-shadow,background-color] duration-200 ease-out hover:-translate-y-0.5 hover:shadow-md active:scale-[0.97] disabled:pointer-events-none disabled:opacity-50"
           >
-            Park
+            <span className="relative z-10 transition-transform duration-300 group-hover:translate-x-1">Park</span>
           </button>
           <div className="flex flex-wrap items-center gap-2">
             {drafts.map((draft) => (
               <span key={draft.id} className="flex items-center gap-2">
-                <span className="text-on-surface-variant">|</span>
+                <span className="text-slate-300">|</span>
                 <button
                   type="button"
                   onClick={() => restoreDraft(draft)}
                   disabled={checkoutLocked}
-                  className="min-h-touchTarget-sm rounded-md bg-primary px-stack-gap text-label-md text-on-primary"
+                  className="flex h-11 items-center justify-center rounded-xl bg-slate-900 px-6 text-sm font-bold tracking-wide text-white shadow-sm transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:-translate-y-0.5 hover:shadow-lg hover:shadow-slate-900/20 active:scale-[0.97] disabled:pointer-events-none disabled:opacity-50"
                 >
                   {draft.label} ({draft.cart.length})
                 </button>
-                <span className="text-on-surface-variant">|</span>
+                <span className="text-slate-300">|</span>
               </span>
             ))}
           </div>
@@ -1231,7 +1322,7 @@ export function CheckoutPage() {
             type="button"
             onClick={clearActiveCheckout}
             disabled={checkoutLocked}
-            className="ml-auto min-h-touchTarget-sm rounded-md bg-surface-container-high px-stack-gap text-label-md text-on-surface"
+            className="ml-auto flex h-11 items-center justify-center rounded-xl bg-slate-200 px-6 text-sm font-semibold tracking-wide text-slate-700 shadow-sm transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:bg-slate-300 hover:text-slate-900 active:scale-[0.97] disabled:pointer-events-none disabled:opacity-50"
           >
             All Clear
           </button>
@@ -1248,16 +1339,16 @@ export function CheckoutPage() {
 
         <ul className="flex flex-col gap-stack-gap">
           {cart.length === 0 && (
-            <li className="rounded-md bg-surface p-stack-gap text-center text-on-surface-variant">
-              No items in cart. Scan a barcode to begin.
+            <li className="rounded-xl bg-slate-50 p-6 text-center text-sm font-medium text-slate-500 ring-1 ring-slate-200">
+              Cart is empty. Scan a barcode to begin.
             </li>
           )}
           {cart.map((l) => (
             <li
               key={l.lineId}
-              className="flex items-center justify-between rounded-md bg-surface px-stack-gap py-3 shadow-sm"
+              className="group flex flex-col gap-stack-gap rounded-xl bg-white p-5 shadow-sm ring-1 ring-slate-200/50 animate-fade-in transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:-translate-y-1 hover:shadow-[0_12px_40px_rgba(0,0,0,0.06)] sm:flex-row sm:items-center sm:justify-between"
             >
-              <div className="flex flex-col">
+              <div className="flex flex-col gap-0.5">
                               <span className="text-label-xl text-on-surface">{l.product.brand}</span>
                               <span className="text-label-md text-on-surface-variant">{l.product.size_label}</span>
                               <span className="font-mono text-label-md text-on-surface-variant">
@@ -1272,8 +1363,10 @@ export function CheckoutPage() {
                               </span>
                               {lineValidation[l.lineId] && (
                                 <span
-                                  className={`text-label-md ${
-                                    lineValidation[l.lineId].invalid ? "text-error" : "text-warning"
+                                  className={`inline-flex w-fit items-center rounded-full px-3 py-1 text-xs font-semibold tracking-wide shadow-sm ${
+                                    lineValidation[l.lineId].tone === "danger"
+                                      ? "bg-red-600 text-white"
+                                      : "bg-amber-100 text-amber-800 ring-1 ring-amber-200"
                                   }`}
                                 >
                                   {lineValidation[l.lineId].message}
@@ -1285,7 +1378,7 @@ export function CheckoutPage() {
                   type="button"
                   onClick={() => changeQty(l.lineId, -1)}
                   disabled={checkoutLocked}
-                  className="flex h-12 w-12 items-center justify-center rounded-md bg-surface-container-high text-[28px] font-black leading-none text-on-surface"
+                  className="app-stepper-button"
                   aria-label="Decrease quantity"
                 >
                   −
@@ -1313,7 +1406,7 @@ export function CheckoutPage() {
                       void validateLineQuantity(l.lineId, Number(e.currentTarget.value));
                     }
                   }}
-                  className="h-12 w-16 rounded-md border border-outline bg-surface text-center font-mono text-headline-md"
+                  className="h-11 w-16 rounded-xl border-none bg-slate-50 text-center font-mono text-lg font-semibold text-slate-900 shadow-inner outline-none ring-1 ring-inset ring-slate-200 focus:ring-2 focus:ring-action disabled:opacity-50"
                   aria-label="Quantity"
                   disabled={checkoutLocked}
                 />
@@ -1321,20 +1414,19 @@ export function CheckoutPage() {
                   type="button"
                   onClick={() => changeQty(l.lineId, +1)}
                   disabled={checkoutLocked}
-                  className="flex h-12 w-12 items-center justify-center rounded-md bg-surface-container-high text-[28px] font-black leading-none text-on-surface"
+                  className="app-stepper-button"
                   aria-label="Increase quantity"
                 >
                   +
                 </button>
-                <span className="w-24 text-right font-mono text-headline-md text-on-surface">
-                  ₹
-                  {moneyString(parseMoney(l.product.price ?? "0") * l.quantity)}
+                <span className="w-24 text-right font-mono text-xl font-medium text-slate-900">
+                  ₹{moneyString(parseMoney(l.product.price ?? "0") * l.quantity)}
                 </span>
                 <button
                   type="button"
                   onClick={() => removeLine(l.lineId)}
                   disabled={checkoutLocked}
-                  className="flex h-12 w-12 items-center justify-center rounded-md bg-error text-[28px] font-black leading-none text-on-error"
+                  className="flex h-11 w-11 items-center justify-center rounded-full bg-red-50 text-xl font-medium text-red-500 opacity-0 transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:bg-red-100 active:bg-red-200 group-hover:opacity-100 disabled:opacity-50"
                   aria-label="Remove line"
                 >
                   ×
@@ -1346,31 +1438,36 @@ export function CheckoutPage() {
       </section>
 
       {/* RIGHT — payment + finalize */}
-      <aside className="flex flex-col gap-stack-gap rounded-lg bg-surface-container p-gutter">
-        <div className="rounded-md bg-primary p-gutter text-on-primary">
-          <div className="text-label-md uppercase">Total Payable</div>
-          <div className="font-mono text-display-lg">{totalLabel}</div>
+      <aside className="flex flex-col gap-gutter rounded-xl border border-slate-200/50 bg-white/60 p-8 shadow-sm backdrop-blur-xl">
+        <div className="relative overflow-hidden rounded-xl bg-slate-900 p-8 text-white shadow-lg">
+          <div className="pointer-events-none absolute -right-10 -top-10 h-40 w-40 rounded-full bg-gradient-to-br from-[rgba(34,197,94,0.2)] to-white/5 blur-2xl" />
+          <div className="relative z-10 flex items-center gap-2 text-[11px] font-bold uppercase tracking-widest text-slate-400">
+            <ShoppingBag className="h-4 w-4" /> Total Payable
+          </div>
+          <div className="relative z-10 mt-2 font-mono text-5xl font-semibold tracking-tight">{totalLabel}</div>
         </div>
 
-        <div className="flex flex-col gap-stack-gap">
+        <div className="flex flex-col gap-gutter">
           <div className="flex items-center justify-between">
-            <h2 className="text-headline-md text-on-surface">Payment</h2>
+            <h2 className="flex items-center gap-2 text-xl font-semibold tracking-tight text-slate-900">
+              <CreditCard className="h-5 w-5 text-action" /> Payment
+            </h2>
               <button
                 type="button"
                 onClick={addPayment}
                 disabled={checkoutLocked}
-                className="rounded-md bg-surface-container-high px-stack-gap py-1 text-label-md text-on-surface-variant"
+                className="app-split-button"
               >
                 + Split
             </button>
           </div>
 
           {payments.map((p, idx) => (
-            <div key={idx} className="flex items-center gap-stack-gap">
+            <div key={idx} className="flex items-center gap-3">
               <select
                 value={p.mode}
                 onChange={(e) => setPaymentMode(idx, e.target.value as PaymentMode)}
-                className="min-h-touchTarget-sm flex-1 rounded-md border border-outline bg-surface px-stack-gap text-body-md"
+                className="h-12 flex-1 rounded-xl border border-slate-200 bg-slate-50 px-4 text-sm font-semibold text-slate-900 shadow-sm outline-none transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out focus-visible:ring-2 focus-visible:ring-action/40 focus-visible:border-action disabled:opacity-50"
                 aria-label="Payment mode"
                 disabled={checkoutLocked}
               >
@@ -1387,7 +1484,7 @@ export function CheckoutPage() {
                 value={p.amount}
                 onChange={(e) => setPaymentAmount(idx, e.target.value)}
                 onFocus={(e) => e.currentTarget.select()}
-                className="min-h-touchTarget-sm w-32 rounded-md border border-outline bg-surface px-stack-gap text-right font-mono text-body-md"
+                className="h-12 w-32 rounded-xl border border-slate-200 bg-white px-4 text-right font-mono text-sm font-semibold text-slate-900 shadow-sm outline-none transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out focus-visible:ring-2 focus-visible:ring-action/40 focus-visible:border-action disabled:opacity-50"
                 aria-label="Payment amount"
                 disabled={checkoutLocked}
               />
@@ -1396,7 +1493,7 @@ export function CheckoutPage() {
                   type="button"
                   onClick={() => removePayment(idx)}
                   disabled={checkoutLocked}
-                  className="flex h-12 w-12 items-center justify-center rounded-md bg-error text-[28px] font-black leading-none text-on-error"
+                  className="flex h-10 w-10 items-center justify-center rounded-full bg-red-50 text-red-500 transition-colors hover:bg-red-100 hover:text-red-700 active:bg-red-200"
                   aria-label="Remove payment"
                 >
                   ×
@@ -1415,25 +1512,34 @@ export function CheckoutPage() {
           </div>
         </div>
 
-        <label className="flex flex-col gap-1 text-label-md">
-          Note (optional)
+        <label className="flex flex-col gap-2 text-sm font-semibold text-slate-700">
+          Note {noteRequired ? "(required for Other)" : "(optional)"}
           <input
             type="text"
             value={note}
             onChange={(e) => setNote(e.target.value)}
             maxLength={200}
-            className="min-h-touchTarget-sm rounded-md border border-outline bg-surface px-stack-gap text-body-md"
+            aria-invalid={noteRequired && !note.trim()}
+            className="h-12 rounded-xl border border-slate-200 bg-white px-4 text-sm font-medium text-slate-900 shadow-sm outline-none transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out focus-visible:ring-2 focus-visible:ring-action/40 focus-visible:border-action disabled:opacity-50"
             disabled={checkoutLocked}
           />
+          {noteRequired && !note.trim() && (
+            <span className="text-xs font-medium text-red-600">
+              Add a note before finishing this checkout.
+            </span>
+          )}
         </label>
 
         <button
           type="button"
           onClick={finalize}
           disabled={!canFinalize}
-          className="min-h-touchTarget rounded-md bg-action text-label-xl text-on-action disabled:opacity-50"
+          className="group relative flex min-h-[64px] w-full items-center justify-center overflow-hidden rounded-xl bg-action text-lg font-bold tracking-wide text-on-action shadow-lg transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:-translate-y-1 hover:shadow-[var(--color-action)]/30 active:scale-[0.98] disabled:opacity-50 disabled:hover:translate-y-0 disabled:hover:shadow-none"
         >
-          {busy ? "Finishing..." : offlineSession ? "Save temporary receipt" : "Finish & pay"}
+          <div className="absolute inset-0 flex h-full w-full justify-center [transform:skew(-12deg)_translateX(-150%)] group-hover:duration-1000 group-hover:[transform:skew(-12deg)_translateX(150%)]">
+            <div className="relative h-full w-8 bg-white/20" />
+          </div>
+          <span className="relative z-10">{busy ? "Finishing..." : offlineSession ? "Save temporary receipt" : "Finish & Pay"}</span>
         </button>
 
         {error && (
@@ -1450,21 +1556,17 @@ export function CheckoutPage() {
 
       {/* Modal-ish invoice preview */}
       {lastInvoice && (
-        <div
-          className="fixed inset-0 z-30 flex items-center justify-center bg-black/50 p-stack-gap"
-          role="dialog"
-          aria-modal="true"
-        >
-          <div className="flex max-h-[90vh] w-full max-w-2xl flex-col gap-stack-gap overflow-y-auto rounded-lg bg-surface-container p-gutter">
-            <header className="flex items-center justify-between">
-              <h2 className="text-headline-md text-primary">
+        <ModalDialog onDismiss={() => setLastInvoice(null)} className="animate-fade-in fixed inset-0 z-30 flex items-center justify-center bg-slate-900/40 p-4 backdrop-blur-sm transition-opacity">
+          <div className="animate-modal-in flex max-h-[90vh] w-full max-w-2xl flex-col gap-gutter overflow-y-auto rounded-xl bg-white p-8 shadow-lg ring-1 ring-slate-200/50">
+            <header className="flex items-start justify-between gap-stack-gap">
+              <h2 className="text-xl font-semibold tracking-tight text-slate-900">
                 Invoice #{lastInvoice.invoice_number}
               </h2>
-              <div className="flex gap-stack-gap">
+              <div className="flex items-center gap-3">
                 <button
                   type="button"
                   onClick={refreshInvoice}
-                  className="rounded-md bg-surface-container-high px-stack-gap py-2 text-label-md"
+                  className="flex h-11 items-center justify-center rounded-xl bg-slate-100 px-4 text-sm font-semibold tracking-wide text-slate-600 shadow-sm transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:bg-slate-200 hover:text-slate-900 active:scale-[0.97]"
                 >
                   Refresh
                 </button>
@@ -1472,14 +1574,14 @@ export function CheckoutPage() {
                   type="button"
                   onClick={downloadPdf}
                   disabled={Boolean(offlineSession)}
-                  className="rounded-md bg-primary px-stack-gap py-2 text-label-md text-on-primary disabled:opacity-50"
+                  className="flex h-11 items-center justify-center rounded-xl bg-action px-6 text-sm font-bold tracking-wide text-white shadow-sm transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:-translate-y-0.5 hover:shadow-[var(--color-action)]/30 active:scale-[0.97] disabled:pointer-events-none disabled:opacity-50"
                 >
                   PDF
                 </button>
                 <button
                   type="button"
                   onClick={() => setLastInvoice(null)}
-                  className="flex h-12 w-12 items-center justify-center rounded-md bg-error text-[28px] font-black leading-none text-on-error"
+                  className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 text-slate-500 transition-colors hover:bg-slate-200 hover:text-slate-900"
                   aria-label="Close"
                 >
                   ×
@@ -1530,7 +1632,7 @@ export function CheckoutPage() {
               ))}
             </div>
           </div>
-        </div>
+        </ModalDialog>
       )}
       </div>
     </div>

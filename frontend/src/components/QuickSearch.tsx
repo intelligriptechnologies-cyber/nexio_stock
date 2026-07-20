@@ -82,7 +82,7 @@ export function QuickSearch({
         placeholder={placeholder}
         aria-label={ariaLabel}
         autoFocus={autoFocus}
-        className="min-h-touchTarget-sm w-full rounded-md border border-outline bg-surface px-stack-gap text-body-md"
+        className="h-11 w-full rounded-xl border border-slate-200 bg-white px-4 text-sm font-medium shadow-sm outline-none transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out focus:border-action focus:ring-1 focus:ring-action"
         role="combobox"
         aria-expanded={open && results.length > 0}
         aria-autocomplete="list"
@@ -90,7 +90,7 @@ export function QuickSearch({
       />
       {open && results.length > 0 && (
         <ul
-          className="absolute left-0 right-0 top-full z-20 mt-1 flex max-h-72 flex-col gap-0 overflow-y-auto rounded-md border border-outline bg-surface shadow-lg"
+          className="animate-fade-in absolute left-0 right-0 top-full z-20 mt-2 flex max-h-72 flex-col gap-0 overflow-y-auto rounded-xl border border-slate-200 bg-white shadow-xl"
           role="listbox"
         >
           {results.map((p) => (
@@ -102,7 +102,7 @@ export function QuickSearch({
                 // "Add by barcode" submission.
                 onMouseDown={(e) => e.preventDefault()}
                 onClick={() => handlePick(p)}
-                className="flex w-full items-center justify-between px-stack-gap py-2 text-left hover:bg-surface-container-high"
+                className="flex w-full items-center justify-between px-4 py-3 text-left transition-colors duration-150 ease-out hover:bg-slate-50 focus:bg-slate-50 focus-visible:bg-slate-50"
                 disabled={disabled}
               >
                 <span className="flex flex-col">
@@ -126,7 +126,7 @@ export function QuickSearch({
       )}
       {open && query.trim() !== "" && results.length === 0 && (
         <div
-          className="absolute left-0 right-0 top-full z-20 mt-1 rounded-md border border-outline bg-surface px-stack-gap py-2 text-label-md text-on-surface-variant shadow-lg"
+          className="animate-fade-in absolute left-0 right-0 top-full z-20 mt-2 rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-500 shadow-xl"
           role="status"
         >
           No matches.

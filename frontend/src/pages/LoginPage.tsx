@@ -1,93 +1,32 @@
-import { useEffect, useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { Api, ApiError, getOrCreateDeviceKey } from "../api/client";
 import { homePathFor, type AuthUser, type Role, useAuth } from "../auth/AuthProvider";
+import { AuthShell } from "../components/AuthShell";
 
 type ShopLoginRole = Exclude<Role, "superadmin">;
 
 const ROLE_OPTIONS: Array<{ value: ShopLoginRole; label: string }> = [
   { value: "cashier_user", label: "Cashier" },
-  { value: "receiver_user", label: "Receiver" },
-  { value: "owner", label: "Owner" },
+  { value: "receiver_user", label: "Stock Keeper" },
+  { value: "owner", label: "Shop Owner" },
 ];
-
-function defaultUsername(role: ShopLoginRole): string {
-  if (role === "owner") return "SHOPCODE-OWNER-01";
-  if (role === "receiver_user") return "SHOPCODE-RECEIVER-01";
-  return "SHOPCODE-CASHIER-01";
-}
 
 export function LoginPage() {
   const navigate = useNavigate();
   const { login } = useAuth();
   const [role, setRole] = useState<ShopLoginRole>("cashier_user");
-  const [username, setUsername] = useState(defaultUsername("cashier_user"));
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const [deviceKey] = useState<string>(() => getOrCreateDeviceKey());
-  const [deviceStatus, setDeviceStatus] = useState<{
-    device_key: string;
-    is_registered: boolean;
-    can_login: boolean;
-    shop_id: number | null;
-    shop_name: string | null;
-    shop_code: string | null;
-    counter_name: string | null;
-    message: string;
-  } | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [checkingDevice, setCheckingDevice] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [deviceKey] = useState<string>(() => getOrCreateDeviceKey());
 
-  useEffect(() => {
-    let cancelled = false;
-    setCheckingDevice(true);
-    Api.getDeviceContext(deviceKey)
-      .then((context) => {
-        if (cancelled) return;
-        setDeviceStatus(context);
-        setError(context.can_login ? null : context.message);
-      })
-      .catch((e) => {
-        if (cancelled) return;
-        setDeviceStatus(null);
-        if (e instanceof ApiError) {
-          setError(e.status === 0 ? "Network error - is the backend reachable?" : e.detail);
-        } else {
-          setError("Could not verify this device.");
-        }
-      })
-      .finally(() => {
-        if (!cancelled) setCheckingDevice(false);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [deviceKey]);
-
-  useEffect(() => {
-    setUsername((current) => {
-      const trimmed = current.trim();
-      return trimmed.length === 0 || trimmed.startsWith("SHOPCODE-") ? defaultUsername(role) : current;
-    });
-  }, [role]);
-
-  const canSubmit = useMemo(() => {
-    return (
-      Boolean(deviceStatus?.can_login) &&
-      !checkingDevice &&
-      !submitting &&
-      username.trim().length > 0 &&
-      password.length >= 4
-    );
-  }, [checkingDevice, deviceStatus?.can_login, password.length, submitting, username]);
+  const canSubmit = username.trim().length > 0 && password.length >= 4 && !submitting;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
-    if (!deviceStatus?.can_login) {
-      setError(deviceStatus?.message ?? "This device is not registered.");
-      return;
-    }
     if (password.length < 4) {
       setError("Enter your password/PIN (4+ characters).");
       return;
@@ -125,116 +64,95 @@ export function LoginPage() {
     }
   };
 
-  const statusText = deviceStatus?.can_login
-    ? deviceStatus.message
-    : deviceStatus?.message ?? "This device must be registered before shop login is allowed.";
-
   return (
-    <div className="relative flex min-h-full items-center justify-center overflow-hidden bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.18),_transparent_46%),linear-gradient(160deg,#0f172a_0%,#1f2937_44%,#111827_100%)] p-stack-gap">
-      <div className="absolute inset-0 opacity-40 [background-image:linear-gradient(rgba(255,255,255,0.06)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.06)_1px,transparent_1px)] [background-size:28px_28px]" />
-      <section className="relative w-full max-w-[460px] overflow-hidden rounded-2xl border border-white/15 bg-white/95 shadow-2xl shadow-black/30 ring-1 ring-white/25">
-        <div className="border-b border-slate-200 px-gutter py-6">
-          <p className="text-label-md uppercase tracking-[0.24em] text-slate-500">Barstock</p>
-          <h1 className="mt-2 text-headline-lg text-slate-900">Shop login</h1>
-          <p className="mt-2 text-body-md text-slate-600">
-            Sign in with your role, username, and PIN/password.
-          </p>
-        </div>
-
-        <form onSubmit={handleSubmit} className="flex flex-col gap-stack-gap px-gutter py-gutter text-slate-900">
-          <div className="grid gap-stack-gap">
-            <label className="flex flex-col gap-1 text-label-md">
-              Role
-              <select
-                value={role}
-                onChange={(e) => setRole(e.target.value as ShopLoginRole)}
-                className="min-h-touchTarget-sm rounded-md border border-slate-300 bg-white px-stack-gap text-body-md shadow-inner focus:border-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900/10"
-              >
-                {ROLE_OPTIONS.map((option) => (
-                  <option key={option.value} value={option.value}>
+    <AuthShell
+      variant="shop"
+      badge="SHOP OPERATIONS"
+      title="Terminal Access"
+      subcopy="Initialize secure bridge connection for live inventory movement."
+      shellWidthClassName="max-w-[42rem]"
+      contentWidthClassName="max-w-[23.5rem]"
+      headerLinks={[
+        { label: "Help", to: "/help/login" },
+        { label: "Terms and Conditions", to: "/terms" },
+      ]}
+    >
+      <form onSubmit={handleSubmit} className="auth-terminal-form">
+        <fieldset>
+          <legend className="auth-terminal-label">Access Role</legend>
+          <div className="grid grid-cols-1 gap-2 sm:grid-cols-3 [@media(max-height:840px)]:gap-1.5">
+            {ROLE_OPTIONS.map((option) => {
+              const checked = role === option.value;
+              return (
+                <label key={option.value} className="block">
+                  <input
+                    type="radio"
+                    name="role"
+                    value={option.value}
+                    checked={checked}
+                    onChange={() => setRole(option.value)}
+                    className="peer sr-only"
+                    aria-label={option.label}
+                  />
+                  <span className="flex min-h-[44px] cursor-pointer items-center justify-center rounded-2xl border border-[#2a3139] bg-[#0b1015] px-3 py-2.5 text-center text-sm font-medium text-[#b8c5d2] transition-[border-color,background-color,color,box-shadow] duration-200 peer-hover:border-[#42505e] peer-focus-visible:border-[#8ae6ff] peer-focus-visible:ring-4 peer-focus-visible:ring-cyan-300/10 peer-checked:border-[#8fe8ff] peer-checked:bg-[#10202a] peer-checked:text-white [@media(max-height:840px)]:min-h-[40px] [@media(max-height:840px)]:py-2">
                     {option.label}
-                  </option>
-                ))}
-              </select>
-            </label>
-
-            <label className="flex flex-col gap-1 text-label-md">
-              Username
-              <input
-                type="text"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                placeholder={defaultUsername(role)}
-                className="min-h-touchTarget-sm rounded-md border border-slate-300 bg-white px-stack-gap text-body-md shadow-inner focus:border-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900/10"
-                autoComplete="username"
-                autoFocus
-                required
-              />
-              <span className="text-label-sm text-slate-500">
-                Use the account username assigned for this shop, for example {defaultUsername(role)}.
-              </span>
-            </label>
-
-            <label className="flex flex-col gap-1 text-label-md">
-              PIN / password
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => {
-                  setPassword(e.target.value);
-                  if (error) setError(null);
-                }}
-                className="min-h-touchTarget-sm rounded-md border border-slate-300 bg-white px-stack-gap text-body-md shadow-inner focus:border-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900/10"
-                autoComplete="current-password"
-                required
-              />
-            </label>
-          </div>
-
-          <div className="rounded-xl border border-slate-200 bg-slate-50 px-stack-gap py-4">
-            <div className="text-label-md text-slate-500">Device</div>
-            <div className="mt-1 font-mono text-label-md text-slate-900 break-all">{deviceKey}</div>
-            <div className="mt-2 text-body-sm text-slate-600">{statusText}</div>
-            {deviceStatus?.shop_name && (
-              <div className="mt-2 flex flex-wrap gap-2 text-label-md text-slate-700">
-                <span className="rounded-full bg-slate-900 px-2 py-1 text-white">
-                  {deviceStatus.shop_name}
-                </span>
-                {deviceStatus.counter_name && (
-                  <span className="rounded-full bg-slate-200 px-2 py-1">
-                    Counter: {deviceStatus.counter_name}
                   </span>
-                )}
-              </div>
-            )}
+                </label>
+              );
+            })}
           </div>
+        </fieldset>
 
-          {error && (
-            <div
-              role="alert"
-              className="rounded-md border border-red-200 bg-red-50 px-stack-gap py-3 text-red-800"
-            >
-              {error}
-            </div>
-          )}
+        <label className="block">
+          <span className="auth-terminal-label">Terminal ID / Username</span>
+          <input
+            type="text"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+            placeholder="Enter terminal username"
+            className="auth-terminal-field"
+            autoComplete="username"
+            autoFocus
+            required
+            aria-label="Terminal ID / Username"
+          />
+        </label>
 
-          <button
-            type="submit"
-            disabled={!canSubmit}
-            className="min-h-touchTarget rounded-md bg-slate-900 text-label-xl text-white shadow-sm transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50"
+        <label className="block">
+          <span className="auth-terminal-label">Security PIN</span>
+          <input
+            type="password"
+            value={password}
+            onChange={(e) => {
+              setPassword(e.target.value);
+              if (error) setError(null);
+            }}
+            className="auth-terminal-field"
+            autoComplete="current-password"
+            required
+            aria-label="Security PIN"
+          />
+        </label>
+
+        {error ? (
+          <div
+            role="alert"
+            className="animate-fade-in rounded-2xl border border-rose-400/20 bg-rose-400/10 px-4 py-3 text-sm text-rose-100"
           >
-            {checkingDevice ? "Checking device..." : submitting ? "Signing in..." : "LOGIN"}
-          </button>
-        </form>
+            {error}
+          </div>
+        ) : null}
 
-        <button
-          type="button"
-          onClick={() => navigate("/login/superadmin")}
-          className="absolute bottom-4 right-4 rounded-md border border-slate-300 bg-white/90 px-3 py-1 text-label-md text-slate-600 shadow-sm transition hover:bg-white hover:text-slate-900"
-        >
-          Superadmin login
+        <button type="submit" disabled={!canSubmit} className="auth-terminal-submit">
+          {submitting ? "Signing in..." : "Open Terminal"}
         </button>
-      </section>
-    </div>
+
+        <div className="border-t border-white/8 pt-3 text-center [@media(max-height:840px)]:pt-2.5">
+          <Link to="/login/superadmin" className="auth-terminal-link">
+            Need superadmin access?
+          </Link>
+        </div>
+      </form>
+    </AuthShell>
   );
 }

@@ -29,11 +29,16 @@ async def _seed_product(client: AsyncClient, barcode: str) -> None:
     assert resp.status_code == 201
 
 
-async def _seed_lot(receiver_client: AsyncClient, *, bc: str, qty: int) -> None:
+async def _seed_lot(
+    receiver_client: AsyncClient, owner_client: AsyncClient, *, bc: str, qty: int
+) -> None:
     resp = await receiver_client.post(
         "/lots", json={"lines": [{"barcode": bc, "quantity": qty}]}
     )
     assert resp.status_code == 201
+    inward_id = resp.json()["id"]
+    approved = await owner_client.post(f"/lots/{inward_id}/approve")
+    assert approved.status_code == 200, approved.text
 
 
 async def _finalize(
@@ -62,12 +67,16 @@ async def test_get_shop_returns_defaults(
     # Defaults: NULL.
     assert shop.gstin is None
     assert shop.excise_duty_rate is None
+    assert shop.cashier_login_restriction_enabled is False
+    assert shop.receiving_vendor_link_enabled is True
 
     resp = await owner_client.get("/shops/me")
     assert resp.status_code == 200
     body = resp.json()
     assert body["gstin"] is None
     assert body["excise_duty_rate"] is None
+    assert body["cashier_login_restriction_enabled"] is False
+    assert body["receiving_vendor_link_enabled"] is True
 
 
 @pytest.mark.usefixtures("owner", "receiver", "cashier")
@@ -82,6 +91,8 @@ async def test_owner_updates_gstin_and_duty_rate(
     body = resp.json()
     assert body["gstin"] == "21ABCDE1234F1Z5"
     assert body["excise_duty_rate"] == "20.00"
+    assert body["cashier_login_restriction_enabled"] is False
+    assert body["receiving_vendor_link_enabled"] is True
 
     # Persisted.
     shop = (await db_session.execute(select(Shop).where(Shop.id == 1))).scalar_one()
@@ -130,7 +141,7 @@ async def test_pdf_includes_configured_gstin(
         "/shops/me", json={"gstin": "21ABCDE1234F1Z5"}
     )
     await _seed_product(owner_client, "8908000000001")
-    await _seed_lot(receiver_client, bc="8908000000001", qty=2)
+    await _seed_lot(receiver_client, owner_client, bc="8908000000001", qty=2)
     inv = await _finalize(cashier_client, bc="8908000000001", qty=1, amount="100.00")
 
     resp = await cashier_client.get(f"/invoices/{inv['id']}/pdf")
@@ -152,7 +163,7 @@ async def test_pdf_includes_configured_duty_rate(
         "/shops/me", json={"excise_duty_rate": "20.00"}
     )
     await _seed_product(owner_client, "8908000000002")
-    await _seed_lot(receiver_client, bc="8908000000002", qty=2)
+    await _seed_lot(receiver_client, owner_client, bc="8908000000002", qty=2)
     inv = await _finalize(cashier_client, bc="8908000000002", qty=1, amount="100.00")
 
     resp = await cashier_client.get(f"/invoices/{inv['id']}/pdf")
@@ -172,7 +183,7 @@ async def test_pdf_includes_placeholder_disclaimer(
     # Even without configuring a rate, the PDF should still flag the
     # GST/excise line as a placeholder pending confirmation.
     await _seed_product(owner_client, "8908000000003")
-    await _seed_lot(receiver_client, bc="8908000000003", qty=2)
+    await _seed_lot(receiver_client, owner_client, bc="8908000000003", qty=2)
     inv = await _finalize(cashier_client, bc="8908000000003", qty=1, amount="100.00")
 
     resp = await cashier_client.get(f"/invoices/{inv['id']}/pdf")
@@ -191,7 +202,7 @@ async def test_pdf_does_not_hardcode_cgst_or_sgst(
     # the calculation. A configured rate is the *only* thing that
     # shows on the invoice. With no rate set, no CGST/SGST line.
     await _seed_product(owner_client, "8908000000004")
-    await _seed_lot(receiver_client, bc="8908000000004", qty=2)
+    await _seed_lot(receiver_client, owner_client, bc="8908000000004", qty=2)
     inv = await _finalize(cashier_client, bc="8908000000004", qty=1, amount="100.00")
 
     resp = await cashier_client.get(f"/invoices/{inv['id']}/pdf")
@@ -218,7 +229,7 @@ async def test_shop_name_appears_on_invoice(
     await db_session.commit()
 
     await _seed_product(owner_client, "8908000000005")
-    await _seed_lot(receiver_client, bc="8908000000005", qty=2)
+    await _seed_lot(receiver_client, owner_client, bc="8908000000005", qty=2)
     inv = await _finalize(cashier_client, bc="8908000000005", qty=1, amount="100.00")
 
     resp = await cashier_client.get(f"/invoices/{inv['id']}/pdf")

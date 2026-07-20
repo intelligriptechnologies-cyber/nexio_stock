@@ -1,0 +1,614 @@
+[2026-07-14T22:15:04+05:30] Unhandled exception during POST /lots/1/approve; user=1; shop=1; KeyError: 'lot'
+Traceback (most recent call last):
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\middleware\errors.py", line 164, in __call__
+    await self.app(scope, receive, _send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\middleware\cors.py", line 88, in __call__
+    await self.app(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\middleware\exceptions.py", line 63, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\middleware\asyncexitstack.py", line 18, in __call__
+    await self.app(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\routing.py", line 660, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 2683, in app
+    await route.handle(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 1753, in handle
+    await self.original_router.handle(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 2738, in handle
+    await included_router._handle_selected(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 1773, in _handle_selected
+    await original_route.handle(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 1264, in handle
+    await app(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 150, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 136, in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 690, in app
+    raw_response = await run_endpoint_function(
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 344, in run_endpoint_function
+    return await dependant.call(**values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\app\api\lots.py", line 202, in approve_lot
+    await db.refresh(
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\ext\asyncio\session.py", line 328, in refresh
+    await greenlet_spawn(
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\util\_concurrency_py3k.py", line 190, in greenlet_spawn
+    result = context.switch(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\orm\session.py", line 3155, in refresh
+    self._expire_state(state, attribute_names)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\orm\session.py", line 3283, in _expire_state
+    state._expire_attributes(state.dict, attribute_names)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\orm\state.py", line 787, in _expire_attributes
+    impl = self.manager[key].impl
+           ~~~~~~~~~~~~^^^^^
+KeyError: 'lot'
+[2026-07-14T22:15:10+05:30] Unhandled exception during POST /lots/1/approve; user=1; shop=1; KeyError: 'lot'
+Traceback (most recent call last):
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\middleware\errors.py", line 164, in __call__
+    await self.app(scope, receive, _send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\middleware\cors.py", line 88, in __call__
+    await self.app(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\middleware\exceptions.py", line 63, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\middleware\asyncexitstack.py", line 18, in __call__
+    await self.app(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\routing.py", line 660, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 2683, in app
+    await route.handle(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 1753, in handle
+    await self.original_router.handle(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 2738, in handle
+    await included_router._handle_selected(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 1773, in _handle_selected
+    await original_route.handle(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 1264, in handle
+    await app(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 150, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 136, in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 690, in app
+    raw_response = await run_endpoint_function(
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 344, in run_endpoint_function
+    return await dependant.call(**values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\app\api\lots.py", line 202, in approve_lot
+    await db.refresh(
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\ext\asyncio\session.py", line 328, in refresh
+    await greenlet_spawn(
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\util\_concurrency_py3k.py", line 190, in greenlet_spawn
+    result = context.switch(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\orm\session.py", line 3155, in refresh
+    self._expire_state(state, attribute_names)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\orm\session.py", line 3283, in _expire_state
+    state._expire_attributes(state.dict, attribute_names)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\orm\state.py", line 787, in _expire_attributes
+    impl = self.manager[key].impl
+           ~~~~~~~~~~~~^^^^^
+KeyError: 'lot'
+[2026-07-14T22:15:18+05:30] Unhandled exception during POST /lots/1/approve; user=1; shop=1; KeyError: 'lot'
+Traceback (most recent call last):
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\middleware\errors.py", line 164, in __call__
+    await self.app(scope, receive, _send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\middleware\cors.py", line 88, in __call__
+    await self.app(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\middleware\exceptions.py", line 63, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\middleware\asyncexitstack.py", line 18, in __call__
+    await self.app(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\routing.py", line 660, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 2683, in app
+    await route.handle(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 1753, in handle
+    await self.original_router.handle(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 2738, in handle
+    await included_router._handle_selected(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 1773, in _handle_selected
+    await original_route.handle(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 1264, in handle
+    await app(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 150, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 136, in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 690, in app
+    raw_response = await run_endpoint_function(
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 344, in run_endpoint_function
+    return await dependant.call(**values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\app\api\lots.py", line 202, in approve_lot
+    await db.refresh(
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\ext\asyncio\session.py", line 328, in refresh
+    await greenlet_spawn(
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\util\_concurrency_py3k.py", line 190, in greenlet_spawn
+    result = context.switch(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\orm\session.py", line 3155, in refresh
+    self._expire_state(state, attribute_names)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\orm\session.py", line 3283, in _expire_state
+    state._expire_attributes(state.dict, attribute_names)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\orm\state.py", line 787, in _expire_attributes
+    impl = self.manager[key].impl
+           ~~~~~~~~~~~~^^^^^
+KeyError: 'lot'
+[2026-07-14T22:15:38+05:30] Unhandled exception during POST /lots/1/approve; user=1; shop=1; KeyError: 'lot'
+Traceback (most recent call last):
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\middleware\errors.py", line 164, in __call__
+    await self.app(scope, receive, _send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\middleware\cors.py", line 88, in __call__
+    await self.app(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\middleware\exceptions.py", line 63, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\middleware\asyncexitstack.py", line 18, in __call__
+    await self.app(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\routing.py", line 660, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 2683, in app
+    await route.handle(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 1753, in handle
+    await self.original_router.handle(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 2738, in handle
+    await included_router._handle_selected(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 1773, in _handle_selected
+    await original_route.handle(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 1264, in handle
+    await app(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 150, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 136, in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 690, in app
+    raw_response = await run_endpoint_function(
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 344, in run_endpoint_function
+    return await dependant.call(**values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\app\api\lots.py", line 202, in approve_lot
+    await db.refresh(
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\ext\asyncio\session.py", line 328, in refresh
+    await greenlet_spawn(
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\util\_concurrency_py3k.py", line 190, in greenlet_spawn
+    result = context.switch(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\orm\session.py", line 3155, in refresh
+    self._expire_state(state, attribute_names)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\orm\session.py", line 3283, in _expire_state
+    state._expire_attributes(state.dict, attribute_names)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\orm\state.py", line 787, in _expire_attributes
+    impl = self.manager[key].impl
+           ~~~~~~~~~~~~^^^^^
+KeyError: 'lot'
+[2026-07-14T22:15:44+05:30] Unhandled exception during POST /lots/1/approve; user=1; shop=1; KeyError: 'lot'
+Traceback (most recent call last):
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\middleware\errors.py", line 164, in __call__
+    await self.app(scope, receive, _send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\middleware\cors.py", line 88, in __call__
+    await self.app(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\middleware\exceptions.py", line 63, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\middleware\asyncexitstack.py", line 18, in __call__
+    await self.app(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\routing.py", line 660, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 2683, in app
+    await route.handle(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 1753, in handle
+    await self.original_router.handle(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 2738, in handle
+    await included_router._handle_selected(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 1773, in _handle_selected
+    await original_route.handle(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 1264, in handle
+    await app(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 150, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 136, in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 690, in app
+    raw_response = await run_endpoint_function(
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 344, in run_endpoint_function
+    return await dependant.call(**values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\app\api\lots.py", line 202, in approve_lot
+    await db.refresh(
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\ext\asyncio\session.py", line 328, in refresh
+    await greenlet_spawn(
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\util\_concurrency_py3k.py", line 190, in greenlet_spawn
+    result = context.switch(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\orm\session.py", line 3155, in refresh
+    self._expire_state(state, attribute_names)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\orm\session.py", line 3283, in _expire_state
+    state._expire_attributes(state.dict, attribute_names)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\orm\state.py", line 787, in _expire_attributes
+    impl = self.manager[key].impl
+           ~~~~~~~~~~~~^^^^^
+KeyError: 'lot'
+[2026-07-14T22:15:50+05:30] Unhandled exception during POST /lots/1/approve; user=1; shop=1; KeyError: 'lot'
+Traceback (most recent call last):
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\middleware\errors.py", line 164, in __call__
+    await self.app(scope, receive, _send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\middleware\cors.py", line 88, in __call__
+    await self.app(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\middleware\exceptions.py", line 63, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\middleware\asyncexitstack.py", line 18, in __call__
+    await self.app(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\routing.py", line 660, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 2683, in app
+    await route.handle(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 1753, in handle
+    await self.original_router.handle(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 2738, in handle
+    await included_router._handle_selected(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 1773, in _handle_selected
+    await original_route.handle(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 1264, in handle
+    await app(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 150, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 136, in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 690, in app
+    raw_response = await run_endpoint_function(
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 344, in run_endpoint_function
+    return await dependant.call(**values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\app\api\lots.py", line 202, in approve_lot
+    await db.refresh(
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\ext\asyncio\session.py", line 328, in refresh
+    await greenlet_spawn(
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\util\_concurrency_py3k.py", line 190, in greenlet_spawn
+    result = context.switch(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\orm\session.py", line 3155, in refresh
+    self._expire_state(state, attribute_names)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\orm\session.py", line 3283, in _expire_state
+    state._expire_attributes(state.dict, attribute_names)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\orm\state.py", line 787, in _expire_attributes
+    impl = self.manager[key].impl
+           ~~~~~~~~~~~~^^^^^
+KeyError: 'lot'
+[2026-07-14T22:15:56+05:30] Unhandled exception during POST /lots/1/approve; user=1; shop=1; KeyError: 'lot'
+Traceback (most recent call last):
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\middleware\errors.py", line 164, in __call__
+    await self.app(scope, receive, _send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\middleware\cors.py", line 88, in __call__
+    await self.app(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\middleware\exceptions.py", line 63, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\middleware\asyncexitstack.py", line 18, in __call__
+    await self.app(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\routing.py", line 660, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 2683, in app
+    await route.handle(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 1753, in handle
+    await self.original_router.handle(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 2738, in handle
+    await included_router._handle_selected(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 1773, in _handle_selected
+    await original_route.handle(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 1264, in handle
+    await app(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 150, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 136, in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 690, in app
+    raw_response = await run_endpoint_function(
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 344, in run_endpoint_function
+    return await dependant.call(**values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\app\api\lots.py", line 202, in approve_lot
+    await db.refresh(
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\ext\asyncio\session.py", line 328, in refresh
+    await greenlet_spawn(
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\util\_concurrency_py3k.py", line 190, in greenlet_spawn
+    result = context.switch(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\orm\session.py", line 3155, in refresh
+    self._expire_state(state, attribute_names)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\orm\session.py", line 3283, in _expire_state
+    state._expire_attributes(state.dict, attribute_names)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\orm\state.py", line 787, in _expire_attributes
+    impl = self.manager[key].impl
+           ~~~~~~~~~~~~^^^^^
+KeyError: 'lot'
+[2026-07-14T22:16:01+05:30] Unhandled exception during POST /lots/1/approve; user=1; shop=1; KeyError: 'lot'
+Traceback (most recent call last):
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\middleware\errors.py", line 164, in __call__
+    await self.app(scope, receive, _send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\middleware\cors.py", line 88, in __call__
+    await self.app(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\middleware\exceptions.py", line 63, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\middleware\asyncexitstack.py", line 18, in __call__
+    await self.app(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\routing.py", line 660, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 2683, in app
+    await route.handle(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 1753, in handle
+    await self.original_router.handle(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 2738, in handle
+    await included_router._handle_selected(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 1773, in _handle_selected
+    await original_route.handle(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 1264, in handle
+    await app(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 150, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 136, in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 690, in app
+    raw_response = await run_endpoint_function(
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 344, in run_endpoint_function
+    return await dependant.call(**values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\app\api\lots.py", line 202, in approve_lot
+    await db.refresh(
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\ext\asyncio\session.py", line 328, in refresh
+    await greenlet_spawn(
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\util\_concurrency_py3k.py", line 190, in greenlet_spawn
+    result = context.switch(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\orm\session.py", line 3155, in refresh
+    self._expire_state(state, attribute_names)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\orm\session.py", line 3283, in _expire_state
+    state._expire_attributes(state.dict, attribute_names)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\orm\state.py", line 787, in _expire_attributes
+    impl = self.manager[key].impl
+           ~~~~~~~~~~~~^^^^^
+KeyError: 'lot'
+[2026-07-14T22:16:06+05:30] Unhandled exception during POST /lots/1/approve; user=1; shop=1; KeyError: 'lot'
+Traceback (most recent call last):
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\middleware\errors.py", line 164, in __call__
+    await self.app(scope, receive, _send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\middleware\cors.py", line 88, in __call__
+    await self.app(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\middleware\exceptions.py", line 63, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\middleware\asyncexitstack.py", line 18, in __call__
+    await self.app(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\routing.py", line 660, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 2683, in app
+    await route.handle(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 1753, in handle
+    await self.original_router.handle(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 2738, in handle
+    await included_router._handle_selected(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 1773, in _handle_selected
+    await original_route.handle(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 1264, in handle
+    await app(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 150, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 136, in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 690, in app
+    raw_response = await run_endpoint_function(
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 344, in run_endpoint_function
+    return await dependant.call(**values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\app\api\lots.py", line 202, in approve_lot
+    await db.refresh(
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\ext\asyncio\session.py", line 328, in refresh
+    await greenlet_spawn(
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\util\_concurrency_py3k.py", line 190, in greenlet_spawn
+    result = context.switch(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\orm\session.py", line 3155, in refresh
+    self._expire_state(state, attribute_names)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\orm\session.py", line 3283, in _expire_state
+    state._expire_attributes(state.dict, attribute_names)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\orm\state.py", line 787, in _expire_attributes
+    impl = self.manager[key].impl
+           ~~~~~~~~~~~~^^^^^
+KeyError: 'lot'
+[2026-07-14T22:16:15+05:30] Unhandled exception during POST /lots/1/approve; user=1; shop=1; KeyError: 'lot'
+Traceback (most recent call last):
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\middleware\errors.py", line 164, in __call__
+    await self.app(scope, receive, _send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\middleware\cors.py", line 88, in __call__
+    await self.app(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\middleware\exceptions.py", line 63, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\middleware\asyncexitstack.py", line 18, in __call__
+    await self.app(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\routing.py", line 660, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 2683, in app
+    await route.handle(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 1753, in handle
+    await self.original_router.handle(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 2738, in handle
+    await included_router._handle_selected(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 1773, in _handle_selected
+    await original_route.handle(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 1264, in handle
+    await app(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 150, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 136, in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 690, in app
+    raw_response = await run_endpoint_function(
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 344, in run_endpoint_function
+    return await dependant.call(**values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\app\api\lots.py", line 202, in approve_lot
+    await db.refresh(
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\ext\asyncio\session.py", line 328, in refresh
+    await greenlet_spawn(
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\util\_concurrency_py3k.py", line 190, in greenlet_spawn
+    result = context.switch(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\orm\session.py", line 3155, in refresh
+    self._expire_state(state, attribute_names)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\orm\session.py", line 3283, in _expire_state
+    state._expire_attributes(state.dict, attribute_names)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\sqlalchemy\orm\state.py", line 787, in _expire_attributes
+    impl = self.manager[key].impl
+           ~~~~~~~~~~~~^^^^^
+KeyError: 'lot'
+[2026-07-14T22:16:20+05:30] Unhandled exception during POST /lots/1/reject; user=1; shop=1; ValidationError: 1 validation error for LotPublic
+updated_at
+  Error extracting attribute: MissingGreenlet: greenlet_spawn has not been called; can't call await_only() here. Was IO attempted in an unexpected place? (Background on this error at: https://sqlalche.me/e/20/xd2s) [type=get_attribute_error, input_value=<app.models.stock_inward....t at 0x000002030C70E7D0>, input_type=StockInward]
+    For further information visit https://errors.pydantic.dev/2.13/v/get_attribute_error
+Traceback (most recent call last):
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\middleware\errors.py", line 164, in __call__
+    await self.app(scope, receive, _send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\middleware\cors.py", line 88, in __call__
+    await self.app(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\middleware\exceptions.py", line 63, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\middleware\asyncexitstack.py", line 18, in __call__
+    await self.app(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\routing.py", line 660, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 2683, in app
+    await route.handle(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 1753, in handle
+    await self.original_router.handle(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 2738, in handle
+    await included_router._handle_selected(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 1773, in _handle_selected
+    await original_route.handle(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 1264, in handle
+    await app(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 150, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 136, in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 690, in app
+    raw_response = await run_endpoint_function(
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\fastapi\routing.py", line 344, in run_endpoint_function
+    return await dependant.call(**values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\app\api\lots.py", line 252, in reject_lot
+    return LotPublic.model_validate(inward)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Prem_Dev\nexio-stock\.venv\Lib\site-packages\pydantic\main.py", line 732, in model_validate
+    return cls.__pydantic_validator__.validate_python(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+pydantic_core._pydantic_core.ValidationError: 1 validation error for LotPublic
+updated_at
+  Error extracting attribute: MissingGreenlet: greenlet_spawn has not been called; can't call await_only() here. Was IO attempted in an unexpected place? (Background on this error at: https://sqlalche.me/e/20/xd2s) [type=get_attribute_error, input_value=<app.models.stock_inward....t at 0x000002030C70E7D0>, input_type=StockInward]
+    For further information visit https://errors.pydantic.dev/2.13/v/get_attribute_error

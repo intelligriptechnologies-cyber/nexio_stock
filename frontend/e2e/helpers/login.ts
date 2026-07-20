@@ -1,18 +1,6 @@
-// Shared e2e helpers for the new role-first device-bound login flow.
-//
-// The flow is: choose role -> type username -> type PIN/password -> login.
-// The helpers seed a stable browser-local device key so the backend sees
-// a deterministic terminal during e2e runs.
-
 import { expect, type Page } from "@playwright/test";
 
 export type Role = "Cashier" | "Receiver" | "Owner";
-
-const ROLE_TO_API_ROLE: Record<Role, string> = {
-  Cashier: "cashier_user",
-  Receiver: "receiver_user",
-  Owner: "owner",
-};
 
 const ROLE_TO_USERNAME: Record<Role, string> = {
   Cashier: "cashier1",
@@ -33,24 +21,25 @@ export async function loginAsRole(page: Page, role: Role, pin: string) {
     localStorage.setItem("barstock.deviceKey", deviceKey);
   }, DEVICE_KEY);
   await page.goto("/login");
-  await expect(page.getByRole("heading", { name: "Shop login" })).toBeVisible({
+  await expect(page.getByRole("heading", { name: "Terminal Access" })).toBeVisible({
     timeout: 5000,
   });
-  await page.getByLabel("Role").selectOption(ROLE_TO_API_ROLE[role]);
-  await page.getByLabel("Username").fill(ROLE_TO_USERNAME[role]);
-  await page.getByLabel("PIN / password").fill(pin);
-  await page.getByRole("button", { name: "LOGIN", exact: true }).click();
+  const roleLabel = role === "Receiver" ? "Stock Keeper" : role === "Owner" ? "Shop Owner" : "Cashier";
+  await page.getByRole("radio", { name: roleLabel }).check({ force: true });
+  await page.getByLabel("Terminal ID / Username").fill(ROLE_TO_USERNAME[role]);
+  await page.getByLabel("Security PIN").fill(pin);
+  await page.getByRole("button", { name: "Open Terminal", exact: true }).click();
   await expect(page).toHaveURL(ROLE_TO_HOME[role]);
 }
 
 export async function loginAsReceiver(page: Page) {
-  await loginAsRole(page, "Receiver", "2222");
+  return loginAsRole(page, "Receiver", "recvpass");
 }
 
 export async function loginAsCashier(page: Page) {
-  await loginAsRole(page, "Cashier", "1111");
+  return loginAsRole(page, "Cashier", "cashpass");
 }
 
 export async function loginAsOwner(page: Page) {
-  await loginAsRole(page, "Owner", "3333");
+  return loginAsRole(page, "Owner", "ownerpass");
 }

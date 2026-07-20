@@ -37,15 +37,9 @@ from app.logging_config import configure_logging, get_logger
 from app.security.jwt import TokenError, decode_access_token
 from app.services.log_files import append_log_line, exception_text
 
-DEPLOYMENT_FRONTEND_ORIGINS = (
-    "https://frontend-production-d1b9.up.railway.app",
-    "https://barstock-dev.nexiohyper.com",
-    "https://www.barstock-dev.nexiohyper.com",
-)
-
 
 @asynccontextmanager
-async def lifespan(_: FastAPI) -> AsyncIterator[None]:
+async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     settings = get_settings()
     configure_logging(settings.log_level)
     log = get_logger("app.startup")
@@ -54,6 +48,11 @@ async def lifespan(_: FastAPI) -> AsyncIterator[None]:
         env=settings.app_env,
         app_name=settings.app_name,
         version=settings.app_version,
+    )
+    log.info(
+        "cors.origins_configured",
+        origins=list(app.state.cors_allow_origins),
+        count=len(app.state.cors_allow_origins),
     )
     # Touch the engine so any DSN problem surfaces here, not on first request.
     engine = get_engine()
@@ -125,6 +124,7 @@ async def _low_stock_loop() -> None:
 
 def create_app() -> FastAPI:
     settings = get_settings()
+    cors_allow_origins = list(dict.fromkeys(settings.cors_allow_origins))
     app = FastAPI(
         title="Barstock API",
         version=settings.app_version,
@@ -134,7 +134,7 @@ def create_app() -> FastAPI:
         ),
         lifespan=lifespan,
     )
-    cors_allow_origins = list(dict.fromkeys([*settings.cors_allow_origins, *DEPLOYMENT_FRONTEND_ORIGINS]))
+    app.state.cors_allow_origins = tuple(cors_allow_origins)
     if cors_allow_origins:
         app.add_middleware(
             CORSMiddleware,

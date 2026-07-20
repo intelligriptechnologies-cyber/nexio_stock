@@ -1,7 +1,8 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Api, ApiError } from "../api/client";
 import { type AuthUser, type Role, useAuth } from "../auth/AuthProvider";
+import { AuthShell } from "../components/AuthShell";
 
 export function SuperadminLoginPage() {
   const navigate = useNavigate();
@@ -42,65 +43,63 @@ export function SuperadminLoginPage() {
   };
 
   return (
-    <div className="flex min-h-full items-center justify-center bg-surface p-stack-gap">
-      <form
-        onSubmit={submit}
-        className="w-full max-w-sm overflow-hidden rounded-lg border border-primary/30 bg-primary text-on-primary shadow-2xl shadow-primary/30 ring-1 ring-white/20"
-      >
-        <div className="border-b border-white/10 px-gutter py-5">
-          <p className="text-label-md text-white/70">Restricted access</p>
-          <h1 className="mt-1 text-headline-md text-white">Superadmin Login</h1>
-        </div>
+    <AuthShell
+      variant="superadmin"
+      badge="RESTRICTED ACCESS"
+      title="Superadmin Panel"
+      subcopy="Initialize secure bridge connection for cross-shop administration."
+      shellWidthClassName="max-w-[42rem]"
+      contentWidthClassName="max-w-[23.5rem]"
+      headerLinks={[
+        { label: "Help", to: "/help/login" },
+        { label: "Terms and Conditions", to: "/terms" },
+      ]}
+    >
+      <form onSubmit={submit} className="auth-terminal-form">
+        <label className="block">
+          <span className="auth-terminal-label">Admin Username</span>
+          <input
+            type="text"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+            className="auth-terminal-field"
+            autoFocus
+            required
+            aria-label="Admin Username"
+          />
+        </label>
 
-        <div className="flex flex-col gap-stack-gap bg-surface px-gutter py-gutter text-on-surface">
-          <label className="flex flex-col gap-1 text-label-md">
-            Username
-            <input
-              type="text"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              className="min-h-touchTarget-sm rounded-md border border-outline bg-white px-stack-gap text-body-md text-on-surface shadow-inner focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
-              autoFocus
-              required
-            />
-          </label>
-          <label className="flex flex-col gap-1 text-label-md">
-            Password
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="min-h-touchTarget-sm rounded-md border border-outline bg-white px-stack-gap text-body-md text-on-surface shadow-inner focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
-              required
-            />
-          </label>
+        <label className="block">
+          <span className="auth-terminal-label">Secure Password</span>
+          <input
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            className="auth-terminal-field"
+            required
+            aria-label="Secure Password"
+          />
+        </label>
 
-          {error && (
-            <div
-              role="alert"
-              className="rounded-md border border-red-200 bg-error px-stack-gap py-3 text-on-error"
-            >
-              {error}
-            </div>
-          )}
-
-          <button
-            type="submit"
-            disabled={loading}
-            className="min-h-touchTarget rounded-md bg-action text-on-action shadow-sm transition hover:bg-action-hover disabled:cursor-not-allowed disabled:opacity-70"
+        {error ? (
+          <div
+            role="alert"
+            className="animate-fade-in rounded-2xl border border-rose-400/20 bg-rose-400/10 px-4 py-3 text-sm text-rose-100"
           >
-            {loading ? "Signing in..." : "LOGIN"}
-          </button>
+            {error}
+          </div>
+        ) : null}
 
-          <button
-            type="button"
-            onClick={() => navigate("/login")}
-            className="min-h-touchTarget-sm rounded-md border border-outline bg-surface-container px-stack-gap text-label-md text-on-surface-variant transition hover:bg-surface-container-high"
-          >
+        <button type="submit" disabled={loading} className="auth-terminal-submit">
+          {loading ? "Signing in..." : "Enter Control Panel"}
+        </button>
+
+        <div className="border-t border-white/8 pt-4 text-center [@media(max-height:840px)]:pt-3">
+          <Link to="/login" className="auth-terminal-link">
             Back to shop login
-          </button>
+          </Link>
         </div>
       </form>
-    </div>
+    </AuthShell>
   );
 }

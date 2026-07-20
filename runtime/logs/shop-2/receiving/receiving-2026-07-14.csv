@@ -1,0 +1,4 @@
+logged_at,event_type,shop_id,shop_name,actor_user_id,actor_name,lot_id,vendor_id,vendor_name,vendor_gstin,purchase_date,vendor_invoice_number,invoice_value,reference,notes,product_id,product_name_snapshot,barcode,quantity,good_condition_quantity,breakage_quantity,current_price,row_total
+2026-07-14T20:45:06+05:30,lot.received,2,Shop S2,1,Super Admin,13,2,Legacy vendor,,2026-07-14,331,4500,,,10,Paper Boat - Pomogranate 270ml,8906080603914,25,25,0,20.00,500.00
+2026-07-14T20:45:06+05:30,lot.received,2,Shop S2,1,Super Admin,13,2,Legacy vendor,,2026-07-14,331,4500,,,11,Paper Boat - Coconut 270ml,8906080604690,40,40,0,20.00,800.00
+2026-07-14T20:45:06+05:30,lot.received,2,Shop S2,1,Super Admin,13,2,Legacy vendor,,2026-07-14,331,4500,,,14,Fevicol MR Tube 105,8901860630500,10,10,0,55.00,550.00

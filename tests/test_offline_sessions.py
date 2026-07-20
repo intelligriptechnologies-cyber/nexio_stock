@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import UTC, datetime, timedelta
+from datetime import UTC, date, datetime, timedelta
 
 import pytest
 from httpx import AsyncClient
@@ -8,7 +8,6 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.offline_session import OfflineSession, OfflineSessionState
-from app.models.shop import Shop
 
 pytestmark = pytest.mark.asyncio
 
@@ -16,6 +15,7 @@ pytestmark = pytest.mark.asyncio
 async def _create_product_and_stock(
     owner_client: AsyncClient,
     receiver_client: AsyncClient,
+    owner_client_for_approval: AsyncClient | None = None,
     *,
     barcode: str = "8900000009001",
     quantity: int = 10,
@@ -35,6 +35,10 @@ async def _create_product_and_stock(
         json={"lines": [{"barcode": barcode, "quantity": quantity}]},
     )
     assert resp.status_code == 201, resp.text
+    inward_id = resp.json()["id"]
+    approval_client = owner_client_for_approval or owner_client
+    approved = await approval_client.post(f"/lots/{inward_id}/approve")
+    assert approved.status_code == 200, approved.text
 
 
 async def test_start_offline_session_returns_catalog_and_locks_writes(
@@ -42,7 +46,7 @@ async def test_start_offline_session_returns_catalog_and_locks_writes(
     owner_client: AsyncClient,
     receiver_client: AsyncClient,
 ) -> None:
-    await _create_product_and_stock(owner_client, receiver_client)
+    await _create_product_and_stock(owner_client, receiver_client, owner_client)
 
     start = await cashier_client.post("/offline-sessions/start", json={})
     assert start.status_code == 201, start.text
@@ -76,7 +80,7 @@ async def test_sync_offline_session_creates_official_invoice_and_unlocks(
     owner_client: AsyncClient,
     receiver_client: AsyncClient,
 ) -> None:
-    await _create_product_and_stock(owner_client, receiver_client)
+    await _create_product_and_stock(owner_client, receiver_client, owner_client)
     start = await cashier_client.post("/offline-sessions/start", json={})
     session_id = start.json()["session"]["id"]
     offline_token = start.json()["offline_token"]
@@ -112,6 +116,51 @@ async def test_sync_offline_session_creates_official_invoice_and_unlocks(
     assert checkout.json()["invoice"]["invoice_number"] == 2
 
 
+async def test_sync_offline_session_preserves_other_payment_and_note(
+    cashier_client: AsyncClient,
+    owner_client: AsyncClient,
+    receiver_client: AsyncClient,
+) -> None:
+    await _create_product_and_stock(owner_client, receiver_client, owner_client)
+    start = await cashier_client.post("/offline-sessions/start", json={})
+    session_id = start.json()["session"]["id"]
+    offline_token = start.json()["offline_token"]
+
+    sync = await cashier_client.post(
+        f"/offline-sessions/{session_id}/sync",
+        headers={"Authorization": f"Bearer {offline_token}"},
+        json={
+            "receipts": [
+                {
+                    "temp_receipt_id": f"OFF-{session_id}-0002",
+                    "idempotency_key": f"offline-{session_id}-0002",
+                    "lines": [{"barcode": "8900000009001", "quantity": 1}],
+                    "payments": [{"mode": "other", "amount": "100.00"}],
+                    "note": "Customer settled in another mode",
+                    "created_at": datetime.now(UTC).isoformat(),
+                }
+            ]
+        },
+    )
+    assert sync.status_code == 200, sync.text
+    invoice_id = sync.json()["mappings"][0]["invoice_id"]
+
+    from app.db import get_sessionmaker
+    from app.models.invoice import Invoice, Payment
+
+    Session = get_sessionmaker()
+    async with Session() as session, session.begin():
+        invoice = (
+            await session.execute(select(Invoice).where(Invoice.id == invoice_id))
+        ).scalar_one()
+        payments = (
+            await session.execute(select(Payment).where(Payment.invoice_id == invoice.id))
+        ).scalars().all()
+        assert invoice.note == "Customer settled in another mode"
+        assert len(payments) == 1
+        assert payments[0].mode.value == "other"
+
+
 async def test_sync_conflict_marks_session_failed_and_keeps_eod_locked(
     cashier_client: AsyncClient,
     owner_client: AsyncClient,
@@ -145,10 +194,9 @@ async def test_sync_conflict_marks_session_failed_and_keeps_eod_locked(
     assert session.state == OfflineSessionState.FAILED
     assert session.failure_reason["code"] == "insufficient_stock"
 
-    shop = (await db_session.execute(select(Shop))).scalar_one()
     eod = await owner_client.post(
         "/dashboard/eod/sign-off",
-        json={"business_date": shop.current_business_date.isoformat()},
+        json={"business_date": date.today().isoformat()},
     )
     assert eod.status_code == 409
     assert eod.json()["detail"]["code"] == "offline_session_active"
@@ -179,7 +227,7 @@ async def test_cashier_can_extend_once_and_owner_can_discard(
     assert discarded.json()["session"]["state"] == "discarded"
 
 
-async def test_expired_session_releases_checkout_lock(
+async def test_expired_session_still_blocks_checkout_until_discarded(
     cashier_client: AsyncClient,
     owner_client: AsyncClient,
     receiver_client: AsyncClient,
@@ -205,4 +253,5 @@ async def test_expired_session_releases_checkout_lock(
             "payments": [{"mode": "cash", "amount": "100.00"}],
         },
     )
-    assert checkout.status_code == 201, checkout.text
+    assert checkout.status_code == 409, checkout.text
+    assert checkout.json()["detail"]["code"] == "offline_session_active"

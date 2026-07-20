@@ -23,6 +23,17 @@ export function clearToken(): void {
   sessionStorage.removeItem(TOKEN_KEY);
 }
 
+function currentRole(): string | null {
+  const userRaw = sessionStorage.getItem("barstock.user");
+  if (!userRaw) return null;
+  try {
+    const user = JSON.parse(userRaw) as { role?: unknown };
+    return typeof user.role === "string" ? user.role : null;
+  } catch {
+    return null;
+  }
+}
+
 export function getOrCreateDeviceKey(): string {
   const stored = localStorage.getItem(DEVICE_KEY);
   if (stored) return stored;
@@ -67,7 +78,7 @@ export function withShopId<T extends object>(
   payload: T,
   shopId?: number | null
 ): T & { shop_id?: number } {
-  return shopId != null ? { ...payload, shop_id: shopId } : payload;
+  return shopId != null && currentRole() === "superadmin" ? { ...payload, shop_id: shopId } : payload;
 }
 
 // URLSearchParams and FormData both expose `set(name, value)`, so one
@@ -76,7 +87,7 @@ export function withShopIdParams<T extends { set(name: string, value: string): v
   params: T,
   shopId?: number | null
 ): T {
-  if (shopId != null) params.set("shop_id", String(shopId));
+  if (shopId != null && currentRole() === "superadmin") params.set("shop_id", String(shopId));
   return params;
 }
 
@@ -148,17 +159,6 @@ export const Api = {
       "/auth/login",
       { method: "POST", json: payload }
     ),
-  getDeviceContext: (deviceKey: string) =>
-    api<{
-      device_key: string;
-      is_registered: boolean;
-      can_login: boolean;
-      shop_id: number | null;
-      shop_name: string | null;
-      shop_code: string | null;
-      counter_name: string | null;
-      message: string;
-    }>(`/auth/device-context?device_key=${encodeURIComponent(deviceKey)}`),
   // Public pre-auth staff picker (legacy compatibility for older tests).
   listShopStaff: () =>
     api<Array<{ id: number; full_name: string; role: string }>>("/auth/shop-staff"),

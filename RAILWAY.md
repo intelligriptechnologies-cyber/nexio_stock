@@ -85,6 +85,8 @@ Notes:
 - The `+asyncpg` in the scheme is required; Railway's own `DATABASE_URL` default (`postgresql://…`) will NOT work with this app's SQLAlchemy async driver.
 - `CORS_ALLOW_ORIGINS` must be updated (and the backend redeployed — see step 8) any time the frontend's domain changes. If both apex and `www` custom domains are usable, include both exact origins (for example, `https://barstock-dev.nexiohyper.com` and `https://www.barstock-dev.nexiohyper.com`). Do not use `*`; credential-capable CORS requires explicit origins.
 
+- `CORS_ALLOW_ORIGINS` is the backend's complete browser-origin allowlist. Keep every active frontend origin there explicitly, including the Railway frontend domain if it still serves traffic.
+
 **`frontend`** service variables:
 
 ```
@@ -93,6 +95,10 @@ railway variable set -s frontend \
 ```
 
 This is a **build-time** variable (Vite bakes it into the JS bundle), so changing it requires a rebuild/redeploy of the frontend, not just a restart.
+
+If the API base stays the same and you are only adding a new frontend hostname,
+do not rebuild the frontend. Update `CORS_ALLOW_ORIGINS` on the backend and
+force a fresh backend deploy so the new allowlist is loaded.
 
 To check what's set on a service at any time:
 
@@ -164,7 +170,7 @@ Two files at the repo root exist specifically to make Railway deploys work — *
 Setting a variable does **not** restart the running container by itself:
 
 ```
-railway variable set -s backend 'CORS_ALLOW_ORIGINS=["https://new-domain","https://www.new-domain"]'
+railway variable set -s backend 'CORS_ALLOW_ORIGINS=["https://frontend-prod-5a1e.up.railway.app","https://stock.nexiohyper.com","https://www.stock.nexiohyper.com"]'
 ```
 
 `railway redeploy -s backend -y` is unreliable for services deployed via CLI upload (as opposed to a GitHub-connected deploy) — it may silently no-op. The reliable way to pick up new env vars is to force a fresh deploy the same way you deployed originally:

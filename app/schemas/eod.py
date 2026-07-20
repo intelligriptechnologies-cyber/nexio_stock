@@ -24,10 +24,15 @@ class SignOffRequest(BaseModel):
 
 
 class SignOffResponse(BaseModel):
+    id: int
     business_date: date
     signed_off_at: datetime
     signed_off_by_user_id: int
+    signed_off_by_name: str
     invoices_signed_off: int
+    revenue: Decimal
+    payments_by_mode: list[PaymentModeTotal]
+    notes: str | None = None
 
 
 class PaymentModeTotal(BaseModel):
@@ -38,6 +43,8 @@ class PaymentModeTotal(BaseModel):
 class EodTotalsResponse(BaseModel):
     business_date: date
     signed_off: bool
+    range_start_business_date: date | None = None
+    range_end_business_date: date | None = None
     invoice_count: int
     revenue: Decimal
     voided_count: int
@@ -47,6 +54,19 @@ class EodTotalsResponse(BaseModel):
 
 class SignOffHistoryResponse(BaseModel):
     signoffs: list[SignOffResponse]
+
+
+class UpdateSignOffNotesRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    notes: str | None = Field(default=None, max_length=500)
+    shop_id: int | None = Field(default=None)
+
+
+class ExportSignOffHistoryRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    signoff_ids: list[int] = Field(min_length=1)
 
 
 class PendingVoidResponse(BaseModel):
@@ -108,9 +128,11 @@ __all__ = [
     "LowStockResponse",
     "PaymentModeTotal",
     "PendingVoidResponse",
+    "ExportSignOffHistoryRequest",
     "SignOffHistoryResponse",
     "SignOffRequest",
     "SignOffResponse",
+    "UpdateSignOffNotesRequest",
     "StockOverviewResponse",
     "StockOverviewShopGroup",
     "StockOverviewShopRow",

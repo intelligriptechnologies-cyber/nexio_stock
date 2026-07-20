@@ -36,33 +36,33 @@ export function QuickAddModal({
         ).value;
         onSubmit({ brand, size });
       }}
-      className="flex w-full max-w-md flex-col gap-stack-gap rounded-lg bg-surface-container p-gutter"
+      className="animate-modal-in flex w-full max-w-md flex-col gap-6 rounded-xl bg-white p-8 shadow-[0_20px_60px_rgba(0,0,0,0.1)] ring-1 ring-slate-200/50"
     >
-      <header className="flex items-center justify-between gap-stack-gap">
+      <header className="flex items-start justify-between gap-4">
         <div>
-          <h2 id="quick-add-title" className="text-headline-md text-primary">
+          <h2 id="quick-add-title" className="text-xl font-semibold tracking-tight text-slate-900">
             Register new catalog item
           </h2>
-          <p className="mt-1 text-label-md text-on-surface-variant">
+          <p className="mt-2 text-sm text-slate-500">
             No catalog item matches this barcode. Add a pending product request now; the owner can set the price later. It can be received into stock, but cannot be sold until priced.
           </p>
         </div>
         <button
           type="button"
           onClick={onCancel}
-          className="flex h-12 w-12 shrink-0 items-center justify-center rounded-md bg-error text-label-xl leading-none text-on-error"
+          className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-slate-100 text-slate-500 transition-colors hover:bg-slate-200 hover:text-slate-900"
           aria-label="Cancel quick-add"
         >
           &times;
         </button>
       </header>
 
-      <div className="rounded-md bg-surface p-stack-gap text-label-md">
-        <span className="text-on-surface-variant">Barcode</span>
-        <div className="font-mono text-body-md">{barcode}</div>
+      <div className="flex flex-col gap-1 rounded-xl bg-slate-50 p-4">
+        <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">Barcode</span>
+        <div className="font-mono text-sm text-slate-900">{barcode}</div>
       </div>
 
-      <label className="flex flex-col gap-1 text-label-md">
+      <label className="flex flex-col gap-1.5 text-xs font-semibold uppercase tracking-wider text-slate-500">
         Brand
         <input
           name="brand"
@@ -70,42 +70,42 @@ export function QuickAddModal({
           placeholder="e.g. Royal Stag"
           maxLength={200}
           autoFocus
-          className="min-h-touchTarget-sm rounded-md border border-outline bg-surface px-stack-gap text-body-md"
+          className="h-11 w-full rounded-xl border border-slate-200 bg-white/50 px-4 text-sm font-medium normal-case text-slate-700 shadow-sm outline-none transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:bg-white focus:border-action focus:ring-1 focus:ring-action"
         />
       </label>
 
-      <label className="flex flex-col gap-1 text-label-md">
+      <label className="flex flex-col gap-1.5 text-xs font-semibold uppercase tracking-wider text-slate-500">
         Size
         <input
           name="size"
           type="text"
           placeholder="e.g. 750ml"
           maxLength={64}
-          className="min-h-touchTarget-sm rounded-md border border-outline bg-surface px-stack-gap text-body-md"
+          className="h-11 w-full rounded-xl border border-slate-200 bg-white/50 px-4 text-sm font-medium normal-case text-slate-700 shadow-sm outline-none transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:bg-white focus:border-action focus:ring-1 focus:ring-action"
         />
       </label>
 
       {error && (
         <div
           role="alert"
-          className="rounded-md bg-error px-stack-gap py-3 text-on-error"
+          className="rounded-xl bg-red-50 px-4 py-3 text-sm font-medium text-red-600 ring-1 ring-red-200"
         >
           {error}
         </div>
       )}
 
-      <div className="flex gap-stack-gap">
+      <div className="flex flex-wrap justify-end gap-3 pt-2">
         <button
           type="button"
           onClick={onCancel}
-          className="min-h-touchTarget flex-1 rounded-md bg-surface-container-high text-label-xl text-on-surface"
+          className="flex h-11 items-center justify-center rounded-xl bg-white px-6 text-sm font-semibold tracking-wide text-slate-600 shadow-sm ring-1 ring-slate-200 transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:bg-slate-50 hover:text-slate-900 active:scale-[0.97] disabled:opacity-50"
           disabled={busy}
         >
           Cancel
         </button>
         <button
           type="submit"
-          className="min-h-touchTarget flex-1 rounded-md bg-action text-label-xl text-on-action disabled:opacity-50"
+          className="flex h-11 items-center justify-center rounded-xl bg-action px-6 text-sm font-bold tracking-wide text-white shadow-sm transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:-translate-y-0.5 hover:shadow-[var(--color-action)]/30 active:scale-[0.97] disabled:pointer-events-none disabled:opacity-50"
           disabled={busy}
         >
           {busy ? "Adding..." : "Add product"}

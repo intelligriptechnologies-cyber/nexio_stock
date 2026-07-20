@@ -150,6 +150,11 @@ the processes happen to run:
 Both are read once at process startup (`.env` isn't hot-reloaded), so
 **restart both dev servers after editing either file**.
 
+Operational rule: `CORS_ALLOW_ORIGINS` is the backend's complete browser-origin
+allowlist. If you add a custom frontend domain, add that exact origin there
+and restart or redeploy the backend. Only rebuild the frontend when
+`VITE_API_BASE` changes.
+
 Symptom of getting this wrong: the backend logs a normal `200 OK` for the
 login request, but the browser shows "Network error — is the backend
 reachable?" — the request succeeded server-side but the browser couldn't

@@ -30,13 +30,16 @@ async def _seed_product(
 
 
 async def _seed_lot(
-    receiver_client: AsyncClient, *, items: list[tuple[str, int]]
+    receiver_client: AsyncClient, owner_client: AsyncClient, *, items: list[tuple[str, int]]
 ) -> None:
     resp = await receiver_client.post(
         "/lots",
         json={"lines": [{"barcode": bc, "quantity": q} for bc, q in items]},
     )
     assert resp.status_code == 201, resp.text
+    inward_id = resp.json()["id"]
+    approved = await owner_client.post(f"/lots/{inward_id}/approve")
+    assert approved.status_code == 200, approved.text
 
 
 def _idem_key() -> str:
@@ -51,7 +54,7 @@ async def test_cashier_finalizes_a_one_line_invoice(
     cashier_client: AsyncClient, owner_client: AsyncClient, receiver_client: AsyncClient
 ) -> None:
     await _seed_product(owner_client, "8901000000001", price="100.00")
-    await _seed_lot(receiver_client, items=[("8901000000001", 5)])
+    await _seed_lot(receiver_client, owner_client, items=[("8901000000001", 5)])
 
     resp = await cashier_client.post(
         "/checkout/finalize",
@@ -84,6 +87,7 @@ async def test_cashier_finalizes_multi_line_invoice(
         await _seed_product(owner_client, bc, price=price)
     await _seed_lot(
         receiver_client,
+        owner_client,
         items=[("8901000000002", 5), ("8901000000003", 5)],
     )
 
@@ -112,7 +116,7 @@ async def test_payment_split_across_modes(
     cashier_client: AsyncClient, owner_client: AsyncClient, receiver_client: AsyncClient
 ) -> None:
     await _seed_product(owner_client, "8901000000004", price="500.00")
-    await _seed_lot(receiver_client, items=[("8901000000004", 5)])
+    await _seed_lot(receiver_client, owner_client, items=[("8901000000004", 5)])
 
     resp = await cashier_client.post(
         "/checkout/finalize",
@@ -133,11 +137,50 @@ async def test_payment_split_across_modes(
 
 
 @pytest.mark.usefixtures("owner", "receiver", "cashier")
+async def test_other_payment_requires_note_and_is_allowed_with_note(
+    cashier_client: AsyncClient, owner_client: AsyncClient, receiver_client: AsyncClient
+) -> None:
+    await _seed_product(owner_client, "8901000000004", price="500.00")
+    await _seed_lot(receiver_client, owner_client, items=[("8901000000004", 5)])
+
+    blocked = await cashier_client.post(
+        "/checkout/finalize",
+        headers={"Idempotency-Key": _idem_key()},
+        json={
+            "lines": [{"barcode": "8901000000004", "quantity": 1}],
+            "payments": [{"mode": "other", "amount": "500.00"}],
+        },
+    )
+    assert blocked.status_code == 400
+    assert blocked.json()["detail"]["code"] == "note_required_for_other_payment"
+
+    allowed = await cashier_client.post(
+        "/checkout/finalize",
+        headers={"Idempotency-Key": _idem_key()},
+        json={
+            "lines": [{"barcode": "8901000000004", "quantity": 1}],
+            "payments": [
+                {"mode": "cash", "amount": "200.00"},
+                {"mode": "other", "amount": "300.00"},
+            ],
+            "note": "Manual payment split approved by customer",
+        },
+    )
+    assert allowed.status_code == 201, allowed.text
+    body = allowed.json()
+    assert body["invoice"]["note"] == "Manual payment split approved by customer"
+    assert {p["mode"]: p["amount"] for p in body["invoice"]["payments"]} == {
+        "cash": "200.00",
+        "other": "300.00",
+    }
+
+
+@pytest.mark.usefixtures("owner", "receiver", "cashier")
 async def test_payment_mismatch_is_rejected_with_400(
     cashier_client: AsyncClient, owner_client: AsyncClient, receiver_client: AsyncClient
 ) -> None:
     await _seed_product(owner_client, "8901000000005", price="100.00")
-    await _seed_lot(receiver_client, items=[("8901000000005", 5)])
+    await _seed_lot(receiver_client, owner_client, items=[("8901000000005", 5)])
 
     resp = await cashier_client.post(
         "/checkout/finalize",
@@ -151,6 +194,36 @@ async def test_payment_mismatch_is_rejected_with_400(
     assert resp.json()["detail"]["code"] == "payment_mismatch"
 
 
+@pytest.mark.usefixtures("owner", "receiver", "cashier")
+async def test_invoice_edit_requires_note_for_other_payment(
+    cashier_client: AsyncClient, owner_client: AsyncClient, receiver_client: AsyncClient
+) -> None:
+    await _seed_product(owner_client, "8901000000005", price="100.00")
+    await _seed_lot(receiver_client, owner_client, items=[("8901000000005", 5)])
+
+    created = await cashier_client.post(
+        "/checkout/finalize",
+        headers={"Idempotency-Key": _idem_key()},
+        json={
+            "lines": [{"barcode": "8901000000005", "quantity": 1}],
+            "payments": [{"mode": "cash", "amount": "100.00"}],
+        },
+    )
+    assert created.status_code == 201, created.text
+    invoice_id = created.json()["invoice"]["id"]
+
+    resp = await cashier_client.patch(
+        f"/invoices/{invoice_id}",
+        json={
+            "lines": [{"barcode": "8901000000005", "quantity": 1}],
+            "payments": [{"mode": "other", "amount": "100.00"}],
+            "note": "   ",
+        },
+    )
+    assert resp.status_code == 400
+    assert resp.json()["detail"]["code"] == "note_required_for_other_payment"
+
+
 # --- stock / oversell ---
 
 
@@ -159,7 +232,7 @@ async def test_quantity_exceeding_stock_is_rejected(
     cashier_client: AsyncClient, owner_client: AsyncClient, receiver_client: AsyncClient
 ) -> None:
     await _seed_product(owner_client, "8901000000006", price="100.00")
-    await _seed_lot(receiver_client, items=[("8901000000006", 3)])
+    await _seed_lot(receiver_client, owner_client, items=[("8901000000006", 3)])
 
     resp = await cashier_client.post(
         "/checkout/finalize",
@@ -178,7 +251,7 @@ async def test_unknown_barcode_is_rejected_with_404(
     cashier_client: AsyncClient, owner_client: AsyncClient, receiver_client: AsyncClient
 ) -> None:
     await _seed_product(owner_client, "8901000000007", price="100.00")
-    await _seed_lot(receiver_client, items=[("8901000000007", 5)])
+    await _seed_lot(receiver_client, owner_client, items=[("8901000000007", 5)])
 
     resp = await cashier_client.post(
         "/checkout/finalize",
@@ -200,7 +273,7 @@ async def test_idempotency_key_replay_returns_same_invoice(
     cashier_client: AsyncClient, owner_client: AsyncClient, receiver_client: AsyncClient
 ) -> None:
     await _seed_product(owner_client, "8901000000008", price="100.00")
-    await _seed_lot(receiver_client, items=[("8901000000008", 5)])
+    await _seed_lot(receiver_client, owner_client, items=[("8901000000008", 5)])
 
     key = _idem_key()
     body = {
@@ -226,7 +299,7 @@ async def test_missing_idempotency_key_is_400(
     cashier_client: AsyncClient, owner_client: AsyncClient, receiver_client: AsyncClient
 ) -> None:
     await _seed_product(owner_client, "8901000000009", price="100.00")
-    await _seed_lot(receiver_client, items=[("8901000000009", 5)])
+    await _seed_lot(receiver_client, owner_client, items=[("8901000000009", 5)])
 
     resp = await cashier_client.post(
         "/checkout/finalize",
@@ -251,7 +324,7 @@ async def test_two_concurrent_finalizes_for_last_unit_only_one_wins(
     rejected cleanly (no oversell)."""
     await _seed_product(owner_client, "8901000000010", price="100.00")
     # One unit in stock.
-    await _seed_lot(receiver_client, items=[("8901000000010", 1)])
+    await _seed_lot(receiver_client, owner_client, items=[("8901000000010", 1)])
 
     # Two distinct cashiers would happen in real life; we use the same
     # client twice but with separate sessions by issuing both at once.
@@ -330,7 +403,7 @@ async def test_owner_can_finalize_checkout(
     owner_client: AsyncClient, receiver_client: AsyncClient
 ) -> None:
     await _seed_product(owner_client, "8901000000011", price="50.00")
-    await _seed_lot(receiver_client, items=[("8901000000011", 5)])
+    await _seed_lot(receiver_client, owner_client, items=[("8901000000011", 5)])
 
     resp = await owner_client.post(
         "/checkout/finalize",
@@ -353,7 +426,7 @@ async def test_finalized_invoice_lines_are_immutable(
     """There is no PATCH /invoices/{id}/lines — corrections go through Void
     (D-18, #5). Verify no update route is exposed for invoice content."""
     await _seed_product(owner_client, "8901000000012", price="100.00")
-    await _seed_lot(receiver_client, items=[("8901000000012", 5)])
+    await _seed_lot(receiver_client, owner_client, items=[("8901000000012", 5)])
     cr = await cashier_client.post(
         "/checkout/finalize",
         headers={"Idempotency-Key": _idem_key()},
@@ -387,7 +460,7 @@ async def test_finalize_writes_an_invoicing_log(
     db_session,
 ) -> None:
     await _seed_product(owner_client, "8901000000013", price="100.00")
-    await _seed_lot(receiver_client, items=[("8901000000013", 5)])
+    await _seed_lot(receiver_client, owner_client, items=[("8901000000013", 5)])
 
     cr = await cashier_client.post(
         "/checkout/finalize",
@@ -412,7 +485,7 @@ async def test_invoice_list_backfills_legacy_line_snapshots(
     db_session,
 ) -> None:
     await _seed_product(owner_client, "8901000000016", price="100.00")
-    await _seed_lot(receiver_client, items=[("8901000000016", 5)])
+    await _seed_lot(receiver_client, owner_client, items=[("8901000000016", 5)])
     cr = await cashier_client.post(
         "/checkout/finalize",
         headers={"Idempotency-Key": _idem_key()},
@@ -443,7 +516,7 @@ async def test_invoice_pdf_is_a_real_pdf(
     cashier_client: AsyncClient, owner_client: AsyncClient, receiver_client: AsyncClient
 ) -> None:
     await _seed_product(owner_client, "8901000000014", price="100.00")
-    await _seed_lot(receiver_client, items=[("8901000000014", 5)])
+    await _seed_lot(receiver_client, owner_client, items=[("8901000000014", 5)])
     cr = await cashier_client.post(
         "/checkout/finalize",
         headers={"Idempotency-Key": _idem_key()},

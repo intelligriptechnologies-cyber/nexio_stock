@@ -82,6 +82,9 @@ async def test_superadmin_product_copy_skips_existing_and_does_not_copy_stock(
     assert product.status_code == 201, product.text
     lot = await receiver_client.post("/lots", json={"lines": [{"barcode": "COPY-1", "quantity": 5}]})
     assert lot.status_code == 201, lot.text
+    inward_id = lot.json()["id"]
+    approved = await owner_client.post(f"/lots/{inward_id}/approve")
+    assert approved.status_code == 200, approved.text
 
     target = await superadmin_client.post("/shops", json={"name": "Target", "code": "target"})
     assert target.status_code == 201, target.text

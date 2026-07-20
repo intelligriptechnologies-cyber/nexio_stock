@@ -10,9 +10,13 @@ ring up more sales").
 from __future__ import annotations
 
 from datetime import date as date_cls
+from datetime import datetime
+from decimal import Decimal
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, Query, status
+from fastapi import HTTPException
+from fastapi.responses import Response
 
 from app.api._errors import map_error_to_http
 from app.api.deps import (
@@ -27,6 +31,7 @@ from app.logging_config import get_logger
 from app.models.user import User, UserRole
 from app.schemas.eod import (
     EodTotalsResponse,
+    ExportSignOffHistoryRequest,
     LowStockResponse,
     PaymentModeTotal,
     PendingVoidResponse,
@@ -36,14 +41,23 @@ from app.schemas.eod import (
     StockOverviewResponse,
     StockOverviewShopGroup,
     StockOverviewShopRow,
+    UpdateSignOffNotesRequest,
 )
 from app.services.eod import (
+    ArchivedSignoffSummary,
     EodError,
+    build_reconciliation_export_rows,
+    get_archived_signoff_summaries,
     get_day_totals,
+    get_signoff_history_entry,
+    get_open_backlog_totals,
     list_pending_voids,
     list_signoff_history,
+    render_reconciliation_export_csv,
     sign_off_day,
+    update_signoff_notes,
 )
+from app.services.invoices import attach_cashier_names
 from app.services.log_files import append_log_line, closing_text
 from app.services.stock_overview import build_stock_overview, now_utc
 
@@ -61,11 +75,38 @@ _EOD_CODE_TO_STATUS: dict[str, int] = {
 }
 
 
+def _csv_timestamp(now: datetime | None = None) -> str:
+    current = now or now_utc()
+    return current.strftime("%Y-%m-%d-%H%M")
+
+
+def _to_signoff_response(
+    *,
+    sign_off,
+    signer_name: str,
+    summary: ArchivedSignoffSummary,
+) -> SignOffResponse:
+    return SignOffResponse(
+        id=sign_off.id,
+        business_date=sign_off.business_date,
+        signed_off_at=sign_off.signed_off_at,
+        signed_off_by_user_id=sign_off.signed_off_by_user_id,
+        signed_off_by_name=signer_name,
+        invoices_signed_off=sign_off.invoices_signed_off,
+        revenue=summary.revenue,
+        payments_by_mode=[
+            PaymentModeTotal(mode=mode, amount=amount)
+            for mode, amount in sorted(summary.payments_by_mode.items())
+        ],
+        notes=sign_off.notes,
+    )
+
+
 @router.post(
     "/eod/sign-off",
     response_model=SignOffResponse,
     status_code=status.HTTP_201_CREATED,
-    summary="Owner marks a business date as closed (R-44, D-32, D-63)",
+    summary="Owner archives open invoices for a business date (R-44, D-32, D-63)",
 )
 async def sign_off(
     payload: SignOffRequest,
@@ -102,14 +143,14 @@ async def sign_off(
         invoices_signed_off=result.invoices_signed_off,
     )
     totals = await get_day_totals(
-        db, shop_id=actor_shop_id, business_date=payload.business_date
+        db, shop_id=actor_shop_id, business_date=result.sign_off.business_date
     )
     try:
         append_log_line(
             "closing",
             shop_id=actor_shop_id,
             text=closing_text(
-                business_date=payload.business_date,
+                business_date=result.sign_off.business_date,
                 signer_id=actor_id,
                 signer_name=_user.full_name,
                 invoice_count=totals.invoice_count,
@@ -128,10 +169,18 @@ async def sign_off(
             error=str(exc),
         )
     return SignOffResponse(
+        id=result.sign_off.id,
         business_date=result.sign_off.business_date,
         signed_off_at=result.sign_off.signed_off_at,
         signed_off_by_user_id=result.sign_off.signed_off_by_user_id,
+        signed_off_by_name=_user.full_name,
         invoices_signed_off=result.invoices_signed_off,
+        revenue=totals.revenue,
+        payments_by_mode=[
+            PaymentModeTotal(mode=mode, amount=amount)
+            for mode, amount in sorted(totals.payments_by_mode.items())
+        ],
+        notes=result.sign_off.notes,
     )
 
 
@@ -155,6 +204,10 @@ async def eod_totals(
     shop_id: Annotated[
         int | None, Query(description="Superadmin-only (D-65): target shop")
     ] = None,
+    scope: Annotated[
+        str,
+        Query(description="`day` for one business date, `open_backlog` for all unreconciled current invoices"),
+    ] = "day",
 ) -> EodTotalsResponse:
     actor_shop_id = await resolve_write_shop_id(db, _user, shop_id)
     # issue #37: previously required (no default), but `Query(...)` (Ellipsis)
@@ -162,12 +215,17 @@ async def eod_totals(
     # Default to server-local "today" so a caller (like DashboardPage) that
     # forgets the param still gets a clean 200.
     effective_date = business_date if business_date is not None else today_local_date()
-    totals = await get_day_totals(
-        db, shop_id=actor_shop_id, business_date=effective_date
-    )
+    if scope == "open_backlog":
+        totals = await get_open_backlog_totals(db, shop_id=actor_shop_id)
+    else:
+        totals = await get_day_totals(
+            db, shop_id=actor_shop_id, business_date=effective_date
+        )
     return EodTotalsResponse(
         business_date=totals.business_date,
         signed_off=totals.signed_off,
+        range_start_business_date=totals.range_start_business_date,
+        range_end_business_date=totals.range_end_business_date,
         invoice_count=totals.invoice_count,
         revenue=totals.revenue,
         voided_count=totals.voided_count,
@@ -186,7 +244,7 @@ async def eod_totals(
 )
 async def eod_history(
     db: DbSession,
-    _user: User = Depends(require_role(*_read_roles)),
+    _user: User = Depends(require_role(*_owner_only)),
     from_date: Annotated[date_cls | None, Query()] = None,
     to_date: Annotated[date_cls | None, Query()] = None,
     limit: Annotated[int, Query(ge=1, le=365)] = 90,
@@ -202,16 +260,123 @@ async def eod_history(
         to_date=to_date,
         limit=limit,
     )
+    summaries = await get_archived_signoff_summaries(
+        db,
+        shop_id=actor_shop_id,
+        signoffs=[row.sign_off for row in rows],
+    )
     return SignOffHistoryResponse(
         signoffs=[
-            SignOffResponse(
-                business_date=row.business_date,
-                signed_off_at=row.signed_off_at,
-                signed_off_by_user_id=row.signed_off_by_user_id,
-                invoices_signed_off=row.invoices_signed_off,
+            _to_signoff_response(
+                sign_off=row.sign_off,
+                signer_name=row.signer_name,
+                summary=summaries.get(
+                    row.sign_off.id,
+                    ArchivedSignoffSummary(
+                        invoice_count=0, revenue=Decimal("0"), payments_by_mode={}
+                    ),
+                ),
             )
             for row in rows
         ],
+    )
+
+
+@router.get(
+    "/eod-history/export",
+    summary="Export selected reconciled history rows as CSV",
+)
+async def eod_history_export(
+    db: DbSession,
+    _user: User = Depends(require_role(*_owner_only)),
+    signoff_id: Annotated[list[int], Query(alias="signoff_id")] = [],
+    shop_id: Annotated[
+        int | None, Query(description="Superadmin-only (D-65): target shop")
+    ] = None,
+) -> Response:
+    payload = ExportSignOffHistoryRequest(signoff_ids=signoff_id)
+    actor_shop_id = await resolve_write_shop_id(db, _user, shop_id)
+    rows = await build_reconciliation_export_rows(
+        db,
+        shop_id=actor_shop_id,
+        signoff_ids=payload.signoff_ids,
+    )
+    csv_text = render_reconciliation_export_csv(rows)
+    filename = f"reconciliations-{_csv_timestamp()}.csv"
+    return Response(
+        content=csv_text,
+        media_type="text/csv",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )
+
+
+@router.get(
+    "/eod-history/{signoff_id}",
+    response_model=SignOffResponse,
+    summary="Get one past EOD sign-off with reconciliation notes",
+)
+async def eod_history_detail(
+    signoff_id: int,
+    db: DbSession,
+    _user: User = Depends(require_role(*_owner_only)),
+    shop_id: Annotated[
+        int | None, Query(description="Superadmin-only (D-65): target shop")
+    ] = None,
+) -> SignOffResponse:
+    actor_shop_id = await resolve_write_shop_id(db, _user, shop_id)
+    row = await get_signoff_history_entry(db, shop_id=actor_shop_id, signoff_id=signoff_id)
+    if row is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="sign-off not found")
+    summaries = await get_archived_signoff_summaries(
+        db,
+        shop_id=actor_shop_id,
+        signoffs=[row.sign_off],
+    )
+    return _to_signoff_response(
+        sign_off=row.sign_off,
+        signer_name=row.signer_name,
+        summary=summaries.get(
+            row.sign_off.id,
+            ArchivedSignoffSummary(invoice_count=0, revenue=Decimal("0"), payments_by_mode={}),
+        ),
+    )
+
+
+@router.patch(
+    "/eod-history/{signoff_id}",
+    response_model=SignOffResponse,
+    summary="Update reconciliation notes for one past EOD sign-off",
+)
+async def patch_eod_history(
+    signoff_id: int,
+    payload: UpdateSignOffNotesRequest,
+    db: DbSession,
+    _user: User = Depends(require_role(*_owner_only)),
+) -> SignOffResponse:
+    actor_shop_id = await resolve_write_shop_id(db, _user, payload.shop_id)
+    async with unit_of_work(db):
+        updated = await update_signoff_notes(
+            db,
+            shop_id=actor_shop_id,
+            signoff_id=signoff_id,
+            notes=payload.notes,
+        )
+    if updated is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="sign-off not found")
+    row = await get_signoff_history_entry(db, shop_id=actor_shop_id, signoff_id=signoff_id)
+    assert row is not None
+    summaries = await get_archived_signoff_summaries(
+        db,
+        shop_id=actor_shop_id,
+        signoffs=[row.sign_off],
+    )
+    return _to_signoff_response(
+        sign_off=row.sign_off,
+        signer_name=row.signer_name,
+        summary=summaries.get(
+            row.sign_off.id,
+            ArchivedSignoffSummary(invoice_count=0, revenue=Decimal("0"), payments_by_mode={}),
+        ),
     )
 
 
@@ -243,6 +408,7 @@ async def void_queue(
     from app.schemas.checkout import InvoicePublic
 
     invoices: list[InvoicePublic] = []
+    await attach_cashier_names(db, rows)
     for r in rows:
         await db.refresh(r, attribute_names=["payments"])
         invoices.append(InvoicePublic.model_validate(r))

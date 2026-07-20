@@ -45,12 +45,17 @@ async def _create_active_product(client: AsyncClient, barcode: str, price: str =
     return resp.json()
 
 
-async def _receive_lot(receiver_client: AsyncClient, barcode: str, quantity: int) -> None:
+async def _receive_lot(
+    receiver_client: AsyncClient, owner_client: AsyncClient, barcode: str, quantity: int
+) -> None:
     resp = await receiver_client.post(
         "/lots",
         json={"lines": [{"barcode": barcode, "quantity": quantity}]},
     )
     assert resp.status_code == 201, resp.text
+    inward_id = resp.json()["id"]
+    approved = await owner_client.post(f"/lots/{inward_id}/approve")
+    assert approved.status_code == 200, approved.text
 
 
 # --- AC #1 — checkout screen offers the same quick-add action as receiving.
@@ -89,7 +94,7 @@ async def test_finalize_rejects_cart_with_pending_product(
     proceed (D-v2-7)."""
     # Create one active product + receive stock for it.
     active = await _create_active_product(owner_client, "8900000000610", price="200.00")
-    await _receive_lot(receiver_client, active["barcode"], 5)
+    await _receive_lot(receiver_client, owner_client, active["barcode"], 5)
 
     # Create a pending product via quick-add at checkout.
     await _quick_add(
@@ -234,7 +239,7 @@ async def test_checkout_created_pending_product_has_zero_stock_after_activation(
     assert resp.json()["detail"].get("code") == "insufficient_stock"
 
     # 4. After receiving a Lot, the same cart succeeds.
-    await _receive_lot(receiver_client, "8900000000630", 3)
+    await _receive_lot(receiver_client, owner_client, "8900000000630", 3)
     resp = await cashier_client.post(
         "/checkout/finalize",
         json={
@@ -265,7 +270,7 @@ async def test_active_product_in_cart_still_succeeds(
     """Sanity check: the new pending_product_in_cart check doesn't
     affect normal finalize paths."""
     active = await _create_active_product(owner_client, "8900000000640", price="50.00")
-    await _receive_lot(receiver_client, active["barcode"], 3)
+    await _receive_lot(receiver_client, owner_client, active["barcode"], 3)
     resp = await cashier_client.post(
         "/checkout/finalize",
         json={

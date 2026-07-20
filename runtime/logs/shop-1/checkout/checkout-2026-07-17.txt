@@ -1,0 +1,37 @@
+[2026-07-17T14:55:38+05:30] Checkout finalized for Shop One; invoice #1 (id 1) by Cashier One (user #3); total Rs. 100.00; payment mode cash; payments: cash Rs. 100.00; lines: X 750ml x 1 at Rs. 100.00.
+[2026-07-17T14:55:38+05:30] Checkout finalized for Shop One; invoice #2 (id 2) by Cashier One (user #3); total Rs. 200.00; payment mode upi; payments: upi Rs. 200.00; lines: X 750ml x 2 at Rs. 100.00.
+[2026-07-17T14:55:45+05:30] Checkout finalized for Shop One; invoice #1 (id 1) by Cashier One (user #3); total Rs. 100.00; payment mode cash; payments: cash Rs. 100.00; lines: X 750ml x 1 at Rs. 100.00.
+[2026-07-17T14:55:58+05:30] Checkout finalized for Shop One; invoice #1 (id 1) by Cashier One (user #3); total Rs. 100.00; payment mode cash; payments: cash Rs. 100.00; lines: X 750ml x 1 at Rs. 100.00.
+[2026-07-17T14:56:03+05:30] Checkout finalized for Shop One; invoice #1 (id 1) by Cashier One (user #3); total Rs. 100.00; payment mode cash; payments: cash Rs. 100.00; lines: X 750ml x 1 at Rs. 100.00.
+[2026-07-17T14:56:03+05:30] Checkout finalized for Shop One; invoice #2 (id 2) by Cashier One (user #3); total Rs. 100.00; payment mode upi; payments: upi Rs. 100.00; lines: X 750ml x 1 at Rs. 100.00.
+[2026-07-17T14:56:09+05:30] Checkout finalized for Shop One; invoice #1 (id 1) by Cashier One (user #3); total Rs. 100.00; payment mode cash; payments: cash Rs. 100.00; lines: X 750ml x 1 at Rs. 100.00.
+[2026-07-17T14:56:15+05:30] Checkout finalized for Shop One; invoice #1 (id 1) by Cashier One (user #3); total Rs. 100.00; payment mode cash; payments: cash Rs. 100.00; lines: X 750ml x 1 at Rs. 100.00.
+[2026-07-17T14:56:15+05:30] Checkout finalized for Shop One; invoice #2 (id 2) by Cashier One (user #3); total Rs. 100.00; payment mode cash; payments: cash Rs. 100.00; lines: X 750ml x 1 at Rs. 100.00.
+[2026-07-17T14:56:15+05:30] Void event 'voided' for invoice #1 (id 1) by Owner One (user #1); status finalized -> voided; reason: no reason provided.
+[2026-07-17T14:56:21+05:30] Checkout finalized for Shop One; invoice #1 (id 1) by Cashier One (user #3); total Rs. 100.00; payment mode cash; payments: cash Rs. 100.00; lines: X 750ml x 1 at Rs. 100.00.
+[2026-07-17T14:56:21+05:30] Void event 'void requested' for invoice #1 (id 1) by Cashier One (user #3); status finalized -> pending_void; reason: no reason provided.
+[2026-07-17T14:56:27+05:30] Checkout finalized for Shop One; invoice #1 (id 1) by Cashier One (user #3); total Rs. 100.00; payment mode cash; payments: cash Rs. 100.00; lines: X 750ml x 1 at Rs. 100.00.
+[2026-07-17T14:56:27+05:30] Void event 'void requested' for invoice #1 (id 1) by Cashier One (user #3); status finalized -> pending_void; reason: no reason provided.
+[2026-07-17T14:56:33+05:30] Checkout finalized for Shop One; invoice #1 (id 1) by Cashier One (user #3); total Rs. 100.00; payment mode cash; payments: cash Rs. 100.00; lines: X 750ml x 1 at Rs. 100.00.
+[2026-07-17T14:56:34+05:30] Checkout finalized for Shop One; invoice #2 (id 2) by Cashier One (user #3); total Rs. 200.00; payment mode upi; payments: upi Rs. 200.00; lines: X 750ml x 2 at Rs. 100.00.
+[2026-07-17T14:56:39+05:30] Checkout finalized for Shop One; invoice #1 (id 1) by Cashier One (user #3); total Rs. 100.00; payment mode cash; payments: cash Rs. 100.00; lines: X 750ml x 1 at Rs. 100.00.
+[2026-07-17T14:56:40+05:30] Checkout finalized for Shop One; invoice #2 (id 2) by Cashier One (user #3); total Rs. 100.00; payment mode card; payments: card Rs. 100.00; lines: X 750ml x 1 at Rs. 100.00.
+[2026-07-17T14:56:46+05:30] Checkout finalized for Shop One; invoice #1 (id 1) by Cashier One (user #3); total Rs. 100.00; payment mode cash; payments: cash Rs. 100.00; lines: X 750ml x 1 at Rs. 100.00.
+[2026-07-17T14:56:46+05:30] Checkout finalized for Shop One; invoice #2 (id 2) by Cashier One (user #3); total Rs. 200.00; payment mode upi; payments: upi Rs. 200.00; lines: X 750ml x 2 at Rs. 100.00.
+[2026-07-17T14:56:51+05:30] Checkout finalized for Shop One; invoice #1 (id 1) by Cashier One (user #3); total Rs. 100.00; payment mode cash; payments: cash Rs. 100.00; lines: X 750ml x 1 at Rs. 100.00.
+[2026-07-17T14:56:52+05:30] Checkout finalized for Shop One; invoice #2 (id 2) by Cashier One (user #3); total Rs. 200.00; payment mode upi; payments: upi Rs. 200.00; lines: X 750ml x 2 at Rs. 100.00.
+[2026-07-17T14:56:58+05:30] Checkout finalized for Shop One; invoice #1 (id 1) by Cashier One (user #3); total Rs. 100.00; payment mode cash; payments: cash Rs. 100.00; lines: X 750ml x 1 at Rs. 100.00.
+[2026-07-17T14:56:58+05:30] Checkout finalized for Shop One; invoice #2 (id 2) by Cashier One (user #3); total Rs. 100.00; payment mode upi; payments: upi Rs. 100.00; lines: X 750ml x 1 at Rs. 100.00.
+[2026-07-17T14:56:58+05:30] Void event 'void requested' for invoice #1 (id 1) by Cashier One (user #3); status finalized -> pending_void; reason: no reason provided.
+[2026-07-17T14:57:07+05:30] Checkout finalized for Shop One; invoice #1 (id 1) by Cashier One (user #3); total Rs. 100.00; payment mode cash; payments: cash Rs. 100.00; lines: X 750ml x 1 at Rs. 100.00.
+[2026-07-17T14:57:13+05:30] Checkout finalized for Shop One; invoice #1 (id 1) by Cashier One (user #3); total Rs. 100.00; payment mode cash; payments: cash Rs. 100.00; lines: X 750ml x 1 at Rs. 100.00.
+[2026-07-17T14:57:19+05:30] Checkout finalized for Shop One; invoice #1 (id 1) by Cashier One (user #3); total Rs. 100.00; payment mode cash; payments: cash Rs. 100.00; lines: X 750ml x 1 at Rs. 100.00.
+[2026-07-17T14:57:27+05:30] Checkout finalized for Shop One; invoice #1 (id 1) by Cashier One (user #3); total Rs. 100.00; payment mode cash; payments: cash Rs. 100.00; lines: X 750ml x 1 at Rs. 100.00.
+[2026-07-17T14:57:51+05:30] Checkout finalized for Shop One; invoice #1 (id 1) by Cashier One (user #3); total Rs. 100.00; payment mode cash; payments: cash Rs. 100.00; lines: X 750ml x 1 at Rs. 100.00.
+[2026-07-17T14:57:59+05:30] Checkout finalized for Shop One; invoice #1 (id 1) by Cashier One (user #3); total Rs. 100.00; payment mode cash; payments: cash Rs. 100.00; lines: X 750ml x 1 at Rs. 100.00.
+[2026-07-17T14:58:00+05:30] Checkout finalized for Shop One; invoice #2 (id 2) by Cashier One (user #3); total Rs. 200.00; payment mode upi; payments: upi Rs. 200.00; lines: X 750ml x 2 at Rs. 100.00.
+[2026-07-17T14:58:08+05:30] Checkout finalized for Shop One; invoice #1 (id 1) by Cashier One (user #3); total Rs. 100.00; payment mode card; payments: card Rs. 100.00; lines: X 750ml x 1 at Rs. 100.00.
+[2026-07-17T15:01:48+05:30] Checkout finalized for Shop One; invoice #1 (id 1) by Cashier One (user #3); total Rs. 100.00; payment mode cash; payments: cash Rs. 100.00; lines: X 750ml x 1 at Rs. 100.00.
+[2026-07-17T15:01:54+05:30] Checkout finalized for Shop One; invoice #1 (id 1) by Cashier One (user #3); total Rs. 100.00; payment mode cash; payments: cash Rs. 100.00; lines: X 750ml x 1 at Rs. 100.00.
+[2026-07-17T15:01:54+05:30] Checkout finalized for Shop One; invoice #2 (id 2) by Cashier One (user #3); total Rs. 200.00; payment mode upi; payments: upi Rs. 200.00; lines: X 750ml x 2 at Rs. 100.00.
+[2026-07-17T15:02:00+05:30] Checkout finalized for Shop One; invoice #1 (id 1) by Cashier One (user #3); total Rs. 100.00; payment mode card; payments: card Rs. 100.00; lines: X 750ml x 1 at Rs. 100.00.
