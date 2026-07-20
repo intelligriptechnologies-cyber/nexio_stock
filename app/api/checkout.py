@@ -225,6 +225,8 @@ async def finalize(
         actor_id=actor_id,
         actor_name=cashier.full_name if cashier is not None else _user.full_name,
         shop_id=actor_shop_id,
+        shop_log_scope_key=shop.log_scope_key if shop is not None else None,
+        shop_created_at=shop.created_at if shop is not None else None,
         payload={
             "shop_id": actor_shop_id,
             "shop_name": shop.name if shop is not None else None,
@@ -368,6 +370,7 @@ async def edit_invoice(
     )
 
     try:
+        shop = await db.get(Shop, existing.shop_id)
         async with unit_of_work(db):
             result = await edit_current_invoice(
                 db,
@@ -384,6 +387,8 @@ async def edit_invoice(
                 actor_id=_user.id,
                 actor_name=_user.full_name,
                 shop_id=existing.shop_id,
+                shop_log_scope_key=shop.log_scope_key if shop is not None else None,
+                shop_created_at=shop.created_at if shop is not None else None,
                 payload={"before": result.before, "after": result.after},
             )
     except CheckoutError as exc:

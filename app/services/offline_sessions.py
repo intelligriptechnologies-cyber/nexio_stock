@@ -369,6 +369,7 @@ async def sync_offline_session(
     session.sync_attempts += 1
     session.state_changed_at = now
     session.failure_reason = None
+    shop = await db.get(Shop, session.shop_id)
 
     mappings: list[OfflineReceiptSyncMapping] = []
     gross_total = Decimal("0")
@@ -402,6 +403,8 @@ async def sync_offline_session(
             event_type="invoice.finalized",
             actor_id=actor_user_id,
             shop_id=session.shop_id,
+            shop_log_scope_key=shop.log_scope_key,
+            shop_created_at=shop.created_at,
             payload={
                 "source": "offline_session_sync",
                 "offline_session_id": session.id,

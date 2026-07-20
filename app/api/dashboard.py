@@ -28,6 +28,7 @@ from app.api.deps import (
 )
 from app.db import unit_of_work
 from app.logging_config import get_logger
+from app.models.shop import Shop
 from app.models.user import User, UserRole
 from app.schemas.eod import (
     EodTotalsResponse,
@@ -145,10 +146,13 @@ async def sign_off(
     totals = await get_day_totals(
         db, shop_id=actor_shop_id, business_date=result.sign_off.business_date
     )
+    shop = await db.get(Shop, actor_shop_id)
     try:
         append_log_line(
             "closing",
             shop_id=actor_shop_id,
+            log_scope_key=shop.log_scope_key if shop is not None else None,
+            shop_created_at=shop.created_at if shop is not None else None,
             text=closing_text(
                 business_date=result.sign_off.business_date,
                 signer_id=actor_id,

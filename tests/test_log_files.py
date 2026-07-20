@@ -2,8 +2,9 @@
 from __future__ import annotations
 
 import csv
+import os
 import uuid
-from datetime import date, timedelta
+from datetime import UTC, date, datetime, timedelta
 from pathlib import Path
 
 import pytest
@@ -54,6 +55,13 @@ async def _finalize(cashier_client: AsyncClient, barcode: str) -> None:
     assert resp.status_code == 201, resp.text
 
 
+def _write_log_fixture(path: Path, *, content: str, modified_at: datetime) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(content, encoding="utf-8")
+    ts = modified_at.timestamp()
+    os.utime(path, (ts, ts))
+
+
 @pytest.mark.usefixtures("owner", "receiver", "cashier")
 async def test_live_events_append_daily_english_files(
     log_files_dir: Path,
@@ -70,11 +78,21 @@ async def test_live_events_append_daily_english_files(
     )
     assert signoff.status_code == 201, signoff.text
 
-    checkout = daily_log_path("checkout", shop_id=shop.id).read_text(encoding="utf-8")
-    receiving = daily_log_path("receiving", shop_id=shop.id).read_text(encoding="utf-8")
-    closing = daily_log_path("closing", shop_id=shop.id).read_text(encoding="utf-8")
-    checkout_csv_path = daily_log_path("checkout", shop_id=shop.id, extension="csv")
-    receiving_csv_path = daily_log_path("receiving", shop_id=shop.id, extension="csv")
+    checkout = daily_log_path(
+        "checkout", shop_id=shop.id, log_scope_key=shop.log_scope_key
+    ).read_text(encoding="utf-8")
+    receiving = daily_log_path(
+        "receiving", shop_id=shop.id, log_scope_key=shop.log_scope_key
+    ).read_text(encoding="utf-8")
+    closing = daily_log_path(
+        "closing", shop_id=shop.id, log_scope_key=shop.log_scope_key
+    ).read_text(encoding="utf-8")
+    checkout_csv_path = daily_log_path(
+        "checkout", shop_id=shop.id, log_scope_key=shop.log_scope_key, extension="csv"
+    )
+    receiving_csv_path = daily_log_path(
+        "receiving", shop_id=shop.id, log_scope_key=shop.log_scope_key, extension="csv"
+    )
     checkout_csv = checkout_csv_path.read_text(encoding="utf-8")
     receiving_csv = receiving_csv_path.read_text(encoding="utf-8")
 
@@ -158,12 +176,12 @@ async def test_checkout_and_receiving_csv_rows_follow_line_items(
         )
     ).status_code == 201
 
-    checkout_csv = daily_log_path("checkout", shop_id=shop.id, extension="csv").read_text(
-        encoding="utf-8"
-    )
-    receiving_csv = daily_log_path("receiving", shop_id=shop.id, extension="csv").read_text(
-        encoding="utf-8"
-    )
+    checkout_csv = daily_log_path(
+        "checkout", shop_id=shop.id, log_scope_key=shop.log_scope_key, extension="csv"
+    ).read_text(encoding="utf-8")
+    receiving_csv = daily_log_path(
+        "receiving", shop_id=shop.id, log_scope_key=shop.log_scope_key, extension="csv"
+    ).read_text(encoding="utf-8")
 
     checkout_rows = list(csv.DictReader(checkout_csv.splitlines()))
     receiving_rows = list(csv.DictReader(receiving_csv.splitlines()))
@@ -195,13 +213,19 @@ async def test_log_file_retention_defaults_updates_and_cleans_expired_files(
     shop,
 ) -> None:
     old_day = date.today() - timedelta(days=10)
-    old_path = daily_log_path("checkout", shop_id=shop.id, day=old_day)
-    old_csv = daily_log_path("checkout", shop_id=shop.id, day=old_day, extension="csv")
+    old_path = daily_log_path(
+        "checkout", shop_id=shop.id, log_scope_key=shop.log_scope_key, day=old_day
+    )
+    old_csv = daily_log_path(
+        "checkout", shop_id=shop.id, log_scope_key=shop.log_scope_key, day=old_day, extension="csv"
+    )
     old_path.parent.mkdir(parents=True, exist_ok=True)
     old_path.write_text("old\n", encoding="utf-8")
     old_csv.write_text("old csv\n", encoding="utf-8")
-    fresh_path = daily_log_path("checkout", shop_id=shop.id)
-    fresh_csv = daily_log_path("checkout", shop_id=shop.id, extension="csv")
+    fresh_path = daily_log_path("checkout", shop_id=shop.id, log_scope_key=shop.log_scope_key)
+    fresh_csv = daily_log_path(
+        "checkout", shop_id=shop.id, log_scope_key=shop.log_scope_key, extension="csv"
+    )
     fresh_path.parent.mkdir(parents=True, exist_ok=True)
     fresh_path.write_text("fresh\n", encoding="utf-8")
     fresh_csv.write_text("fresh csv\n", encoding="utf-8")
@@ -258,3 +282,129 @@ async def test_exception_logs_are_superadmin_only_and_downloadable(
     )
     assert downloaded.status_code == 200, downloaded.text
     assert "RuntimeError: boom" in downloaded.text
+
+
+@pytest.mark.usefixtures("owner", "superadmin")
+async def test_shop_log_listing_filters_stale_legacy_files_and_migrates_eligible_ones(
+    log_files_dir: Path,
+    db_session,
+    owner_client: AsyncClient,
+    superadmin_client: AsyncClient,
+    shop,
+) -> None:
+    shop.created_at = datetime(2026, 7, 19, 9, 0, tzinfo=UTC)
+    await db_session.commit()
+    await db_session.refresh(shop)
+
+    stale_day = date(2026, 7, 14)
+    eligible_day = date(2026, 7, 20)
+    stale_txt = daily_log_path("checkout", shop_id=shop.id, day=stale_day)
+    stale_csv = daily_log_path("checkout", shop_id=shop.id, day=stale_day, extension="csv")
+    eligible_txt = daily_log_path("checkout", shop_id=shop.id, day=eligible_day)
+    eligible_csv = daily_log_path("checkout", shop_id=shop.id, day=eligible_day, extension="csv")
+
+    _write_log_fixture(
+        stale_txt,
+        content="stale legacy text\n",
+        modified_at=datetime(2026, 7, 14, 10, 0, tzinfo=UTC),
+    )
+    _write_log_fixture(
+        stale_csv,
+        content="header\nstale-row\n",
+        modified_at=datetime(2026, 7, 14, 10, 0, tzinfo=UTC),
+    )
+    _write_log_fixture(
+        eligible_txt,
+        content="eligible legacy text\n",
+        modified_at=datetime(2026, 7, 20, 10, 0, tzinfo=UTC),
+    )
+    _write_log_fixture(
+        eligible_csv,
+        content="header\neligible-row\n",
+        modified_at=datetime(2026, 7, 20, 10, 0, tzinfo=UTC),
+    )
+    orphan = log_files_dir / "shop-999" / "checkout" / "checkout-2026-07-20.txt"
+    _write_log_fixture(
+        orphan,
+        content="orphan\n",
+        modified_at=datetime(2026, 7, 20, 10, 0, tzinfo=UTC),
+    )
+
+    owner_list = await owner_client.get("/logs/files/checkout")
+    assert owner_list.status_code == 200, owner_list.text
+    owner_files = {row["filename"] for row in owner_list.json()["files"]}
+    assert owner_files == {eligible_txt.name, eligible_csv.name}
+
+    superadmin_scoped = await superadmin_client.get("/logs/files/checkout", params={"shop_id": shop.id})
+    assert superadmin_scoped.status_code == 200, superadmin_scoped.text
+    assert {row["filename"] for row in superadmin_scoped.json()["files"]} == owner_files
+
+    superadmin_unscoped = await superadmin_client.get("/logs/files/checkout")
+    assert superadmin_unscoped.status_code == 200, superadmin_unscoped.text
+    assert {row["filename"] for row in superadmin_unscoped.json()["files"]} == owner_files
+
+    scoped_txt = daily_log_path(
+        "checkout", shop_id=shop.id, log_scope_key=shop.log_scope_key, day=eligible_day
+    )
+    scoped_csv = daily_log_path(
+        "checkout",
+        shop_id=shop.id,
+        log_scope_key=shop.log_scope_key,
+        day=eligible_day,
+        extension="csv",
+    )
+    assert scoped_txt.exists()
+    assert scoped_csv.exists()
+    assert not eligible_txt.exists()
+    assert not eligible_csv.exists()
+    assert stale_txt.exists()
+    assert stale_csv.exists()
+
+    eligible_download = await owner_client.get(
+        f"/logs/files/checkout/{scoped_txt.name}/download"
+    )
+    assert eligible_download.status_code == 200, eligible_download.text
+    assert "eligible legacy text" in eligible_download.text
+
+    stale_download = await owner_client.get(
+        f"/logs/files/checkout/{stale_txt.name}/download"
+    )
+    assert stale_download.status_code == 404, stale_download.text
+
+
+@pytest.mark.usefixtures("owner")
+async def test_shop_log_retention_cleans_scoped_and_migrated_legacy_files_only(
+    log_files_dir: Path,
+    db_session,
+    owner_client: AsyncClient,
+    shop,
+) -> None:
+    shop.created_at = datetime(2026, 7, 19, 9, 0, tzinfo=UTC)
+    await db_session.commit()
+    await db_session.refresh(shop)
+
+    expired_day = date.today() - timedelta(days=10)
+    expired_legacy = daily_log_path("checkout", shop_id=shop.id, day=expired_day)
+    stale_ineligible = daily_log_path("checkout", shop_id=shop.id, day=expired_day, extension="csv")
+
+    _write_log_fixture(
+        expired_legacy,
+        content="expired eligible legacy\n",
+        modified_at=datetime.now(UTC),
+    )
+    _write_log_fixture(
+        stale_ineligible,
+        content="header\nstale-ineligible\n",
+        modified_at=datetime(2026, 7, 14, 10, 0, tzinfo=UTC),
+    )
+
+    listed = await owner_client.get("/logs/files/checkout")
+    assert listed.status_code == 200, listed.text
+    assert expired_legacy.name not in {row["filename"] for row in listed.json()["files"]}
+    assert not daily_log_path(
+        "checkout",
+        shop_id=shop.id,
+        log_scope_key=shop.log_scope_key,
+        day=expired_day,
+    ).exists()
+    assert stale_ineligible.exists()

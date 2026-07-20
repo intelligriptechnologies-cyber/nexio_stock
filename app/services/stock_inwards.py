@@ -158,6 +158,8 @@ async def approve_stock_inward(
         actor_id=actor_user_id,
         actor_name=actor.full_name if actor is not None else None,
         shop_id=shop_id,
+        shop_log_scope_key=shop.log_scope_key if shop is not None else None,
+        shop_created_at=shop.created_at if shop is not None else None,
         payload={
             "shop_id": shop_id,
             "shop_name": shop.name if shop is not None else None,
@@ -225,6 +227,8 @@ async def reject_stock_inward(
         actor_id=actor_user_id,
         actor_name=actor.full_name if actor is not None else None,
         shop_id=shop_id,
+        shop_log_scope_key=shop.log_scope_key if shop is not None else None,
+        shop_created_at=shop.created_at if shop is not None else None,
         payload={
             "shop_id": shop_id,
             "shop_name": shop.name if shop is not None else None,

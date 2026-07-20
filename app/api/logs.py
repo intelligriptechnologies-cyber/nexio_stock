@@ -16,14 +16,21 @@ from sqlalchemy.orm import selectinload
 
 from app.api.deps import DbSession, require_role, resolve_read_shop_id
 from app.models.log import AdminLog, InvoicingLog, StockinLog
+from app.models.shop import Shop
 from app.models.user import User, UserRole
 from app.services.log_files import (
     LogFileType,
     cleanup_all_expired_files,
     cleanup_expired_files,
+    cleanup_shop_expired_files,
     get_retention_days,
+    get_shop_log_scope,
+    list_all_shop_log_files,
     list_log_files,
+    list_shop_log_files,
+    resolve_all_shop_download_path,
     resolve_download_path,
+    resolve_shop_download_path,
     set_retention_days,
 )
 
@@ -147,22 +154,49 @@ async def list_log_files_endpoint(
     include_all = _user.role == UserRole.SUPERADMIN and scoped_shop_id is None
     retention_scope = scoped_shop_id
     retention_days = await get_retention_days(db, log_type=log_type, shop_id=retention_scope)
-    if include_all:
+    if log_type == "exceptions" and include_all:
         cleanup_all_expired_files(log_type, retention_days=retention_days)
-    else:
+        rows = list_log_files(
+            log_type,
+            shop_id=scoped_shop_id,
+            retention_days=retention_days,
+            include_all_scopes=True,
+        )
+    elif include_all:
+        for shop in (await db.execute(select(Shop).order_by(Shop.id))).scalars().all():
+            shop_scope = await get_shop_log_scope(db, shop_id=shop.id)
+            if shop_scope is not None:
+                cleanup_shop_expired_files(
+                    log_type,
+                    shop_scope=shop_scope,
+                    retention_days=retention_days,
+                )
+        rows = await list_all_shop_log_files(db, log_type, retention_days=retention_days)
+    elif log_type == "exceptions":
         cleanup_expired_files(log_type, shop_id=scoped_shop_id, retention_days=retention_days)
+        rows = list_log_files(
+            log_type,
+            shop_id=scoped_shop_id,
+            retention_days=retention_days,
+        )
+    else:
+        shop_scope = await get_shop_log_scope(db, shop_id=scoped_shop_id)
+        if shop_scope is not None:
+            cleanup_shop_expired_files(
+                log_type,
+                shop_scope=shop_scope,
+                retention_days=retention_days,
+            )
+        rows = await list_shop_log_files(
+            db,
+            log_type,
+            shop_id=scoped_shop_id,
+            retention_days=retention_days,
+        )
     return LogFileListResponse(
         log_type=log_type,
         retention_days=retention_days,
-        files=[
-            _file_row_to_public(row)
-            for row in list_log_files(
-                log_type,
-                shop_id=scoped_shop_id,
-                retention_days=retention_days,
-                include_all_scopes=include_all,
-            )
-        ],
+        files=[_file_row_to_public(row) for row in rows],
     )
 
 
@@ -183,16 +217,45 @@ async def download_log_file_endpoint(
     )
     include_all = _user.role == UserRole.SUPERADMIN and scoped_shop_id is None
     retention_days = await get_retention_days(db, log_type=log_type, shop_id=scoped_shop_id)
-    if include_all:
+    if log_type == "exceptions" and include_all:
         cleanup_all_expired_files(log_type, retention_days=retention_days)
-    else:
+        path = resolve_download_path(
+            log_type,
+            filename=filename,
+            shop_id=scoped_shop_id,
+            include_all_scopes=True,
+        )
+    elif include_all:
+        for shop in (await db.execute(select(Shop).order_by(Shop.id))).scalars().all():
+            shop_scope = await get_shop_log_scope(db, shop_id=shop.id)
+            if shop_scope is not None:
+                cleanup_shop_expired_files(
+                    log_type,
+                    shop_scope=shop_scope,
+                    retention_days=retention_days,
+                )
+        path = await resolve_all_shop_download_path(db, log_type, filename=filename)
+    elif log_type == "exceptions":
         cleanup_expired_files(log_type, shop_id=scoped_shop_id, retention_days=retention_days)
-    path = resolve_download_path(
-        log_type,
-        filename=filename,
-        shop_id=scoped_shop_id,
-        include_all_scopes=include_all,
-    )
+        path = resolve_download_path(
+            log_type,
+            filename=filename,
+            shop_id=scoped_shop_id,
+        )
+    else:
+        shop_scope = await get_shop_log_scope(db, shop_id=scoped_shop_id)
+        if shop_scope is not None:
+            cleanup_shop_expired_files(
+                log_type,
+                shop_scope=shop_scope,
+                retention_days=retention_days,
+            )
+        path = await resolve_shop_download_path(
+            db,
+            log_type,
+            filename=filename,
+            shop_id=scoped_shop_id,
+        )
     if path is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="log file not found")
     media_type = "text/csv" if Path(filename).suffix == ".csv" else "text/plain"
@@ -226,7 +289,16 @@ async def update_log_file_retention_endpoint(
         shop_id=scoped_shop_id,
         retention_days=payload.retention_days,
     )
-    cleanup_expired_files(log_type, shop_id=scoped_shop_id, retention_days=retention_days)
+    if log_type == "exceptions":
+        cleanup_expired_files(log_type, shop_id=scoped_shop_id, retention_days=retention_days)
+    else:
+        shop_scope = await get_shop_log_scope(db, shop_id=scoped_shop_id)
+        if shop_scope is not None:
+            cleanup_shop_expired_files(
+                log_type,
+                shop_scope=shop_scope,
+                retention_days=retention_days,
+            )
     return RetentionResponse(log_type=log_type, retention_days=retention_days)
 
 

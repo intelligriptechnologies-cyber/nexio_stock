@@ -6,6 +6,7 @@ shop is a manual superadmin action (D-58). Shop-scoped data is filtered by
 """
 from __future__ import annotations
 
+import uuid
 from datetime import date as date_cls
 from datetime import datetime
 from decimal import Decimal
@@ -27,6 +28,15 @@ class Shop(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[str] = mapped_column(String(200), nullable=False)
     code: Mapped[str] = mapped_column(String(50), unique=True, nullable=False)
+    # Immutable random suffix for the shop's file-log storage scope.
+    # Numeric shop ids can be reused across reset/reprovisioned prod
+    # environments; this key prevents a new shop from inheriting an old
+    # `runtime/logs/shop-<id>/...` folder.
+    log_scope_key: Mapped[str] = mapped_column(
+        String(32),
+        nullable=False,
+        default=lambda: uuid.uuid4().hex,
+    )
     # Shop-wide default for low-stock threshold (D-34). Per-product override
     # on `Product.low_stock_threshold` wins; NULL there falls back to this.
     # Lives here (not on Product) so a freshly-initialised catalog has a

@@ -13,6 +13,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import get_settings
 from app.models.log import LogFileRetentionSetting
+from app.models.shop import Shop
 
 LogFileType = Literal["checkout", "receiving", "closing", "exceptions"]
 LogFileExtension = Literal["txt", "csv"]
@@ -53,6 +54,13 @@ class LogFileInfo:
     expires_in_days: int
 
 
+@dataclass(frozen=True)
+class ShopLogScope:
+    shop_id: int
+    log_scope_key: str
+    created_at: datetime
+
+
 def _root() -> Path:
     root = get_settings().log_files_dir
     if not root.is_absolute():
@@ -60,14 +68,26 @@ def _root() -> Path:
     return root
 
 
-def _scope_folder(*, shop_id: int | None, system: bool = False) -> str:
+def _scope_folder(
+    *, shop_id: int | None, system: bool = False, log_scope_key: str | None = None
+) -> str:
     if system or shop_id is None:
         return "system"
-    return f"shop-{shop_id}"
+    return f"shop-{shop_id}-{log_scope_key}" if log_scope_key else f"shop-{shop_id}"
 
 
-def log_dir(log_type: LogFileType, *, shop_id: int | None, system: bool = False) -> Path:
-    return _root() / _scope_folder(shop_id=shop_id, system=system) / _TYPE_TO_FOLDER[log_type]
+def log_dir(
+    log_type: LogFileType,
+    *,
+    shop_id: int | None,
+    system: bool = False,
+    log_scope_key: str | None = None,
+) -> Path:
+    return (
+        _root()
+        / _scope_folder(shop_id=shop_id, system=system, log_scope_key=log_scope_key)
+        / _TYPE_TO_FOLDER[log_type]
+    )
 
 
 def daily_log_path(
@@ -75,12 +95,106 @@ def daily_log_path(
     *,
     shop_id: int | None,
     system: bool = False,
+    log_scope_key: str | None = None,
     day: date | None = None,
     extension: LogFileExtension = "txt",
 ) -> Path:
     effective_day = day if day is not None else datetime.now(UTC).astimezone().date()
     filename = f"{_TYPE_TO_PREFIX[log_type]}-{effective_day.isoformat()}.{extension}"
-    return log_dir(log_type, shop_id=shop_id, system=system) / filename
+    return log_dir(
+        log_type,
+        shop_id=shop_id,
+        system=system,
+        log_scope_key=log_scope_key,
+    ) / filename
+
+
+async def get_shop_log_scope(db: AsyncSession, *, shop_id: int) -> ShopLogScope | None:
+    shop = (await db.execute(select(Shop).where(Shop.id == shop_id))).scalar_one_or_none()
+    if shop is None:
+        return None
+    return ShopLogScope(shop_id=shop.id, log_scope_key=shop.log_scope_key, created_at=shop.created_at)
+
+
+def _legacy_log_dir(log_type: LogFileType, *, shop_id: int) -> Path:
+    return log_dir(log_type, shop_id=shop_id)
+
+
+def _scoped_log_dir(log_type: LogFileType, *, shop_scope: ShopLogScope) -> Path:
+    return log_dir(
+        log_type,
+        shop_id=shop_scope.shop_id,
+        log_scope_key=shop_scope.log_scope_key,
+    )
+
+
+def _iter_log_files(folder: Path, log_type: LogFileType):
+    return folder.glob(f"{_TYPE_TO_PREFIX[log_type]}-*.*")
+
+
+def _file_date(filename: str) -> date | None:
+    match = _FILENAME_RE.match(filename)
+    if not match:
+        return None
+    try:
+        return date.fromisoformat(match.group(2))
+    except ValueError:
+        return None
+
+
+def _today() -> date:
+    return datetime.now(UTC).astimezone().date()
+
+
+def _modified_at(path: Path) -> datetime:
+    return datetime.fromtimestamp(path.stat().st_mtime, tz=UTC)
+
+
+def _is_eligible_legacy_file(path: Path, *, shop_scope: ShopLogScope) -> bool:
+    return _modified_at(path) >= shop_scope.created_at.astimezone(UTC)
+
+
+def _merge_file_into_target(*, source: Path, target: Path) -> None:
+    source_text = source.read_text(encoding="utf-8")
+    if not source_text:
+        source.unlink(missing_ok=True)
+        return
+    target.parent.mkdir(parents=True, exist_ok=True)
+    if not target.exists() or target.stat().st_size == 0:
+        target.write_text(source_text, encoding="utf-8")
+        source.unlink(missing_ok=True)
+        return
+    if target.suffix == ".csv":
+        source_lines = source_text.splitlines()
+        payload_lines = source_lines[1:] if source_lines else []
+        if payload_lines:
+            with target.open("a", encoding="utf-8", newline="") as fh:
+                for line in payload_lines:
+                    fh.write(f"{line}\n")
+    else:
+        with target.open("a", encoding="utf-8") as fh:
+            fh.write(source_text)
+    source.unlink(missing_ok=True)
+
+
+def migrate_legacy_shop_files(log_type: LogFileType, *, shop_scope: ShopLogScope) -> None:
+    legacy_folder = _legacy_log_dir(log_type, shop_id=shop_scope.shop_id)
+    if not legacy_folder.exists():
+        return
+    scoped_folder = _scoped_log_dir(log_type, shop_scope=shop_scope)
+    for legacy_path in _iter_log_files(legacy_folder, log_type):
+        if not legacy_path.is_file():
+            continue
+        if _file_date(legacy_path.name) is None or legacy_path.suffix not in {".txt", ".csv"}:
+            continue
+        if not _is_eligible_legacy_file(legacy_path, shop_scope=shop_scope):
+            continue
+        target = scoped_folder / legacy_path.name
+        if target.exists():
+            _merge_file_into_target(source=legacy_path, target=target)
+            continue
+        target.parent.mkdir(parents=True, exist_ok=True)
+        legacy_path.replace(target)
 
 
 def append_log_line(
@@ -90,12 +204,24 @@ def append_log_line(
     text: str,
     system: bool = False,
     at: datetime | None = None,
+    log_scope_key: str | None = None,
+    shop_created_at: datetime | None = None,
 ) -> Path:
+    if shop_id is not None and not system and log_scope_key and shop_created_at is not None:
+        migrate_legacy_shop_files(
+            log_type,
+            shop_scope=ShopLogScope(
+                shop_id=shop_id,
+                log_scope_key=log_scope_key,
+                created_at=shop_created_at,
+            ),
+        )
     moment = at if at is not None else datetime.now(UTC)
     path = daily_log_path(
         log_type,
         shop_id=shop_id,
         system=system,
+        log_scope_key=log_scope_key,
         day=moment.astimezone().date(),
     )
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -113,12 +239,24 @@ def append_log_csv_rows(
     header: Sequence[str],
     system: bool = False,
     at: datetime | None = None,
+    log_scope_key: str | None = None,
+    shop_created_at: datetime | None = None,
 ) -> Path:
+    if shop_id is not None and not system and log_scope_key and shop_created_at is not None:
+        migrate_legacy_shop_files(
+            log_type,
+            shop_scope=ShopLogScope(
+                shop_id=shop_id,
+                log_scope_key=log_scope_key,
+                created_at=shop_created_at,
+            ),
+        )
     moment = at if at is not None else datetime.now(UTC)
     path = daily_log_path(
         log_type,
         shop_id=shop_id,
         system=system,
+        log_scope_key=log_scope_key,
         day=moment.astimezone().date(),
         extension="csv",
     )
@@ -180,39 +318,31 @@ async def set_retention_days(
     return retention_days
 
 
-def _file_date(filename: str) -> date | None:
-    match = _FILENAME_RE.match(filename)
-    if not match:
-        return None
-    try:
-        return date.fromisoformat(match.group(2))
-    except ValueError:
-        return None
-
-
-def _today() -> date:
-    return datetime.now(UTC).astimezone().date()
-
-
 def cleanup_expired_files(
     log_type: LogFileType,
     *,
     shop_id: int | None,
     retention_days: int,
     include_system: bool = False,
+    log_scope_key: str | None = None,
 ) -> None:
-    dirs = [log_dir(log_type, shop_id=shop_id, system=shop_id is None)]
+    dirs = [
+        log_dir(
+            log_type,
+            shop_id=shop_id,
+            system=shop_id is None,
+            log_scope_key=log_scope_key,
+        )
+    ]
     if include_system and shop_id is not None:
         dirs.append(log_dir(log_type, shop_id=None, system=True))
     today = _today()
     for folder in dirs:
         if not folder.exists():
             continue
-        for path in folder.glob(f"{_TYPE_TO_PREFIX[log_type]}-*.*"):
+        for path in _iter_log_files(folder, log_type):
             file_date = _file_date(path.name)
-            if file_date is None:
-                continue
-            if path.suffix not in {".txt", ".csv"}:
+            if file_date is None or path.suffix not in {".txt", ".csv"}:
                 continue
             if (today - file_date).days >= retention_days:
                 path.unlink(missing_ok=True)
@@ -225,12 +355,44 @@ def cleanup_all_expired_files(log_type: LogFileType, *, retention_days: int) -> 
     today = _today()
     for path in root.glob(f"**/{_TYPE_TO_FOLDER[log_type]}/{_TYPE_TO_PREFIX[log_type]}-*.*"):
         file_date = _file_date(path.name)
-        if file_date is None:
-            continue
-        if path.suffix not in {".txt", ".csv"}:
+        if file_date is None or path.suffix not in {".txt", ".csv"}:
             continue
         if (today - file_date).days >= retention_days:
             path.unlink(missing_ok=True)
+
+
+def cleanup_shop_expired_files(
+    log_type: LogFileType,
+    *,
+    shop_scope: ShopLogScope,
+    retention_days: int,
+) -> None:
+    migrate_legacy_shop_files(log_type, shop_scope=shop_scope)
+    cleanup_expired_files(
+        log_type,
+        shop_id=shop_scope.shop_id,
+        log_scope_key=shop_scope.log_scope_key,
+        retention_days=retention_days,
+    )
+
+
+def _build_log_info(path: Path, *, root: Path, retention_days: int, today: date) -> LogFileInfo | None:
+    if not path.is_file():
+        return None
+    file_date = _file_date(path.name)
+    if file_date is None or path.suffix not in {".txt", ".csv"}:
+        return None
+    stat = path.stat()
+    age_days = max(0, (today - file_date).days)
+    return LogFileInfo(
+        filename=path.name,
+        relative_path=path.relative_to(root).as_posix(),
+        size_bytes=stat.st_size,
+        modified_at=datetime.fromtimestamp(stat.st_mtime, tz=UTC),
+        file_date=file_date,
+        age_days=age_days,
+        expires_in_days=max(0, retention_days - age_days),
+    )
 
 
 def list_log_files(
@@ -249,24 +411,69 @@ def list_log_files(
     today = _today()
     files: list[LogFileInfo] = []
     for path in candidates:
-        if not path.is_file():
+        info = _build_log_info(path, root=root, retention_days=retention_days, today=today)
+        if info is not None:
+            files.append(info)
+    return sorted(files, key=lambda item: (item.file_date, item.relative_path), reverse=True)
+
+
+def _collect_shop_candidate_paths(log_type: LogFileType, *, shop_scope: ShopLogScope) -> list[Path]:
+    paths: list[Path] = []
+    scoped_folder = _scoped_log_dir(log_type, shop_scope=shop_scope)
+    legacy_folder = _legacy_log_dir(log_type, shop_id=shop_scope.shop_id)
+    if scoped_folder.exists():
+        paths.extend(_iter_log_files(scoped_folder, log_type))
+    if legacy_folder.exists():
+        paths.extend(_iter_log_files(legacy_folder, log_type))
+    return paths
+
+
+async def list_shop_log_files(
+    db: AsyncSession,
+    log_type: LogFileType,
+    *,
+    shop_id: int,
+    retention_days: int,
+) -> list[LogFileInfo]:
+    shop_scope = await get_shop_log_scope(db, shop_id=shop_id)
+    if shop_scope is None:
+        return []
+    migrate_legacy_shop_files(log_type, shop_scope=shop_scope)
+    root = _root()
+    today = _today()
+    files: list[LogFileInfo] = []
+    seen: set[tuple[str, str]] = set()
+    for path in _collect_shop_candidate_paths(log_type, shop_scope=shop_scope):
+        if path.parent.parent.name == f"shop-{shop_id}" and not _is_eligible_legacy_file(
+            path, shop_scope=shop_scope
+        ):
             continue
-        file_date = _file_date(path.name)
-        if file_date is None:
+        info = _build_log_info(path, root=root, retention_days=retention_days, today=today)
+        if info is None:
             continue
-        if path.suffix not in {".txt", ".csv"}:
+        key = (info.filename, info.relative_path)
+        if key in seen:
             continue
-        stat = path.stat()
-        age_days = max(0, (today - file_date).days)
-        files.append(
-            LogFileInfo(
-                filename=path.name,
-                relative_path=path.relative_to(root).as_posix(),
-                size_bytes=stat.st_size,
-                modified_at=datetime.fromtimestamp(stat.st_mtime, tz=UTC),
-                file_date=file_date,
-                age_days=age_days,
-                expires_in_days=max(0, retention_days - age_days),
+        seen.add(key)
+        files.append(info)
+    return sorted(files, key=lambda item: (item.file_date, item.relative_path), reverse=True)
+
+
+async def list_all_shop_log_files(
+    db: AsyncSession,
+    log_type: LogFileType,
+    *,
+    retention_days: int,
+) -> list[LogFileInfo]:
+    shops = (await db.execute(select(Shop).order_by(Shop.id))).scalars().all()
+    files: list[LogFileInfo] = []
+    for shop in shops:
+        files.extend(
+            await list_shop_log_files(
+                db,
+                log_type,
+                shop_id=shop.id,
+                retention_days=retention_days,
             )
         )
     return sorted(files, key=lambda item: (item.file_date, item.relative_path), reverse=True)
@@ -297,6 +504,56 @@ def resolve_download_path(
     except ValueError:
         return None
     return path if path.exists() and path.is_file() else None
+
+
+async def resolve_shop_download_path(
+    db: AsyncSession,
+    log_type: LogFileType,
+    *,
+    filename: str,
+    shop_id: int,
+) -> Path | None:
+    if _file_date(filename) is None or not filename.startswith(f"{_TYPE_TO_PREFIX[log_type]}-"):
+        return None
+    if Path(filename).suffix not in {".txt", ".csv"}:
+        return None
+    shop_scope = await get_shop_log_scope(db, shop_id=shop_id)
+    if shop_scope is None:
+        return None
+    migrate_legacy_shop_files(log_type, shop_scope=shop_scope)
+    root = _root().resolve()
+    candidates = [
+        _scoped_log_dir(log_type, shop_scope=shop_scope) / filename,
+        _legacy_log_dir(log_type, shop_id=shop_id) / filename,
+    ]
+    for path in candidates:
+        resolved = path.resolve()
+        try:
+            resolved.relative_to(root)
+        except ValueError:
+            continue
+        if not resolved.exists() or not resolved.is_file():
+            continue
+        if path.parent.parent.name == f"shop-{shop_id}" and not _is_eligible_legacy_file(
+            resolved, shop_scope=shop_scope
+        ):
+            continue
+        return resolved
+    return None
+
+
+async def resolve_all_shop_download_path(
+    db: AsyncSession,
+    log_type: LogFileType,
+    *,
+    filename: str,
+) -> Path | None:
+    shops = (await db.execute(select(Shop).order_by(Shop.id))).scalars().all()
+    for shop in shops:
+        path = await resolve_shop_download_path(db, log_type, filename=filename, shop_id=shop.id)
+        if path is not None:
+            return path
+    return None
 
 
 def _fmt_money(value: Any) -> str:
@@ -448,16 +705,25 @@ __all__ = [
     "SUPPORTED_LOG_TYPES",
     "LogFileInfo",
     "LogFileType",
+    "ShopLogScope",
     "append_log_line",
     "append_log_csv_rows",
     "checkout_text",
     "cleanup_all_expired_files",
     "cleanup_expired_files",
+    "cleanup_shop_expired_files",
     "closing_text",
+    "daily_log_path",
     "exception_text",
     "get_retention_days",
+    "get_shop_log_scope",
+    "list_all_shop_log_files",
     "list_log_files",
+    "list_shop_log_files",
+    "migrate_legacy_shop_files",
     "receiving_text",
+    "resolve_all_shop_download_path",
     "resolve_download_path",
+    "resolve_shop_download_path",
     "set_retention_days",
 ]

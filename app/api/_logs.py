@@ -189,6 +189,8 @@ def write_business_log(
     actor_id: int | None,
     shop_id: int | None,
     actor_name: str | None = None,
+    shop_log_scope_key: str | None = None,
+    shop_created_at: datetime | None = None,
 ) -> BusinessLog:
     """Stage one business-event log row on `db` (call site still commits)."""
 
@@ -206,6 +208,8 @@ def write_business_log(
                 "checkout",
                 shop_id=shop_id,
                 at=logged_at,
+                log_scope_key=shop_log_scope_key,
+                shop_created_at=shop_created_at,
                 text=checkout_text(
                     event_type=event_type,
                     payload=payload,
@@ -228,6 +232,8 @@ def write_business_log(
                     "checkout",
                     shop_id=shop_id,
                     at=logged_at,
+                    log_scope_key=shop_log_scope_key,
+                    shop_created_at=shop_created_at,
                     header=_CHECKOUT_CSV_HEADER,
                     rows=_checkout_csv_rows(
                         payload=payload,
@@ -251,6 +257,8 @@ def write_business_log(
                 "receiving",
                 shop_id=shop_id,
                 at=logged_at,
+                log_scope_key=shop_log_scope_key,
+                shop_created_at=shop_created_at,
                 text=receiving_text(
                     payload=payload,
                     actor_id=actor_id,
@@ -271,6 +279,8 @@ def write_business_log(
                 "receiving",
                 shop_id=shop_id,
                 at=logged_at,
+                log_scope_key=shop_log_scope_key,
+                shop_created_at=shop_created_at,
                 header=_RECEIVING_CSV_HEADER,
                 rows=_receiving_csv_rows(
                     payload=payload,

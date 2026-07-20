@@ -27,6 +27,7 @@ from app.db import unit_of_work
 from app.logging_config import get_logger
 from app.models.invoice import Invoice, InvoiceStatus, PastInvoice
 from app.models.log import InvoicingLog
+from app.models.shop import Shop
 from app.models.user import User, UserRole
 from app.schemas.checkout import InvoicePublic
 from app.services.invoices import attach_cashier_names
@@ -330,6 +331,7 @@ async def _write_void_log(
     reason: str | None,
     extra: dict | None = None,
 ) -> None:
+    shop = await db.get(Shop, shop_id)
     payload = {
         "invoice_id": invoice.id,
         "invoice_number": invoice.invoice_number,
@@ -346,5 +348,7 @@ async def _write_void_log(
         actor_id=actor_id,
         actor_name=actor_name,
         shop_id=shop_id,
+        shop_log_scope_key=shop.log_scope_key if shop is not None else None,
+        shop_created_at=shop.created_at if shop is not None else None,
         payload=payload,
     )
