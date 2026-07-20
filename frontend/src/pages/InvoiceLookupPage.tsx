@@ -81,6 +81,8 @@ export function InvoiceLookupPage() {
   const [dateTo, setDateTo] = useState("");
   const [paymentMode, setPaymentMode] = useState<PaymentMode | "">("");
   const [statusFilter, setStatusFilter] = useState<InvoicePublic["status"] | "">("");
+  const [showItemsColumn, setShowItemsColumn] = useState(true);
+  const [showPaymentsColumn, setShowPaymentsColumn] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [info, setInfo] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -522,6 +524,8 @@ export function InvoiceLookupPage() {
 
   const summaryCount =
     source === "reconciled" ? reconciliationRows.length : invoiceRows.length;
+  const invoiceTableColumnCount =
+    7 + (showItemsColumn ? 1 : 0) + (showPaymentsColumn ? 1 : 0);
 
   return (
     <div className="flex flex-col gap-8 font-sans">
@@ -695,9 +699,29 @@ export function InvoiceLookupPage() {
 
           <section className="overflow-hidden rounded-xl border border-slate-200/50 bg-white/60 shadow-[0_8px_30px_rgb(0,0,0,0.02)] backdrop-blur-xl">
             <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-200/50 bg-slate-50/50 px-6 py-4">
-              <span className="app-kicker">
-                {busy ? "Loading..." : `Showing ${summaryCount === 0 ? 0 : 1} - ${summaryCount} of ${summaryCount}`}
-              </span>
+              <div className="flex flex-wrap items-center gap-3">
+                <span className="app-kicker">
+                  {busy ? "Loading..." : `Showing ${summaryCount === 0 ? 0 : 1} - ${summaryCount} of ${summaryCount}`}
+                </span>
+                {source !== "reconciled" && (
+                  <div className="flex flex-wrap items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setShowItemsColumn((current) => !current)}
+                      className="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-[0.72rem] font-semibold uppercase tracking-[0.12em] text-slate-600 transition-colors hover:border-slate-300 hover:text-slate-900"
+                    >
+                      {showItemsColumn ? "Hide Items" : "Show Items"}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setShowPaymentsColumn((current) => !current)}
+                      className="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-[0.72rem] font-semibold uppercase tracking-[0.12em] text-slate-600 transition-colors hover:border-slate-300 hover:text-slate-900"
+                    >
+                      {showPaymentsColumn ? "Hide Payments" : "Show Payments"}
+                    </button>
+                  </div>
+                )}
+              </div>
               {source === "reconciled" ? (
                 <span className="app-kicker">
                   Reconciliations: <span className="font-mono text-slate-900">{summaryCount}</span>
@@ -714,7 +738,7 @@ export function InvoiceLookupPage() {
                 <table className="app-list-table min-w-[920px]">
                   <thead>
                     <tr>
-                      <th>Reconciliation ID</th>
+                      <th className="whitespace-nowrap">ID</th>
                       <th>Signed Off At</th>
                       <th>Signer</th>
                       <th className="text-right">Invoices Signed Off</th>
@@ -741,7 +765,7 @@ export function InvoiceLookupPage() {
                           selectedReconciliation?.id === signoff.id ? "bg-slate-50" : ""
                         }`}
                       >
-                        <td className="font-mono text-[0.82rem] text-slate-700">REC-{signoff.id}</td>
+                        <td className="whitespace-nowrap font-mono text-[0.82rem] text-slate-700">REC-{signoff.id}</td>
                         <td className="text-slate-500">{new Date(signoff.signed_off_at).toLocaleString()}</td>
                         <td className="font-medium text-slate-800">{signoff.signed_off_by_name}</td>
                         <td className="text-right font-mono font-semibold text-slate-900">
@@ -778,11 +802,11 @@ export function InvoiceLookupPage() {
                   <thead>
                     <tr>
                       <th>Invoice</th>
-                      <th>Business Date</th>
+                      <th className="whitespace-nowrap">Business Date</th>
                       <th>Cashier</th>
-                      <th>Items</th>
+                      {showItemsColumn && <th>Items</th>}
                       <th className="text-right">Units</th>
-                      <th>Payments</th>
+                      {showPaymentsColumn && <th>Payments</th>}
                       <th className="text-right">Total</th>
                       <th className="text-center">Status / EOD</th>
                       <th>Actions</th>
@@ -791,7 +815,7 @@ export function InvoiceLookupPage() {
                   <tbody>
                     {invoiceRows.length === 0 && (
                       <tr>
-                        <td colSpan={9} className="px-6 py-12 text-center text-slate-500">
+                        <td colSpan={invoiceTableColumnCount} className="px-6 py-12 text-center text-slate-500">
                           No invoices found.
                         </td>
                       </tr>
@@ -822,20 +846,24 @@ export function InvoiceLookupPage() {
                               #{invoice.invoice_number}
                             </button>
                           </td>
-                          <td className="font-mono text-[0.82rem] text-slate-500">{invoice.business_date}</td>
+                          <td className="whitespace-nowrap font-mono text-[0.82rem] text-slate-500">{invoice.business_date}</td>
                           <td className="font-medium text-slate-800">{cashierLabel(invoice)}</td>
-                          <td className="max-w-[280px]">
-                            <span className="block truncate font-semibold text-slate-900">{itemLabel || "-"}</span>
-                            {invoice.lines.length > 2 && (
-                              <span className="mt-1 block text-[0.82rem] font-medium text-slate-500">
-                                +{invoice.lines.length - 2} more
-                              </span>
-                            )}
-                          </td>
+                          {showItemsColumn && (
+                            <td className="max-w-[280px]">
+                              <span className="block truncate font-semibold text-slate-900">{itemLabel || "-"}</span>
+                              {invoice.lines.length > 2 && (
+                                <span className="mt-1 block text-[0.82rem] font-medium text-slate-500">
+                                  +{invoice.lines.length - 2} more
+                                </span>
+                              )}
+                            </td>
+                          )}
                           <td className="text-right font-mono font-semibold text-slate-900">{units}</td>
-                          <td className="font-medium text-slate-700">
+                          {showPaymentsColumn && (
+                            <td className="font-medium text-slate-700">
                             {invoice.payments.map((p) => `${formatPaymentLabel(p.mode)} ₹${p.amount}`).join(", ")}
-                          </td>
+                            </td>
+                          )}
                           <td className="text-right font-mono font-semibold text-slate-900">₹{invoice.total_amount}</td>
                           <td className="text-center">
                             <div className="flex flex-col items-center gap-1.5">
@@ -1163,19 +1191,24 @@ function ReconciliationDetailDialog({
             <SummaryTile label="Total received" value={moneyFmt(signoff.revenue)} />
           </div>
 
-          <section className="rounded-2xl border border-slate-200 bg-white/50 overflow-hidden">
+          <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white/50">
             <h3 className="border-b border-slate-200 bg-slate-50/80 px-4 py-3 text-[0.72rem] font-bold uppercase tracking-[0.14em] text-slate-500 backdrop-blur-sm">
-              Payment modes
+              Payment mode breakup
             </h3>
             <div className="divide-y divide-slate-100">
               {signoff.payments_by_mode.length > 0 ? (
                 signoff.payments_by_mode.map((row) => (
                   <div
                     key={row.mode}
-                    className="flex justify-between px-4 py-3 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50/50"
+                    className="flex items-center justify-between gap-4 px-4 py-3 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50/50"
                   >
-                    <span>{formatPaymentLabel(row.mode as PaymentMode)}</span>
-                    <span className="font-mono text-slate-900">{moneyFmt(row.amount)}</span>
+                    <div className="flex min-w-0 items-center gap-3">
+                      <span className="text-slate-900">{formatPaymentLabel(row.mode as PaymentMode)}</span>
+                      <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[0.72rem] font-semibold uppercase tracking-[0.1em] text-slate-500">
+                        {row.count} txn
+                      </span>
+                    </div>
+                    <span className="whitespace-nowrap font-mono text-slate-900">{moneyFmt(row.amount)}</span>
                   </div>
                 ))
               ) : (

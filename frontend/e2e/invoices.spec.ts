@@ -337,6 +337,62 @@ test.describe("invoice pdf actions", () => {
     expect(await pastDownload.suggestedFilename()).toBe("invoice-9001.pdf");
   });
 
+  test("invoice grid column toggles hide and restore items and payments without changing reconciled history", async ({
+    page,
+  }) => {
+    await mockInvoiceEndpoints(page);
+    await seedSuperadminSession(page);
+
+    await page.goto("/invoices");
+
+    const summary = page.locator("span.app-kicker").filter({ hasText: /^Showing 1 - 1 of 1$/ }).first();
+    const invoiceButton = page.getByRole("button", { name: "#1001" });
+    const itemCell = page.getByText("Royal Stag 750ml");
+    const paymentCell = page.getByRole("cell", { name: /Cash/ });
+
+    await expect(page.getByRole("heading", { name: "Invoices" })).toBeVisible();
+    await expect(summary).toBeVisible();
+    await expect(invoiceButton).toBeVisible();
+    await expect(page.getByRole("columnheader", { name: "Items" })).toBeVisible();
+    await expect(page.getByRole("columnheader", { name: "Payments" })).toBeVisible();
+    await expect(itemCell).toBeVisible();
+    await expect(paymentCell).toBeVisible();
+
+    await page.getByRole("button", { name: "Hide Items" }).click();
+    await expect(page.getByRole("button", { name: "Show Items" })).toBeVisible();
+    await expect(page.getByRole("columnheader", { name: "Items" })).toHaveCount(0);
+    await expect(itemCell).toHaveCount(0);
+    await expect(summary).toHaveText("Showing 1 - 1 of 1");
+
+    await page.getByRole("button", { name: "Show Items" }).click();
+    await expect(page.getByRole("button", { name: "Hide Items" })).toBeVisible();
+    await expect(page.getByRole("columnheader", { name: "Items" })).toBeVisible();
+    await expect(itemCell).toBeVisible();
+
+    await page.getByRole("button", { name: "Hide Payments" }).click();
+    await expect(page.getByRole("button", { name: "Show Payments" })).toBeVisible();
+    await expect(page.getByRole("columnheader", { name: "Payments" })).toHaveCount(0);
+    await expect(paymentCell).toHaveCount(0);
+    await expect(summary).toHaveText("Showing 1 - 1 of 1");
+
+    await page.getByRole("button", { name: "Show Payments" }).click();
+    await expect(page.getByRole("button", { name: "Hide Payments" })).toBeVisible();
+    await expect(page.getByRole("columnheader", { name: "Payments" })).toBeVisible();
+    await expect(paymentCell).toBeVisible();
+
+    await page.getByRole("button", { name: "Hide Items" }).click();
+    await page.getByRole("button", { name: "Hide Payments" }).click();
+    await expect(page.getByRole("columnheader", { name: "Items" })).toHaveCount(0);
+    await expect(page.getByRole("columnheader", { name: "Payments" })).toHaveCount(0);
+
+    await page.getByRole("button", { name: "Reconciled History" }).click();
+    await expect(page.getByRole("button", { name: "Show Items" })).toHaveCount(0);
+    await expect(page.getByRole("button", { name: "Show Payments" })).toHaveCount(0);
+    await expect(page.getByRole("columnheader", { name: "Payment Modes" })).toBeVisible();
+    await expect(page.getByRole("cell", { name: "REC-301" })).toBeVisible();
+    await expect(summary).toHaveText("Showing 1 - 1 of 1");
+  });
+
   test("superadmin can download after selecting a shop", async ({ page }) => {
     await mockInvoiceEndpoints(page);
     await loginAsSuperadmin(page);
