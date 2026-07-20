@@ -48,8 +48,14 @@ export function SuperadminLoginPage() {
       badge="RESTRICTED ACCESS"
       title="Superadmin Panel"
       subcopy="Initialize secure bridge connection for cross-shop administration."
+      shellWidthClassName="max-w-[42rem]"
+      contentWidthClassName="max-w-[23.5rem]"
+      headerLinks={[
+        { label: "Help", to: "/help/login" },
+        { label: "Terms and Conditions", to: "/terms" },
+      ]}
     >
-      <form onSubmit={submit} className="flex flex-col gap-5">
+      <form onSubmit={submit} className="auth-terminal-form">
         <label className="block">
           <span className="auth-terminal-label">Admin Username</span>
           <input
@@ -84,11 +90,11 @@ export function SuperadminLoginPage() {
           </div>
         ) : null}
 
-        <button type="submit" disabled={loading} className="auth-terminal-submit mt-1">
+        <button type="submit" disabled={loading} className="auth-terminal-submit">
           {loading ? "Signing in..." : "Enter Control Panel"}
         </button>
 
-        <div className="border-t border-white/8 pt-4 text-center">
+        <div className="border-t border-white/8 pt-4 text-center [@media(max-height:840px)]:pt-3">
           <Link to="/login" className="auth-terminal-link">
             Back to shop login
           </Link>

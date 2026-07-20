@@ -164,8 +164,13 @@ export function Sidebar() {
         aria-label="Main navigation"
       >
         <div className="app-sidebar-header shrink-0 pb-3">
-          <div className="flex h-20 items-center justify-start px-8 text-left text-2xl font-bold tracking-tight text-slate-900">
-            {displayName}
+          <div className="flex min-h-20 flex-col justify-center px-8 py-4 text-left">
+            <div className="line-clamp-2 text-2xl font-bold leading-tight tracking-tight text-slate-900">
+              {displayName}
+            </div>
+            <div className="mt-0.5 text-[11px] font-medium uppercase tracking-[0.18em] text-slate-500">
+              Powered by Nexio Hyper
+            </div>
           </div>
           <div className="px-3 pt-0">
             <ShopPicker />

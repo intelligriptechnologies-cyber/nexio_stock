@@ -345,7 +345,15 @@ export function ReceivingPage() {
           </h1>
           <div className="flex flex-col items-end gap-2">
             <FocusedModeActions />
-            <div className="flex items-center gap-2 text-sm font-medium text-slate-500">
+            <div className="flex flex-wrap items-center justify-end gap-3 text-sm font-medium text-slate-500">
+              <a
+                href="/help/receiving"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="app-inline-action text-slate-600 hover:text-slate-900"
+              >
+                Help
+              </a>
               {catalogReady ? (
                 <><CheckCircle2 className="h-4 w-4 text-emerald-500" /> Catalog ready</>
               ) : (

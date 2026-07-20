@@ -50,6 +50,8 @@ async function seedSuperadmin(page: Page, actingShopId: number | null = 1) {
       );
       if (seededActingShopId !== null) {
         sessionStorage.setItem("barstock.actingShopId", String(seededActingShopId));
+      } else {
+        sessionStorage.removeItem("barstock.actingShopId");
       }
     },
     { token: tokenForSuperadmin(), actingShopId }
@@ -79,6 +81,24 @@ async function mockShopMaintenanceApis(page: Page) {
         smtp_from_email: null,
         smtp_from_name: null,
         smtp_use_tls: true,
+      }),
+    });
+  });
+
+  await page.route("**/users/me**", async (route) => {
+    await route.fulfill({
+      contentType: "application/json",
+      body: JSON.stringify({
+        id: 1,
+        shop_id: null,
+        role: "superadmin",
+        username: "sa",
+        full_name: "Superadmin",
+        phone: "0000000000",
+        email: null,
+        date_of_birth: null,
+        pan: null,
+        gstin: null,
       }),
     });
   });
@@ -199,6 +219,19 @@ async function mockShopMaintenanceApis(page: Page) {
 }
 
 test.describe("shop maintenance", () => {
+  test("sidebar shop picker shows explicit empty state before a shop is selected", async ({ page }) => {
+    await seedSuperadmin(page, null);
+    await mockShopMaintenanceApis(page);
+
+    await page.goto("/admin/settings");
+
+    const status = page.getByTestId("shop-picker-status");
+    await expect(status).toHaveText("Select before edit/billing");
+    await expect(status).not.toHaveText("Working shop");
+    await expect(page.getByLabel("Working shop")).toHaveValue("");
+    await expect(page.getByLabel("Working shop")).toContainText("Select working shop");
+  });
+
   test("uses tabs and refreshes shop lists after create and update", async ({ page }) => {
     await seedSuperadmin(page);
     await mockShopMaintenanceApis(page);
@@ -225,6 +258,8 @@ test.describe("shop maintenance", () => {
     await page.getByLabel("Code").first().fill("shop2");
     await page.getByRole("button", { name: "Create" }).click();
     await expect(page.getByRole("button", { name: /Shop Two/ })).toHaveAttribute("aria-current", "true");
+    await expect(page.getByTestId("shop-picker-status")).toHaveText("Working shop");
+    await expect(page.getByTestId("shop-picker-status")).not.toContainText("Shop Two (shop2)");
     await expect(page.getByLabel("Working shop")).toContainText("Shop Two (shop2)");
 
     await page.getByRole("tab", { name: "Shop Details" }).click();
@@ -236,6 +271,8 @@ test.describe("shop maintenance", () => {
       "aria-current",
       "true"
     );
+    await expect(page.getByTestId("shop-picker-status")).toHaveText("Working shop");
+    await expect(page.getByTestId("shop-picker-status")).not.toContainText("Shop Two Updated (shop2u)");
     await expect(page.getByLabel("Working shop")).toContainText("Shop Two Updated (shop2u)");
   });
 

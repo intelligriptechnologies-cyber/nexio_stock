@@ -13,6 +13,8 @@ export function ShopPicker() {
   const { actingShopId, setActingShopId, shopsVersion } = useShopScope();
   const [shops, setShops] = useState<ShopSummary[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const selectedShop = shops.find((shop) => shop.id === actingShopId) ?? null;
+  const topRowText = selectedShop ? "Working shop" : "Select before edit/billing";
 
   useEffect(() => {
     if (user?.role !== "superadmin") return;
@@ -25,30 +27,31 @@ export function ShopPicker() {
   if (user?.role !== "superadmin") return null;
 
   return (
-    <div className="shrink-0 border-b border-outline p-3">
-      <div className="rounded-md border border-outline bg-sidebar-hover/35 p-3">
-        <label className="block text-sm font-semibold tracking-tight text-on-sidebar" htmlFor="shop-picker">
-          Working shop
-        </label>
+    <div className="shrink-0">
+      <div className="rounded-md border border-outline bg-sidebar-hover/35 p-2.5" data-testid="shop-picker-panel">
+        <div
+          data-testid="shop-picker-status"
+          className={`min-w-0 truncate text-[11px] font-semibold leading-4 ${
+            selectedShop ? "text-on-sidebar" : "text-on-sidebar-muted"
+          }`}
+        >
+          {topRowText}
+        </div>
         <select
           id="shop-picker"
-          className="mt-2 h-11 w-full rounded-xl border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-900 shadow-sm outline-none transition-[border-color,box-shadow] duration-200 ease-out hover:border-action/50 focus-visible"
+          aria-label="Working shop"
+          className="mt-2 h-10 w-full rounded-xl border border-slate-200 bg-white px-3.5 text-sm font-semibold text-slate-900 shadow-sm outline-none transition-[border-color,box-shadow] duration-200 ease-out hover:border-action/50 focus-visible"
           value={actingShopId ?? ""}
           onChange={(e) => setActingShopId(e.target.value ? Number(e.target.value) : null)}
         >
-          <option value="">Select shop</option>
+          <option value="">Select working shop</option>
           {shops.map((s) => (
             <option key={s.id} value={s.id}>
               {s.name} ({s.code})
             </option>
           ))}
         </select>
-        {error && <div className="mt-2 text-sm font-medium text-on-error">{error}</div>}
-        {!error && actingShopId === null && (
-          <div className="mt-2 text-sm font-medium text-on-sidebar-muted">
-            Required before shop edits or billing actions.
-          </div>
-        )}
+        {error && <div className="mt-2 text-sm font-medium leading-5 text-on-error">{error}</div>}
       </div>
     </div>
   );

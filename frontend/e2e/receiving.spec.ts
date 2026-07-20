@@ -32,6 +32,20 @@ test.describe("stock inward - new lot", () => {
     await expect(page.getByText("No items yet")).toBeVisible();
   });
 
+  test("help opens in a new tab from stock inward", async ({ page }) => {
+    await loginAsReceiver(page);
+    const helpLink = page.getByRole("link", { name: "Help" });
+    await expect(helpLink).toHaveAttribute("href", "/help/receiving");
+    await expect(helpLink).toHaveAttribute("target", "_blank");
+    await expect(helpLink).toHaveAttribute("rel", /noopener/);
+
+    const helpPagePromise = page.waitForEvent("popup");
+    await helpLink.click();
+    const helpPage = await helpPagePromise;
+    await expect(helpPage).toHaveURL(/\/help\/receiving$/);
+    await expect(helpPage.getByRole("heading", { name: "Stock Inward Help" })).toBeVisible();
+  });
+
   test("scanning a barcode adds a line with default quantity", async ({ page }) => {
     await loginAsReceiver(page);
     await page.getByPlaceholder("Scan or enter barcode").fill("8901234567890");

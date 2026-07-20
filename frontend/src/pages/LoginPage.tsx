@@ -70,11 +70,17 @@ export function LoginPage() {
       badge="SHOP OPERATIONS"
       title="Terminal Access"
       subcopy="Initialize secure bridge connection for live inventory movement."
+      shellWidthClassName="max-w-[42rem]"
+      contentWidthClassName="max-w-[23.5rem]"
+      headerLinks={[
+        { label: "Help", to: "/help/login" },
+        { label: "Terms and Conditions", to: "/terms" },
+      ]}
     >
-      <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+      <form onSubmit={handleSubmit} className="auth-terminal-form">
         <fieldset>
           <legend className="auth-terminal-label">Access Role</legend>
-          <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
+          <div className="grid grid-cols-1 gap-2 sm:grid-cols-3 [@media(max-height:840px)]:gap-1.5">
             {ROLE_OPTIONS.map((option) => {
               const checked = role === option.value;
               return (
@@ -88,7 +94,7 @@ export function LoginPage() {
                     className="peer sr-only"
                     aria-label={option.label}
                   />
-                  <span className="flex min-h-[48px] cursor-pointer items-center justify-center rounded-2xl border border-[#2a3139] bg-[#0b1015] px-3 py-3 text-center text-sm font-medium text-[#b8c5d2] transition-[border-color,background-color,color,box-shadow] duration-200 peer-hover:border-[#42505e] peer-focus-visible:border-[#8ae6ff] peer-focus-visible:ring-4 peer-focus-visible:ring-cyan-300/10 peer-checked:border-[#8fe8ff] peer-checked:bg-[#10202a] peer-checked:text-white">
+                  <span className="flex min-h-[44px] cursor-pointer items-center justify-center rounded-2xl border border-[#2a3139] bg-[#0b1015] px-3 py-2.5 text-center text-sm font-medium text-[#b8c5d2] transition-[border-color,background-color,color,box-shadow] duration-200 peer-hover:border-[#42505e] peer-focus-visible:border-[#8ae6ff] peer-focus-visible:ring-4 peer-focus-visible:ring-cyan-300/10 peer-checked:border-[#8fe8ff] peer-checked:bg-[#10202a] peer-checked:text-white [@media(max-height:840px)]:min-h-[40px] [@media(max-height:840px)]:py-2">
                     {option.label}
                   </span>
                 </label>
@@ -137,11 +143,11 @@ export function LoginPage() {
           </div>
         ) : null}
 
-        <button type="submit" disabled={!canSubmit} className="auth-terminal-submit mt-1">
+        <button type="submit" disabled={!canSubmit} className="auth-terminal-submit">
           {submitting ? "Signing in..." : "Open Terminal"}
         </button>
 
-        <div className="border-t border-white/8 pt-4 text-center">
+        <div className="border-t border-white/8 pt-3 text-center [@media(max-height:840px)]:pt-2.5">
           <Link to="/login/superadmin" className="auth-terminal-link">
             Need superadmin access?
           </Link>

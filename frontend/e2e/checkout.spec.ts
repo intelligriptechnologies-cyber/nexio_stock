@@ -264,6 +264,26 @@ test.describe("checkout flow — post-finalize catalog refresh", () => {
 });
 
 test.describe("checkout flow â€” offline resume", () => {
+  test("work offline keeps existing behavior and help opens in a new tab", async ({ page }) => {
+    await loginAsCashier(page);
+    const helpLink = page.getByRole("link", { name: "Help" });
+    await expect(helpLink).toHaveAttribute("href", "/help/checkout");
+    await expect(helpLink).toHaveAttribute("target", "_blank");
+    await expect(helpLink).toHaveAttribute("rel", /noopener/);
+
+    const helpPagePromise = page.waitForEvent("popup");
+    await helpLink.click();
+    const helpPage = await helpPagePromise;
+    await expect(helpPage).toHaveURL(/\/help\/checkout$/);
+    await expect(helpPage.getByRole("heading", { name: "Checkout Help" })).toBeVisible();
+
+    await expect(page.getByRole("button", { name: "Work offline" })).toBeVisible();
+    await page.getByRole("button", { name: "Work offline" }).click();
+    await expect(page.getByRole("region", { name: "Offline session" })).toBeVisible({
+      timeout: 5000,
+    });
+  });
+
   test("resume online appears only during an active offline session", async ({ page }) => {
     await loginAsCashier(page);
     await expect(page.getByRole("button", { name: "Resume Online" })).toHaveCount(0);

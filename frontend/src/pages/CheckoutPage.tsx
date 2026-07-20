@@ -1190,14 +1190,24 @@ export function CheckoutPage() {
           </div>
         ) : (
           <div className="flex justify-end">
-            <button
-              type="button"
-              onClick={beginOfflineSession}
-              disabled={checkoutLocked || !online}
-              className="flex h-11 items-center justify-center rounded-xl bg-slate-900 px-6 text-sm font-bold tracking-wide text-white shadow-sm transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:-translate-y-0.5 hover:shadow-lg hover:shadow-slate-900/20 active:scale-[0.97] disabled:pointer-events-none disabled:opacity-50"
-            >
-              Work offline
-            </button>
+            <div className="flex flex-wrap items-center gap-4">
+              <button
+                type="button"
+                onClick={beginOfflineSession}
+                disabled={checkoutLocked || !online}
+                className="app-inline-action text-slate-800 disabled:pointer-events-none disabled:text-slate-400"
+              >
+                Work offline
+              </button>
+              <a
+                href="/help/checkout"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="app-inline-action text-slate-600 hover:text-slate-900"
+              >
+                Help
+              </a>
+            </div>
           </div>
         )}
       </div>

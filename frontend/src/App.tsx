@@ -22,6 +22,10 @@ import { LogsPage } from "./pages/LogsPage";
 import { InventoryPage } from "./pages/InventoryPage";
 import { ApprovalsPage } from "./pages/ApprovalsPage";
 import { StockTrackingPage } from "./pages/StockTrackingPage";
+import { TermsPage } from "./pages/TermsPage";
+import { LoginHelpPage } from "./pages/LoginHelpPage";
+import { CheckoutHelpPage } from "./pages/CheckoutHelpPage";
+import { ReceivingHelpPage } from "./pages/ReceivingHelpPage";
 
 const FOCUSED_MODE_STORAGE_KEY = "nexio.focused-mode-enabled";
 const FOCUSED_MODE_PATHS = new Set(["/checkout", "/receiving"]);
@@ -159,6 +163,10 @@ export default function App() {
     <Routes>
       <Route path="/login" element={<LoginPage />} />
       <Route path="/login/superadmin" element={<SuperadminLoginPage />} />
+      <Route path="/help/login" element={<LoginHelpPage />} />
+      <Route path="/help/checkout" element={<CheckoutHelpPage />} />
+      <Route path="/help/receiving" element={<ReceivingHelpPage />} />
+      <Route path="/terms" element={<TermsPage />} />
       <Route path="/forbidden" element={<ForbiddenPage />} />
       <Route path="/" element={<HomeRedirect />} />
 
