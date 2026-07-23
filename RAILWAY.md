@@ -77,13 +77,13 @@ railway variable set -s backend \
   'DATABASE_URL=postgresql+asyncpg://${{Postgres.PGUSER}}:${{Postgres.PGPASSWORD}}@${{Postgres.PGHOST}}:${{Postgres.PGPORT}}/${{Postgres.PGDATABASE}}' \
   'SECRET_KEY=<a random 32+ char string, e.g. output of: openssl rand -hex 32>' \
   'APP_ENV=production' \
-  'CORS_ALLOW_ORIGINS=["https://<your-frontend-domain>"]'
+  'CORS_ALLOW_ORIGINS=["https://stock.nexiohyper.com"]'
 ```
 
 Notes:
 - `DATABASE_URL` uses `${{Postgres.VAR}}` syntax to reference the Postgres service's own variables live — you never need to copy/paste the password.
 - The `+asyncpg` in the scheme is required; Railway's own `DATABASE_URL` default (`postgresql://…`) will NOT work with this app's SQLAlchemy async driver.
-- `CORS_ALLOW_ORIGINS` must be updated (and the backend redeployed — see step 8) any time the frontend's domain changes. If both apex and `www` custom domains are usable, include both exact origins (for example, `https://barstock-dev.nexiohyper.com` and `https://www.barstock-dev.nexiohyper.com`). Do not use `*`; credential-capable CORS requires explicit origins.
+- `CORS_ALLOW_ORIGINS` must be updated (and the backend redeployed — see step 8) any time the frontend's domain changes. Do not add `https://www.stock.nexiohyper.com` unless that hostname is actually configured in DNS and hosted. Do not use `*`; credential-capable CORS requires explicit origins.
 
 - `CORS_ALLOW_ORIGINS` is the backend's complete browser-origin allowlist. Keep every active frontend origin there explicitly, including the Railway frontend domain if it still serves traffic.
 
@@ -91,10 +91,10 @@ Notes:
 
 ```
 railway variable set -s frontend \
-  'VITE_API_BASE=https://<your-backend-domain>'
+  'VITE_API_BASE=https://bstock.nexiohyper.com'
 ```
 
-This is a **build-time** variable (Vite bakes it into the JS bundle), so changing it requires a rebuild/redeploy of the frontend, not just a restart.
+This is a **build-time** variable (Vite bakes it into the JS bundle), so changing it requires a rebuild/redeploy of the frontend, not just a restart. The intended production target is the custom backend domain `https://bstock.nexiohyper.com`, not the raw Railway hostname.
 
 If the API base stays the same and you are only adding a new frontend hostname,
 do not rebuild the frontend. Update `CORS_ALLOW_ORIGINS` on the backend and
@@ -147,9 +147,10 @@ railway logs -s backend --deployment
 railway logs -s frontend --deployment
 ```
 
-Backend has two health endpoints (not `/health` — that 404s):
+Backend exposes a public health snapshot plus the existing liveness/readiness endpoints:
 
 ```
+curl https://<backend-domain>/health    # public status + timestamp + environment
 curl https://<backend-domain>/healthz   # liveness
 curl https://<backend-domain>/readyz    # DB connectivity check
 ```
@@ -163,14 +164,14 @@ Two files at the repo root exist specifically to make Railway deploys work — *
   ```
   web: uv run alembic upgrade head && uv run uvicorn app.main:app --host 0.0.0.0 --port $PORT
   ```
-  This runs DB migrations automatically on every deploy, then starts the server on Railway's dynamically-assigned `$PORT`.
+  This runs DB migrations automatically on every deploy, then starts the server on Railway's dynamically-assigned `$PORT` while binding `0.0.0.0` as Railway expects.
 
 ## 7. Updating env vars after a service is already deployed
 
 Setting a variable does **not** restart the running container by itself:
 
 ```
-railway variable set -s backend 'CORS_ALLOW_ORIGINS=["https://frontend-prod-5a1e.up.railway.app","https://stock.nexiohyper.com","https://www.stock.nexiohyper.com"]'
+railway variable set -s backend 'CORS_ALLOW_ORIGINS=["https://frontend-prod-5a1e.up.railway.app","https://stock.nexiohyper.com"]'
 ```
 
 `railway redeploy -s backend -y` is unreliable for services deployed via CLI upload (as opposed to a GitHub-connected deploy) — it may silently no-op. The reliable way to pick up new env vars is to force a fresh deploy the same way you deployed originally:

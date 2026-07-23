@@ -143,9 +143,11 @@ the processes happen to run:
 - `CORS_ALLOW_ORIGINS` (backend `.env`, JSON array) — every origin your
   browser will load the frontend from. The backend rejects (silently, from
   the browser's point of view) any origin not in this list.
-- `VITE_API_BASE` (frontend `.env`) — the URL your browser will use to reach
-  the backend API. This is baked in at dev-server start time, not runtime —
-  restart `npm run dev` after changing it.
+- `VITE_API_BASE` (frontend `.env`) ??? the URL your browser will use to reach
+  the backend API. This is baked in at dev-server start time, not runtime ???
+  restart `npm run dev` after changing it. In production, point this at the
+  custom backend domain (for example `https://bstock.nexiohyper.com`) and
+  rebuild the frontend after any change.
 
 Both are read once at process startup (`.env` isn't hot-reloaded), so
 **restart both dev servers after editing either file**.
@@ -156,9 +158,9 @@ and restart or redeploy the backend. Only rebuild the frontend when
 `VITE_API_BASE` changes.
 
 Symptom of getting this wrong: the backend logs a normal `200 OK` for the
-login request, but the browser shows "Network error — is the backend
-reachable?" — the request succeeded server-side but the browser couldn't
-read the cross-origin response, or couldn't reach the API host at all.
+login request, but the browser shows a backend reachability error ??? the
+request succeeded server-side but the browser couldn't read the cross-origin
+response, or couldn't reach the API host at all.
 
 Pick the pattern that matches your setup:
 
