@@ -35,8 +35,8 @@ if str(_PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(_PROJECT_ROOT))
 
 # Defer the app imports to first use so the path tweak above is in effect.
-from app.models.shop import Shop  # noqa: E402
 from app.models.device import DeviceBinding  # noqa: E402
+from app.models.shop import Shop  # noqa: E402
 from app.models.user import User, UserRole  # noqa: E402
 from app.models.vendor import Vendor  # noqa: E402
 from app.security.passwords import hash_password  # noqa: E402
@@ -127,7 +127,7 @@ async def _truncate_tables(test_db_dsn: str) -> AsyncIterator[None]:
         # then users, then shops.
         await session.execute(
             text(
-                "TRUNCATE TABLE offline_sessions, eod_signoffs, idempotency_keys, past_payments, past_invoice_lines, past_invoices, payments, invoice_lines, invoices, lot_lines, lots, stock_inward_lines, stock_inwards, vendors, products, master_products, invoicing_logs, stockin_logs, "
+                "TRUNCATE TABLE pending_auth_challenges, authenticator_activation_tokens, authenticator_activations, two_factor_secrets, offline_sessions, eod_signoffs, idempotency_keys, past_payments, past_invoice_lines, past_invoices, payments, invoice_lines, invoices, lot_lines, lots, stock_inward_lines, stock_inwards, vendors, products, master_products, invoicing_logs, stockin_logs, admin_logs, "
                 "log_file_retention_settings, users, shops RESTART IDENTITY CASCADE"
             )
         )

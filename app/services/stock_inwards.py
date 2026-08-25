@@ -18,6 +18,7 @@ from app.models.vendor import Vendor
 from app.api._logs import write_business_log
 
 _AUTO_VENDOR_NAME = "Vendor link disabled"
+_MONEY_QUANTUM = Decimal("0.01")
 
 
 class StockInwardError(Exception):
@@ -40,6 +41,7 @@ async def create_stock_inward(
     notes: str | None,
     lines: list[dict],
 ) -> StockInward:
+    invoice_value = invoice_value.quantize(_MONEY_QUANTUM)
     barcodes = [line["barcode"] for line in lines]
     products = (
         await db.execute(
@@ -69,6 +71,20 @@ async def create_stock_inward(
         if not vendor.is_active:
             raise StockInwardError("vendor_inactive", "vendor is inactive")
 
+    merchandise_total = Decimal("0.00")
+    for line in lines:
+        unit_cost = line.get("unit_cost")
+        if unit_cost is None or unit_cost <= 0:
+            raise StockInwardError("unit_cost_required", "each line requires a positive unit_cost")
+        line_total = (unit_cost * line["quantity"]).quantize(_MONEY_QUANTUM)
+        merchandise_total += line_total
+    merchandise_total = merchandise_total.quantize(_MONEY_QUANTUM)
+    if merchandise_total != invoice_value:
+        raise StockInwardError(
+            "invoice_value_mismatch",
+            f"invoice_value must match merchandise total exactly ({merchandise_total})",
+        )
+
     inward = StockInward(
         shop_id=actor_shop_id,
         vendor_id=vendor.id if vendor is not None else None,
@@ -91,6 +107,7 @@ async def create_stock_inward(
                 product_id=product.id,
                 quantity=line["quantity"],
                 good_condition_quantity=line["good_condition_quantity"],
+                unit_cost=line["unit_cost"],
                 product_brand=product.brand,
                 product_size_label=product.size_label,
             )
@@ -174,6 +191,9 @@ async def approve_stock_inward(
             "purchase_date": inward.purchase_date.isoformat(),
             "vendor_invoice_number": inward.vendor_invoice_number,
             "invoice_value": str(inward.invoice_value),
+            "merchandise_total": str(inward.merchandise_total)
+            if inward.merchandise_total is not None
+            else None,
             "reference": inward.reference,
             "notes": inward.notes,
             "lines": [
@@ -186,14 +206,8 @@ async def approve_stock_inward(
                     "quantity": line.quantity,
                     "good_condition_quantity": line.good_condition_quantity,
                     "breakage_quantity": line.breakage_quantity,
-                    "current_price": str(products_by_id[line.product_id].price)
-                    if products_by_id[line.product_id].price is not None
-                    else None,
-                    "row_total": (
-                        str((products_by_id[line.product_id].price * line.quantity).quantize(Decimal("0.01")))
-                        if products_by_id[line.product_id].price is not None
-                        else None
-                    ),
+                    "unit_cost": str(line.unit_cost) if line.unit_cost is not None else None,
+                    "row_total": str(line.line_total) if line.line_total is not None else None,
                 }
                 for line in inward.lines
             ],

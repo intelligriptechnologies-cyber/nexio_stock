@@ -28,6 +28,10 @@ function inwardTotalUnits(item: LotPublic): number {
   return item.lines.reduce((sum, line) => sum + line.quantity, 0);
 }
 
+function inwardHasBreakage(item: LotPublic): boolean {
+  return item.lines.some((line) => line.breakage_quantity > 0);
+}
+
 export function ApprovalsPage() {
   const { actingShopId } = useShopScope();
   const shopScopeGuard = useShopScopeGuard();
@@ -284,6 +288,10 @@ export function ApprovalsPage() {
                       <div className="mt-1 font-mono text-slate-900">{item.vendor_invoice_number}</div>
                     </div>
                     <div>
+                      <div className="text-[11px] font-semibold uppercase tracking-widest text-slate-500">Merchandise total</div>
+                      <div className="mt-1 font-mono text-slate-900">{moneyFmt(item.merchandise_total ?? item.invoice_value)}</div>
+                    </div>
+                    <div>
                       <div className="text-[11px] font-semibold uppercase tracking-widest text-slate-500">Purchase date</div>
                       <div className="mt-1 text-slate-900">{item.purchase_date}</div>
                     </div>
@@ -292,6 +300,10 @@ export function ApprovalsPage() {
                       <div className="mt-1 text-slate-900">
                         {item.lines.length} / {inwardTotalUnits(item)}
                       </div>
+                    </div>
+                    <div>
+                      <div className="text-[11px] font-semibold uppercase tracking-widest text-slate-500">Breakage</div>
+                      <div className="mt-1 text-slate-900">{inwardHasBreakage(item) ? "Present" : "None"}</div>
                     </div>
                   </div>
                 </li>

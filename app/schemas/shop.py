@@ -195,6 +195,54 @@ class DeviceBindingPublic(DeviceBindingBase):
     updated_at: datetime
 
 
+class ShopTwoFactorPublic(BaseModel):
+    shop_id: int
+    two_factor_enabled: bool
+    two_factor_secret_version: int | None
+    two_factor_rotated_at: datetime | None
+    two_factor_required_for_roles: list[str]
+    has_active_secret: bool
+
+
+class ShopTwoFactorUpdate(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    two_factor_enabled: bool
+
+
+class AuthenticatorActivationPublic(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    shop_id: int
+    secret_version: int
+    machine_label: str | None
+    is_active: bool
+    activated_at: datetime
+    last_seen_at: datetime | None
+    deactivated_at: datetime | None
+
+
+class AuthenticatorActivationUpdate(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    is_active: bool
+
+
+class AuthenticatorActivationTokenCreate(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    machine_label: str | None = Field(default=None, max_length=120)
+    expires_in_minutes: int = Field(default=60, ge=1, le=1440)
+
+
+class AuthenticatorActivationTokenPublic(BaseModel):
+    activation_token: str
+    expires_at: datetime
+    shop_id: int
+    secret_version: int
+
+
 class ShopUpdate(BaseModel):
     """Owner updates shop-level config. All fields optional; only the
     ones the client sends are written."""

@@ -70,6 +70,7 @@ from app.services.products import (
     activate_pending_product,
     count_pending_products,
     get_product_for_write,
+    latest_unit_cost_by_product_ids,
     lookup_product_by_barcode,
     permanent_delete_blockers,
     permanent_delete_eligible_ids,
@@ -141,6 +142,7 @@ async def _public_with_stock(
     # noise without value. (Architecture-pass review, 2026-07-08.)
     product_ids = [r.id for r in rows]
     stock = await compute_derived_stock(db, product_ids=product_ids)
+    latest_costs = await latest_unit_cost_by_product_ids(db, product_ids=product_ids)
     eligible_ids = await permanent_delete_eligible_ids(db, product_ids=product_ids)
     out: list[ProductPublic] = []
     for r in rows:
@@ -149,6 +151,7 @@ async def _public_with_stock(
         # computed value without the "multiple values for keyword" error.
         data = ProductPublic.model_validate(r).model_dump()
         data["current_stock"] = stock.get(r.id, 0)
+        data["latest_unit_cost"] = latest_costs.get(r.id)
         data["can_permanently_delete"] = r.id in eligible_ids and not r.is_active
         out.append(ProductPublic(**data))
     return out

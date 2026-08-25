@@ -37,6 +37,22 @@ interface PurchaseReviewState {
   vendorInvoiceNumber: string;
   invoiceValue: string;
   lineConditions: Record<string, number>;
+  unitCosts: Record<string, string>;
+}
+
+function parseMoneyToCents(value: string): number | null {
+  const trimmed = value.trim();
+  if (!trimmed) return null;
+  if (!/^\d+(\.\d{0,2})?$/.test(trimmed)) return null;
+  const [whole, fraction = ""] = trimmed.split(".");
+  return Number.parseInt(whole, 10) * 100 + Number.parseInt((fraction + "00").slice(0, 2), 10);
+}
+
+function formatMoney(value: string | null | undefined): string {
+  if (!value) return "--";
+  const amount = Number(value);
+  if (!Number.isFinite(amount)) return `Rs ${value}`;
+  return `Rs ${amount.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 }
 
 function uid(): string {
@@ -286,20 +302,17 @@ export function ReceivingPage() {
     try {
       const lot = await createLotSafe(
         {
-          ...(vendorLinkEnabled
-            ? {
-                vendor_id: Number(review.vendorId),
-                purchase_date: review.purchaseDate,
-                vendor_invoice_number: review.vendorInvoiceNumber.trim(),
-                invoice_value: review.invoiceValue.trim(),
-              }
-            : {}),
+          ...(vendorLinkEnabled && review.vendorId !== "" ? { vendor_id: Number(review.vendorId) } : {}),
+          purchase_date: review.purchaseDate,
+          vendor_invoice_number: review.vendorInvoiceNumber.trim(),
+          invoice_value: review.invoiceValue.trim(),
           reference: reference.trim() || undefined,
           notes: notes.trim() || undefined,
           lines: lines.map((line) => ({
             barcode: line.barcode,
             quantity: line.quantity,
             good_condition_quantity: review.lineConditions[line.lineId] ?? line.quantity,
+            unit_cost: review.unitCosts[line.lineId].trim(),
           })),
         },
         actingShopId
@@ -585,7 +598,15 @@ export function ReceivingPage() {
                       Invoice value
                     </div>
                     <div className="mt-1 font-mono font-medium text-slate-900">
-                      Rs {lastLot.invoice_value}
+                      {formatMoney(lastLot.invoice_value)}
+                    </div>
+                  </div>
+                  <div>
+                    <div className="text-[11px] font-semibold uppercase tracking-widest text-slate-500">
+                      Merchandise total
+                    </div>
+                    <div className="mt-1 font-mono font-medium text-slate-900">
+                      {formatMoney(lastLot.merchandise_total)}
                     </div>
                   </div>
                 </>
@@ -617,6 +638,8 @@ export function ReceivingPage() {
                     <th className="px-6 py-4 text-right font-semibold">Received</th>
                     <th className="px-6 py-4 text-right font-semibold">Good</th>
                     <th className="px-6 py-4 text-right font-semibold">Breakage</th>
+                    <th className="px-6 py-4 text-right font-semibold">Unit cost</th>
+                    <th className="px-6 py-4 text-right font-semibold">Line total</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
@@ -629,6 +652,8 @@ export function ReceivingPage() {
                       <td className="px-6 py-3 text-right font-mono font-medium text-slate-900">{line.quantity}</td>
                       <td className="px-6 py-3 text-right font-mono font-medium text-emerald-600">{line.good_condition_quantity}</td>
                       <td className="px-6 py-3 text-right font-mono font-medium text-red-500">{line.breakage_quantity}</td>
+                      <td className="px-6 py-3 text-right font-mono font-medium text-slate-900">{formatMoney(line.unit_cost)}</td>
+                      <td className="px-6 py-3 text-right font-mono font-medium text-slate-900">{formatMoney(line.line_total)}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -670,11 +695,31 @@ function PurchaseReviewModal({
   const [lineConditions, setLineConditions] = useState<Record<string, number>>(() =>
     Object.fromEntries(lines.map((line) => [line.lineId, line.quantity]))
   );
+  const [unitCosts, setUnitCosts] = useState<Record<string, string>>(() =>
+    Object.fromEntries(lines.map((line) => [line.lineId, ""]))
+  );
   const [localError, setLocalError] = useState<string | null>(null);
   const breakageExists = lines.some((line) => (lineConditions[line.lineId] ?? line.quantity) < line.quantity);
+  const computedMerchandiseCents = useMemo(
+    () =>
+      lines.reduce((sum, line) => {
+        const cents = parseMoneyToCents(unitCosts[line.lineId] ?? "");
+        return cents === null ? sum : sum + cents * line.quantity;
+      }, 0),
+    [lines, unitCosts]
+  );
+  const invoiceCents = parseMoneyToCents(invoiceValue);
+  const totalsMatch = invoiceCents !== null && invoiceCents === computedMerchandiseCents;
+  const allUnitCostsValid = lines.every((line) => {
+    const cents = parseMoneyToCents(unitCosts[line.lineId] ?? "");
+    return cents !== null && cents > 0;
+  });
 
   useEffect(() => {
     setLineConditions(Object.fromEntries(lines.map((line) => [line.lineId, line.quantity])));
+    setUnitCosts((current) =>
+      Object.fromEntries(lines.map((line) => [line.lineId, current[line.lineId] ?? ""]))
+    );
   }, [lines]);
 
   useEffect(() => {
@@ -691,26 +736,28 @@ function PurchaseReviewModal({
     setLineConditions((current) => ({ ...current, [lineId]: value }));
   };
 
+  const updateUnitCost = (lineId: string, value: string) => {
+    setUnitCosts((current) => ({ ...current, [lineId]: value }));
+  };
+
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
     setLocalError(null);
-    if (vendorLinkEnabled) {
-      if (vendorId === "") {
-        setLocalError("Pick a vendor.");
-        return;
-      }
-      if (!purchaseDate) {
-        setLocalError("Pick a purchase date.");
-        return;
-      }
-      if (!vendorInvoiceNumber.trim()) {
-        setLocalError("Enter the vendor invoice number.");
-        return;
-      }
-      if (!invoiceValue.trim() || Number(invoiceValue) <= 0) {
-        setLocalError("Enter a valid invoice value.");
-        return;
-      }
+    if (vendorLinkEnabled && vendorId === "") {
+      setLocalError("Pick a vendor.");
+      return;
+    }
+    if (!purchaseDate) {
+      setLocalError("Pick a purchase date.");
+      return;
+    }
+    if (!vendorInvoiceNumber.trim()) {
+      setLocalError("Enter the vendor invoice number.");
+      return;
+    }
+    if ((invoiceCents ?? 0) <= 0) {
+      setLocalError("Enter a valid invoice value.");
+      return;
     }
     for (const line of lines) {
       const good = lineConditions[line.lineId] ?? 0;
@@ -718,6 +765,14 @@ function PurchaseReviewModal({
         setLocalError("Good-condition quantity cannot exceed received quantity.");
         return;
       }
+    }
+    if (!allUnitCostsValid) {
+      setLocalError("Every line needs a positive unit cost.");
+      return;
+    }
+    if (!totalsMatch) {
+      setLocalError("Invoice value must exactly match the computed merchandise total.");
+      return;
     }
     if (breakageExists && !notes.trim()) {
       setLocalError("Add notes when any breakage exists.");
@@ -729,6 +784,7 @@ function PurchaseReviewModal({
       vendorInvoiceNumber,
       invoiceValue,
       lineConditions,
+      unitCosts,
     });
   };
 
@@ -752,8 +808,8 @@ function PurchaseReviewModal({
           </button>
         </header>
 
-        {vendorLinkEnabled ? (
-          <div className="grid gap-6 md:grid-cols-2">
+        <div className="grid gap-6 md:grid-cols-2">
+          {vendorLinkEnabled ? (
             <label className="flex flex-col gap-1.5 text-xs font-semibold uppercase tracking-wider text-slate-500">
               Vendor
               <select
@@ -772,52 +828,52 @@ function PurchaseReviewModal({
                 ))}
               </select>
             </label>
-            <label className="flex flex-col gap-1.5 text-xs font-semibold uppercase tracking-wider text-slate-500">
-              <span className="flex items-center gap-1.5">
-                <Calendar className="h-4 w-4" /> Purchase date
-              </span>
-              <input
-                type="date"
-                value={purchaseDate}
-                onChange={(e) => setPurchaseDate(e.target.value)}
-                className="h-11 w-full rounded-xl border border-slate-200 bg-white/50 px-4 text-sm font-medium text-slate-700 shadow-sm outline-none transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:bg-white focus-visible:ring-2 focus-visible:ring-action/40 focus-visible:border-action"
-              />
-            </label>
-            <label className="flex flex-col gap-1.5 text-xs font-semibold uppercase tracking-wider text-slate-500">
-              <span className="flex items-center gap-1.5">
-                <FileDigit className="h-4 w-4" /> Vendor invoice number
-              </span>
-              <input
-                type="text"
-                value={vendorInvoiceNumber}
-                onChange={(e) => setVendorInvoiceNumber(e.target.value)}
-                className="h-11 w-full rounded-xl border border-slate-200 bg-white/50 px-4 text-sm font-medium text-slate-700 shadow-sm outline-none transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:bg-white focus-visible:ring-2 focus-visible:ring-action/40 focus-visible:border-action"
-              />
-            </label>
-            <label className="flex flex-col gap-1.5 text-xs font-semibold uppercase tracking-wider text-slate-500">
-              <span className="flex items-center gap-1.5">
-                <IndianRupee className="h-4 w-4" /> Invoice value
-              </span>
-              <input
-                type="number"
-                min="0"
-                step="0.01"
-                value={invoiceValue}
-                onChange={(e) => setInvoiceValue(e.target.value)}
-                className="h-11 w-full rounded-xl border border-slate-200 bg-white/50 px-4 text-sm font-medium text-slate-700 shadow-sm outline-none transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:bg-white focus-visible:ring-2 focus-visible:ring-action/40 focus-visible:border-action"
-              />
-            </label>
-          </div>
-        ) : (
-          <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-6 py-5 text-sm text-slate-600">
-            Vendor linking is disabled for this shop. The lot will save with hidden placeholder
-            receiving details.
-          </div>
-        )}
+          ) : (
+            <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-6 py-5 text-sm text-slate-600 md:col-span-2">
+              Vendor linking is disabled for this shop. Purchase date, invoice number, invoice total,
+              and line costs are still required for reconciliation.
+            </div>
+          )}
+          <label className="flex flex-col gap-1.5 text-xs font-semibold uppercase tracking-wider text-slate-500">
+            <span className="flex items-center gap-1.5">
+              <Calendar className="h-4 w-4" /> Purchase date
+            </span>
+            <input
+              type="date"
+              value={purchaseDate}
+              onChange={(e) => setPurchaseDate(e.target.value)}
+              className="h-11 w-full rounded-xl border border-slate-200 bg-white/50 px-4 text-sm font-medium text-slate-700 shadow-sm outline-none transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:bg-white focus-visible:ring-2 focus-visible:ring-action/40 focus-visible:border-action"
+            />
+          </label>
+          <label className="flex flex-col gap-1.5 text-xs font-semibold uppercase tracking-wider text-slate-500">
+            <span className="flex items-center gap-1.5">
+              <FileDigit className="h-4 w-4" /> Vendor invoice number
+            </span>
+            <input
+              type="text"
+              value={vendorInvoiceNumber}
+              onChange={(e) => setVendorInvoiceNumber(e.target.value)}
+              className="h-11 w-full rounded-xl border border-slate-200 bg-white/50 px-4 text-sm font-medium text-slate-700 shadow-sm outline-none transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:bg-white focus-visible:ring-2 focus-visible:ring-action/40 focus-visible:border-action"
+            />
+          </label>
+          <label className="flex flex-col gap-1.5 text-xs font-semibold uppercase tracking-wider text-slate-500">
+            <span className="flex items-center gap-1.5">
+              <IndianRupee className="h-4 w-4" /> Invoice value
+            </span>
+            <input
+              type="number"
+              min="0"
+              step="0.01"
+              value={invoiceValue}
+              onChange={(e) => setInvoiceValue(e.target.value)}
+              className="h-11 w-full rounded-xl border border-slate-200 bg-white/50 px-4 text-sm font-medium text-slate-700 shadow-sm outline-none transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:bg-white focus-visible:ring-2 focus-visible:ring-action/40 focus-visible:border-action"
+            />
+          </label>
+        </div>
 
         <div className="overflow-hidden rounded-2xl border border-slate-200">
           <div className="border-b border-slate-200 bg-slate-50/80 px-6 py-3 text-[11px] font-medium uppercase tracking-widest text-slate-500">
-            Use the stepper to adjust good-condition quantity for each line.
+            Enter purchase cost per received unit. Submit stays blocked until the merchandise total matches the invoice value exactly.
           </div>
           <table className="app-list-table">
             <thead className="bg-slate-50/80 text-[11px] uppercase tracking-widest text-slate-500">
@@ -826,11 +882,17 @@ function PurchaseReviewModal({
                 <th className="px-6 py-4 text-right font-semibold">Received</th>
                 <th className="px-6 py-4 text-right font-semibold">Good</th>
                 <th className="px-6 py-4 text-right font-semibold">Breakage</th>
+                <th className="px-6 py-4 text-right font-semibold">Unit cost</th>
+                <th className="px-6 py-4 text-right font-semibold">Line total</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
               {lines.map((line) => {
                 const good = lineConditions[line.lineId] ?? line.quantity;
+                const unitCost = unitCosts[line.lineId] ?? "";
+                const unitCostCents = parseMoneyToCents(unitCost);
+                const lineTotal =
+                  unitCostCents === null ? null : ((unitCostCents * line.quantity) / 100).toFixed(2);
                 return (
                   <tr key={line.lineId} className="bg-white">
                     <td className="px-6 py-4">
@@ -876,11 +938,52 @@ function PurchaseReviewModal({
                       </div>
                     </td>
                     <td className="px-6 py-4 text-right font-mono font-medium text-slate-500">{line.quantity - good}</td>
+                    <td className="px-6 py-4 text-right">
+                      <input
+                        type="text"
+                        inputMode="decimal"
+                        value={unitCost}
+                        onChange={(e) => updateUnitCost(line.lineId, e.target.value)}
+                        placeholder="0.00"
+                        className="w-24 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-right font-mono text-sm font-medium shadow-sm transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:border-slate-300 focus-visible:ring-2 focus-visible:ring-action/40 focus-visible:border-action outline-none"
+                        aria-label="Unit cost"
+                      />
+                    </td>
+                    <td className="px-6 py-4 text-right font-mono font-medium text-slate-900">
+                      {lineTotal ? formatMoney(lineTotal) : "--"}
+                    </td>
                   </tr>
                 );
               })}
             </tbody>
           </table>
+        </div>
+
+        <div className="grid gap-4 rounded-2xl bg-slate-50 p-5 ring-1 ring-slate-200/60 md:grid-cols-3">
+          <div>
+            <div className="text-[11px] font-semibold uppercase tracking-widest text-slate-500">
+              Merchandise total
+            </div>
+            <div className="mt-1 font-mono text-lg font-semibold text-slate-900">
+              {formatMoney((computedMerchandiseCents / 100).toFixed(2))}
+            </div>
+          </div>
+          <div>
+            <div className="text-[11px] font-semibold uppercase tracking-widest text-slate-500">
+              Invoice total
+            </div>
+            <div className="mt-1 font-mono text-lg font-semibold text-slate-900">
+              {invoiceValue.trim() ? formatMoney(invoiceValue) : "--"}
+            </div>
+          </div>
+          <div>
+            <div className="text-[11px] font-semibold uppercase tracking-widest text-slate-500">
+              Reconciliation
+            </div>
+            <div className={`mt-1 text-sm font-semibold ${totalsMatch ? "text-emerald-600" : "text-red-600"}`}>
+              {totalsMatch ? "Matched" : "Mismatch"}
+            </div>
+          </div>
         </div>
 
         <label className="flex flex-col gap-1.5 text-xs font-semibold uppercase tracking-wider text-slate-500">
@@ -911,7 +1014,7 @@ function PurchaseReviewModal({
           </button>
           <button
             type="submit"
-            disabled={busy}
+            disabled={busy || !allUnitCostsValid || !totalsMatch}
             className="flex h-11 items-center justify-center rounded-xl bg-action px-8 text-sm font-bold tracking-wide text-white shadow-sm transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:-translate-y-0.5 hover:shadow-[var(--color-action)]/30 active:scale-[0.97] disabled:pointer-events-none disabled:opacity-50"
           >
             {busy ? "Saving..." : "Confirm save"}

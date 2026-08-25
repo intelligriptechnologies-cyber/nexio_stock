@@ -2,7 +2,16 @@ import { useEffect, useState, type FormEventHandler, type ReactNode } from "reac
 import { FileText, KeyRound, Lock, Mail, Palette, Save, Settings, Shield } from "lucide-react";
 import { ApiError } from "../api/client";
 import { getMySettings, updateMySettings, type SettingsPublic } from "../api/settings";
-import { changeMyPassword, getMyUser, updateMyUser, type UserPublic } from "../api/users";
+import {
+  changeMyPassword,
+  getMyTwoFactor,
+  getMyUser,
+  rotateMyTwoFactorSecret,
+  updateMyTwoFactor,
+  updateMyUser,
+  type UserPublic,
+  type UserTwoFactorPublic,
+} from "../api/users";
 import { useAuth } from "../auth/AuthProvider";
 import { useShopScope } from "../auth/ShopScopeProvider";
 import { AppTabButton } from "../components/AppTabs";
@@ -92,9 +101,11 @@ export function SettingsPage() {
   const [, setProfile] = useState<UserPublic | null>(null);
   const [securityForm, setSecurityForm] = useState<SecurityFormState>(EMPTY_SECURITY_FORM);
   const [passwordForm, setPasswordForm] = useState<PasswordFormState>(EMPTY_PASSWORD_FORM);
+  const [twoFactorStatus, setTwoFactorStatus] = useState<UserTwoFactorPublic | null>(null);
+  const [twoFactorPassword, setTwoFactorPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [info, setInfo] = useState<string | null>(null);
-  const [busySection, setBusySection] = useState<"shop" | "profile" | "password" | null>(null);
+  const [busySection, setBusySection] = useState<"shop" | "profile" | "password" | "twofactor" | null>(null);
   const [shopLoading, setShopLoading] = useState(false);
   const [profileLoading, setProfileLoading] = useState(false);
 
@@ -144,10 +155,16 @@ export function SettingsPage() {
     let cancelled = false;
     setProfileLoading(true);
     void getMyUser()
-      .then((next) => {
+      .then(async (next) => {
         if (cancelled) return;
         setProfile(next);
         setSecurityForm(securityFormFromUser(next));
+        if (next.role === "superadmin") {
+          const nextTwoFactor = await getMyTwoFactor();
+          if (!cancelled) setTwoFactorStatus(nextTwoFactor);
+        } else if (!cancelled) {
+          setTwoFactorStatus(null);
+        }
       })
       .catch((e) => {
         if (cancelled) return;
@@ -238,6 +255,41 @@ export function SettingsPage() {
       setInfo("Password/PIN changed.");
     } catch (e) {
       setError(apiErrorMessage(e, "Save failed."));
+    } finally {
+      setBusySection(null);
+    }
+  };
+
+  const saveTwoFactor = async (enabled: boolean) => {
+    setBusySection("twofactor");
+    setError(null);
+    setInfo(null);
+    try {
+      const updated = await updateMyTwoFactor({
+        two_factor_enabled: enabled,
+        current_password: enabled ? undefined : twoFactorPassword || undefined,
+      });
+      setTwoFactorStatus(updated);
+      setTwoFactorPassword("");
+      setInfo(enabled ? "Superadmin two-factor enabled." : "Superadmin two-factor disabled.");
+    } catch (e) {
+      setError(apiErrorMessage(e, "Save failed."));
+    } finally {
+      setBusySection(null);
+    }
+  };
+
+  const rotateTwoFactor = async () => {
+    setBusySection("twofactor");
+    setError(null);
+    setInfo(null);
+    try {
+      await rotateMyTwoFactorSecret();
+      const refreshed = await getMyTwoFactor();
+      setTwoFactorStatus(refreshed);
+      setInfo("Superadmin two-factor secret rotated.");
+    } catch (e) {
+      setError(apiErrorMessage(e, "Rotate failed."));
     } finally {
       setBusySection(null);
     }
@@ -665,6 +717,83 @@ export function SettingsPage() {
                           </button>
                         </div>
                       </form>
+
+                      {user?.role === "superadmin" && twoFactorStatus && (
+                        <div className="md:col-span-2 rounded-xl border border-slate-200 bg-slate-50/80 p-5">
+                          <div className="mb-4 flex items-center gap-3">
+                            <Shield className="h-5 w-5 text-action" />
+                            <h3 className="text-sm font-bold uppercase tracking-wider text-slate-600">
+                              Superadmin Two-Factor Authentication
+                            </h3>
+                          </div>
+
+                          <div className="grid gap-4 md:grid-cols-2">
+                            <Field
+                              label="Status"
+                              value={twoFactorStatus.two_factor_enabled ? "Enabled" : "Disabled"}
+                              onChange={() => undefined}
+                              readOnly
+                              helperText="Personal per-superadmin setting."
+                            />
+                            <Field
+                              label="Secret Version"
+                              value={
+                                twoFactorStatus.two_factor_secret_version == null
+                                  ? "Not generated"
+                                  : String(twoFactorStatus.two_factor_secret_version)
+                              }
+                              onChange={() => undefined}
+                              readOnly
+                              helperText={
+                                twoFactorStatus.two_factor_rotated_at
+                                  ? `Rotated ${new Date(twoFactorStatus.two_factor_rotated_at).toLocaleString()}`
+                                  : "No secret rotation yet."
+                              }
+                            />
+                            {!twoFactorStatus.two_factor_enabled && (
+                              <div className="md:col-span-2 flex flex-wrap gap-3">
+                                <button
+                                  type="button"
+                                  disabled={busySection === "twofactor"}
+                                  onClick={() => void saveTwoFactor(true)}
+                                  className="flex h-11 items-center justify-center gap-2 rounded-xl bg-action px-8 text-sm font-bold tracking-wide text-white shadow-sm transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:-translate-y-0.5 hover:shadow-[var(--color-action)]/30 active:scale-[0.97] disabled:pointer-events-none disabled:opacity-50"
+                                >
+                                  <Shield className="h-4 w-4" /> {busySection === "twofactor" ? "Saving..." : "Enable 2FA"}
+                                </button>
+                              </div>
+                            )}
+                            {twoFactorStatus.two_factor_enabled && (
+                              <>
+                                <Field
+                                  label="Current Password"
+                                  value={twoFactorPassword}
+                                  onChange={setTwoFactorPassword}
+                                  type="password"
+                                  helperText="Required before disabling personal superadmin 2FA."
+                                />
+                                <div className="flex flex-wrap items-end gap-3 md:col-span-1">
+                                  <button
+                                    type="button"
+                                    disabled={busySection === "twofactor" || twoFactorPassword.length < 4}
+                                    onClick={() => void saveTwoFactor(false)}
+                                    className="flex h-11 items-center justify-center gap-2 rounded-xl bg-white px-6 text-sm font-semibold tracking-wide text-slate-700 shadow-sm ring-1 ring-slate-200 transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:bg-slate-50 active:scale-[0.97] disabled:pointer-events-none disabled:opacity-50"
+                                  >
+                                    Disable 2FA
+                                  </button>
+                                  <button
+                                    type="button"
+                                    disabled={busySection === "twofactor"}
+                                    onClick={() => void rotateTwoFactor()}
+                                    className="flex h-11 items-center justify-center gap-2 rounded-xl bg-action px-6 text-sm font-bold tracking-wide text-white shadow-sm transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:-translate-y-0.5 hover:shadow-[var(--color-action)]/30 active:scale-[0.97] disabled:pointer-events-none disabled:opacity-50"
+                                  >
+                                    <KeyRound className="h-4 w-4" /> Rotate Secret
+                                  </button>
+                                </div>
+                              </>
+                            )}
+                          </div>
+                        </div>
+                      )}
                     </div>
                   )}
                 </section>

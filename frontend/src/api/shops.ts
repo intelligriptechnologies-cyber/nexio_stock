@@ -90,6 +90,33 @@ export interface ShopDeviceUpdatePayload {
   is_active?: boolean | null;
 }
 
+export interface ShopTwoFactorPublic {
+  shop_id: number;
+  two_factor_enabled: boolean;
+  two_factor_secret_version: number | null;
+  two_factor_rotated_at: string | null;
+  two_factor_required_for_roles: string[];
+  has_active_secret: boolean;
+}
+
+export interface ShopAuthenticatorActivation {
+  id: number;
+  shop_id: number;
+  secret_version: number;
+  machine_label: string | null;
+  is_active: boolean;
+  activated_at: string;
+  last_seen_at: string | null;
+  deactivated_at: string | null;
+}
+
+export interface ShopAuthenticatorActivationToken {
+  activation_token: string;
+  expires_at: string;
+  shop_id: number;
+  secret_version: number;
+}
+
 // Superadmin-only (D-64/D-65): every shop, for the shop-scope picker.
 export function listShops(): Promise<ShopSummary[]> {
   return api<ShopSummary[]>("/shops");
@@ -181,4 +208,60 @@ export function updateShopDevice(
     method: "PATCH",
     json: payload,
   });
+}
+
+export function getShopTwoFactor(shopId: number): Promise<ShopTwoFactorPublic> {
+  return api<ShopTwoFactorPublic>(`/shops/${shopId}/two-factor`);
+}
+
+export function updateShopTwoFactor(
+  shopId: number,
+  twoFactorEnabled: boolean
+): Promise<ShopTwoFactorPublic> {
+  return api<ShopTwoFactorPublic>(`/shops/${shopId}/two-factor`, {
+    method: "PATCH",
+    json: { two_factor_enabled: twoFactorEnabled },
+  });
+}
+
+export function generateShopTwoFactorSecret(shopId: number): Promise<ShopTwoFactorPublic> {
+  return api<ShopTwoFactorPublic>(`/shops/${shopId}/two-factor/secret`, {
+    method: "POST",
+  });
+}
+
+export function rotateShopTwoFactorSecret(shopId: number): Promise<ShopTwoFactorPublic> {
+  return api<ShopTwoFactorPublic>(`/shops/${shopId}/two-factor/secret/rotate`, {
+    method: "POST",
+  });
+}
+
+export function createShopAuthenticatorActivationToken(
+  shopId: number,
+  payload?: { machine_label?: string | null; expires_in_minutes?: number }
+): Promise<ShopAuthenticatorActivationToken> {
+  return api<ShopAuthenticatorActivationToken>(`/shops/${shopId}/two-factor/activation-tokens`, {
+    method: "POST",
+    json: payload ?? {},
+  });
+}
+
+export function listShopAuthenticatorActivations(
+  shopId: number
+): Promise<ShopAuthenticatorActivation[]> {
+  return api<ShopAuthenticatorActivation[]>(`/shops/${shopId}/two-factor/authenticator-activations`);
+}
+
+export function updateShopAuthenticatorActivation(
+  shopId: number,
+  activationId: number,
+  isActive: boolean
+): Promise<ShopAuthenticatorActivation> {
+  return api<ShopAuthenticatorActivation>(
+    `/shops/${shopId}/two-factor/authenticator-activations/${activationId}`,
+    {
+      method: "PATCH",
+      json: { is_active: isActive },
+    }
+  );
 }

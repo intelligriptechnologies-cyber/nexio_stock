@@ -28,6 +28,11 @@ class Settings(BaseSettings):
     jwt_algorithm: str = "HS256"
     jwt_access_ttl_min: int = 720
     bcrypt_rounds: int = 12
+    two_factor_step_seconds: int = 300
+    two_factor_challenge_ttl_seconds: int = 600
+    two_factor_grace_seconds: int = 30
+    two_factor_max_attempts: int = 5
+    two_factor_secret_encryption_key: str | None = None
 
     # Database
     database_url: str

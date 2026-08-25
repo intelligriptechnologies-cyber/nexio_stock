@@ -43,6 +43,13 @@ function lotLineCount(lot: LotPublic): number {
   return lot.lines.length;
 }
 
+function money(value: string | null | undefined): string {
+  if (!value) return "--";
+  const amount = Number(value);
+  if (!Number.isFinite(amount)) return `Rs ${value}`;
+  return `Rs ${amount.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+}
+
 export function StockTrackingPage() {
   const { actingShopId } = useShopScope();
   const [items, setItems] = useState<LotPublic[] | null>(null);
@@ -93,6 +100,7 @@ export function StockTrackingPage() {
         vendor_invoice_number: item.vendor_invoice_number || "",
         purchase_date: item.purchase_date || "",
         invoice_value: item.invoice_value || "",
+        merchandise_total: item.merchandise_total || "",
         reference: item.reference ?? "",
         notes: item.notes ?? "",
         received_at: item.received_at,
@@ -104,7 +112,7 @@ export function StockTrackingPage() {
         line_items: item.lines
           .map(
             (line) =>
-              `${line.product_brand} ${line.product_size_label} x${line.quantity} (good ${line.good_condition_quantity}, breakage ${line.breakage_quantity})`
+              `${line.product_brand} ${line.product_size_label} x${line.quantity} @ ${line.unit_cost ?? "--"} = ${line.line_total ?? "--"} (good ${line.good_condition_quantity}, breakage ${line.breakage_quantity})`
           )
           .join("; "),
       })),
@@ -117,6 +125,7 @@ export function StockTrackingPage() {
         "vendor_invoice_number",
         "purchase_date",
         "invoice_value",
+        "merchandise_total",
         "reference",
         "notes",
         "received_at",
@@ -179,13 +188,14 @@ export function StockTrackingPage() {
         </div>
       ) : (
         <div className="overflow-hidden rounded-xl border border-slate-200/50 bg-white/60 shadow-[0_8px_30px_rgb(0,0,0,0.02)] backdrop-blur-xl">
-          <table className="app-list-table min-w-[1120px]" aria-label="Stock tracking table">
+            <table className="app-list-table min-w-[1260px]" aria-label="Stock tracking table">
             <thead>
               <tr>
                 <th className="whitespace-nowrap">Inward</th>
                 <th className="whitespace-nowrap">Status</th>
                 <th className="whitespace-nowrap">Vendor / Invoice</th>
                 <th className="whitespace-nowrap">Dates</th>
+                <th className="whitespace-nowrap text-right">Merchandise total</th>
                 <th className="whitespace-nowrap text-right">Units / Lines</th>
                 <th className="whitespace-nowrap">People</th>
                 <th className="whitespace-nowrap text-right">Action</th>
@@ -230,6 +240,9 @@ export function StockTrackingPage() {
                     <td className="px-6 py-4 text-sm text-slate-600">
                       <div>Created {formatDateTime(item.created_at)}</div>
                       <div>Received {formatDateTime(item.received_at)}</div>
+                    </td>
+                    <td className="px-6 py-4 text-right font-mono font-semibold text-slate-900">
+                      {money(item.merchandise_total)}
                     </td>
                     <td className="px-6 py-4 text-right">
                       <div className="font-mono text-sm font-semibold text-slate-900">{lotUnits(item)}</div>
@@ -301,7 +314,8 @@ export function StockTrackingPage() {
                 <InfoCard label="Vendor invoice" value={selectedLot.vendor_invoice_number || "--"} />
                 <InfoCard label="Purchase date" value={formatDate(selectedLot.purchase_date)} />
                 <InfoCard label="Reference" value={selectedLot.reference ?? "--"} />
-                <InfoCard label="Invoice value" value={selectedLot.invoice_value || "--"} />
+                <InfoCard label="Invoice value" value={money(selectedLot.invoice_value)} />
+                <InfoCard label="Merchandise total" value={money(selectedLot.merchandise_total)} />
                 <InfoCard label="Shop" value={`shop ${selectedLot.shop_id}`} />
                 <InfoCard
                   label="Created by"
@@ -335,6 +349,8 @@ export function StockTrackingPage() {
                       <th className="text-right">Qty</th>
                       <th className="text-right">Good</th>
                       <th className="text-right">Breakage</th>
+                      <th className="text-right">Unit cost</th>
+                      <th className="text-right">Line total</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -349,6 +365,8 @@ export function StockTrackingPage() {
                           {line.good_condition_quantity}
                         </td>
                         <td className="px-6 py-4 text-right font-mono text-red-500">{line.breakage_quantity}</td>
+                        <td className="px-6 py-4 text-right font-mono text-slate-900">{money(line.unit_cost)}</td>
+                        <td className="px-6 py-4 text-right font-mono text-slate-900">{money(line.line_total)}</td>
                       </tr>
                     ))}
                   </tbody>

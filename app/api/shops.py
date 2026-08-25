@@ -12,6 +12,7 @@ a CGST/SGST breakdown.
 """
 from __future__ import annotations
 
+from datetime import UTC, datetime
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
@@ -25,9 +26,14 @@ from app.logging_config import get_logger
 from app.models.device import DeviceBinding
 from app.models.product import Product, ProductStatus
 from app.models.shop import Shop
+from app.models.two_factor import AuthenticatorActivation
 from app.models.user import User, UserRole
 from app.schemas.auth import UserPublic
 from app.schemas.shop import (
+    AuthenticatorActivationPublic,
+    AuthenticatorActivationTokenCreate,
+    AuthenticatorActivationTokenPublic,
+    AuthenticatorActivationUpdate,
     DeviceBindingCreate,
     DeviceBindingPublic,
     DeviceBindingUpdate,
@@ -37,6 +43,8 @@ from app.schemas.shop import (
     ShopMaintenanceUpdate,
     ShopPublic,
     ShopSummary,
+    ShopTwoFactorPublic,
+    ShopTwoFactorUpdate,
     ShopUpdate,
     ShopUserCreate,
     ShopUserPasswordReset,
@@ -44,6 +52,14 @@ from app.schemas.shop import (
     SkippedProduct,
 )
 from app.security.passwords import hash_password
+from app.services.admin_logs import write_admin_log
+from app.services.two_factor import (
+    SHOP_2FA_REQUIRED_ROLES,
+    TwoFactorProvisioningRequiredError,
+    create_authenticator_activation_token,
+    get_active_secret_for_shop,
+    rotate_shop_secret,
+)
 from app.services.usernames import next_default_username
 
 router = APIRouter(prefix="/shops", tags=["shops"])
@@ -483,3 +499,207 @@ async def update_my_shop(
         changed_fields=sorted(data.keys()),
     )
     return ShopPublic.model_validate(shop)
+
+
+def _shop_two_factor_public(shop: Shop, *, has_active_secret: bool) -> ShopTwoFactorPublic:
+    return ShopTwoFactorPublic(
+        shop_id=shop.id,
+        two_factor_enabled=shop.two_factor_enabled,
+        two_factor_secret_version=shop.two_factor_secret_version,
+        two_factor_rotated_at=shop.two_factor_rotated_at,
+        two_factor_required_for_roles=shop.two_factor_required_for_roles,
+        has_active_secret=has_active_secret,
+    )
+
+
+@router.get(
+    "/{shop_id:int}/two-factor",
+    response_model=ShopTwoFactorPublic,
+    summary="Superadmin reads shop-level two-factor auth settings",
+)
+async def get_shop_two_factor(
+    shop_id: int,
+    db: DbSession,
+    _user: User = Depends(require_role(UserRole.SUPERADMIN)),
+) -> ShopTwoFactorPublic:
+    shop = await db.get(Shop, shop_id)
+    if shop is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="shop not found")
+    active_secret = await get_active_secret_for_shop(db, shop.id)
+    return _shop_two_factor_public(shop, has_active_secret=active_secret is not None)
+
+
+@router.patch(
+    "/{shop_id:int}/two-factor",
+    response_model=ShopTwoFactorPublic,
+    summary="Superadmin enables or disables shop-level two-factor auth",
+)
+async def update_shop_two_factor(
+    shop_id: int,
+    payload: ShopTwoFactorUpdate,
+    db: DbSession,
+    user: User = Depends(require_role(UserRole.SUPERADMIN)),
+) -> ShopTwoFactorPublic:
+    shop = await db.get(Shop, shop_id)
+    if shop is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="shop not found")
+    active_secret = await get_active_secret_for_shop(db, shop.id)
+    if payload.two_factor_enabled and active_secret is None:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="generate a shop two-factor secret before enabling two-factor auth",
+        )
+    shop.two_factor_enabled = payload.two_factor_enabled
+    shop.two_factor_required_for_roles = list(SHOP_2FA_REQUIRED_ROLES)
+    await write_admin_log(
+        db,
+        event_type="auth.2fa.shop.enabled" if payload.two_factor_enabled else "auth.2fa.shop.disabled",
+        actor_user_id=user.id,
+        shop_id=shop.id,
+        payload={"shop_id": shop.id, "two_factor_enabled": payload.two_factor_enabled},
+    )
+    await db.commit()
+    await db.refresh(shop)
+    return _shop_two_factor_public(shop, has_active_secret=active_secret is not None)
+
+
+@router.post(
+    "/{shop_id:int}/two-factor/secret",
+    response_model=ShopTwoFactorPublic,
+    summary="Superadmin generates the initial shop two-factor secret",
+)
+async def generate_shop_two_factor_secret(
+    shop_id: int,
+    db: DbSession,
+    user: User = Depends(require_role(UserRole.SUPERADMIN)),
+) -> ShopTwoFactorPublic:
+    shop = await db.get(Shop, shop_id)
+    if shop is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="shop not found")
+    active_secret = await get_active_secret_for_shop(db, shop.id)
+    if active_secret is not None:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="shop two-factor secret already exists; use rotate instead",
+        )
+    await rotate_shop_secret(db, shop=shop, actor_user_id=user.id)
+    shop.two_factor_required_for_roles = list(SHOP_2FA_REQUIRED_ROLES)
+    await db.commit()
+    await db.refresh(shop)
+    return _shop_two_factor_public(shop, has_active_secret=True)
+
+
+@router.post(
+    "/{shop_id:int}/two-factor/secret/rotate",
+    response_model=ShopTwoFactorPublic,
+    summary="Superadmin rotates the active shop two-factor secret",
+)
+async def rotate_shop_two_factor_secret(
+    shop_id: int,
+    db: DbSession,
+    user: User = Depends(require_role(UserRole.SUPERADMIN)),
+) -> ShopTwoFactorPublic:
+    shop = await db.get(Shop, shop_id)
+    if shop is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="shop not found")
+    await rotate_shop_secret(db, shop=shop, actor_user_id=user.id)
+    shop.two_factor_required_for_roles = list(SHOP_2FA_REQUIRED_ROLES)
+    await db.commit()
+    await db.refresh(shop)
+    return _shop_two_factor_public(shop, has_active_secret=True)
+
+
+@router.post(
+    "/{shop_id:int}/two-factor/activation-tokens",
+    response_model=AuthenticatorActivationTokenPublic,
+    summary="Superadmin creates a one-time customer authenticator activation token",
+)
+async def create_shop_authenticator_activation_token(
+    shop_id: int,
+    payload: AuthenticatorActivationTokenCreate,
+    db: DbSession,
+    user: User = Depends(require_role(UserRole.SUPERADMIN)),
+) -> AuthenticatorActivationTokenPublic:
+    shop = await db.get(Shop, shop_id)
+    if shop is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="shop not found")
+    try:
+        token_row, raw_token = await create_authenticator_activation_token(
+            db,
+            shop=shop,
+            actor_user_id=user.id,
+            expires_in_minutes=payload.expires_in_minutes,
+        )
+    except TwoFactorProvisioningRequiredError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="shop two-factor secret has not been provisioned",
+        ) from exc
+    await db.commit()
+    return AuthenticatorActivationTokenPublic(
+        activation_token=raw_token,
+        expires_at=token_row.expires_at,
+        shop_id=shop.id,
+        secret_version=token_row.secret_version,
+    )
+
+
+@router.get(
+    "/{shop_id:int}/two-factor/authenticator-activations",
+    response_model=list[AuthenticatorActivationPublic],
+    summary="Superadmin lists customer authenticator activations for a shop",
+)
+async def list_shop_authenticator_activations(
+    shop_id: int,
+    db: DbSession,
+    _user: User = Depends(require_role(UserRole.SUPERADMIN)),
+) -> list[AuthenticatorActivationPublic]:
+    shop = await db.get(Shop, shop_id)
+    if shop is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="shop not found")
+    rows = (
+        await db.execute(
+            select(AuthenticatorActivation)
+            .where(AuthenticatorActivation.shop_id == shop.id)
+            .order_by(AuthenticatorActivation.activated_at.desc(), AuthenticatorActivation.id.desc())
+        )
+    ).scalars().all()
+    return [AuthenticatorActivationPublic.model_validate(row) for row in rows]
+
+
+@router.patch(
+    "/{shop_id:int}/two-factor/authenticator-activations/{activation_id:int}",
+    response_model=AuthenticatorActivationPublic,
+    summary="Superadmin activates or deactivates a customer authenticator activation",
+)
+async def update_shop_authenticator_activation(
+    shop_id: int,
+    activation_id: int,
+    payload: AuthenticatorActivationUpdate,
+    db: DbSession,
+    user: User = Depends(require_role(UserRole.SUPERADMIN)),
+) -> AuthenticatorActivationPublic:
+    activation = (
+        await db.execute(
+            select(AuthenticatorActivation).where(
+                AuthenticatorActivation.id == activation_id,
+                AuthenticatorActivation.shop_id == shop_id,
+            )
+        )
+    ).scalar_one_or_none()
+    if activation is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="authenticator activation not found")
+    activation.is_active = payload.is_active
+    activation.deactivated_at = (
+        None if payload.is_active else activation.deactivated_at or datetime.now(UTC)
+    )
+    await write_admin_log(
+        db,
+        event_type="auth.2fa.authenticator.activated" if payload.is_active else "auth.2fa.authenticator.deactivated",
+        actor_user_id=user.id,
+        shop_id=shop_id,
+        payload={"activation_id": activation.id, "shop_id": shop_id, "is_active": payload.is_active},
+    )
+    await db.commit()
+    await db.refresh(activation)
+    return AuthenticatorActivationPublic.model_validate(activation)

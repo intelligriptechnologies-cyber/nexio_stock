@@ -643,7 +643,7 @@ def receiving_text(
         (
             f"{line.get('product_name_snapshot') or _snapshot_name(line.get('product_brand'), line.get('product_size_label'))} "
             f"x {line.get('quantity')} (good {line.get('good_condition_quantity')}, breakage {line.get('breakage_quantity')}) "
-            f"at {_fmt_money(line.get('current_price', '0.00'))}, "
+            f"at {_fmt_money(line.get('unit_cost', '0.00'))}, "
             f"row total {_fmt_money(line.get('row_total', '0.00'))}"
         ).strip()
         for line in payload.get("lines", [])
@@ -654,7 +654,7 @@ def receiving_text(
     return (
         f"Receiving lot #{payload.get('lot_id')} for {shop} from {vendor} by {actor}; "
         f"purchase date {payload.get('purchase_date')}; vendor invoice {payload.get('vendor_invoice_number')}; "
-        f"invoice value {_fmt_money(payload.get('invoice_value'))}; "
+        f"invoice value {_fmt_money(payload.get('invoice_value'))}; merchandise total {_fmt_money(payload.get('merchandise_total'))}; "
         f"reference {reference}; notes {notes}; products received: {lines}."
     )
 

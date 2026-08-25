@@ -55,8 +55,9 @@ _RECEIVING_CSV_HEADER = [
     "quantity",
     "good_condition_quantity",
     "breakage_quantity",
-    "current_price",
+    "unit_cost",
     "row_total",
+    "merchandise_total",
 ]
 
 
@@ -173,8 +174,9 @@ def _receiving_csv_rows(
                 "quantity": line.get("quantity"),
                 "good_condition_quantity": line.get("good_condition_quantity"),
                 "breakage_quantity": line.get("breakage_quantity"),
-                "current_price": _money(line.get("current_price")),
+                "unit_cost": _money(line.get("unit_cost")),
                 "row_total": _money(line.get("row_total")),
+                "merchandise_total": _money(payload.get("merchandise_total")),
             }
         )
     return rows

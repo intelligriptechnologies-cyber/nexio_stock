@@ -5,6 +5,7 @@ export interface LotLineCreate {
   barcode: string;
   quantity: number;
   good_condition_quantity: number;
+  unit_cost: string;
 }
 
 export interface LotCreate {
@@ -23,6 +24,8 @@ export interface LotLinePublic {
   quantity: number;
   good_condition_quantity: number;
   breakage_quantity: number;
+  unit_cost: string | null;
+  line_total: string | null;
   product_brand: string;
   product_size_label: string;
 }
@@ -48,6 +51,7 @@ export interface LotPublic {
   purchase_date: string;
   vendor_invoice_number: string;
   invoice_value: string;
+  merchandise_total: string | null;
   reference: string | null;
   notes: string | null;
   status: "pending" | "approved" | "rejected" | "completed";
