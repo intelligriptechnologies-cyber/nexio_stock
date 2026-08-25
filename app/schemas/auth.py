@@ -3,9 +3,9 @@ from __future__ import annotations
 
 import re
 from datetime import date, datetime
+from typing import Literal
 
-from pydantic import BaseModel, ConfigDict, Field, field_validator
-from pydantic import EmailStr, model_validator
+from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator, model_validator
 
 from app.models.user import UserRole
 from app.schemas.shop import _GSTIN_RE
@@ -91,6 +91,52 @@ class TokenResponse(BaseModel):
     user: UserPublic
 
 
+class AuthChallengeUserSummary(BaseModel):
+    id: int
+    role: UserRole
+    full_name: str
+
+
+class AuthChallengeShopSummary(BaseModel):
+    id: int
+    name: str
+    code: str
+
+
+class TwoFactorChallengeResponse(BaseModel):
+    auth_status: Literal["two_factor_required"] = "two_factor_required"
+    challenge_token: str
+    expires_in: int
+    factor_type: Literal["shop_access_key", "superadmin_access_key"]
+    user: AuthChallengeUserSummary
+    shop: AuthChallengeShopSummary | None = None
+
+
+class VerifyTwoFactorRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    challenge_token: str = Field(min_length=16, max_length=512)
+    access_key: str = Field(min_length=6, max_length=6)
+    device_key: str | None = Field(default=None, min_length=8, max_length=64)
+
+    @field_validator("challenge_token", "access_key", "device_key")
+    @classmethod
+    def _trim_fields(cls, v: str | None) -> str | None:
+        if v is None:
+            return v
+        value = v.strip()
+        if not value:
+            raise ValueError("value must not be blank")
+        return value
+
+    @field_validator("access_key")
+    @classmethod
+    def _access_key_digits(cls, v: str) -> str:
+        if not v.isdigit():
+            raise ValueError("access_key must be 6 digits")
+        return v
+
+
 class UserPublic(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
@@ -160,7 +206,7 @@ class UserPasswordUpdate(BaseModel):
     confirm_password: str = Field(min_length=4, max_length=128)
 
     @model_validator(mode="after")
-    def _passwords_match(self) -> "UserPasswordUpdate":
+    def _passwords_match(self) -> UserPasswordUpdate:
         if self.new_password != self.confirm_password:
             raise ValueError("new password and confirm password must match")
         return self
@@ -180,6 +226,42 @@ class ShopStaffMember(BaseModel):
     id: int
     full_name: str
     role: UserRole
+
+
+class UserTwoFactorPublic(BaseModel):
+    two_factor_enabled: bool
+    two_factor_secret_version: int | None
+    two_factor_rotated_at: datetime | None
+    has_active_secret: bool
+
+
+class UserTwoFactorUpdate(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    two_factor_enabled: bool
+    current_password: str | None = Field(default=None, min_length=4, max_length=128)
+
+
+class RotateTwoFactorSecretResponse(BaseModel):
+    secret_version: int
+    rotated_at: datetime
+
+
+class AuthenticatorActivateRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    activation_token: str = Field(min_length=16, max_length=512)
+    machine_label: str | None = Field(default=None, max_length=120)
+    machine_fingerprint: str = Field(min_length=8, max_length=512)
+    app_version: str = Field(min_length=1, max_length=40)
+
+
+class AuthenticatorActivateResponse(BaseModel):
+    shop_name: str
+    shop_code: str
+    secret_base32: str
+    secret_version: int
+    step_seconds: int
 
 
 class DeviceContext(BaseModel):

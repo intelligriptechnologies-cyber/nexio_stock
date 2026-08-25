@@ -1,6 +1,12 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Api, ApiError, getOrCreateDeviceKey } from "../api/client";
+import {
+  Api,
+  ApiError,
+  type LoginSuccessResponse,
+  type TwoFactorChallengeResponse,
+  getOrCreateDeviceKey,
+} from "../api/client";
 import { homePathFor, type AuthUser, type Role, useAuth } from "../auth/AuthProvider";
 import { AuthShell } from "../components/AuthShell";
 
@@ -18,6 +24,8 @@ export function LoginPage() {
   const [role, setRole] = useState<ShopLoginRole>("cashier_user");
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [challenge, setChallenge] = useState<TwoFactorChallengeResponse | null>(null);
+  const [accessKey, setAccessKey] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [deviceKey] = useState<string>(() => getOrCreateDeviceKey());
@@ -39,17 +47,12 @@ export function LoginPage() {
         password,
         device_key: deviceKey,
       });
-      const raw = json.user as Record<string, unknown>;
-      const user: AuthUser = {
-        id: Number(raw.id),
-        shopId: raw.shop_id == null ? null : Number(raw.shop_id),
-        role: raw.role as Role,
-        username: String(raw.username ?? ""),
-        fullName: String(raw.full_name ?? ""),
-        phone: String(raw.phone ?? ""),
-      };
-      login(json.access_token, user);
-      navigate(homePathFor(user.role), { replace: true });
+      if ("auth_status" in json) {
+        setChallenge(json);
+        setAccessKey("");
+        return;
+      }
+      completeLogin(json);
     } catch (e) {
       if (e instanceof ApiError) {
         if (e.status === 401) setError("Invalid username, role, or PIN.");
@@ -62,6 +65,56 @@ export function LoginPage() {
     } finally {
       setSubmitting(false);
     }
+  };
+
+  const completeLogin = (json: LoginSuccessResponse) => {
+    const user: AuthUser = {
+      id: Number(json.user.id),
+      shopId: json.user.shop_id == null ? null : Number(json.user.shop_id),
+      role: json.user.role as Role,
+      username: String(json.user.username ?? ""),
+      fullName: String(json.user.full_name ?? ""),
+      phone: String(json.user.phone ?? ""),
+    };
+    login(json.access_token, user);
+    navigate(homePathFor(user.role), { replace: true });
+  };
+
+  const verifyAccessKey = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!challenge) return;
+    setSubmitting(true);
+    setError(null);
+    try {
+      const verified = await Api.verifyTwoFactor({
+        challenge_token: challenge.challenge_token,
+        access_key: accessKey.trim(),
+        device_key: deviceKey,
+      });
+      completeLogin(verified);
+    } catch (e) {
+      if (e instanceof ApiError) {
+        if (e.status === 401) setError("Wrong access key. Enter the latest 6-digit key.");
+        else if (e.status === 410 || e.status === 409 || e.status === 429) {
+          setChallenge(null);
+          setAccessKey("");
+          setError(e.detail);
+        } else {
+          setError(e.detail);
+        }
+      } else {
+        setError("Unexpected error.");
+      }
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const backToCredentials = () => {
+    if (submitting) return;
+    setChallenge(null);
+    setAccessKey("");
+    setError(null);
   };
 
   return (
@@ -77,82 +130,132 @@ export function LoginPage() {
         { label: "Terms and Conditions", to: "/terms" },
       ]}
     >
-      <form onSubmit={handleSubmit} className="auth-terminal-form">
-        <fieldset>
-          <legend className="auth-terminal-label">Access Role</legend>
-          <div className="grid grid-cols-1 gap-2 sm:grid-cols-3 [@media(max-height:840px)]:gap-1.5">
-            {ROLE_OPTIONS.map((option) => {
-              const checked = role === option.value;
-              return (
-                <label key={option.value} className="block">
-                  <input
-                    type="radio"
-                    name="role"
-                    value={option.value}
-                    checked={checked}
-                    onChange={() => setRole(option.value)}
-                    className="peer sr-only"
-                    aria-label={option.label}
-                  />
-                  <span className="flex min-h-[44px] cursor-pointer items-center justify-center rounded-2xl border border-[#2a3139] bg-[#0b1015] px-3 py-2.5 text-center text-sm font-medium text-[#b8c5d2] transition-[border-color,background-color,color,box-shadow] duration-200 peer-hover:border-[#42505e] peer-focus-visible:border-[#8ae6ff] peer-focus-visible:ring-4 peer-focus-visible:ring-cyan-300/10 peer-checked:border-[#8fe8ff] peer-checked:bg-[#10202a] peer-checked:text-white [@media(max-height:840px)]:min-h-[40px] [@media(max-height:840px)]:py-2">
-                    {option.label}
-                  </span>
-                </label>
-              );
-            })}
+      {challenge ? (
+        <form onSubmit={verifyAccessKey} className="auth-terminal-form">
+          <div className="space-y-1">
+            <div className="auth-terminal-label">Enter Access Key</div>
+            <div className="text-sm text-[#9eb1c5]">
+              {challenge.shop ? `${challenge.shop.name} (${challenge.shop.code})` : "Access verification required"}
+            </div>
           </div>
-        </fieldset>
 
-        <label className="block">
-          <span className="auth-terminal-label">Terminal ID / Username</span>
-          <input
-            type="text"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-            placeholder="Enter terminal username"
-            className="auth-terminal-field"
-            autoComplete="username"
-            autoFocus
-            required
-            aria-label="Terminal ID / Username"
-          />
-        </label>
+          <label className="block">
+            <span className="auth-terminal-label">6-Digit Access Key</span>
+            <input
+              type="text"
+              inputMode="numeric"
+              pattern="[0-9]{6}"
+              value={accessKey}
+              onChange={(e) => {
+                setAccessKey(e.target.value.replace(/\D/g, "").slice(0, 6));
+                if (error) setError(null);
+              }}
+              className="auth-terminal-field"
+              autoFocus
+              required
+              aria-label="6-Digit Access Key"
+            />
+          </label>
 
-        <label className="block">
-          <span className="auth-terminal-label">Security PIN</span>
-          <input
-            type="password"
-            value={password}
-            onChange={(e) => {
-              setPassword(e.target.value);
-              if (error) setError(null);
-            }}
-            className="auth-terminal-field"
-            autoComplete="current-password"
-            required
-            aria-label="Security PIN"
-          />
-        </label>
+          {error ? (
+            <div
+              role="alert"
+              className="animate-fade-in rounded-2xl border border-rose-400/20 bg-rose-400/10 px-4 py-3 text-sm text-rose-100"
+            >
+              {error}
+            </div>
+          ) : null}
 
-        {error ? (
-          <div
-            role="alert"
-            className="animate-fade-in rounded-2xl border border-rose-400/20 bg-rose-400/10 px-4 py-3 text-sm text-rose-100"
+          <button
+            type="submit"
+            disabled={submitting || accessKey.length !== 6}
+            className="auth-terminal-submit"
           >
-            {error}
+            {submitting ? "Verifying..." : "Verify Access Key"}
+          </button>
+
+          <button type="button" onClick={backToCredentials} className="auth-terminal-link text-left">
+            Back to login
+          </button>
+        </form>
+      ) : (
+        <form onSubmit={handleSubmit} className="auth-terminal-form">
+          <fieldset>
+            <legend className="auth-terminal-label">Access Role</legend>
+            <div className="grid grid-cols-1 gap-2 sm:grid-cols-3 [@media(max-height:840px)]:gap-1.5">
+              {ROLE_OPTIONS.map((option) => {
+                const checked = role === option.value;
+                return (
+                  <label key={option.value} className="block">
+                    <input
+                      type="radio"
+                      name="role"
+                      value={option.value}
+                      checked={checked}
+                      onChange={() => setRole(option.value)}
+                      className="peer sr-only"
+                      aria-label={option.label}
+                    />
+                    <span className="flex min-h-[44px] cursor-pointer items-center justify-center rounded-2xl border border-[#2a3139] bg-[#0b1015] px-3 py-2.5 text-center text-sm font-medium text-[#b8c5d2] transition-[border-color,background-color,color,box-shadow] duration-200 peer-hover:border-[#42505e] peer-focus-visible:border-[#8ae6ff] peer-focus-visible:ring-4 peer-focus-visible:ring-cyan-300/10 peer-checked:border-[#8fe8ff] peer-checked:bg-[#10202a] peer-checked:text-white [@media(max-height:840px)]:min-h-[40px] [@media(max-height:840px)]:py-2">
+                      {option.label}
+                    </span>
+                  </label>
+                );
+              })}
+            </div>
+          </fieldset>
+
+          <label className="block">
+            <span className="auth-terminal-label">Terminal ID / Username</span>
+            <input
+              type="text"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              placeholder="Enter terminal username"
+              className="auth-terminal-field"
+              autoComplete="username"
+              autoFocus
+              required
+              aria-label="Terminal ID / Username"
+            />
+          </label>
+
+          <label className="block">
+            <span className="auth-terminal-label">Security PIN</span>
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => {
+                setPassword(e.target.value);
+                if (error) setError(null);
+              }}
+              className="auth-terminal-field"
+              autoComplete="current-password"
+              required
+              aria-label="Security PIN"
+            />
+          </label>
+
+          {error ? (
+            <div
+              role="alert"
+              className="animate-fade-in rounded-2xl border border-rose-400/20 bg-rose-400/10 px-4 py-3 text-sm text-rose-100"
+            >
+              {error}
+            </div>
+          ) : null}
+
+          <button type="submit" disabled={!canSubmit} className="auth-terminal-submit">
+            {submitting ? "Signing in..." : "Open Terminal"}
+          </button>
+
+          <div className="border-t border-white/8 pt-3 text-center [@media(max-height:840px)]:pt-2.5">
+            <Link to="/login/superadmin" className="auth-terminal-link">
+              Need superadmin access?
+            </Link>
           </div>
-        ) : null}
-
-        <button type="submit" disabled={!canSubmit} className="auth-terminal-submit">
-          {submitting ? "Signing in..." : "Open Terminal"}
-        </button>
-
-        <div className="border-t border-white/8 pt-3 text-center [@media(max-height:840px)]:pt-2.5">
-          <Link to="/login/superadmin" className="auth-terminal-link">
-            Need superadmin access?
-          </Link>
-        </div>
-      </form>
+        </form>
+      )}
     </AuthShell>
   );
 }

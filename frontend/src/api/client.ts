@@ -59,6 +59,39 @@ export class ApiError extends Error {
   }
 }
 
+export interface AuthenticatedUserPayload {
+  id: number;
+  shop_id: number | null;
+  role: string;
+  username?: string;
+  full_name?: string;
+  phone?: string;
+}
+
+export interface LoginSuccessResponse {
+  access_token: string;
+  token_type: string;
+  expires_in: number;
+  user: AuthenticatedUserPayload;
+}
+
+export interface TwoFactorChallengeResponse {
+  auth_status: "two_factor_required";
+  challenge_token: string;
+  expires_in: number;
+  factor_type: "shop_access_key" | "superadmin_access_key";
+  user: {
+    id: number;
+    role: string;
+    full_name: string;
+  };
+  shop?: {
+    id: number;
+    name: string;
+    code: string;
+  } | null;
+}
+
 // Every catch block that surfaces an error to the user re-derived this
 // same instanceof chain (ApiError -> its .detail, plain Error -> its
 // .message, anything else -> a caller-supplied fallback). One helper so
@@ -145,7 +178,7 @@ export async function api<T = unknown>(
 // Convenience helpers for the typed endpoints.
 export const Api = {
   loginSuperadmin: (username: string, password: string) =>
-    api<{ access_token: string; token_type: string; expires_in: number; user: unknown }>(
+    api<LoginSuccessResponse | TwoFactorChallengeResponse>(
       "/auth/login/superadmin",
       { method: "POST", json: { username, password } }
     ),
@@ -155,10 +188,19 @@ export const Api = {
     password: string;
     device_key: string;
   }) =>
-    api<{ access_token: string; token_type: string; expires_in: number; user: unknown }>(
+    api<LoginSuccessResponse | TwoFactorChallengeResponse>(
       "/auth/login",
       { method: "POST", json: payload }
     ),
+  verifyTwoFactor: (payload: {
+    challenge_token: string;
+    access_key: string;
+    device_key?: string;
+  }) =>
+    api<LoginSuccessResponse>("/auth/verify-2fa", {
+      method: "POST",
+      json: payload,
+    }),
   // Public pre-auth staff picker (legacy compatibility for older tests).
   listShopStaff: () =>
     api<Array<{ id: number; full_name: string; role: string }>>("/auth/shop-staff"),

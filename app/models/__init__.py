@@ -6,6 +6,7 @@ shop exists at launch (D-3).
 """
 from __future__ import annotations
 
+from app.models.device import DeviceBinding
 from app.models.invoice import (
     STATUSES_COUNTING_AS_SOLD,
     EodSignOff,
@@ -19,10 +20,8 @@ from app.models.invoice import (
     Payment,
     PaymentMode,
 )
-from app.models.device import DeviceBinding
 from app.models.log import AdminLog, InvoicingLog, LogFileRetentionSetting, StockinLog
 from app.models.lot import Lot, LotLine
-from app.models.stock_inward import StockInward, StockInwardLine, StockInwardStatus
 from app.models.offline_session import (
     LOCKING_OFFLINE_STATES,
     OfflineSession,
@@ -30,6 +29,14 @@ from app.models.offline_session import (
 )
 from app.models.product import MasterProduct, Product, ProductStatus
 from app.models.shop import Shop
+from app.models.stock_inward import StockInward, StockInwardLine, StockInwardStatus
+from app.models.two_factor import (
+    AuthenticatorActivation,
+    AuthenticatorActivationToken,
+    PendingAuthChallenge,
+    TwoFactorSecret,
+    TwoFactorSubjectType,
+)
 from app.models.user import User, UserRole
 from app.models.vendor import Vendor
 
@@ -37,9 +44,11 @@ __all__ = [
     "LOCKING_OFFLINE_STATES",
     "STATUSES_COUNTING_AS_SOLD",
     "AdminLog",
+    "AuthenticatorActivation",
+    "AuthenticatorActivationToken",
+    "DeviceBinding",
     "EodSignOff",
     "IdempotencyKey",
-    "DeviceBinding",
     "Invoice",
     "InvoiceLine",
     "InvoiceStatus",
@@ -55,6 +64,7 @@ __all__ = [
     "PastPayment",
     "Payment",
     "PaymentMode",
+    "PendingAuthChallenge",
     "Product",
     "ProductStatus",
     "Shop",
@@ -62,6 +72,8 @@ __all__ = [
     "StockInwardLine",
     "StockInwardStatus",
     "StockinLog",
+    "TwoFactorSecret",
+    "TwoFactorSubjectType",
     "User",
     "UserRole",
     "Vendor",

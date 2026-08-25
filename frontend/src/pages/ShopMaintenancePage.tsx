@@ -1,19 +1,32 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Store, RefreshCw, Plus, Save, Users, Package, Settings } from "lucide-react";
+import { Store, RefreshCw, Plus, Save, Users, Package, Settings, Shield, KeyRound } from "lucide-react";
 import { listProducts, type Product } from "../api/products";
 import { toUserMessage } from "../api/client";
 import {
+  createShopAuthenticatorActivationToken,
   createShop,
   createShopUser,
   getMyShop,
+  getShopTwoFactor,
+  generateShopTwoFactorSecret,
+  listShopAuthenticatorActivations,
+  listShopDevices,
   listShopUsers,
   listShops,
+  rotateShopTwoFactorSecret,
   resetShopUserPassword,
   setShopUserActive,
+  updateShopAuthenticatorActivation,
+  updateShopDevice,
+  updateShopTwoFactor,
   updateShop,
+  type ShopAuthenticatorActivation,
+  type ShopAuthenticatorActivationToken,
+  type ShopDevice,
   type ShopPublic,
   type ShopSummary,
+  type ShopTwoFactorPublic,
   type ShopUser,
   type ShopUserRole,
 } from "../api/shops";
@@ -27,12 +40,13 @@ const STATUS_FILTERS = ["all", "active", "inactive"] as const;
 
 type RoleFilter = (typeof ROLE_FILTERS)[number];
 type StatusFilter = (typeof STATUS_FILTERS)[number];
-type ShopTab = "details" | "users" | "inventory";
+type ShopTab = "details" | "users" | "inventory" | "twoFactor";
 
 const TABS: Array<{ id: ShopTab; label: string }> = [
   { id: "details", label: "Shop Details" },
   { id: "users", label: "Allotted Users" },
   { id: "inventory", label: "Quick Inventory Check" },
+  { id: "twoFactor", label: "Two Factor Authentication" },
 ];
 
 export function ShopMaintenancePage() {
@@ -44,6 +58,10 @@ export function ShopMaintenancePage() {
   const [shopDetails, setShopDetails] = useState<ShopPublic | null>(null);
   const [users, setUsers] = useState<ShopUser[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
+  const [twoFactor, setTwoFactor] = useState<ShopTwoFactorPublic | null>(null);
+  const [devices, setDevices] = useState<ShopDevice[]>([]);
+  const [activations, setActivations] = useState<ShopAuthenticatorActivation[]>([]);
+  const [activationToken, setActivationToken] = useState<ShopAuthenticatorActivationToken | null>(null);
   const [productQuery, setProductQuery] = useState("");
   const [includeInactiveProducts, setIncludeInactiveProducts] = useState(false);
   const [roleFilter, setRoleFilter] = useState<RoleFilter>("all");
@@ -86,6 +104,9 @@ export function ShopMaintenancePage() {
       setShopDetails(null);
       setUsers([]);
       setProducts([]);
+      setTwoFactor(null);
+      setDevices([]);
+      setActivations([]);
       return;
     }
     setError(null);
@@ -97,12 +118,18 @@ export function ShopMaintenancePage() {
         q: productQuery.trim() || undefined,
         includeInactive: includeInactiveProducts,
       }),
+      getShopTwoFactor(selectedShopId),
+      listShopDevices(selectedShopId),
+      listShopAuthenticatorActivations(selectedShopId),
     ])
-      .then(([details, userRows, productRows]) => {
+      .then(([details, userRows, productRows, twoFactorRow, deviceRows, activationRows]) => {
         if (cancelled) return;
         setShopDetails(details);
         setUsers(userRows);
         setProducts(productRows);
+        setTwoFactor(twoFactorRow);
+        setDevices(deviceRows);
+        setActivations(activationRows);
       })
       .catch((e) => {
         if (!cancelled) setError(toUserMessage(e, "Could not load selected shop."));
@@ -265,6 +292,21 @@ export function ShopMaintenancePage() {
                   onQuery={setProductQuery}
                   onIncludeInactive={setIncludeInactiveProducts}
                   onOpenProducts={() => navigate("/admin/products")}
+                />
+              )}
+              {activeTab === "twoFactor" && twoFactor && (
+                <TwoFactorPanel
+                  shopId={selectedShop.id}
+                  status={twoFactor}
+                  devices={devices}
+                  activations={activations}
+                  activationToken={activationToken}
+                  onActivationToken={setActivationToken}
+                  onChanged={() => {
+                    setMessage("Two-factor settings updated.");
+                    reload();
+                  }}
+                  onError={setError}
                 />
               )}
             </div>
@@ -768,6 +810,246 @@ function InventoryPanel({
             )}
           </tbody>
         </table>
+      </div>
+    </section>
+  );
+}
+
+function TwoFactorPanel({
+  shopId,
+  status,
+  devices,
+  activations,
+  activationToken,
+  onActivationToken,
+  onChanged,
+  onError,
+}: {
+  shopId: number;
+  status: ShopTwoFactorPublic;
+  devices: ShopDevice[];
+  activations: ShopAuthenticatorActivation[];
+  activationToken: ShopAuthenticatorActivationToken | null;
+  onActivationToken: (value: ShopAuthenticatorActivationToken | null) => void;
+  onChanged: () => void;
+  onError: (message: string | null) => void;
+}) {
+  const [busy, setBusy] = useState<"generate" | "rotate" | "toggle" | "token" | null>(null);
+  const [copiedToken, setCopiedToken] = useState(false);
+
+  const handleGenerate = async () => {
+    setBusy("generate");
+    onError(null);
+    try {
+      await generateShopTwoFactorSecret(shopId);
+      onActivationToken(null);
+      onChanged();
+    } catch (err) {
+      onError(toUserMessage(err, "Could not generate two-factor secret."));
+    } finally {
+      setBusy(null);
+    }
+  };
+
+  const handleRotate = async () => {
+    setBusy("rotate");
+    onError(null);
+    try {
+      await rotateShopTwoFactorSecret(shopId);
+      onActivationToken(null);
+      onChanged();
+    } catch (err) {
+      onError(toUserMessage(err, "Could not rotate two-factor secret."));
+    } finally {
+      setBusy(null);
+    }
+  };
+
+  const handleToggle = async () => {
+    setBusy("toggle");
+    onError(null);
+    try {
+      await updateShopTwoFactor(shopId, !status.two_factor_enabled);
+      onChanged();
+    } catch (err) {
+      onError(toUserMessage(err, "Could not update two-factor status."));
+    } finally {
+      setBusy(null);
+    }
+  };
+
+  const handleCreateActivationToken = async () => {
+    setBusy("token");
+    onError(null);
+    setCopiedToken(false);
+    try {
+      const token = await createShopAuthenticatorActivationToken(shopId);
+      onActivationToken(token);
+      onChanged();
+    } catch (err) {
+      onError(toUserMessage(err, "Could not create authenticator activation token."));
+    } finally {
+      setBusy(null);
+    }
+  };
+
+  const copyActivationToken = async () => {
+    if (!activationToken) return;
+    onError(null);
+    try {
+      await navigator.clipboard.writeText(activationToken.activation_token);
+      setCopiedToken(true);
+    } catch (err) {
+      onError(toUserMessage(err, "Could not copy activation token."));
+    }
+  };
+
+  const toggleDevice = async (device: ShopDevice) => {
+    onError(null);
+    try {
+      await updateShopDevice(device.id, { is_active: !device.is_active }, shopId);
+      onChanged();
+    } catch (err) {
+      onError(toUserMessage(err, "Could not update device status."));
+    }
+  };
+
+  const toggleActivation = async (activation: ShopAuthenticatorActivation) => {
+    onError(null);
+    try {
+      await updateShopAuthenticatorActivation(shopId, activation.id, !activation.is_active);
+      onChanged();
+    } catch (err) {
+      onError(toUserMessage(err, "Could not update authenticator activation."));
+    }
+  };
+
+  return (
+    <section className="flex flex-col gap-6">
+      <div className="flex items-center gap-2 text-xl font-semibold tracking-tight text-slate-900">
+        <Shield className="h-5 w-5 text-action" /> Two Factor Authentication
+      </div>
+
+      <div className="grid gap-6 lg:grid-cols-[1.15fr_0.85fr]">
+        <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+          <div className="grid gap-4 md:grid-cols-2">
+            <div>
+              <div className="text-xs font-semibold uppercase tracking-wider text-slate-500">Current status</div>
+              <div className="mt-2 text-lg font-semibold text-slate-900">
+                {status.two_factor_enabled ? "Enabled" : "Disabled"}
+              </div>
+            </div>
+            <div>
+              <div className="text-xs font-semibold uppercase tracking-wider text-slate-500">Protected roles</div>
+              <div className="mt-2 text-sm text-slate-700">
+                Owner, Cashier, Receiver
+              </div>
+            </div>
+            <div>
+              <div className="text-xs font-semibold uppercase tracking-wider text-slate-500">Secret version</div>
+              <div className="mt-2 text-sm font-mono text-slate-700">
+                {status.two_factor_secret_version ?? "Not generated"}
+              </div>
+            </div>
+            <div>
+              <div className="text-xs font-semibold uppercase tracking-wider text-slate-500">Rotated at</div>
+              <div className="mt-2 text-sm text-slate-700">
+                {status.two_factor_rotated_at ? new Date(status.two_factor_rotated_at).toLocaleString() : "Not generated"}
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-6 flex flex-wrap gap-3">
+            {!status.has_active_secret ? (
+              <button type="button" onClick={() => void handleGenerate()} disabled={busy !== null} className="flex h-11 items-center justify-center gap-2 rounded-xl bg-action px-6 text-sm font-bold tracking-wide text-white shadow-sm transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:-translate-y-0.5 hover:shadow-[var(--color-action)]/30 active:scale-[0.97] disabled:pointer-events-none disabled:opacity-50">
+                <KeyRound className="h-4 w-4" /> {busy === "generate" ? "Generating..." : "Generate Secret"}
+              </button>
+            ) : (
+              <>
+                <button type="button" onClick={() => void handleToggle()} disabled={busy !== null} className="flex h-11 items-center justify-center rounded-xl bg-action px-6 text-sm font-bold tracking-wide text-white shadow-sm transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:-translate-y-0.5 hover:shadow-[var(--color-action)]/30 active:scale-[0.97] disabled:pointer-events-none disabled:opacity-50">
+                  {busy === "toggle" ? "Saving..." : status.two_factor_enabled ? "Disable 2FA" : "Enable 2FA"}
+                </button>
+                <button type="button" onClick={() => void handleRotate()} disabled={busy !== null} className="flex h-11 items-center justify-center rounded-xl bg-white px-6 text-sm font-semibold tracking-wide text-slate-700 shadow-sm ring-1 ring-slate-200 transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:bg-slate-50 active:scale-[0.97] disabled:pointer-events-none disabled:opacity-50">
+                  {busy === "rotate" ? "Rotating..." : "Rotate Secret"}
+                </button>
+                <button type="button" onClick={() => void handleCreateActivationToken()} disabled={busy !== null} className="flex h-11 items-center justify-center rounded-xl bg-white px-6 text-sm font-semibold tracking-wide text-slate-700 shadow-sm ring-1 ring-slate-200 transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:bg-slate-50 active:scale-[0.97] disabled:pointer-events-none disabled:opacity-50">
+                  {busy === "token" ? "Creating..." : "Create Activation Token"}
+                </button>
+              </>
+            )}
+          </div>
+        </div>
+
+        <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+          <div className="text-xs font-semibold uppercase tracking-wider text-slate-500">Customer authenticator</div>
+          <div className="mt-2 text-sm text-slate-700">
+            First release uses a self-contained Windows EXE with one-time online activation.
+          </div>
+          <div className="mt-3 space-y-1 text-sm text-slate-600">
+            <div>1. Create a one-time activation token.</div>
+            <div>2. Copy the token into the Windows authenticator.</div>
+            <div>3. Enter the backend base URL and confirm activation on the machine.</div>
+          </div>
+          {activationToken ? (
+            <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 p-4">
+              <div className="text-xs font-semibold uppercase tracking-wider text-amber-700">One-time activation token</div>
+              <div className="mt-2 break-all font-mono text-sm text-amber-900">{activationToken.activation_token}</div>
+              <div className="mt-2 text-xs text-amber-700">
+                Expires {new Date(activationToken.expires_at).toLocaleString()}
+              </div>
+              <div className="mt-3 flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => void copyActivationToken()}
+                  className="rounded-lg bg-white px-3 py-2 text-sm font-semibold text-slate-700 shadow-sm ring-1 ring-amber-200 transition-colors hover:bg-amber-100"
+                >
+                  Copy token
+                </button>
+                {copiedToken ? <div className="text-xs font-medium text-emerald-700">Copied.</div> : null}
+              </div>
+            </div>
+          ) : null}
+        </div>
+      </div>
+
+      <div className="grid gap-6 xl:grid-cols-2">
+        <div className="rounded-2xl border border-slate-200 bg-white shadow-sm">
+          <div className="border-b border-slate-100 px-6 py-4 text-sm font-semibold text-slate-900">Registered browser devices</div>
+          <div className="divide-y divide-slate-100">
+            {devices.map((device) => (
+              <div key={device.id} className="flex items-center justify-between gap-4 px-6 py-4">
+                <div>
+                  <div className="font-medium text-slate-900">{device.counter_name ?? "Unnamed device"}</div>
+                  <div className="font-mono text-xs text-slate-500">{device.device_key}</div>
+                </div>
+                <button type="button" onClick={() => void toggleDevice(device)} className="text-sm font-semibold text-action">
+                  {device.is_active ? "Deactivate" : "Activate"}
+                </button>
+              </div>
+            ))}
+            {devices.length === 0 && <div className="px-6 py-8 text-sm text-slate-500">No registered devices.</div>}
+          </div>
+        </div>
+
+        <div className="rounded-2xl border border-slate-200 bg-white shadow-sm">
+          <div className="border-b border-slate-100 px-6 py-4 text-sm font-semibold text-slate-900">Authenticator activations</div>
+          <div className="divide-y divide-slate-100">
+            {activations.map((activation) => (
+              <div key={activation.id} className="flex items-center justify-between gap-4 px-6 py-4">
+                <div>
+                  <div className="font-medium text-slate-900">{activation.machine_label ?? "Unnamed activation"}</div>
+                  <div className="text-xs text-slate-500">
+                    Secret v{activation.secret_version} · {activation.is_active ? "Active" : "Inactive"}
+                  </div>
+                </div>
+                <button type="button" onClick={() => void toggleActivation(activation)} className="text-sm font-semibold text-action">
+                  {activation.is_active ? "Deactivate" : "Activate"}
+                </button>
+              </div>
+            ))}
+            {activations.length === 0 && <div className="px-6 py-8 text-sm text-slate-500">No authenticator activations yet.</div>}
+          </div>
+        </div>
       </div>
     </section>
   );

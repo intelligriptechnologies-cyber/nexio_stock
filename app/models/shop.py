@@ -92,6 +92,21 @@ class Shop(Base):
     allowed_login_cidrs: Mapped[list[str]] = mapped_column(
         ARRAY(String), nullable=False, default=list, server_default=text("'{}'::varchar[]")
     )
+    two_factor_enabled: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, default=False, server_default="false"
+    )
+    two_factor_secret_version: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    two_factor_rotated_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+    two_factor_required_for_roles: Mapped[list[str]] = mapped_column(
+        ARRAY(String),
+        nullable=False,
+        default=lambda: ["owner", "cashier_user", "receiver_user"],
+        server_default=text(
+            "'{owner,cashier_user,receiver_user}'::varchar[]"
+        ),
+    )
     smtp_host: Mapped[str | None] = mapped_column(String(255), nullable=True)
     smtp_port: Mapped[int | None] = mapped_column(Integer, nullable=True)
     smtp_username: Mapped[str | None] = mapped_column(String(255), nullable=True)
