@@ -35,7 +35,11 @@ async def _create_lot(
 ) -> None:
     resp = await receiver_client.post(
         "/lots",
-        json={"reference": "DEL-1", "lines": [{"barcode": barcode, "quantity": 5}]},
+        json={
+            "reference": "DEL-1",
+            "invoice_value": "500.00",
+            "lines": [{"barcode": barcode, "quantity": 5, "unit_cost": "100.00"}],
+        },
     )
     assert resp.status_code == 201, resp.text
     inward_id = resp.json()["id"]
@@ -130,8 +134,9 @@ async def test_live_events_append_daily_english_files(
     assert receiving_rows[0]["vendor_name"]
     assert receiving_rows[0]["purchase_date"]
     assert receiving_rows[0]["vendor_invoice_number"]
-    assert receiving_rows[0]["current_price"] == "100.00"
+    assert receiving_rows[0]["unit_cost"] == "100.00"
     assert receiving_rows[0]["row_total"] == "500.00"
+    assert receiving_rows[0]["merchandise_total"] == "500.00"
 
 
 @pytest.mark.usefixtures("owner", "receiver", "cashier")
@@ -149,9 +154,10 @@ async def test_checkout_and_receiving_csv_rows_follow_line_items(
         json={
             "reference": "DEL-2",
             "notes": "Bulk receiving",
+            "invoice_value": "600.00",
             "lines": [
-                {"barcode": "8909200000001", "quantity": 4},
-                {"barcode": "8909200000002", "quantity": 2},
+                {"barcode": "8909200000001", "quantity": 4, "unit_cost": "100.00"},
+                {"barcode": "8909200000002", "quantity": 2, "unit_cost": "100.00"},
             ],
         },
     )
@@ -200,8 +206,9 @@ async def test_checkout_and_receiving_csv_rows_follow_line_items(
     assert receiving_barcodes == {"8909200000001", "8909200000002"}
     assert all(row["reference"] == "DEL-2" for row in receiving_rows)
     assert all(row["notes"] == "Bulk receiving" for row in receiving_rows)
-    assert all(row["current_price"] == "100.00" for row in receiving_rows)
+    assert all(row["unit_cost"] == "100.00" for row in receiving_rows)
     assert {row["row_total"] for row in receiving_rows} == {"400.00", "200.00"}
+    assert {row["merchandise_total"] for row in receiving_rows} == {"600.00"}
     assert all(row["good_condition_quantity"] for row in receiving_rows)
     assert all(row["breakage_quantity"] for row in receiving_rows)
 

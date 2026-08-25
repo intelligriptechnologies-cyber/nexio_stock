@@ -39,7 +39,12 @@ function money(price: string | null): string {
   if (price === null) return "--";
   const n = Number(price);
   if (!Number.isFinite(n)) return `Rs. ${price}`;
-  return `Rs. ${n.toLocaleString("en-IN", { maximumFractionDigits: 2 })}`;
+  return `Rs. ${n.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+}
+
+function valuation(item: Product): string {
+  if (item.latest_unit_cost === null) return "--";
+  return money((Number(item.latest_unit_cost) * item.current_stock).toFixed(2));
 }
 
 export function InventoryPage() {
@@ -119,6 +124,8 @@ export function InventoryPage() {
         size_label: item.size_label,
         barcode: item.barcode,
         price: item.price ?? "",
+        latest_unit_cost: item.latest_unit_cost ?? "",
+        inventory_value: item.latest_unit_cost === null ? "" : (Number(item.latest_unit_cost) * item.current_stock).toFixed(2),
         current_stock: item.current_stock,
         low_stock_threshold: item.low_stock_threshold ?? "",
         stock_state: stockLabel(stockState(item)),
@@ -129,6 +136,8 @@ export function InventoryPage() {
         "size_label",
         "barcode",
         "price",
+        "latest_unit_cost",
+        "inventory_value",
         "current_stock",
         "low_stock_threshold",
         "stock_state",
@@ -214,14 +223,16 @@ export function InventoryPage() {
       ) : visibleItems.length > 0 ? (
         <div className="overflow-hidden rounded-xl border border-slate-200/50 bg-white/60 shadow-[0_8px_30px_rgb(0,0,0,0.02)] backdrop-blur-xl">
           <div className="overflow-x-auto">
-            <table className="app-list-table min-w-[1000px]" aria-label="Inventory table">
+            <table className="app-list-table min-w-[1120px]" aria-label="Inventory table">
               <thead className="bg-slate-50/80 text-[11px] uppercase tracking-widest text-slate-500">
                 <tr>
                   <th className="px-6 py-4 font-semibold">Product / brand</th>
                   <th className="px-6 py-4 font-semibold">Size / variant</th>
                   <th className="px-6 py-4 font-semibold">Barcode</th>
-                  <th className="px-6 py-4 text-right font-semibold">Price</th>
+                  <th className="px-6 py-4 text-right font-semibold">Sell price</th>
+                  <th className="px-6 py-4 text-right font-semibold">Cost</th>
                   <th className="px-6 py-4 text-right font-semibold">Available stock</th>
+                  <th className="px-6 py-4 text-right font-semibold">Inventory value</th>
                   <th className="px-6 py-4 text-right font-semibold">Low-stock threshold</th>
                   <th className="px-6 py-4 font-semibold">Stock state</th>
                   <th className="px-6 py-4 text-right font-semibold">Shortcuts</th>
@@ -236,9 +247,11 @@ export function InventoryPage() {
                       <td className="px-6 py-4 text-slate-700">{item.size_label}</td>
                       <td className="px-6 py-4 font-mono text-xs text-slate-500">{item.barcode}</td>
                       <td className="px-6 py-4 text-right font-mono font-semibold text-slate-900">{money(item.price)}</td>
+                      <td className="px-6 py-4 text-right font-mono font-semibold text-slate-900">{money(item.latest_unit_cost)}</td>
                       <td className="px-6 py-4 text-right font-mono text-base font-bold text-slate-900">
                         {item.current_stock}
                       </td>
+                      <td className="px-6 py-4 text-right font-mono font-semibold text-slate-900">{valuation(item)}</td>
                       <td className="px-6 py-4 text-right font-mono text-slate-500">
                         {item.low_stock_threshold ?? "--"}
                       </td>

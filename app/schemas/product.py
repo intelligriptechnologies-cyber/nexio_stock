@@ -141,6 +141,7 @@ class ProductPublic(BaseModel):
     # list/lookup endpoints; default 0 here so the schema also validates
     # in tests that construct ProductPublic directly from a bare row.
     current_stock: int = 0
+    latest_unit_cost: Decimal | None = None
 
 
 class ProductActionConfirmation(BaseModel):

@@ -240,6 +240,7 @@ function ListTab({
         size_label: product.size_label,
         barcode: product.barcode,
         price: product.price ?? "",
+        latest_unit_cost: product.latest_unit_cost ?? "",
         low_stock_threshold: product.low_stock_threshold ?? "",
         status: product.is_active ? "Active" : "Inactive",
       })),
@@ -250,6 +251,7 @@ function ListTab({
         "size_label",
         "barcode",
         "price",
+        "latest_unit_cost",
         "low_stock_threshold",
         "status",
       ]
@@ -334,14 +336,15 @@ function ListTab({
       ) : (
         <div className="overflow-hidden rounded-xl border border-slate-200/50 bg-white/60 shadow-[0_8px_30px_rgb(0,0,0,0.02)] backdrop-blur-xl">
           <div className="overflow-x-auto">
-            <table className="app-list-table min-w-[900px]">
+            <table className="app-list-table min-w-[980px]">
               <thead className="bg-slate-50/80 text-[11px] uppercase tracking-widest text-slate-500">
                 <tr>
                   <th className="px-6 py-4 font-semibold">Brand</th>
                   {isSuperadmin && <th className="px-6 py-4 font-semibold">Shop</th>}
                   <th className="px-6 py-4 font-semibold">Size</th>
                   <th className="px-6 py-4 font-semibold">Barcode</th>
-                  <th className="px-6 py-4 text-right font-semibold">Price</th>
+                  <th className="px-6 py-4 text-right font-semibold">Sell price</th>
+                  <th className="px-6 py-4 text-right font-semibold">Cost</th>
                   <th className="px-6 py-4 text-right font-semibold">Low-stock</th>
                   <th className="px-6 py-4 font-semibold">Status</th>
                   <th className="px-6 py-4 text-right font-semibold">Actions</th>
@@ -371,6 +374,9 @@ function ListTab({
                     <td className="px-6 py-4 font-mono text-xs text-slate-500">{p.barcode}</td>
                     <td className="px-6 py-4 text-right font-mono font-semibold text-slate-900">
                       {p.price == null ? "—" : `₹${p.price}`}
+                    </td>
+                    <td className="px-6 py-4 text-right font-mono font-semibold text-slate-900">
+                      {p.latest_unit_cost == null ? "—" : `₹${p.latest_unit_cost}`}
                     </td>
                     <td className="px-6 py-4 text-right font-mono font-medium text-slate-600">
                       {p.low_stock_threshold ?? "—"}
@@ -726,6 +732,9 @@ function EditRow({
           onChange={(e) => setPrice(e.target.value)}
           className="w-24 rounded-md border border-slate-300 bg-white px-3 py-1.5 text-right font-mono text-sm shadow-inner outline-none focus-visible:ring-2 focus-visible:ring-action/40 focus-visible:border-action"
         />
+      </td>
+      <td className="px-6 py-4 text-right font-mono text-sm font-semibold text-slate-700">
+        {product.latest_unit_cost == null ? "—" : `₹${product.latest_unit_cost}`}
       </td>
       <td className="px-6 py-4">
         <input

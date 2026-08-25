@@ -46,6 +46,8 @@ _STOCK_INWARD_CODE_TO_STATUS: dict[str, int] = {
     "vendor_not_found": status.HTTP_404_NOT_FOUND,
     "vendor_inactive": status.HTTP_400_BAD_REQUEST,
     "not_pending": status.HTTP_409_CONFLICT,
+    "unit_cost_required": status.HTTP_400_BAD_REQUEST,
+    "invoice_value_mismatch": status.HTTP_400_BAD_REQUEST,
 }
 
 
@@ -148,6 +150,7 @@ async def create_lot(
                         "good_condition_quantity": line.good_condition_quantity
                         if line.good_condition_quantity is not None
                         else line.quantity,
+                        "unit_cost": line.unit_cost,
                     }
                     for line in payload.lines
                 ],

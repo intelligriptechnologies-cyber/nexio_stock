@@ -121,6 +121,13 @@ class StockInward(Base):
     def rejected_by_name(self) -> str | None:
         return self.rejected_by.full_name if self.rejected_by is not None else None
 
+    @property
+    def merchandise_total(self) -> Decimal | None:
+        if any(line.unit_cost is None for line in self.lines):
+            return None
+        total = sum((line.line_total or Decimal("0.00")) for line in self.lines)
+        return total.quantize(Decimal("0.01"))
+
 
 class StockInwardLine(Base):
     __tablename__ = "stock_inward_lines"
@@ -140,6 +147,7 @@ class StockInwardLine(Base):
     )
     quantity: Mapped[int] = mapped_column(nullable=False)
     good_condition_quantity: Mapped[int] = mapped_column(nullable=False)
+    unit_cost: Mapped[Decimal | None] = mapped_column(Numeric(12, 2), nullable=True)
     product_brand: Mapped[str | None] = mapped_column(String(200), nullable=True)
     product_size_label: Mapped[str | None] = mapped_column(String(64), nullable=True)
 
@@ -149,3 +157,9 @@ class StockInwardLine(Base):
     @property
     def breakage_quantity(self) -> int:
         return self.quantity - self.good_condition_quantity
+
+    @property
+    def line_total(self) -> Decimal | None:
+        if self.unit_cost is None:
+            return None
+        return (self.unit_cost * self.quantity).quantize(Decimal("0.01"))

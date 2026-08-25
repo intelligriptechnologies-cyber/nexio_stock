@@ -29,6 +29,7 @@ from app.models.invoice import InvoiceLine, PastInvoiceLine
 from app.models.lot import LotLine
 from app.models.log import InvoicingLog, StockinLog
 from app.models.product import Product, ProductStatus
+from app.models.stock_inward import StockInward, StockInwardLine, StockInwardStatus
 from app.models.user import User, UserRole
 from app.services.product_creation import ProductConflictError, create_product_row
 from app.services.product_lifecycle import apply_status_transition
@@ -99,6 +100,37 @@ async def permanent_delete_eligible_ids(
         )
         blocked.update((await db.execute(stmt)).scalars().all())
     return set(product_ids) - blocked
+
+
+async def latest_unit_cost_by_product_ids(
+    db: AsyncSession, *, product_ids: list[int]
+) -> dict[int, Decimal]:
+    if not product_ids:
+        return {}
+
+    stmt = (
+        select(StockInwardLine.product_id, StockInwardLine.unit_cost)
+        .join(StockInward, StockInward.id == StockInwardLine.stock_inward_id)
+        .where(
+            StockInwardLine.product_id.in_(product_ids),
+            StockInwardLine.unit_cost.is_not(None),
+            StockInward.status.in_([StockInwardStatus.APPROVED, StockInwardStatus.COMPLETED]),
+        )
+        .order_by(
+            StockInwardLine.product_id,
+            func.coalesce(
+                StockInward.completed_at, StockInward.approved_at, StockInward.created_at
+            ).desc(),
+            StockInward.id.desc(),
+        )
+    )
+    rows = (await db.execute(stmt)).all()
+    latest: dict[int, Decimal] = {}
+    for product_id, unit_cost in rows:
+        if unit_cost is None or product_id in latest:
+            continue
+        latest[product_id] = unit_cost
+    return latest
 
 
 async def permanent_delete_blockers(db: AsyncSession, *, product_id: int) -> list[str]:
@@ -506,6 +538,7 @@ __all__ = [
     "list_pending_products",
     "list_products",
     "lookup_product_by_barcode",
+    "latest_unit_cost_by_product_ids",
     "permanent_delete_blockers",
     "permanent_delete_eligible_ids",
     "quick_add_log_entry",

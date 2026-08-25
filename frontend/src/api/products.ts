@@ -8,6 +8,7 @@ export interface Product extends CatalogProduct {
   created_at: string;
   updated_at: string;
   current_stock: number;
+  latest_unit_cost: string | null;
 }
 
 export interface ProductCreatePayload {

@@ -50,9 +50,13 @@ async def _seed_product(
 async def _seed_lot(
     receiver_client: AsyncClient, owner_client: AsyncClient, *, items: list[tuple[str, int]]
 ) -> None:
+    invoice_value = sum(q * 100 for _, q in items)
     resp = await receiver_client.post(
         "/lots",
-        json={"lines": [{"barcode": bc, "quantity": q} for bc, q in items]},
+        json={
+            "invoice_value": f"{invoice_value:.2f}",
+            "lines": [{"barcode": bc, "quantity": q, "unit_cost": "100.00"} for bc, q in items],
+        },
     )
     assert resp.status_code == 201, resp.text
     inward_id = resp.json()["id"]

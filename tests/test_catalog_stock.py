@@ -27,9 +27,13 @@ async def _seed_product(
 async def _seed_lot(
     receiver_client: AsyncClient, owner_client: AsyncClient, *, items: list[tuple[str, int]]
 ) -> None:
+    invoice_value = sum(q * 100 for _, q in items)
     resp = await receiver_client.post(
         "/lots",
-        json={"lines": [{"barcode": bc, "quantity": q} for bc, q in items]},
+        json={
+            "invoice_value": f"{invoice_value:.2f}",
+            "lines": [{"barcode": bc, "quantity": q, "unit_cost": "100.00"} for bc, q in items],
+        },
     )
     assert resp.status_code == 201, resp.text
     inward_id = resp.json()["id"]
@@ -145,3 +149,36 @@ async def test_product_lookup_returns_current_stock(
     resp = await owner_client.get("/products/lookup?barcode=8903000000054")
     assert resp.status_code == 200
     assert resp.json()["current_stock"] == 6
+
+
+@pytest.mark.usefixtures("owner", "receiver", "cashier")
+async def test_product_list_carries_latest_approved_unit_cost(
+    owner_client: AsyncClient,
+    receiver_client: AsyncClient,
+) -> None:
+    await _seed_product(owner_client, "8903000000055")
+
+    first = await receiver_client.post(
+        "/lots",
+        json={
+            "invoice_value": "500.00",
+            "lines": [{"barcode": "8903000000055", "quantity": 5, "unit_cost": "100.00"}],
+        },
+    )
+    assert first.status_code == 201, first.text
+    assert (await owner_client.post(f"/lots/{first.json()['id']}/approve")).status_code == 200
+
+    second = await receiver_client.post(
+        "/lots",
+        json={
+            "invoice_value": "720.00",
+            "lines": [{"barcode": "8903000000055", "quantity": 6, "unit_cost": "120.00"}],
+        },
+    )
+    assert second.status_code == 201, second.text
+    assert (await owner_client.post(f"/lots/{second.json()['id']}/approve")).status_code == 200
+
+    resp = await owner_client.get("/products?active_only=false&limit=500")
+    assert resp.status_code == 200
+    row = next(product for product in resp.json() if product["barcode"] == "8903000000055")
+    assert row["latest_unit_cost"] == "120.00"
