@@ -1,0 +1,25 @@
+name: Start staging
+
+on:
+  workflow_dispatch:
+
+jobs:
+  start:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Start Hetzner staging
+        env:
+          DEPLOY_KEY: ${{ secrets.HETZNER_DEPLOY_KEY }}
+          HOST: ${{ secrets.HETZNER_HOST }}
+          USER: ${{ secrets.HETZNER_USER }}
+        run: |
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$DEPLOY_KEY" > ~/.ssh/barstock_deploy
+          chmod 600 ~/.ssh/barstock_deploy
+          ssh-keyscan -H "$HOST" >> ~/.ssh/known_hosts
+          ssh -i ~/.ssh/barstock_deploy "$USER@$HOST" <<'REMOTE'
+            set -euo pipefail
+            cd /opt/barstock
+            docker compose --env-file .env.staging -f deploy/compose.staging.yaml start
+            docker compose --env-file .env.staging -f deploy/compose.staging.yaml ps
+          REMOTE
