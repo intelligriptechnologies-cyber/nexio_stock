@@ -17,7 +17,9 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
       - name: Fast-forward demo branch
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DEPLOY_KEY: ${{ secrets.HETZNER_DEPLOY_KEY }}
+          HOST: ${{ secrets.HETZNER_HOST }}
+          USER: ${{ secrets.HETZNER_USER }}
         run: |
           git config user.name github-actions[bot]
           git config user.email 41898282+github-actions[bot]@users.noreply.github.com
@@ -25,4 +27,15 @@ jobs:
           git checkout improved_ui_demo
           git merge --ff-only origin/improved_ui
           git push origin improved_ui_demo
-          gh workflow run deploy-staging.yml --ref improved_ui_demo
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$DEPLOY_KEY" > ~/.ssh/barstock_deploy
+          chmod 600 ~/.ssh/barstock_deploy
+          ssh-keyscan -H "$HOST" >> ~/.ssh/known_hosts
+          ssh -i ~/.ssh/barstock_deploy "$USER@$HOST" <<'REMOTE'
+            set -euo pipefail
+            cd /opt/barstock
+            git pull --ff-only origin improved_ui
+            docker compose --env-file .env.staging -f deploy/compose.staging.yaml build
+            docker compose --env-file .env.staging -f deploy/compose.staging.yaml up -d
+            docker compose --env-file .env.staging -f deploy/compose.staging.yaml ps
+          REMOTE

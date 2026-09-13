@@ -1,8 +1,7 @@
 name: Deploy staging
 
 on:
-  push:
-    branches: [improved_ui_demo]
+  workflow_dispatch:
 
 concurrency:
   group: barstock-staging
