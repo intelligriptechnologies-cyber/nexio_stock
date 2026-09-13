@@ -1,4 +1,4 @@
-import { api, withShopIdParams } from "./client";
+import { api, apiPage, withShopIdParams } from "./client";
 
 export type LogType = "checkout" | "receiving" | "closing" | "exceptions";
 
@@ -22,6 +22,13 @@ export function listLogFiles(type: LogType, shopId?: number | null): Promise<Log
   const params = withShopIdParams(new URLSearchParams(), shopId);
   const query = params.toString();
   return api<LogFileListResponse>(`/logs/files/${type}${query ? `?${query}` : ""}`);
+}
+
+export function listLogFilesPage(
+  type: LogType, shopId: number | null | undefined, limit: number, offset: number, signal?: AbortSignal
+): Promise<{ data: LogFileListResponse; total: number }> {
+  const params = withShopIdParams(new URLSearchParams({ limit: String(limit), offset: String(offset) }), shopId);
+  return apiPage<LogFileListResponse>(`/logs/files/${type}?${params.toString()}`, { signal });
 }
 
 export function updateLogRetention(

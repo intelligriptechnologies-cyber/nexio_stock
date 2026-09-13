@@ -5,10 +5,12 @@ import type { InvoicePublic } from "../api/checkout";
 import { toUserMessage } from "../api/client";
 import { approveLot, rejectLot, type LotPublic } from "../api/lots";
 import { approveVoid, rejectVoid } from "../api/voids";
-import { listPendingApprovals } from "../api/approvals";
+import { listPendingApprovalsPage } from "../api/approvals";
 import { notifyApprovalsChanged } from "../api/approvals-events";
 import { useShopScope, useShopScopeGuard } from "../auth/ShopScopeProvider";
 import { AppTabButton } from "../components/AppTabs";
+import { Pagination } from "../components/Pagination";
+import { pageOffset, pageSizeParam, positiveInt, STANDARD_PAGE_SIZES } from "../utils/pagination";
 
 type ApprovalTab = "voids" | "inward";
 
@@ -38,14 +40,22 @@ export function ApprovalsPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const [voidItems, setVoidItems] = useState<InvoicePublic[] | null>(null);
   const [inwardItems, setInwardItems] = useState<LotPublic[] | null>(null);
+  const [voidTotal, setVoidTotal] = useState(0);
+  const [inwardTotal, setInwardTotal] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [busyKey, setBusyKey] = useState<string | null>(null);
   const [info, setInfo] = useState<string | null>(null);
 
   const activeTab = parseTab(searchParams.get("tab"));
+  const page = positiveInt(searchParams.get("page"), 1);
+  const pageSize = pageSizeParam(searchParams.get("pageSize"), STANDARD_PAGE_SIZES, 25);
   const setActiveTab = useCallback(
     (tab: ApprovalTab) => {
-      setSearchParams({ tab });
+      setSearchParams((current) => {
+        const next = new URLSearchParams(current);
+        next.set("tab", tab); next.set("page", "1");
+        return next;
+      });
     },
     [setSearchParams]
   );
@@ -60,13 +70,25 @@ export function ApprovalsPage() {
     setInwardItems(null);
     setError(null);
     try {
-      const pending = await listPendingApprovals(actingShopId);
+      const pending = await listPendingApprovalsPage(
+        actingShopId, pageSize, pageOffset(page, pageSize)
+      );
       setVoidItems(pending.voids);
       setInwardItems(pending.inward);
+      setVoidTotal(pending.voidTotal);
+      setInwardTotal(pending.inwardTotal);
     } catch (e) {
       setError(toUserMessage(e, "Could not load approvals."));
     }
-  }, [actingShopId, shopScopeGuard.blocked]);
+  }, [actingShopId, shopScopeGuard.blocked, page, pageSize]);
+
+  const setPage = useCallback((nextPage: number, nextSize = pageSize, replace = false) => {
+    setSearchParams((current) => {
+      const next = new URLSearchParams(current);
+      next.set("page", String(nextPage)); next.set("pageSize", String(nextSize));
+      return next;
+    }, { replace });
+  }, [pageSize, setSearchParams]);
 
   useEffect(() => {
     void reload();
@@ -97,8 +119,8 @@ export function ApprovalsPage() {
     () => (activeTab === "voids" ? voidItems : inwardItems),
     [activeTab, inwardItems, voidItems]
   );
-  const voidCount = voidItems?.length ?? 0;
-  const inwardCount = inwardItems?.length ?? 0;
+  const voidCount = voidTotal;
+  const inwardCount = inwardTotal;
   const totalCount = voidCount + inwardCount;
 
   return (
@@ -310,6 +332,10 @@ export function ApprovalsPage() {
               ))}
             </ul>
           )}
+          <Pagination page={page} pageSize={pageSize}
+            total={activeTab === "voids" ? voidTotal : inwardTotal}
+            disabled={busyKey !== null} label={`${activeTab} approvals`} pageSizes={STANDARD_PAGE_SIZES}
+            onPageChange={setPage} onPageSizeChange={(size) => setPage(1, size, true)} />
         </div>
       </div>
     </div>

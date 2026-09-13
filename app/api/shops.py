@@ -15,8 +15,8 @@ from __future__ import annotations
 from datetime import UTC, datetime
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
-from sqlalchemy import select
+from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
+from sqlalchemy import func, select
 from sqlalchemy.dialects.postgresql.asyncpg import AsyncAdapt_asyncpg_dbapi
 from sqlalchemy.exc import IntegrityError
 
@@ -76,9 +76,17 @@ _write_roles = (UserRole.OWNER, UserRole.SUPERADMIN)
 )
 async def list_shops(
     db: DbSession,
+    response: Response,
     _user: User = Depends(require_role(UserRole.SUPERADMIN)),
+    limit: Annotated[int, Query(ge=1, le=1000)] = 25,
+    offset: Annotated[int, Query(ge=0)] = 0,
 ) -> list[ShopSummary]:
-    rows = (await db.execute(select(Shop).order_by(Shop.name))).scalars().all()
+    response.headers["X-Total-Count"] = str(
+        (await db.execute(select(func.count(Shop.id)))).scalar_one()
+    )
+    rows = (
+        await db.execute(select(Shop).order_by(Shop.name, Shop.id).limit(limit).offset(offset))
+    ).scalars().all()
     return [ShopSummary.model_validate(r) for r in rows]
 
 
@@ -155,16 +163,30 @@ async def update_shop(
 async def list_shop_users(
     shop_id: int,
     db: DbSession,
+    response: Response,
     _user: User = Depends(require_role(UserRole.SUPERADMIN)),
+    limit: Annotated[int, Query(ge=1, le=100)] = 25,
+    offset: Annotated[int, Query(ge=0)] = 0,
+    role: Annotated[UserRole | None, Query()] = None,
+    is_active: Annotated[bool | None, Query()] = None,
 ) -> list[UserPublic]:
     shop = await db.get(Shop, shop_id)
     if shop is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="shop not found")
+    stmt = select(User).where(User.shop_id == shop_id)
+    if role is not None:
+        stmt = stmt.where(User.role == role)
+    if is_active is not None:
+        stmt = stmt.where(User.is_active.is_(is_active))
+    response.headers["X-Total-Count"] = str(
+        (await db.execute(select(func.count()).select_from(stmt.subquery()))).scalar_one()
+    )
     rows = (
         await db.execute(
-            select(User)
-            .where(User.shop_id == shop_id)
+            stmt
             .order_by(User.role, User.full_name, User.id)
+            .limit(limit)
+            .offset(offset)
         )
     ).scalars().all()
     return [UserPublic.model_validate(r) for r in rows]
@@ -337,18 +359,25 @@ async def copy_products_from_shop(
 )
 async def list_shop_devices(
     db: DbSession,
+    response: Response,
     user: User = Depends(require_role(UserRole.OWNER, UserRole.SUPERADMIN)),
     shop_id: Annotated[
         int | None,
         Query(description="Superadmin-only: selected shop to list devices for"),
     ] = None,
+    limit: Annotated[int, Query(ge=1, le=100)] = 25,
+    offset: Annotated[int, Query(ge=0)] = 0,
 ) -> list[DeviceBindingPublic]:
     actor_shop_id = await resolve_write_shop_id(db, user, shop_id)
+    stmt = select(DeviceBinding).where(DeviceBinding.shop_id == actor_shop_id)
+    response.headers["X-Total-Count"] = str(
+        (await db.execute(select(func.count()).select_from(stmt.subquery()))).scalar_one()
+    )
     rows = (
         await db.execute(
-            select(DeviceBinding)
-            .where(DeviceBinding.shop_id == actor_shop_id)
+            stmt
             .order_by(DeviceBinding.id.asc())
+            .limit(limit).offset(offset)
         )
     ).scalars().all()
     return [DeviceBindingPublic.model_validate(row) for row in rows]
@@ -652,16 +681,24 @@ async def create_shop_authenticator_activation_token(
 async def list_shop_authenticator_activations(
     shop_id: int,
     db: DbSession,
+    response: Response,
     _user: User = Depends(require_role(UserRole.SUPERADMIN)),
+    limit: Annotated[int, Query(ge=1, le=100)] = 25,
+    offset: Annotated[int, Query(ge=0)] = 0,
 ) -> list[AuthenticatorActivationPublic]:
     shop = await db.get(Shop, shop_id)
     if shop is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="shop not found")
+    stmt = select(AuthenticatorActivation).where(AuthenticatorActivation.shop_id == shop.id)
+    response.headers["X-Total-Count"] = str(
+        (await db.execute(select(func.count()).select_from(stmt.subquery()))).scalar_one()
+    )
     rows = (
         await db.execute(
-            select(AuthenticatorActivation)
-            .where(AuthenticatorActivation.shop_id == shop.id)
+            stmt
             .order_by(AuthenticatorActivation.activated_at.desc(), AuthenticatorActivation.id.desc())
+            .limit(limit)
+            .offset(offset)
         )
     ).scalars().all()
     return [AuthenticatorActivationPublic.model_validate(row) for row in rows]

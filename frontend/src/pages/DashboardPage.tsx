@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import {
-  getEodHistory,
+  getEodHistoryPage,
   getEodTotals,
-  getLowStock,
-  getStockOverview,
+  getLowStockPage,
+  getStockOverviewPage,
   type EodTotalsResponse,
   type LowStockResponse,
   type SignOffResponse,
@@ -13,10 +13,12 @@ import {
 import type { PaymentMode } from "../api/checkout";
 import { toUserMessage } from "../api/client";
 import { formatPaymentLabel } from "../payment-modes";
-import { listPendingProducts } from "../api/products";
+import { getPendingProductCount } from "../api/products";
 import { getPendingApprovalsCount } from "../api/approvals";
 import { useShopScope, useShopScopeGuard } from "../auth/ShopScopeProvider";
 import { Calendar, Banknote, ShieldAlert, CheckCircle2, RefreshCw, Box, Map, History, LayoutDashboard } from "lucide-react";
+import { Pagination } from "../components/Pagination";
+import { DASHBOARD_PAGE_SIZES, pageOffset, pageSizeParam, positiveInt } from "../utils/pagination";
 
 function moneyFmt(s: string): string {
   return `₹${Number(s).toLocaleString("en-IN", { maximumFractionDigits: 2 })}`;
@@ -35,6 +37,25 @@ export function DashboardPage() {
   // renders nothing in those cases.
   const [stockOverview, setStockOverview] = useState<StockOverviewResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const lowPage = positiveInt(searchParams.get("lowPage"), 1);
+  const lowPageSize = pageSizeParam(searchParams.get("lowPageSize"), DASHBOARD_PAGE_SIZES, 10);
+  const stockPage = positiveInt(searchParams.get("stockPage"), 1);
+  const stockPageSize = pageSizeParam(searchParams.get("stockPageSize"), DASHBOARD_PAGE_SIZES, 10);
+  const historyPage = positiveInt(searchParams.get("historyPage"), 1);
+  const historyPageSize = pageSizeParam(searchParams.get("historyPageSize"), DASHBOARD_PAGE_SIZES, 10);
+  const [lowTotal, setLowTotal] = useState(0);
+  const [stockTotal, setStockTotal] = useState(0);
+  const [historyTotal, setHistoryTotal] = useState(0);
+
+  const setPaging = (prefix: "low" | "stock" | "history", page: number, size: number, replace = false) => {
+    setSearchParams((current) => {
+      const next = new URLSearchParams(current);
+      next.set(`${prefix}Page`, String(page));
+      next.set(`${prefix}PageSize`, String(size));
+      return next;
+    }, { replace });
+  };
 
   const reload = async () => {
     if (shopScopeGuard.blocked) {
@@ -54,21 +75,24 @@ export function DashboardPage() {
       // listPendingProducts is wrapped below).
       const [t, l, h, p, v, so] = await Promise.all([
         getEodTotals(undefined, actingShopId),
-        getLowStock(undefined, actingShopId),
-        getEodHistory(20, actingShopId),
+        getLowStockPage(lowPageSize, pageOffset(lowPage, lowPageSize), actingShopId),
+        getEodHistoryPage({ limit: historyPageSize, offset: pageOffset(historyPage, historyPageSize), shopId: actingShopId }),
         // Issue #25 — the pending-products badge count. Fetched
         // alongside the other dashboard data so the badge appears
         // immediately when the dashboard mounts.
-        listPendingProducts(actingShopId).catch(() => []),
+        getPendingProductCount(actingShopId).catch(() => ({ count: 0 })),
         getPendingApprovalsCount(actingShopId).catch(() => 0),
-        getStockOverview().catch(() => null),
+        getStockOverviewPage(stockPageSize, pageOffset(stockPage, stockPageSize)).catch(() => null),
       ]);
       setToday(t);
-      setLowStock(l);
-      setHistory(h.signoffs);
-      setPendingCount(p.length);
+      setLowStock(l.data);
+      setLowTotal(l.total);
+      setHistory(h.data.signoffs);
+      setHistoryTotal(h.total);
+      setPendingCount(p.count);
       setApprovalCount(v);
-      setStockOverview(so);
+      setStockOverview(so?.data ?? null);
+      setStockTotal(so?.total ?? 0);
     } catch (e) {
       setError(toUserMessage(e, "Load failed."));
     }
@@ -76,7 +100,7 @@ export function DashboardPage() {
 
   useEffect(() => {
     void reload();
-  }, [actingShopId]);
+  }, [actingShopId, lowPage, lowPageSize, stockPage, stockPageSize, historyPage, historyPageSize]);
   return (
     <div className="flex flex-col gap-section-gap p-6 font-sans">
       <header className="flex flex-wrap items-center justify-between gap-stack-gap rounded-xl border border-slate-200/50 bg-white/60 p-6 shadow-sm backdrop-blur-xl">
@@ -237,6 +261,10 @@ export function DashboardPage() {
                 ))}
               </tbody>
             </table>
+            <div className="px-4 pb-4"><Pagination page={lowPage} pageSize={lowPageSize}
+              total={lowTotal} label="low stock" pageSizes={DASHBOARD_PAGE_SIZES}
+              onPageChange={(page) => setPaging("low", page, lowPageSize)}
+              onPageSizeChange={(size) => setPaging("low", 1, size, true)} /></div>
           </div>
         )}
       </section>
@@ -297,6 +325,10 @@ export function DashboardPage() {
             </span>
             Evaluated {new Date(stockOverview.evaluated_at).toLocaleString()}
           </div>
+          <Pagination page={stockPage} pageSize={stockPageSize} total={stockTotal}
+            label="stock across shops" pageSizes={DASHBOARD_PAGE_SIZES}
+            onPageChange={(page) => setPaging("stock", page, stockPageSize)}
+            onPageSizeChange={(size) => setPaging("stock", 1, size, true)} />
         </section>
       )}
       {/* Past sign-offs */}
@@ -328,6 +360,10 @@ export function DashboardPage() {
                 ))}
               </tbody>
             </table>
+            <div className="px-4 pb-4"><Pagination page={historyPage} pageSize={historyPageSize}
+              total={historyTotal} label="past sign-offs" pageSizes={DASHBOARD_PAGE_SIZES}
+              onPageChange={(page) => setPaging("history", page, historyPageSize)}
+              onPageSizeChange={(size) => setPaging("history", 1, size, true)} /></div>
           </div>
         )}
       </section>

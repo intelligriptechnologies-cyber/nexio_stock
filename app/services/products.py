@@ -21,14 +21,21 @@ import io
 from dataclasses import dataclass
 from decimal import Decimal, InvalidOperation
 
-from sqlalchemy import func, or_, select
+from sqlalchemy import and_, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api._logs import write_business_log
-from app.models.invoice import InvoiceLine, PastInvoiceLine
-from app.models.lot import LotLine
+from app.models.invoice import (
+    STATUSES_COUNTING_AS_SOLD,
+    Invoice,
+    InvoiceLine,
+    PastInvoice,
+    PastInvoiceLine,
+)
 from app.models.log import InvoicingLog, StockinLog
+from app.models.lot import LotLine
 from app.models.product import Product, ProductStatus
+from app.models.shop import Shop
 from app.models.stock_inward import StockInward, StockInwardLine, StockInwardStatus
 from app.models.user import User, UserRole
 from app.services.product_creation import ProductConflictError, create_product_row
@@ -65,13 +72,29 @@ async def list_products(
     *,
     shop_id: int | None,
     active_only: bool,
+    missing_price_only: bool,
     q: str | None,
     limit: int,
     offset: int,
 ) -> list[Product]:
+    stmt = _products_filtered_stmt(
+        shop_id=shop_id,
+        active_only=active_only,
+        missing_price_only=missing_price_only,
+        q=q,
+    )
+    stmt = stmt.order_by(Product.brand, Product.size_label, Product.id).limit(limit).offset(offset)
+    return (await db.execute(stmt)).scalars().all()
+
+
+def _products_filtered_stmt(
+    *, shop_id: int | None, active_only: bool, missing_price_only: bool, q: str | None
+):
     stmt = _scope_to_shop(select(Product), shop_id=shop_id)
     if active_only:
         stmt = stmt.where(Product.is_active.is_(True))
+    if missing_price_only:
+        stmt = stmt.where(Product.price.is_(None))
     if q:
         like = f"%{q}%"
         stmt = stmt.where(
@@ -81,8 +104,88 @@ async def list_products(
                 Product.size_label.ilike(like),
             )
         )
-    stmt = stmt.order_by(Product.brand, Product.size_label).limit(limit).offset(offset)
-    return (await db.execute(stmt)).scalars().all()
+    return stmt
+
+
+async def count_products(
+    db: AsyncSession,
+    *,
+    shop_id: int | None,
+    active_only: bool,
+    missing_price_only: bool,
+    q: str | None,
+) -> int:
+    filtered = _products_filtered_stmt(
+        shop_id=shop_id,
+        active_only=active_only,
+        missing_price_only=missing_price_only,
+        q=q,
+    ).order_by(None).subquery()
+    return int((await db.execute(select(func.count()).select_from(filtered))).scalar_one())
+
+
+def _inventory_stock_expression():
+    received = (
+        select(func.coalesce(func.sum(LotLine.quantity), 0))
+        .where(LotLine.product_id == Product.id)
+        .correlate(Product)
+        .scalar_subquery()
+    )
+    current_sold = (
+        select(func.coalesce(func.sum(InvoiceLine.quantity), 0))
+        .join(Invoice, Invoice.id == InvoiceLine.invoice_id)
+        .where(
+            InvoiceLine.product_id == Product.id,
+            Invoice.status.in_(STATUSES_COUNTING_AS_SOLD),
+        )
+        .correlate(Product)
+        .scalar_subquery()
+    )
+    past_sold = (
+        select(func.coalesce(func.sum(PastInvoiceLine.quantity), 0))
+        .join(PastInvoice, PastInvoice.id == PastInvoiceLine.invoice_id)
+        .where(
+            PastInvoiceLine.product_id == Product.id,
+            PastInvoice.status.in_(STATUSES_COUNTING_AS_SOLD),
+        )
+        .correlate(Product)
+        .scalar_subquery()
+    )
+    return received - current_sold - past_sold
+
+
+def _inventory_stmt(*, shop_id: int | None, q: str | None, stock_state: str):
+    stock = _inventory_stock_expression()
+    effective_threshold = func.coalesce(Product.low_stock_threshold, Shop.low_stock_threshold_default)
+    stmt = select(Product).join(Shop, Shop.id == Product.shop_id).where(Product.is_active.is_(True))
+    if shop_id is not None:
+        stmt = stmt.where(Product.shop_id == shop_id)
+    if q:
+        like = f"%{q}%"
+        stmt = stmt.where(or_(Product.brand.ilike(like), Product.barcode.ilike(like), Product.size_label.ilike(like)))
+    if stock_state == "out_of_stock":
+        stmt = stmt.where(stock <= 0)
+    elif stock_state == "low_stock":
+        stmt = stmt.where(and_(stock > 0, effective_threshold.is_not(None), stock <= effective_threshold))
+    elif stock_state == "in_stock":
+        stmt = stmt.where(and_(stock > 0, or_(effective_threshold.is_(None), stock > effective_threshold)))
+    return stmt, stock
+
+
+async def list_inventory(
+    db: AsyncSession, *, shop_id: int | None, q: str | None, stock_state: str,
+    sort: str, limit: int, offset: int,
+) -> tuple[list[Product], int]:
+    stmt, stock = _inventory_stmt(shop_id=shop_id, q=q, stock_state=stock_state)
+    total = int((await db.execute(select(func.count()).select_from(stmt.order_by(None).subquery()))).scalar_one())
+    if sort == "stock_asc":
+        ordering = (stock.asc(), Product.brand.asc(), Product.id.asc())
+    elif sort == "stock_desc":
+        ordering = (stock.desc(), Product.brand.asc(), Product.id.asc())
+    else:
+        ordering = (Product.brand.asc(), Product.size_label.asc(), Product.id.asc())
+    rows = (await db.execute(stmt.order_by(*ordering).limit(limit).offset(offset))).scalars().all()
+    return list(rows), total
 
 
 async def permanent_delete_eligible_ids(
@@ -318,7 +421,7 @@ class PendingProductInfo:
 
 
 async def list_pending_products(
-    db: AsyncSession, *, shop_id: int | None
+    db: AsyncSession, *, shop_id: int | None, limit: int | None = None, offset: int = 0
 ) -> list[PendingProductInfo]:
     """Owner/superadmin view of every product still in status='pending'
     (D-v2-5), newest first. Origin and adding-actor are read directly
@@ -330,7 +433,9 @@ async def list_pending_products(
     stmt = _scope_to_shop(
         select(Product).where(Product.status == ProductStatus.PENDING),
         shop_id=shop_id,
-    ).order_by(Product.created_at.desc())
+    ).order_by(Product.created_at.desc(), Product.id.desc())
+    if limit is not None:
+        stmt = stmt.limit(limit).offset(offset)
 
     rows = (await db.execute(stmt)).scalars().all()
     if not rows:
@@ -530,15 +635,15 @@ __all__ = [
     "PendingProductInfo",
     "ProductError",
     "QuickAddConflictError",
-    "archive_product",
     "activate_pending_product",
+    "archive_product",
     "count_pending_products",
     "get_product_for_write",
     "import_products_csv",
+    "latest_unit_cost_by_product_ids",
     "list_pending_products",
     "list_products",
     "lookup_product_by_barcode",
-    "latest_unit_cost_by_product_ids",
     "permanent_delete_blockers",
     "permanent_delete_eligible_ids",
     "quick_add_log_entry",

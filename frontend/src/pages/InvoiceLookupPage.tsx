@@ -1,11 +1,12 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { useAuth } from "../auth/AuthProvider";
 import { useShopScope } from "../auth/ShopScopeProvider";
 import { AppTabButton } from "../components/AppTabs";
 import { ApiError } from "../api/client";
 import {
   downloadEodHistoryExport,
-  getEodHistory,
+  getEodHistoryPage,
   getEodHistoryEntry,
   getEodTotals,
   signOffEod,
@@ -15,8 +16,9 @@ import {
 } from "../api/dashboard";
 import {
   editInvoice,
+  downloadInvoicesExport,
   downloadInvoicePdf,
-  listInvoices,
+  listInvoicesPage,
   type InvoicePublic,
   type PaymentMode,
 } from "../api/checkout";
@@ -26,7 +28,9 @@ import { requestVoid } from "../api/voids";
 import { notifyVoidApprovalsChanged } from "../api/void-approvals-events";
 import { ModalDialog } from "../components/ModalDialog";
 import { ReceiptText, RefreshCw, Download, XOctagon, Calendar, MapPin, Filter } from "lucide-react";
-import { csvTimestamp, downloadCsv, triggerDownload } from "../utils/csv";
+import { csvTimestamp, triggerDownload } from "../utils/csv";
+import { Pagination } from "../components/Pagination";
+import { pageOffset, pageSizeParam, positiveInt, STANDARD_PAGE_SIZES } from "../utils/pagination";
 
 type Source = "current" | "past" | "reconciled";
 
@@ -59,7 +63,30 @@ function paymentModeSummary(rows: Array<{ mode: string; amount: string }>) {
 export function InvoiceLookupPage() {
   const { user } = useAuth();
   const { actingShopId, setActingShopId } = useShopScope();
-  const [source, setSource] = useState<Source>("current");
+  const [searchParams, setSearchParams] = useSearchParams();
+  const sourceParam = searchParams.get("tab");
+  const source: Source = sourceParam === "past" || sourceParam === "reconciled" ? sourceParam : "current";
+  const page = positiveInt(searchParams.get("page"), 1);
+  const pageSize = pageSizeParam(searchParams.get("pageSize"), STANDARD_PAGE_SIZES, 25);
+  const dateFrom = searchParams.get("from") ?? "";
+  const dateTo = searchParams.get("to") ?? "";
+  const paymentMode = (searchParams.get("payment") ?? "") as PaymentMode | "";
+  const statusFilter = (searchParams.get("status") ?? "") as InvoicePublic["status"] | "";
+  const [total, setTotal] = useState(0);
+  const updateUrl = useCallback((changes: Record<string, string>, replace = false) => {
+    setSearchParams((current) => {
+      const next = new URLSearchParams(current);
+      for (const [key, value] of Object.entries(changes)) {
+        if (!value || (key === "tab" && value === "current")) next.delete(key); else next.set(key, value);
+      }
+      return next;
+    }, { replace });
+  }, [setSearchParams]);
+  const setSource = (value: Source) => updateUrl({ tab: value, page: "1" });
+  const setDateFrom = (value: string) => updateUrl({ from: value, page: "1" }, true);
+  const setDateTo = (value: string) => updateUrl({ to: value, page: "1" }, true);
+  const setPaymentMode = (value: PaymentMode | "") => updateUrl({ payment: value, page: "1" });
+  const setStatusFilter = (value: InvoicePublic["status"] | "") => updateUrl({ status: value, page: "1" });
   const [invoiceRows, setInvoiceRows] = useState<InvoicePublic[]>([]);
   const [reconciliationRows, setReconciliationRows] = useState<SignOffResponse[]>([]);
   const [shops, setShops] = useState<ShopSummary[]>([]);
@@ -77,10 +104,6 @@ export function InvoiceLookupPage() {
   const [selectedReconciliation, setSelectedReconciliation] = useState<SignOffResponse | null>(null);
   const [reconciliationNote, setReconciliationNote] = useState("");
   const [reconciliationBusy, setReconciliationBusy] = useState(false);
-  const [dateFrom, setDateFrom] = useState("");
-  const [dateTo, setDateTo] = useState("");
-  const [paymentMode, setPaymentMode] = useState<PaymentMode | "">("");
-  const [statusFilter, setStatusFilter] = useState<InvoicePublic["status"] | "">("");
   const [showItemsColumn, setShowItemsColumn] = useState(true);
   const [showPaymentsColumn, setShowPaymentsColumn] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -181,34 +204,39 @@ export function InvoiceLookupPage() {
     setError(null);
     try {
       if (source === "reconciled") {
-        const result = await getEodHistory({
-          limit: 90,
+        const result = await getEodHistoryPage({
+          limit: pageSize,
+          offset: pageOffset(page, pageSize),
           fromDate: dateFrom || undefined,
           toDate: dateTo || undefined,
           shopId: actingShopId,
         });
         setInvoiceRows([]);
-        setReconciliationRows(result.signoffs);
+        setReconciliationRows(result.data.signoffs);
+        setTotal(result.total);
         setSelectedInvoice(null);
         setSelectedReconciliation((current) =>
-          current ? result.signoffs.find((row) => row.id === current.id) ?? null : null
+          current ? result.data.signoffs.find((row) => row.id === current.id) ?? null : null
         );
         setEodTotals(null);
         return;
       }
 
-      const result = await listInvoices({
+      const result = await listInvoicesPage({
         source,
         shopId: actingShopId,
         dateFrom: source === "past" ? dateFrom || undefined : undefined,
         dateTo: source === "past" ? dateTo || undefined : undefined,
         paymentMode: paymentMode || undefined,
         status: statusFilter || undefined,
+        limit: pageSize,
+        offset: pageOffset(page, pageSize),
       });
-      setInvoiceRows(result.invoices);
+      setInvoiceRows(result.data.invoices);
+      setTotal(result.total);
       setReconciliationRows([]);
       setSelectedInvoice((current) =>
-        current ? result.invoices.find((row) => row.id === current.id) ?? null : null
+        current ? result.data.invoices.find((row) => row.id === current.id) ?? null : null
       );
       setEodTotals(
         source === "current"
@@ -220,7 +248,7 @@ export function InvoiceLookupPage() {
     } finally {
       setBusy(false);
     }
-  }, [actingShopId, dateFrom, dateTo, paymentMode, source, statusFilter, user?.role]);
+  }, [actingShopId, dateFrom, dateTo, paymentMode, source, statusFilter, user?.role, page, pageSize]);
 
   useEffect(() => {
     void reload();
@@ -363,47 +391,19 @@ export function InvoiceLookupPage() {
     }
   };
 
-  const exportInvoiceRows = () => {
+  const exportInvoiceRows = async () => {
     if (invoiceRows.length === 0) return;
-    const scope = source === "current" ? "open" : "past";
-    downloadCsv(
-      invoiceRows.map((invoice) => ({
-        invoice_id: invoice.id,
-        invoice_number: invoice.invoice_number,
-        business_date: invoice.business_date,
-        finalized_at: invoice.finalized_at,
-        status: invoice.status,
-        eod_state: invoice.eod_signed_off ? "Archived" : "Open",
-        cashier_user_id: invoice.cashier_user_id,
-        cashier_name: cashierLabel(invoice),
-        total_amount: invoice.total_amount,
-        note: invoice.note ?? "",
-        payments: invoice.payments
-          .map((payment) => `${formatPaymentLabel(payment.mode)} ${payment.amount}`)
-          .join("; "),
-        line_items: invoice.lines
-          .map(
-            (line) =>
-              `${line.product_brand} ${line.product_size_label} x${line.quantity} @ ${line.unit_price} = ${line.line_total}`
-          )
-          .join("; "),
-      })),
-      `invoices-${scope}-${csvTimestamp()}.csv`,
-      [
-        "invoice_id",
-        "invoice_number",
-        "business_date",
-        "finalized_at",
-        "status",
-        "eod_state",
-        "cashier_user_id",
-        "cashier_name",
-        "total_amount",
-        "note",
-        "payments",
-        "line_items",
-      ]
-    );
+    setBusy(true);
+    try {
+      const result = await downloadInvoicesExport({
+        source: source === "current" ? "current" : "past", shopId: actingShopId,
+        dateFrom: source === "past" ? dateFrom || undefined : undefined,
+        dateTo: source === "past" ? dateTo || undefined : undefined,
+        paymentMode: paymentMode || undefined, status: statusFilter || undefined,
+      });
+      triggerDownload(result.blob, result.filename ?? "invoices.csv");
+    } catch (e) { setError(e instanceof ApiError ? e.detail : "CSV export failed."); }
+    finally { setBusy(false); }
   };
 
   const exportReconciliations = async () => {
@@ -412,8 +412,9 @@ export function InvoiceLookupPage() {
     setError(null);
     try {
       const { blob, filename } = await downloadEodHistoryExport(
-        reconciliationRows.map((row) => row.id),
-        actingShopId
+        [],
+        actingShopId,
+        { fromDate: dateFrom || undefined, toDate: dateTo || undefined }
       );
       triggerDownload(blob, filename ?? `reconciliations-${csvTimestamp()}.csv`);
     } catch (e) {
@@ -428,7 +429,7 @@ export function InvoiceLookupPage() {
       void exportReconciliations();
       return;
     }
-    exportInvoiceRows();
+    void exportInvoiceRows();
   };
 
   const openSettlementSummary = async () => {
@@ -701,7 +702,7 @@ export function InvoiceLookupPage() {
             <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-200/50 bg-slate-50/50 px-6 py-4">
               <div className="flex flex-wrap items-center gap-3">
                 <span className="app-kicker">
-                  {busy ? "Loading..." : `Showing ${summaryCount === 0 ? 0 : 1} - ${summaryCount} of ${summaryCount}`}
+                  {busy ? "Loading..." : `Showing ${summaryCount === 0 ? 0 : pageOffset(page, pageSize) + 1} - ${Math.min(total, pageOffset(page, pageSize) + summaryCount)} of ${total}`}
                 </span>
                 {source !== "reconciled" && (
                   <div className="flex flex-wrap items-center gap-2">
@@ -930,6 +931,12 @@ export function InvoiceLookupPage() {
                   </tbody>
                 </table>
               )}
+            </div>
+            <div className="px-6 pb-4">
+              <Pagination page={page} pageSize={pageSize} total={total} disabled={busy}
+                label={`${source} invoices`} pageSizes={STANDARD_PAGE_SIZES}
+                onPageChange={(next) => updateUrl({ page: String(next) })}
+                onPageSizeChange={(size) => updateUrl({ page: "1", pageSize: String(size) }, true)} />
             </div>
           </section>
         </div>

@@ -1,5 +1,6 @@
-import { api, withShopId, withShopIdParams } from "./client";
+import { api, apiPage, withShopId, withShopIdParams } from "./client";
 import type { CatalogProduct } from "./catalog";
+import { downloadAuthedFile } from "../utils/csv";
 
 export interface Product extends CatalogProduct {
   shop_id: number;
@@ -83,14 +84,72 @@ export interface ProductCopyResponse {
 export function listProducts(opts?: {
   q?: string;
   includeInactive?: boolean;
+  missingPriceOnly?: boolean;
   shopId?: number | null;
 }): Promise<Product[]> {
   const params = new URLSearchParams();
   if (opts?.includeInactive) params.set("active_only", "false");
+  if (opts?.missingPriceOnly) params.set("missing_price_only", "true");
   if (opts?.q) params.set("q", opts.q);
   withShopIdParams(params, opts?.shopId);
   params.set("limit", "500");
   return api<Product[]>(`/products?${params.toString()}`);
+}
+
+export function listProductsPage(opts: {
+  q?: string;
+  includeInactive?: boolean;
+  missingPriceOnly?: boolean;
+  shopId?: number | null;
+  limit: number;
+  offset: number;
+  signal?: AbortSignal;
+}): Promise<{ data: Product[]; total: number }> {
+  const params = new URLSearchParams({ limit: String(opts.limit), offset: String(opts.offset) });
+  if (opts.includeInactive) params.set("active_only", "false");
+  if (opts.missingPriceOnly) params.set("missing_price_only", "true");
+  if (opts.q) params.set("q", opts.q);
+  withShopIdParams(params, opts.shopId);
+  return apiPage<Product[]>(`/products?${params.toString()}`, { signal: opts.signal });
+}
+
+export function listInventoryPage(opts: {
+  q?: string;
+  stockState?: "all" | "in_stock" | "low_stock" | "out_of_stock";
+  sort?: "name" | "stock_asc" | "stock_desc";
+  shopId?: number | null;
+  limit: number;
+  offset: number;
+  signal?: AbortSignal;
+}): Promise<{ data: Product[]; total: number }> {
+  const params = new URLSearchParams({
+    limit: String(opts.limit), offset: String(opts.offset),
+    stock_state: opts.stockState ?? "all", sort: opts.sort ?? "name",
+  });
+  if (opts.q) params.set("q", opts.q);
+  withShopIdParams(params, opts.shopId);
+  return apiPage<Product[]>(`/products/inventory?${params.toString()}`, { signal: opts.signal });
+}
+
+export function downloadProductsExport(opts: {
+  q?: string; includeInactive?: boolean; missingPriceOnly?: boolean; shopId?: number | null;
+}) {
+  const params = new URLSearchParams();
+  if (opts.includeInactive) params.set("active_only", "false");
+  if (opts.missingPriceOnly) params.set("missing_price_only", "true");
+  if (opts.q) params.set("q", opts.q);
+  withShopIdParams(params, opts.shopId);
+  return downloadAuthedFile(`/products/export?${params.toString()}`);
+}
+
+export function downloadInventoryExport(opts: {
+  q?: string; stockState: "all" | "in_stock" | "low_stock" | "out_of_stock";
+  sort: "name" | "stock_asc" | "stock_desc"; shopId?: number | null;
+}) {
+  const params = new URLSearchParams({ stock_state: opts.stockState, sort: opts.sort });
+  if (opts.q) params.set("q", opts.q);
+  withShopIdParams(params, opts.shopId);
+  return downloadAuthedFile(`/products/inventory/export?${params.toString()}`);
 }
 
 export function createProduct(
@@ -132,6 +191,13 @@ export function listPendingProducts(shopId?: number | null): Promise<PendingProd
   const params = withShopIdParams(new URLSearchParams(), shopId);
   const qs = params.toString();
   return api<PendingProductRow[]>(`/products/pending${qs ? "?" + qs : ""}`);
+}
+
+export function listPendingProductsPage(
+  shopId: number | null | undefined, limit: number, offset: number, signal?: AbortSignal
+): Promise<{ data: PendingProductRow[]; total: number }> {
+  const params = withShopIdParams(new URLSearchParams({ limit: String(limit), offset: String(offset) }), shopId);
+  return apiPage<PendingProductRow[]>(`/products/pending?${params.toString()}`, { signal });
 }
 
 export function getPendingProductCount(shopId?: number | null): Promise<{ count: number }> {

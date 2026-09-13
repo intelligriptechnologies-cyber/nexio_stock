@@ -1,10 +1,13 @@
 import { useCallback, useEffect, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { ShieldAlert, RefreshCw, CheckCircle2, XCircle } from "lucide-react";
 import { toUserMessage } from "../api/client";
 import { getInvoice, type InvoicePublic } from "../api/checkout";
-import { approveVoid, listPendingVoids, rejectVoid } from "../api/voids";
+import { approveVoid, listPendingVoidsPage, rejectVoid } from "../api/voids";
 import { notifyVoidApprovalsChanged } from "../api/void-approvals-events";
 import { useShopScope, useShopScopeGuard } from "../auth/ShopScopeProvider";
+import { Pagination } from "../components/Pagination";
+import { pageOffset, pageSizeParam, positiveInt, STANDARD_PAGE_SIZES } from "../utils/pagination";
 
 function moneyFmt(s: string): string {
   return `₹${s}`;
@@ -14,6 +17,10 @@ export function VoidApprovalsPage() {
   const { actingShopId } = useShopScope();
   const shopScopeGuard = useShopScopeGuard();
   const [items, setItems] = useState<InvoicePublic[] | null>(null);
+  const [total, setTotal] = useState(0);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const page = positiveInt(searchParams.get("page"), 1);
+  const pageSize = pageSizeParam(searchParams.get("pageSize"), STANDARD_PAGE_SIZES, 25);
   const [error, setError] = useState<string | null>(null);
   const [busyId, setBusyId] = useState<number | null>(null);
   const [info, setInfo] = useState<string | null>(null);
@@ -25,12 +32,20 @@ export function VoidApprovalsPage() {
     }
     setItems(null);
     try {
-      const res = await listPendingVoids(actingShopId);
-      setItems(res.invoices);
+      const res = await listPendingVoidsPage(actingShopId, pageSize, pageOffset(page, pageSize));
+      setItems(res.data.invoices);
+      setTotal(res.total);
     } catch (e) {
       setError(toUserMessage(e, "Load failed."));
     }
-  }, [actingShopId, shopScopeGuard.blocked]);
+  }, [actingShopId, shopScopeGuard.blocked, page, pageSize]);
+
+  const setPage = useCallback((nextPage: number, nextSize = pageSize, replace = false) => {
+    setSearchParams((current) => {
+      const next = new URLSearchParams(current);
+      next.set("page", String(nextPage)); next.set("pageSize", String(nextSize)); return next;
+    }, { replace });
+  }, [pageSize, setSearchParams]);
 
   useEffect(() => {
     void reload();
@@ -126,6 +141,9 @@ export function VoidApprovalsPage() {
           ))}
         </ul>
       )}
+      <Pagination page={page} pageSize={pageSize} total={total} disabled={busyId !== null}
+        label="void approvals" pageSizes={STANDARD_PAGE_SIZES}
+        onPageChange={setPage} onPageSizeChange={(size) => setPage(1, size, true)} />
     </div>
   );
 }

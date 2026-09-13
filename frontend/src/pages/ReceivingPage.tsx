@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState, useCallback } from "react";
+import { createPortal } from "react-dom";
 import { ApiError } from "../api/client";
 import { invalidateCache, prefetchCatalog, type CatalogProduct } from "../api/catalog";
 import { createLotSafe, type LotPublic } from "../api/lots";
@@ -788,14 +789,21 @@ function PurchaseReviewModal({
     });
   };
 
-  return (
-    <ModalDialog labelledBy="purchase-review-title" onDismiss={onCancel}>
+  return createPortal(
+    <ModalDialog
+      labelledBy="purchase-review-title"
+      onDismiss={onCancel}
+      className="fixed inset-0 z-50 flex overflow-hidden bg-white"
+    >
       <form
         onSubmit={submit}
-        className="animate-modal-in flex max-h-[92vh] w-full max-w-4xl flex-col gap-6 overflow-y-auto rounded-xl bg-white p-8 shadow-2xl"
+        className="flex h-full w-full min-w-0 flex-col overflow-hidden bg-white"
       >
-        <header className="flex items-center justify-between border-b border-slate-100 pb-4">
-          <h2 id="purchase-review-title" className="flex items-center gap-3 text-2xl font-semibold tracking-tight text-slate-900">
+        <header
+          data-testid="purchase-review-header"
+          className="flex flex-none items-center justify-between gap-4 border-b border-slate-200 px-4 py-4 sm:px-8"
+        >
+          <h2 id="purchase-review-title" className="flex min-w-0 items-center gap-3 truncate text-2xl font-semibold tracking-tight text-slate-900">
             <Save className="h-6 w-6 text-action" /> Review purchase details
           </h2>
           <button
@@ -808,6 +816,10 @@ function PurchaseReviewModal({
           </button>
         </header>
 
+        <div
+          data-testid="purchase-review-content"
+          className="min-h-0 min-w-0 flex-1 space-y-6 overflow-y-auto px-4 py-6 sm:px-8"
+        >
         <div className="grid gap-6 md:grid-cols-2">
           {vendorLinkEnabled ? (
             <label className="flex flex-col gap-1.5 text-xs font-semibold uppercase tracking-wider text-slate-500">
@@ -875,88 +887,98 @@ function PurchaseReviewModal({
           <div className="border-b border-slate-200 bg-slate-50/80 px-6 py-3 text-[11px] font-medium uppercase tracking-widest text-slate-500">
             Enter purchase cost per received unit. Submit stays blocked until the merchandise total matches the invoice value exactly.
           </div>
-          <table className="app-list-table">
-            <thead className="bg-slate-50/80 text-[11px] uppercase tracking-widest text-slate-500">
-              <tr>
-                <th className="px-6 py-4 font-semibold">Product</th>
-                <th className="px-6 py-4 text-right font-semibold">Received</th>
-                <th className="px-6 py-4 text-right font-semibold">Good</th>
-                <th className="px-6 py-4 text-right font-semibold">Breakage</th>
-                <th className="px-6 py-4 text-right font-semibold">Unit cost</th>
-                <th className="px-6 py-4 text-right font-semibold">Line total</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-              {lines.map((line) => {
-                const good = lineConditions[line.lineId] ?? line.quantity;
-                const unitCost = unitCosts[line.lineId] ?? "";
-                const unitCostCents = parseMoneyToCents(unitCost);
-                const lineTotal =
-                  unitCostCents === null ? null : ((unitCostCents * line.quantity) / 100).toFixed(2);
-                return (
-                  <tr key={line.lineId} className="bg-white">
-                    <td className="px-6 py-4">
-                      <div className="font-medium text-slate-900">{line.brand}</div>
-                      <div className="text-slate-500">{line.sizeLabel}</div>
-                      <div className="mt-1 font-mono text-xs text-slate-400">
-                        {line.barcode}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 text-right font-mono font-medium text-slate-900">{line.quantity}</td>
-                    <td className="px-6 py-4 text-right">
-                      <div className="inline-flex items-center gap-2">
-                        <button
-                          type="button"
-                          onClick={() => updateCondition(line.lineId, Math.max(0, good - 1))}
-                          className="app-stepper-button app-stepper-button--sm"
-                          aria-label="Decrease good quantity"
-                        >
-                          -
-                        </button>
+          <div data-testid="purchase-review-line-items" className="max-w-full overflow-x-auto">
+            <table className="app-list-table min-w-[1120px] table-fixed">
+              <colgroup>
+                <col className="w-[280px]" />
+                <col className="w-[120px]" />
+                <col className="w-[250px]" />
+                <col className="w-[130px]" />
+                <col className="w-[180px]" />
+                <col className="w-[160px]" />
+              </colgroup>
+              <thead className="bg-slate-50/80 text-[11px] uppercase tracking-widest text-slate-500">
+                <tr>
+                  <th className="whitespace-nowrap px-6 py-4 font-semibold">Product</th>
+                  <th className="whitespace-nowrap px-6 py-4 text-right font-semibold">Received</th>
+                  <th className="whitespace-nowrap px-6 py-4 text-right font-semibold">Good</th>
+                  <th className="whitespace-nowrap px-6 py-4 text-right font-semibold">Breakage</th>
+                  <th className="whitespace-nowrap px-6 py-4 text-right font-semibold">Unit cost</th>
+                  <th className="whitespace-nowrap px-6 py-4 text-right font-semibold">Line total</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {lines.map((line) => {
+                  const good = lineConditions[line.lineId] ?? line.quantity;
+                  const unitCost = unitCosts[line.lineId] ?? "";
+                  const unitCostCents = parseMoneyToCents(unitCost);
+                  const lineTotal =
+                    unitCostCents === null ? null : ((unitCostCents * line.quantity) / 100).toFixed(2);
+                  return (
+                    <tr key={line.lineId} className="bg-white">
+                      <td className="whitespace-nowrap px-6 py-4">
+                        <div className="truncate font-medium text-slate-900" title={line.brand}>{line.brand}</div>
+                        <div className="truncate text-slate-500" title={line.sizeLabel}>{line.sizeLabel}</div>
+                        <div className="mt-1 truncate font-mono text-xs text-slate-400" title={line.barcode}>
+                          {line.barcode}
+                        </div>
+                      </td>
+                      <td className="whitespace-nowrap px-6 py-4 text-right font-mono font-medium text-slate-900">{line.quantity}</td>
+                      <td className="whitespace-nowrap px-6 py-4 text-right">
+                        <div className="inline-flex flex-nowrap items-center gap-2">
+                          <button
+                            type="button"
+                            onClick={() => updateCondition(line.lineId, Math.max(0, good - 1))}
+                            className="app-stepper-button app-stepper-button--sm"
+                            aria-label="Decrease good quantity"
+                          >
+                            -
+                          </button>
+                          <input
+                            type="number"
+                            min="0"
+                            max={line.quantity}
+                            value={good}
+                            onChange={(e) =>
+                              updateCondition(
+                                line.lineId,
+                                Math.max(0, Math.floor(Number(e.target.value || 0)))
+                              )
+                            }
+                            className="w-20 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-right font-mono text-sm font-medium shadow-sm transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:border-slate-300 focus-visible:ring-2 focus-visible:ring-action/40 focus-visible:border-action outline-none"
+                            aria-label="Good-condition quantity"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => updateCondition(line.lineId, Math.min(line.quantity, good + 1))}
+                            className="app-stepper-button app-stepper-button--sm"
+                            aria-label="Increase good quantity"
+                          >
+                            +
+                          </button>
+                        </div>
+                      </td>
+                      <td className="whitespace-nowrap px-6 py-4 text-right font-mono font-medium text-slate-500">{line.quantity - good}</td>
+                      <td className="whitespace-nowrap px-6 py-4 text-right">
                         <input
-                          type="number"
-                          min="0"
-                          max={line.quantity}
-                          value={good}
-                          onChange={(e) =>
-                            updateCondition(
-                              line.lineId,
-                              Math.max(0, Math.floor(Number(e.target.value || 0)))
-                            )
-                          }
-                          className="w-20 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-right font-mono text-sm font-medium shadow-sm transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:border-slate-300 focus-visible:ring-2 focus-visible:ring-action/40 focus-visible:border-action outline-none"
-                          aria-label="Good-condition quantity"
+                          type="text"
+                          inputMode="decimal"
+                          value={unitCost}
+                          onChange={(e) => updateUnitCost(line.lineId, e.target.value)}
+                          placeholder="0.00"
+                          className="w-24 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-right font-mono text-sm font-medium shadow-sm transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:border-slate-300 focus-visible:ring-2 focus-visible:ring-action/40 focus-visible:border-action outline-none"
+                          aria-label="Unit cost"
                         />
-                        <button
-                          type="button"
-                          onClick={() => updateCondition(line.lineId, Math.min(line.quantity, good + 1))}
-                          className="app-stepper-button app-stepper-button--sm"
-                          aria-label="Increase good quantity"
-                        >
-                          +
-                        </button>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 text-right font-mono font-medium text-slate-500">{line.quantity - good}</td>
-                    <td className="px-6 py-4 text-right">
-                      <input
-                        type="text"
-                        inputMode="decimal"
-                        value={unitCost}
-                        onChange={(e) => updateUnitCost(line.lineId, e.target.value)}
-                        placeholder="0.00"
-                        className="w-24 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-right font-mono text-sm font-medium shadow-sm transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:border-slate-300 focus-visible:ring-2 focus-visible:ring-action/40 focus-visible:border-action outline-none"
-                        aria-label="Unit cost"
-                      />
-                    </td>
-                    <td className="px-6 py-4 text-right font-mono font-medium text-slate-900">
-                      {lineTotal ? formatMoney(lineTotal) : "--"}
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+                      </td>
+                      <td className="whitespace-nowrap px-6 py-4 text-right font-mono font-medium text-slate-900">
+                        {lineTotal ? formatMoney(lineTotal) : "--"}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
         </div>
 
         <div className="grid gap-4 rounded-2xl bg-slate-50 p-5 ring-1 ring-slate-200/60 md:grid-cols-3">
@@ -1003,8 +1025,12 @@ function PurchaseReviewModal({
             {localError}
           </div>
         )}
+        </div>
 
-        <div className="flex flex-wrap justify-end gap-3 pt-4">
+        <div
+          data-testid="purchase-review-footer"
+          className="flex flex-none flex-wrap justify-end gap-3 border-t border-slate-200 bg-white px-4 py-4 sm:px-8"
+        >
           <button
             type="button"
             onClick={onCancel}
@@ -1021,6 +1047,7 @@ function PurchaseReviewModal({
           </button>
         </div>
       </form>
-    </ModalDialog>
+    </ModalDialog>,
+    document.body
   );
 }

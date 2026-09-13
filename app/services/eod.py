@@ -22,12 +22,12 @@ Flow:
 """
 from __future__ import annotations
 
+import csv
+import io
 from collections import defaultdict
 from dataclasses import dataclass
 from datetime import UTC, date, datetime, time, timedelta
 from decimal import Decimal
-import csv
-import io
 
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -619,6 +619,7 @@ async def list_signoff_history(
     from_date: date | None = None,
     to_date: date | None = None,
     limit: int = 90,
+    offset: int = 0,
 ) -> list[SignOffHistoryRow]:
     """Descending list of past sign-offs. `from_date` / `to_date`
     inclusive on the business_date column."""
@@ -632,11 +633,22 @@ async def list_signoff_history(
     if to_date is not None:
         # inclusive: <= to_date
         stmt = stmt.where(EodSignOff.business_date <= to_date)
-    stmt = stmt.order_by(EodSignOff.business_date.desc()).limit(limit)
+    stmt = stmt.order_by(EodSignOff.business_date.desc(), EodSignOff.id.desc()).limit(limit).offset(offset)
     return [
         SignOffHistoryRow(sign_off=sign_off, signer_name=signer_name)
         for sign_off, signer_name in (await db.execute(stmt)).all()
     ]
+
+
+async def count_signoff_history(
+    db: AsyncSession, *, shop_id: int, from_date: date | None = None, to_date: date | None = None
+) -> int:
+    stmt = select(func.count(EodSignOff.id)).where(EodSignOff.shop_id == shop_id)
+    if from_date is not None:
+        stmt = stmt.where(EodSignOff.business_date >= from_date)
+    if to_date is not None:
+        stmt = stmt.where(EodSignOff.business_date <= to_date)
+    return int((await db.execute(stmt)).scalar_one())
 
 
 async def get_signoff_history_entry(
@@ -684,6 +696,7 @@ async def list_pending_voids(
     *,
     shop_id: int,
     limit: int = 50,
+    offset: int = 0,
 ) -> list[Invoice | PastInvoice]:
     """Invoices waiting for the owner to approve or reject a post-EOD
     void request (R-26 dashboard widget)."""
@@ -713,17 +726,32 @@ async def list_pending_voids(
     )
     rows = [*current_rows, *past_rows]
     rows.sort(key=lambda row: row.void_requested_at or datetime.max.replace(tzinfo=UTC))
-    return rows[:limit]
+    return rows[offset : offset + limit]
+
+
+async def count_pending_voids(db: AsyncSession, *, shop_id: int) -> int:
+    current = await db.scalar(
+        select(func.count(Invoice.id)).where(
+            Invoice.shop_id == shop_id, Invoice.status == InvoiceStatus.PENDING_VOID
+        )
+    )
+    past = await db.scalar(
+        select(func.count(PastInvoice.id)).where(
+            PastInvoice.shop_id == shop_id, PastInvoice.status == InvoiceStatus.PENDING_VOID
+        )
+    )
+    return int(current or 0) + int(past or 0)
 
 
 __all__ = [
     "EodError",
     "EodTotals",
     "SignOffResult",
-    "get_day_totals",
-    "get_signoff_history_entry",
-    "get_open_backlog_totals",
     "build_reconciliation_export_rows",
+    "count_signoff_history",
+    "get_day_totals",
+    "get_open_backlog_totals",
+    "get_signoff_history_entry",
     "list_pending_voids",
     "list_signoff_history",
     "render_reconciliation_export_csv",

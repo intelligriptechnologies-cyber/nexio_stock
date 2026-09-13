@@ -64,6 +64,46 @@ async def test_non_superadmin_cannot_access_shop_maintenance(
     assert resp.status_code == 403
 
 
+async def test_shop_user_pagination_total_and_filters(
+    superadmin_client: AsyncClient,
+) -> None:
+    created = await superadmin_client.post(
+        "/shops", json={"name": "Paged Shop", "code": "paged-shop"}
+    )
+    shop_id = created.json()["id"]
+    for index, role in enumerate(("owner", "cashier_user", "receiver_user"), start=1):
+        response = await superadmin_client.post(
+            f"/shops/{shop_id}/users",
+            json={
+                "role": role,
+                "username": f"paged-user-{index}",
+                "full_name": f"Paged User {index}",
+                "phone": f"+1555555020{index}",
+                "password": "ownerpass",
+            },
+        )
+        assert response.status_code == 201, response.text
+
+    page = await superadmin_client.get(
+        f"/shops/{shop_id}/users", params={"limit": 2, "offset": 2}
+    )
+    assert page.status_code == 200
+    assert page.headers["X-Total-Count"] == "3"
+    assert len(page.json()) == 1
+
+    filtered = await superadmin_client.get(
+        f"/shops/{shop_id}/users", params={"role": "cashier_user", "is_active": True}
+    )
+    assert filtered.status_code == 200
+    assert filtered.headers["X-Total-Count"] == "1"
+    assert [row["role"] for row in filtered.json()] == ["cashier_user"]
+
+    invalid = await superadmin_client.get(
+        f"/shops/{shop_id}/users", params={"limit": 0, "offset": -1}
+    )
+    assert invalid.status_code == 422
+
+
 async def test_superadmin_product_copy_skips_existing_and_does_not_copy_stock(
     owner_client: AsyncClient,
     superadmin_client: AsyncClient,

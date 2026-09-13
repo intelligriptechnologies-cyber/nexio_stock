@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { Store, RefreshCw, Plus, Save, Users, Package, Settings, Shield, KeyRound } from "lucide-react";
-import { listProducts, type Product } from "../api/products";
+import { listProductsPage, type Product } from "../api/products";
 import { toUserMessage } from "../api/client";
 import {
   createShopAuthenticatorActivationToken,
@@ -10,10 +10,10 @@ import {
   getMyShop,
   getShopTwoFactor,
   generateShopTwoFactorSecret,
-  listShopAuthenticatorActivations,
-  listShopDevices,
-  listShopUsers,
-  listShops,
+  listShopAuthenticatorActivationsPage,
+  listShopDevicesPage,
+  listShopUsersPage,
+  listShopsPage,
   rotateShopTwoFactorSecret,
   resetShopUserPassword,
   setShopUserActive,
@@ -33,6 +33,8 @@ import {
 import { useShopScope } from "../auth/ShopScopeProvider";
 import { AppTabButton } from "../components/AppTabs";
 import { ModalDialog } from "../components/ModalDialog";
+import { Pagination } from "../components/Pagination";
+import { pageOffset, pageSizeParam, positiveInt, STANDARD_PAGE_SIZES } from "../utils/pagination";
 
 const ROLES: ShopUserRole[] = ["owner", "cashier_user", "receiver_user"];
 const ROLE_FILTERS = ["all", ...ROLES] as const;
@@ -51,29 +53,98 @@ const TABS: Array<{ id: ShopTab; label: string }> = [
 
 export function ShopMaintenancePage() {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { actingShopId, setActingShopId, refreshShops } = useShopScope();
+  const shopPage = positiveInt(searchParams.get("shopPage"), 1);
+  const shopPageSize = pageSizeParam(searchParams.get("shopPageSize"), STANDARD_PAGE_SIZES, 25);
+  const userPage = positiveInt(searchParams.get("userPage"), 1);
+  const userPageSize = pageSizeParam(searchParams.get("userPageSize"), STANDARD_PAGE_SIZES, 25);
+  const inventoryPage = positiveInt(searchParams.get("inventoryPage"), 1);
+  const inventoryPageSize = pageSizeParam(searchParams.get("inventoryPageSize"), STANDARD_PAGE_SIZES, 25);
+  const devicePage = positiveInt(searchParams.get("devicePage"), 1);
+  const devicePageSize = pageSizeParam(searchParams.get("devicePageSize"), STANDARD_PAGE_SIZES, 25);
+  const activationPage = positiveInt(searchParams.get("activationPage"), 1);
+  const activationPageSize = pageSizeParam(searchParams.get("activationPageSize"), STANDARD_PAGE_SIZES, 25);
   const [shops, setShops] = useState<ShopSummary[]>([]);
-  const [selectedShopId, setSelectedShopId] = useState<number | null>(actingShopId);
-  const [activeTab, setActiveTab] = useState<ShopTab>("details");
+  const [shopTotal, setShopTotal] = useState(0);
+  const selectedShopParam = Number(searchParams.get("shop"));
+  const [selectedShopId, setSelectedShopId] = useState<number | null>(
+    Number.isInteger(selectedShopParam) && selectedShopParam > 0 ? selectedShopParam : actingShopId
+  );
+  const initialTab = searchParams.get("tab");
+  const [activeTab, setActiveTab] = useState<ShopTab>(
+    TABS.some((tab) => tab.id === initialTab) ? initialTab as ShopTab : "details"
+  );
   const [shopDetails, setShopDetails] = useState<ShopPublic | null>(null);
   const [users, setUsers] = useState<ShopUser[]>([]);
+  const [userTotal, setUserTotal] = useState(0);
   const [products, setProducts] = useState<Product[]>([]);
+  const [productTotal, setProductTotal] = useState(0);
   const [twoFactor, setTwoFactor] = useState<ShopTwoFactorPublic | null>(null);
   const [devices, setDevices] = useState<ShopDevice[]>([]);
+  const [deviceTotal, setDeviceTotal] = useState(0);
   const [activations, setActivations] = useState<ShopAuthenticatorActivation[]>([]);
+  const [activationTotal, setActivationTotal] = useState(0);
   const [activationToken, setActivationToken] = useState<ShopAuthenticatorActivationToken | null>(null);
-  const [productQuery, setProductQuery] = useState("");
-  const [includeInactiveProducts, setIncludeInactiveProducts] = useState(false);
-  const [roleFilter, setRoleFilter] = useState<RoleFilter>("all");
-  const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
+  const [productQuery, setProductQuery] = useState(searchParams.get("inventoryQ") ?? "");
+  const [requestProductQuery, setRequestProductQuery] = useState(productQuery);
+  const [includeInactiveProducts, setIncludeInactiveProducts] = useState(
+    searchParams.get("inventoryInactive") === "true"
+  );
+  const roleParam = searchParams.get("role");
+  const statusParam = searchParams.get("status");
+  const [roleFilter, setRoleFilter] = useState<RoleFilter>(
+    ROLE_FILTERS.includes(roleParam as RoleFilter) ? roleParam as RoleFilter : "all"
+  );
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>(
+    STATUS_FILTERS.includes(statusParam as StatusFilter) ? statusParam as StatusFilter : "all"
+  );
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);
 
+  const setListPage = useCallback((prefix: string, page: number, size: number, replace = false) => {
+    setSearchParams((current) => {
+      const next = new URLSearchParams(current);
+      next.set(`${prefix}Page`, String(page));
+      next.set(`${prefix}PageSize`, String(size));
+      return next;
+    }, { replace });
+  }, [setSearchParams]);
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      setRequestProductQuery(productQuery);
+      setSearchParams((current) => {
+        const next = new URLSearchParams(current);
+        if (productQuery.trim()) next.set("inventoryQ", productQuery.trim());
+        else next.delete("inventoryQ");
+        next.set("inventoryPage", "1");
+        return next;
+      }, { replace: true });
+    }, 300);
+    return () => window.clearTimeout(timer);
+  }, [productQuery, setSearchParams]);
+
+  useEffect(() => {
+    const nextTab = searchParams.get("tab");
+    setActiveTab(TABS.some((tab) => tab.id === nextTab) ? nextTab as ShopTab : "details");
+    const nextRole = searchParams.get("role");
+    setRoleFilter(ROLE_FILTERS.includes(nextRole as RoleFilter) ? nextRole as RoleFilter : "all");
+    const nextStatus = searchParams.get("status");
+    setStatusFilter(STATUS_FILTERS.includes(nextStatus as StatusFilter) ? nextStatus as StatusFilter : "all");
+    setIncludeInactiveProducts(searchParams.get("inventoryInactive") === "true");
+    setProductQuery(searchParams.get("inventoryQ") ?? "");
+    const nextShop = Number(searchParams.get("shop"));
+    if (Number.isInteger(nextShop) && nextShop > 0) setSelectedShopId(nextShop);
+  }, [searchParams]);
+
   const loadShops = useCallback(
     async (nextSelectedShopId?: number | null) => {
-      const rows = await listShops();
+      const result = await listShopsPage(shopPageSize, pageOffset(shopPage, shopPageSize));
+      const rows = result.data;
       setShops(rows);
+      setShopTotal(result.total);
       setSelectedShopId((current) => {
         if (nextSelectedShopId !== undefined) return nextSelectedShopId;
         if (current != null && rows.some((shop) => shop.id === current)) return current;
@@ -81,7 +152,7 @@ export function ShopMaintenancePage() {
         return rows[0]?.id ?? null;
       });
     },
-    [actingShopId]
+    [actingShopId, shopPage, shopPageSize]
   );
 
   const refreshPageData = useCallback(() => {
@@ -112,24 +183,35 @@ export function ShopMaintenancePage() {
     setError(null);
     Promise.all([
       getMyShop(selectedShopId),
-      listShopUsers(selectedShopId),
-      listProducts({
+      listShopUsersPage(selectedShopId, userPageSize, pageOffset(userPage, userPageSize), {
+        role: roleFilter === "all" ? undefined : roleFilter,
+        isActive: statusFilter === "all" ? undefined : statusFilter === "active",
+      }),
+      listProductsPage({
         shopId: selectedShopId,
-        q: productQuery.trim() || undefined,
+        q: requestProductQuery.trim() || undefined,
         includeInactive: includeInactiveProducts,
+        limit: inventoryPageSize,
+        offset: pageOffset(inventoryPage, inventoryPageSize),
       }),
       getShopTwoFactor(selectedShopId),
-      listShopDevices(selectedShopId),
-      listShopAuthenticatorActivations(selectedShopId),
+      listShopDevicesPage(selectedShopId, devicePageSize, pageOffset(devicePage, devicePageSize)),
+      listShopAuthenticatorActivationsPage(
+        selectedShopId, activationPageSize, pageOffset(activationPage, activationPageSize)
+      ),
     ])
-      .then(([details, userRows, productRows, twoFactorRow, deviceRows, activationRows]) => {
+      .then(([details, userResult, productResult, twoFactorRow, deviceResult, activationResult]) => {
         if (cancelled) return;
         setShopDetails(details);
-        setUsers(userRows);
-        setProducts(productRows);
+        setUsers(userResult.data);
+        setUserTotal(userResult.total);
+        setProducts(productResult.data);
+        setProductTotal(productResult.total);
         setTwoFactor(twoFactorRow);
-        setDevices(deviceRows);
-        setActivations(activationRows);
+        setDevices(deviceResult.data);
+        setDeviceTotal(deviceResult.total);
+        setActivations(activationResult.data);
+        setActivationTotal(activationResult.total);
       })
       .catch((e) => {
         if (!cancelled) setError(toUserMessage(e, "Could not load selected shop."));
@@ -137,7 +219,11 @@ export function ShopMaintenancePage() {
     return () => {
       cancelled = true;
     };
-  }, [selectedShopId, productQuery, includeInactiveProducts, refreshKey]);
+  }, [
+    selectedShopId, requestProductQuery, includeInactiveProducts, refreshKey,
+    userPage, userPageSize, roleFilter, statusFilter, inventoryPage, inventoryPageSize,
+    devicePage, devicePageSize, activationPage, activationPageSize,
+  ]);
 
   const selectedShop = shops.find((shop) => shop.id === selectedShopId) ?? null;
   const filteredUsers = useMemo(
@@ -154,6 +240,12 @@ export function ShopMaintenancePage() {
   const selectShop = (shopId: number) => {
     setSelectedShopId(shopId);
     setActingShopId(shopId);
+    setSearchParams((current) => {
+      const next = new URLSearchParams(current);
+      next.set("shop", String(shopId));
+      for (const prefix of ["user", "inventory", "device", "activation"]) next.set(`${prefix}Page`, "1");
+      return next;
+    });
   };
 
   const reload = () => refreshPageData();
@@ -191,6 +283,12 @@ export function ShopMaintenancePage() {
             onCreated={async (shop) => {
               setMessage("Shop created.");
               setActiveTab("details");
+              setSearchParams((current) => {
+                const next = new URLSearchParams(current);
+                next.set("tab", "details");
+                next.set("shop", String(shop.id));
+                return next;
+              });
               setActingShopId(shop.id);
               setSelectedShopId(shop.id);
               refreshShops();
@@ -230,6 +328,15 @@ export function ShopMaintenancePage() {
                 </div>
               )}
             </div>
+            <Pagination
+              page={shopPage}
+              pageSize={shopPageSize}
+              total={shopTotal}
+              pageSizes={STANDARD_PAGE_SIZES}
+              label="Shops"
+              onPageChange={(next) => setListPage("shop", next, shopPageSize)}
+              onPageSizeChange={(size) => setListPage("shop", 1, size, true)}
+            />
           </div>
         </aside>
 
@@ -246,7 +353,14 @@ export function ShopMaintenancePage() {
                     key={tab.id}
                     role="tab"
                     aria-selected={activeTab === tab.id}
-                    onClick={() => setActiveTab(tab.id)}
+                    onClick={() => {
+                      setActiveTab(tab.id);
+                      setSearchParams((current) => {
+                        const next = new URLSearchParams(current);
+                        next.set("tab", tab.id);
+                        return next;
+                      });
+                    }}
                     active={activeTab === tab.id}
                     className="whitespace-nowrap"
                   >
@@ -275,8 +389,29 @@ export function ShopMaintenancePage() {
                   users={filteredUsers}
                   roleFilter={roleFilter}
                   statusFilter={statusFilter}
-                  onRoleFilter={setRoleFilter}
-                  onStatusFilter={setStatusFilter}
+                  onRoleFilter={(value) => {
+                    setRoleFilter(value);
+                    setSearchParams((current) => {
+                      const next = new URLSearchParams(current);
+                      next.set("role", value);
+                      next.set("userPage", "1");
+                      return next;
+                    }, { replace: true });
+                  }}
+                  onStatusFilter={(value) => {
+                    setStatusFilter(value);
+                    setSearchParams((current) => {
+                      const next = new URLSearchParams(current);
+                      next.set("status", value);
+                      next.set("userPage", "1");
+                      return next;
+                    }, { replace: true });
+                  }}
+                  page={userPage}
+                  pageSize={userPageSize}
+                  total={userTotal}
+                  onPageChange={(next) => setListPage("user", next, userPageSize)}
+                  onPageSizeChange={(size) => setListPage("user", 1, size, true)}
                   onChanged={() => {
                     setMessage("User updated.");
                     reload();
@@ -289,8 +424,23 @@ export function ShopMaintenancePage() {
                   products={products}
                   query={productQuery}
                   includeInactive={includeInactiveProducts}
-                  onQuery={setProductQuery}
-                  onIncludeInactive={setIncludeInactiveProducts}
+                  onQuery={(value) => {
+                    setProductQuery(value);
+                  }}
+                  onIncludeInactive={(value) => {
+                    setIncludeInactiveProducts(value);
+                    setSearchParams((current) => {
+                      const next = new URLSearchParams(current);
+                      next.set("inventoryInactive", String(value));
+                      next.set("inventoryPage", "1");
+                      return next;
+                    }, { replace: true });
+                  }}
+                  page={inventoryPage}
+                  pageSize={inventoryPageSize}
+                  total={productTotal}
+                  onPageChange={(next) => setListPage("inventory", next, inventoryPageSize)}
+                  onPageSizeChange={(size) => setListPage("inventory", 1, size, true)}
                   onOpenProducts={() => navigate("/admin/products")}
                 />
               )}
@@ -300,6 +450,16 @@ export function ShopMaintenancePage() {
                   status={twoFactor}
                   devices={devices}
                   activations={activations}
+                  devicePage={devicePage}
+                  devicePageSize={devicePageSize}
+                  deviceTotal={deviceTotal}
+                  activationPage={activationPage}
+                  activationPageSize={activationPageSize}
+                  activationTotal={activationTotal}
+                  onDevicePageChange={(next) => setListPage("device", next, devicePageSize)}
+                  onDevicePageSizeChange={(size) => setListPage("device", 1, size, true)}
+                  onActivationPageChange={(next) => setListPage("activation", next, activationPageSize)}
+                  onActivationPageSizeChange={(size) => setListPage("activation", 1, size, true)}
                   activationToken={activationToken}
                   onActivationToken={setActivationToken}
                   onChanged={() => {
@@ -464,6 +624,11 @@ function UserPanel({
   statusFilter,
   onRoleFilter,
   onStatusFilter,
+  page,
+  pageSize,
+  total,
+  onPageChange,
+  onPageSizeChange,
   onChanged,
   onError,
 }: {
@@ -473,6 +638,11 @@ function UserPanel({
   statusFilter: StatusFilter;
   onRoleFilter: (value: RoleFilter) => void;
   onStatusFilter: (value: StatusFilter) => void;
+  page: number;
+  pageSize: number;
+  total: number;
+  onPageChange: (page: number) => void;
+  onPageSizeChange: (size: number) => void;
   onChanged: () => void;
   onError: (message: string | null) => void;
 }) {
@@ -656,6 +826,15 @@ function UserPanel({
           </tbody>
         </table>
       </div>
+      <Pagination
+        page={page}
+        pageSize={pageSize}
+        total={total}
+        pageSizes={STANDARD_PAGE_SIZES}
+        label="Allotted users"
+        onPageChange={onPageChange}
+        onPageSizeChange={onPageSizeChange}
+      />
       {resetUser && (
         <ModalDialog labelledBy="shop-user-reset-password-title" onDismiss={closeResetDialog}>
           <div className="w-full max-w-md overflow-hidden rounded-2xl bg-white shadow-2xl ring-1 ring-slate-200/70">
@@ -725,6 +904,11 @@ function InventoryPanel({
   includeInactive,
   onQuery,
   onIncludeInactive,
+  page,
+  pageSize,
+  total,
+  onPageChange,
+  onPageSizeChange,
   onOpenProducts,
 }: {
   products: Product[];
@@ -732,6 +916,11 @@ function InventoryPanel({
   includeInactive: boolean;
   onQuery: (value: string) => void;
   onIncludeInactive: (value: boolean) => void;
+  page: number;
+  pageSize: number;
+  total: number;
+  onPageChange: (page: number) => void;
+  onPageSizeChange: (size: number) => void;
   onOpenProducts: () => void;
 }) {
   return (
@@ -811,6 +1000,15 @@ function InventoryPanel({
           </tbody>
         </table>
       </div>
+      <Pagination
+        page={page}
+        pageSize={pageSize}
+        total={total}
+        pageSizes={STANDARD_PAGE_SIZES}
+        label="Quick inventory"
+        onPageChange={onPageChange}
+        onPageSizeChange={onPageSizeChange}
+      />
     </section>
   );
 }
@@ -820,6 +1018,16 @@ function TwoFactorPanel({
   status,
   devices,
   activations,
+  devicePage,
+  devicePageSize,
+  deviceTotal,
+  activationPage,
+  activationPageSize,
+  activationTotal,
+  onDevicePageChange,
+  onDevicePageSizeChange,
+  onActivationPageChange,
+  onActivationPageSizeChange,
   activationToken,
   onActivationToken,
   onChanged,
@@ -829,6 +1037,16 @@ function TwoFactorPanel({
   status: ShopTwoFactorPublic;
   devices: ShopDevice[];
   activations: ShopAuthenticatorActivation[];
+  devicePage: number;
+  devicePageSize: number;
+  deviceTotal: number;
+  activationPage: number;
+  activationPageSize: number;
+  activationTotal: number;
+  onDevicePageChange: (page: number) => void;
+  onDevicePageSizeChange: (size: number) => void;
+  onActivationPageChange: (page: number) => void;
+  onActivationPageSizeChange: (size: number) => void;
   activationToken: ShopAuthenticatorActivationToken | null;
   onActivationToken: (value: ShopAuthenticatorActivationToken | null) => void;
   onChanged: () => void;
@@ -1029,6 +1247,17 @@ function TwoFactorPanel({
             ))}
             {devices.length === 0 && <div className="px-6 py-8 text-sm text-slate-500">No registered devices.</div>}
           </div>
+          <div className="border-t border-slate-100 p-4">
+            <Pagination
+              page={devicePage}
+              pageSize={devicePageSize}
+              total={deviceTotal}
+              pageSizes={STANDARD_PAGE_SIZES}
+              label="Registered devices"
+              onPageChange={onDevicePageChange}
+              onPageSizeChange={onDevicePageSizeChange}
+            />
+          </div>
         </div>
 
         <div className="rounded-2xl border border-slate-200 bg-white shadow-sm">
@@ -1048,6 +1277,17 @@ function TwoFactorPanel({
               </div>
             ))}
             {activations.length === 0 && <div className="px-6 py-8 text-sm text-slate-500">No authenticator activations yet.</div>}
+          </div>
+          <div className="border-t border-slate-100 p-4">
+            <Pagination
+              page={activationPage}
+              pageSize={activationPageSize}
+              total={activationTotal}
+              pageSizes={STANDARD_PAGE_SIZES}
+              label="Authenticator activations"
+              onPageChange={onActivationPageChange}
+              onPageSizeChange={onActivationPageSizeChange}
+            />
           </div>
         </div>
       </div>

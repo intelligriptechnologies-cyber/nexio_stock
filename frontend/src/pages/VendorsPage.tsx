@@ -1,20 +1,28 @@
 import { useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { Truck, RefreshCw, Plus, Save, Download } from "lucide-react";
 import { ApiError, toUserMessage } from "../api/client";
 import {
   createVendor,
-  listVendors,
+  downloadVendorsExport,
+  listVendorsPage,
   updateVendor,
   type VendorPublic,
 } from "../api/vendors";
 import { useShopScope } from "../auth/ShopScopeProvider";
-import { csvTimestamp, downloadCsv } from "../utils/csv";
+import { triggerDownload } from "../utils/csv";
+import { Pagination } from "../components/Pagination";
+import { pageOffset, pageSizeParam, positiveInt, STANDARD_PAGE_SIZES } from "../utils/pagination";
 
 export function VendorsPage() {
   const { actingShopId } = useShopScope();
   const [vendors, setVendors] = useState<VendorPublic[]>([]);
+  const [total, setTotal] = useState(0);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const page = positiveInt(searchParams.get("page"), 1);
+  const pageSize = pageSizeParam(searchParams.get("pageSize"), STANDARD_PAGE_SIZES, 25);
   const [selectedId, setSelectedId] = useState<number | null>(null);
-  const [includeInactive, setIncludeInactive] = useState(false);
+  const includeInactive = searchParams.get("inactive") === "true";
   const [error, setError] = useState<string | null>(null);
   const [info, setInfo] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -25,15 +33,18 @@ export function VendorsPage() {
       return;
     }
     setError(null);
-    void listVendors(actingShopId, includeInactive)
-      .then((rows) => {
-        setVendors(rows);
+    setBusy(true);
+    void listVendorsPage({ shopId: actingShopId, includeInactive, limit: pageSize, offset: pageOffset(page, pageSize) })
+      .then((result) => {
+        setVendors(result.data);
+        setTotal(result.total);
         setSelectedId((current) =>
-          current != null && rows.some((vendor) => vendor.id === current) ? current : null
+          current != null && result.data.some((vendor) => vendor.id === current) ? current : null
         );
       })
-      .catch((e) => setError(toUserMessage(e, "Could not load vendors.")));
-  }, [actingShopId, includeInactive]);
+      .catch((e) => setError(toUserMessage(e, "Could not load vendors.")))
+      .finally(() => setBusy(false));
+  }, [actingShopId, includeInactive, page, pageSize]);
 
   const selected = useMemo(
     () => vendors.find((vendor) => vendor.id === selectedId) ?? null,
@@ -51,14 +62,25 @@ export function VendorsPage() {
   }
 
   const refresh = () => {
-    void listVendors(actingShopId, includeInactive)
-      .then((rows) => {
-        setVendors(rows);
+    setBusy(true);
+    void listVendorsPage({ shopId: actingShopId, includeInactive, limit: pageSize, offset: pageOffset(page, pageSize) })
+      .then((result) => {
+        setVendors(result.data);
+        setTotal(result.total);
         setSelectedId((current) =>
-          current != null && rows.some((vendor) => vendor.id === current) ? current : null
+          current != null && result.data.some((vendor) => vendor.id === current) ? current : null
         );
       })
-      .catch((e) => setError(toUserMessage(e, "Could not load vendors.")));
+      .catch((e) => setError(toUserMessage(e, "Could not load vendors.")))
+      .finally(() => setBusy(false));
+  };
+
+  const setPage = (nextPage: number, nextSize = pageSize, replace = false) => {
+    setSearchParams((current) => {
+      const next = new URLSearchParams(current);
+      next.set("page", String(nextPage)); next.set("pageSize", String(nextSize));
+      return next;
+    }, { replace });
   };
 
   const clearMessage = () => {
@@ -96,22 +118,11 @@ export function VendorsPage() {
     }
   };
 
-  const exportRows = () => {
-    downloadCsv(
-      vendors.map((vendor) => ({
-        id: vendor.id,
-        name: vendor.name,
-        gstin: vendor.gstin ?? "",
-        phone: vendor.phone ?? "",
-        email: vendor.email ?? "",
-        address: vendor.address ?? "",
-        status: vendor.is_active ? "Active" : "Inactive",
-        created_at: vendor.created_at,
-        updated_at: vendor.updated_at,
-      })),
-      `vendors-${csvTimestamp()}.csv`,
-      ["id", "name", "gstin", "phone", "email", "address", "status", "created_at", "updated_at"]
-    );
+  const exportRows = async () => {
+    try {
+      const result = await downloadVendorsExport(actingShopId, includeInactive);
+      triggerDownload(result.blob, result.filename ?? "vendors.csv");
+    } catch (e) { setError(toUserMessage(e, "Export failed.")); }
   };
 
   return (
@@ -129,14 +140,18 @@ export function VendorsPage() {
           <input
             type="checkbox"
             checked={includeInactive}
-            onChange={(e) => setIncludeInactive(e.target.checked)}
+            onChange={(e) => setSearchParams((current) => {
+              const next = new URLSearchParams(current);
+              if (e.target.checked) next.set("inactive", "true"); else next.delete("inactive");
+              next.set("page", "1"); return next;
+            })}
             className="h-4 w-4 rounded border-slate-300 text-action focus:ring-action"
           />
           Include inactive
         </label>
         <button
           type="button"
-          onClick={exportRows}
+          onClick={() => void exportRows()}
           disabled={busy || vendors.length === 0}
           className="flex h-10 w-10 items-center justify-center rounded-xl bg-white text-slate-600 shadow-sm ring-1 ring-slate-200 transition-colors hover:bg-slate-50 hover:text-slate-900 disabled:pointer-events-none disabled:opacity-50"
           aria-label="Download vendors CSV"
@@ -220,6 +235,9 @@ export function VendorsPage() {
               </tbody>
             </table>
           </div>
+          <Pagination page={page} pageSize={pageSize} total={total} disabled={busy}
+            label="vendors" pageSizes={STANDARD_PAGE_SIZES}
+            onPageChange={setPage} onPageSizeChange={(size) => setPage(1, size, true)} />
         </section>
       </div>
     </div>

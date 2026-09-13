@@ -1,11 +1,13 @@
 """Stock inward workflow routes."""
 from __future__ import annotations
 
+import csv
+import io
 from datetime import date as date_cls
 from decimal import Decimal
 from typing import Annotated
 
-from fastapi import APIRouter, Body, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -28,6 +30,7 @@ from app.schemas.lot import LotCreate, LotListResponse, LotPublic
 from app.services.stock_inwards import (
     StockInwardError,
     approve_stock_inward,
+    count_stock_inwards,
     create_stock_inward,
     get_stock_inward,
     list_stock_inwards,
@@ -307,16 +310,48 @@ async def reject_lot(
 )
 async def list_lots(
     db: DbSession,
+    response: Response,
     _user: User = Depends(require_role(*_writer_roles)),
-    limit: Annotated[int, Query(ge=1, le=200)] = 50,
+    limit: Annotated[int, Query(ge=1, le=200)] = 25,
     offset: Annotated[int, Query(ge=0)] = 0,
     status_filter: Annotated[StockInwardStatus | None, Query(alias="status")] = None,
     shop_id: int | None = Query(default=None),
 ) -> LotListResponse:
     resolved_shop_id = resolve_read_shop_id(_user, shop_id)
-    rows = await list_stock_inwards(db, shop_id=resolved_shop_id, status=status_filter)
-    rows = rows[offset : offset + limit]
+    response.headers["X-Total-Count"] = str(
+        await count_stock_inwards(db, shop_id=resolved_shop_id, status=status_filter)
+    )
+    rows = await list_stock_inwards(
+        db, shop_id=resolved_shop_id, status=status_filter, limit=limit, offset=offset
+    )
     return LotListResponse(lots=[LotPublic.model_validate(row) for row in rows])
+
+
+@router.get("/export", summary="Export every filtered stock inward row as CSV")
+async def export_lots(
+    db: DbSession,
+    _user: User = Depends(require_role(*_writer_roles)),
+    status_filter: Annotated[StockInwardStatus | None, Query(alias="status")] = None,
+    shop_id: int | None = None,
+) -> Response:
+    resolved_shop_id = resolve_read_shop_id(_user, shop_id)
+    rows = await list_stock_inwards(db, shop_id=resolved_shop_id, status=status_filter)
+    public = [LotPublic.model_validate(row) for row in rows]
+    out = io.StringIO()
+    fields = ["inward_id", "shop_id", "status", "vendor_name", "vendor_invoice_number", "purchase_date", "invoice_value", "reference", "created_at", "approved_at", "line_items"]
+    writer = csv.DictWriter(out, fieldnames=fields)
+    writer.writeheader()
+    for row in public:
+        writer.writerow({
+            "inward_id": row.id, "shop_id": row.shop_id, "status": row.status.value,
+            "vendor_name": row.vendor.name if row.vendor else "",
+            "vendor_invoice_number": row.vendor_invoice_number, "purchase_date": row.purchase_date,
+            "invoice_value": row.invoice_value, "reference": row.reference or "",
+            "created_at": row.created_at.isoformat(),
+            "approved_at": row.approved_at.isoformat() if row.approved_at else "",
+            "line_items": "; ".join(f"{line.product_brand} {line.product_size_label} x{line.quantity}" for line in row.lines),
+        })
+    return Response(content=out.getvalue(), media_type="text/csv", headers={"Content-Disposition": 'attachment; filename="stock-tracking.csv"'})
 
 
 @router.get(

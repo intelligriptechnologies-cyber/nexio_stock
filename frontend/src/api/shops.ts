@@ -1,4 +1,4 @@
-import { api, withShopId, withShopIdParams } from "./client";
+import { api, apiPage, withShopId, withShopIdParams } from "./client";
 
 export interface ShopPublic {
   id: number;
@@ -118,8 +118,19 @@ export interface ShopAuthenticatorActivationToken {
 }
 
 // Superadmin-only (D-64/D-65): every shop, for the shop-scope picker.
-export function listShops(): Promise<ShopSummary[]> {
-  return api<ShopSummary[]>("/shops");
+export async function listShops(): Promise<ShopSummary[]> {
+  const first = await apiPage<ShopSummary[]>("/shops");
+  const rows = [...first.data];
+  while (rows.length < first.total) {
+    const page = await apiPage<ShopSummary[]>(`/shops?limit=1000&offset=${rows.length}`);
+    if (page.data.length === 0) break;
+    rows.push(...page.data);
+  }
+  return rows;
+}
+
+export function listShopsPage(limit: number, offset: number): Promise<{ data: ShopSummary[]; total: number }> {
+  return apiPage<ShopSummary[]>(`/shops?limit=${limit}&offset=${offset}`);
 }
 
 export function getMyShop(shopId?: number | null): Promise<ShopPublic> {
@@ -147,7 +158,17 @@ export function updateShop(
 }
 
 export function listShopUsers(shopId: number): Promise<ShopUser[]> {
-  return api<ShopUser[]>(`/shops/${shopId}/users`);
+  return api<ShopUser[]>(`/shops/${shopId}/users?limit=100`);
+}
+
+export function listShopUsersPage(
+  shopId: number, limit: number, offset: number,
+  filters?: { role?: ShopUserRole; isActive?: boolean }
+): Promise<{ data: ShopUser[]; total: number }> {
+  const params = new URLSearchParams({ limit: String(limit), offset: String(offset) });
+  if (filters?.role) params.set("role", filters.role);
+  if (filters?.isActive !== undefined) params.set("is_active", String(filters.isActive));
+  return apiPage<ShopUser[]>(`/shops/${shopId}/users?${params.toString()}`);
 }
 
 export function createShopUser(
@@ -180,9 +201,16 @@ export function resetShopUserPassword(
 }
 
 export function listShopDevices(shopId?: number | null): Promise<ShopDevice[]> {
-  const params = withShopIdParams(new URLSearchParams(), shopId);
+  const params = withShopIdParams(new URLSearchParams({ limit: "100" }), shopId);
   const qs = params.toString();
   return api<ShopDevice[]>(`/shops/me/devices${qs ? `?${qs}` : ""}`);
+}
+
+export function listShopDevicesPage(
+  shopId: number | null | undefined, limit: number, offset: number
+): Promise<{ data: ShopDevice[]; total: number }> {
+  const params = withShopIdParams(new URLSearchParams({ limit: String(limit), offset: String(offset) }), shopId);
+  return apiPage<ShopDevice[]>(`/shops/me/devices?${params.toString()}`);
 }
 
 export function upsertShopDevice(
@@ -249,7 +277,15 @@ export function createShopAuthenticatorActivationToken(
 export function listShopAuthenticatorActivations(
   shopId: number
 ): Promise<ShopAuthenticatorActivation[]> {
-  return api<ShopAuthenticatorActivation[]>(`/shops/${shopId}/two-factor/authenticator-activations`);
+  return api<ShopAuthenticatorActivation[]>(`/shops/${shopId}/two-factor/authenticator-activations?limit=100`);
+}
+
+export function listShopAuthenticatorActivationsPage(
+  shopId: number, limit: number, offset: number
+): Promise<{ data: ShopAuthenticatorActivation[]; total: number }> {
+  return apiPage<ShopAuthenticatorActivation[]>(
+    `/shops/${shopId}/two-factor/authenticator-activations?limit=${limit}&offset=${offset}`
+  );
 }
 
 export function updateShopAuthenticatorActivation(

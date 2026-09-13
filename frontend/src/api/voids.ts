@@ -9,7 +9,7 @@
 //
 // The pending-void queue list is at GET /dashboard/void-queue.
 
-import { api, withShopIdParams } from "./client";
+import { api, apiPage, withShopIdParams } from "./client";
 import type { InvoicePublic } from "./checkout";
 
 export interface PendingVoidResponse {
@@ -38,4 +38,11 @@ export function listPendingVoids(shopId?: number | null): Promise<PendingVoidRes
   const params = withShopIdParams(new URLSearchParams(), shopId);
   const qs = params.toString();
   return api<PendingVoidResponse>(`/dashboard/void-queue${qs ? `?${qs}` : ""}`);
+}
+
+export function listPendingVoidsPage(
+  shopId: number | null | undefined, limit: number, offset: number, signal?: AbortSignal
+): Promise<{ data: PendingVoidResponse; total: number }> {
+  const params = withShopIdParams(new URLSearchParams({ limit: String(limit), offset: String(offset) }), shopId);
+  return apiPage<PendingVoidResponse>(`/dashboard/void-queue?${params.toString()}`, { signal });
 }

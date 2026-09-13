@@ -1,9 +1,10 @@
 import { useCallback, useEffect, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { Users, RefreshCw, KeyRound, UserPlus, Power, CheckCircle2 } from "lucide-react";
 import { ApiError } from "../api/client";
 import {
   createStaff,
-  listStaff,
+  listStaffPage,
   resetStaffPassword,
   setStaffActive,
   type StaffCreatePayload,
@@ -12,31 +13,48 @@ import {
 } from "../api/staff";
 import { useAuth } from "../auth/AuthProvider";
 import { SHOP_SCOPE_MESSAGE, useShopScope } from "../auth/ShopScopeProvider";
+import { Pagination } from "../components/Pagination";
+import { pageOffset, pageSizeParam, positiveInt, STANDARD_PAGE_SIZES } from "../utils/pagination";
 
 export function StaffPage() {
   const { user } = useAuth();
   const { actingShopId } = useShopScope();
   const [items, setItems] = useState<StaffMember[] | null>(null);
+  const [total, setTotal] = useState(0);
+  const [loading, setLoading] = useState(false);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const page = positiveInt(searchParams.get("page"), 1);
+  const pageSize = pageSizeParam(searchParams.get("pageSize"), STANDARD_PAGE_SIZES, 25);
   const [error, setError] = useState<string | null>(null);
   const [info, setInfo] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const scopedShopId = user?.role === "superadmin" ? actingShopId : null;
 
   const reload = useCallback(async () => {
-    setItems(null);
+    setLoading(true);
     setError(null);
     if (user?.role === "superadmin" && actingShopId === null) {
       setItems([]);
       setError(SHOP_SCOPE_MESSAGE);
+      setLoading(false);
       return;
     }
     try {
-      const rows = await listStaff(scopedShopId);
-      setItems(rows);
+      const result = await listStaffPage(scopedShopId, pageSize, pageOffset(page, pageSize));
+      setItems(result.data);
+      setTotal(result.total);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Load failed.");
-    }
-  }, [actingShopId, scopedShopId, user?.role]);
+    } finally { setLoading(false); }
+  }, [actingShopId, scopedShopId, user?.role, page, pageSize]);
+
+  const setPage = useCallback((nextPage: number, nextSize = pageSize, replace = false) => {
+    setSearchParams((current) => {
+      const next = new URLSearchParams(current);
+      next.set("page", String(nextPage)); next.set("pageSize", String(nextSize));
+      return next;
+    }, { replace });
+  }, [pageSize, setSearchParams]);
 
   useEffect(() => {
     void reload();
@@ -186,6 +204,9 @@ export function StaffPage() {
                   ))}
                 </tbody>
               </table>
+              <div className="px-4 pb-4"><Pagination page={page} pageSize={pageSize} total={total}
+                disabled={loading} label="staff" pageSizes={STANDARD_PAGE_SIZES}
+                onPageChange={setPage} onPageSizeChange={(size) => setPage(1, size, true)} /></div>
             </div>
           )}
         </section>

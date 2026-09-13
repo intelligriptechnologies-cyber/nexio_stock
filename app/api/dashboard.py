@@ -14,9 +14,9 @@ from datetime import datetime
 from decimal import Decimal
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, Query, status
-from fastapi import HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from fastapi.responses import Response
+from sqlalchemy import select
 
 from app.api._errors import map_error_to_http
 from app.api.deps import (
@@ -28,11 +28,11 @@ from app.api.deps import (
 )
 from app.db import unit_of_work
 from app.logging_config import get_logger
+from app.models.invoice import EodSignOff
 from app.models.shop import Shop
 from app.models.user import User, UserRole
 from app.schemas.eod import (
     EodTotalsResponse,
-    ExportSignOffHistoryRequest,
     LowStockResponse,
     PaymentModeTotal,
     PendingVoidResponse,
@@ -48,10 +48,12 @@ from app.services.eod import (
     ArchivedSignoffSummary,
     EodError,
     build_reconciliation_export_rows,
+    count_pending_voids,
+    count_signoff_history,
     get_archived_signoff_summaries,
     get_day_totals,
-    get_signoff_history_entry,
     get_open_backlog_totals,
+    get_signoff_history_entry,
     list_pending_voids,
     list_signoff_history,
     render_reconciliation_export_csv,
@@ -248,21 +250,29 @@ async def eod_totals(
 )
 async def eod_history(
     db: DbSession,
+    response: Response,
     _user: User = Depends(require_role(*_owner_only)),
     from_date: Annotated[date_cls | None, Query()] = None,
     to_date: Annotated[date_cls | None, Query()] = None,
-    limit: Annotated[int, Query(ge=1, le=365)] = 90,
+    limit: Annotated[int, Query(ge=1, le=365)] = 10,
+    offset: Annotated[int, Query(ge=0)] = 0,
     shop_id: Annotated[
         int | None, Query(description="Superadmin-only (D-65): target shop")
     ] = None,
 ) -> SignOffHistoryResponse:
     actor_shop_id = await resolve_write_shop_id(db, _user, shop_id)
+    response.headers["X-Total-Count"] = str(
+        await count_signoff_history(
+            db, shop_id=actor_shop_id, from_date=from_date, to_date=to_date
+        )
+    )
     rows = await list_signoff_history(
         db,
         shop_id=actor_shop_id,
         from_date=from_date,
         to_date=to_date,
         limit=limit,
+        offset=offset,
     )
     summaries = await get_archived_signoff_summaries(
         db,
@@ -293,17 +303,26 @@ async def eod_history(
 async def eod_history_export(
     db: DbSession,
     _user: User = Depends(require_role(*_owner_only)),
-    signoff_id: Annotated[list[int], Query(alias="signoff_id")] = [],
+    signoff_id: Annotated[list[int] | None, Query(alias="signoff_id")] = None,
+    from_date: Annotated[date_cls | None, Query()] = None,
+    to_date: Annotated[date_cls | None, Query()] = None,
     shop_id: Annotated[
         int | None, Query(description="Superadmin-only (D-65): target shop")
     ] = None,
 ) -> Response:
-    payload = ExportSignOffHistoryRequest(signoff_ids=signoff_id)
     actor_shop_id = await resolve_write_shop_id(db, _user, shop_id)
+    selected_ids = signoff_id or []
+    if not selected_ids:
+        stmt = select(EodSignOff.id).where(EodSignOff.shop_id == actor_shop_id)
+        if from_date is not None:
+            stmt = stmt.where(EodSignOff.business_date >= from_date)
+        if to_date is not None:
+            stmt = stmt.where(EodSignOff.business_date <= to_date)
+        selected_ids = list((await db.execute(stmt)).scalars().all())
     rows = await build_reconciliation_export_rows(
         db,
         shop_id=actor_shop_id,
-        signoff_ids=payload.signoff_ids,
+        signoff_ids=selected_ids,
     )
     csv_text = render_reconciliation_export_csv(rows)
     filename = f"reconciliations-{_csv_timestamp()}.csv"
@@ -391,15 +410,20 @@ async def patch_eod_history(
 )
 async def void_queue(
     db: DbSession,
+    response: Response,
     _user: User = Depends(require_role(*_owner_only)),
-    limit: Annotated[int, Query(ge=1, le=200)] = 50,
+    limit: Annotated[int, Query(ge=1, le=200)] = 25,
+    offset: Annotated[int, Query(ge=0)] = 0,
     shop_id: Annotated[
         int | None, Query(description="Superadmin-only (D-65): target shop")
     ] = None,
 ) -> PendingVoidResponse:
     actor_shop_id = await resolve_write_shop_id(db, _user, shop_id)
+    response.headers["X-Total-Count"] = str(
+        await count_pending_voids(db, shop_id=actor_shop_id)
+    )
     rows = await list_pending_voids(
-        db, shop_id=actor_shop_id, limit=limit
+        db, shop_id=actor_shop_id, limit=limit, offset=offset
     )
     # Eager-load the lines for the response shape.
     if rows:
@@ -431,10 +455,13 @@ async def void_queue(
 )
 async def low_stock(
     db: DbSession,
+    response: Response,
     _user: User = Depends(require_role(*_read_roles)),
     shop_id: Annotated[
         int | None, Query(description="Superadmin-only (D-65): target shop")
     ] = None,
+    limit: Annotated[int, Query(ge=1, le=100)] = 10,
+    offset: Annotated[int, Query(ge=0)] = 0,
 ) -> LowStockResponse:
     """List products whose current derived stock is at or below their
     effective threshold (per-product override, falling back to the
@@ -448,6 +475,8 @@ async def low_stock(
 
     actor_shop_id = await resolve_write_shop_id(db, _user, shop_id)
     rows = await compute_low_stock(db, shop_id=actor_shop_id)
+    response.headers["X-Total-Count"] = str(len(rows))
+    rows = rows[offset : offset + limit]
     return LowStockResponse(
         items=[
             LowStockItem(
@@ -477,7 +506,10 @@ async def low_stock(
 )
 async def stock_overview(
     db: DbSession,
+    response: Response,
     _user: User = Depends(require_role(*_owner_only)),
+    limit: Annotated[int, Query(ge=1, le=100)] = 10,
+    offset: Annotated[int, Query(ge=0)] = 0,
 ) -> StockOverviewResponse:
     """Owner/superadmin-only (same role check as the other dashboard
     reads, e.g. ``/low-stock``). Receiver/cashier are intentionally
@@ -491,6 +523,14 @@ async def stock_overview(
     logic.
     """
     groups = await build_stock_overview(db, actor=_user)
+    flattened = [(group, row) for group in groups for row in group.rows]
+    response.headers["X-Total-Count"] = str(len(flattened))
+    page_rows = flattened[offset : offset + limit]
+    page_by_shop: dict[int, tuple[object, list]] = {}
+    for group, row in page_rows:
+        if group.shop_id not in page_by_shop:
+            page_by_shop[group.shop_id] = (group, [])
+        page_by_shop[group.shop_id][1].append(row)
     return StockOverviewResponse(
         shops=[
             StockOverviewShopGroup(
@@ -505,10 +545,10 @@ async def stock_overview(
                         current_stock=row.current_stock,
                         is_active=row.is_active,
                     )
-                    for row in g.rows
+                    for row in page_items
                 ],
             )
-            for g in groups
+            for g, page_items in page_by_shop.values()
         ],
         evaluated_at=now_utc(),
     )

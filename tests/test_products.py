@@ -31,6 +31,50 @@ async def test_owner_creates_product(owner_client: AsyncClient) -> None:
     assert body["low_stock_threshold"] is None
 
 
+@pytest.mark.usefixtures("receiver", "cashier")
+async def test_product_pagination_reports_filtered_total_and_stable_pages(
+    owner_client: AsyncClient, db_session, owner
+) -> None:
+    for index in range(30):
+        db_session.add(
+            Product(
+                shop_id=owner.shop_id,
+                master_product=MasterProduct(
+                    barcode=f"990000000{index:03d}",
+                    brand=f"Paged {index:02d}",
+                    size_label="750ml",
+                ),
+                price=Decimal("100.00"),
+                status=ProductStatus.ACTIVE,
+                is_active=True,
+            )
+        )
+    await db_session.commit()
+
+    first = await owner_client.get("/products", params={"q": "Paged", "limit": 25})
+    second = await owner_client.get(
+        "/products", params={"q": "Paged", "limit": 25, "offset": 25}
+    )
+    beyond = await owner_client.get(
+        "/products", params={"q": "Paged", "limit": 25, "offset": 100}
+    )
+
+    assert first.status_code == second.status_code == beyond.status_code == 200
+    assert first.headers["x-total-count"] == "30"
+    assert second.headers["x-total-count"] == "30"
+    assert len(first.json()) == 25
+    assert len(second.json()) == 5
+    assert beyond.json() == []
+    assert [row["brand"] for row in first.json()] == [f"Paged {i:02d}" for i in range(25)]
+    assert [row["brand"] for row in second.json()] == [f"Paged {i:02d}" for i in range(25, 30)]
+
+
+async def test_product_pagination_rejects_invalid_bounds(owner_client: AsyncClient) -> None:
+    assert (await owner_client.get("/products", params={"limit": 0})).status_code == 422
+    assert (await owner_client.get("/products", params={"limit": 501})).status_code == 422
+    assert (await owner_client.get("/products", params={"offset": -1})).status_code == 422
+
+
 @pytest.mark.usefixtures("owner", "receiver", "cashier")
 async def test_receiver_cannot_create_product(receiver_client: AsyncClient) -> None:
     resp = await receiver_client.post("/products", json=SAMPLE_PRODUCT)
@@ -117,6 +161,37 @@ async def test_list_filters_to_own_shop(owner_client: AsyncClient, superadmin_cl
     r2 = await superadmin_client.get("/products")
     assert r2.status_code == 200
     assert len(r2.json()) == 1  # only one product in the system
+
+
+@pytest.mark.usefixtures("owner", "receiver", "cashier")
+async def test_list_can_filter_to_products_with_missing_prices(
+    owner_client: AsyncClient,
+) -> None:
+    priced = await owner_client.post("/products", json=SAMPLE_PRODUCT)
+    assert priced.status_code == 201
+    unpriced = await owner_client.post(
+        "/products/quick-add",
+        json={
+            "barcode": "8901234567891",
+            "brand": "Pending Price",
+            "size_label": "375ml",
+        },
+    )
+    assert unpriced.status_code == 201
+
+    unfiltered = await owner_client.get("/products")
+    assert unfiltered.status_code == 200
+    assert {row["id"] for row in unfiltered.json()} == {
+        priced.json()["id"],
+        unpriced.json()["id"],
+    }
+
+    filtered = await owner_client.get(
+        "/products", params={"missing_price_only": "true"}
+    )
+    assert filtered.status_code == 200
+    assert [row["id"] for row in filtered.json()] == [unpriced.json()["id"]]
+    assert filtered.json()[0]["price"] is None
 
 
 @pytest.mark.usefixtures("owner", "receiver", "cashier")

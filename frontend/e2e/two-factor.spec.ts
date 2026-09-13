@@ -191,7 +191,7 @@ async function mockTwoFactorShopMaintenanceApis(page: Page) {
     await route.fulfill({ contentType: "application/json", body: JSON.stringify(shop) });
   });
 
-  await page.route((url) => isApi(url) && /\/shops\/\d+\/users$/.test(url.href), async (route) => {
+  await page.route((url) => isApi(url) && /\/shops\/\d+\/users(?:\?.*)?$/.test(url.href), async (route) => {
     await route.fulfill({ contentType: "application/json", body: JSON.stringify([]) });
   });
 
@@ -241,7 +241,7 @@ async function mockTwoFactorShopMaintenanceApis(page: Page) {
   );
 
   await page.route(
-    (url) => isApi(url) && /\/shops\/\d+\/two-factor\/authenticator-activations$/.test(url.href),
+    (url) => isApi(url) && /\/shops\/\d+\/two-factor\/authenticator-activations(?:\?.*)?$/.test(url.href),
     async (route) => {
       await route.fulfill({ contentType: "application/json", body: JSON.stringify(activations) });
     }
@@ -547,14 +547,14 @@ test.describe("two-factor authentication", () => {
     await expect(page.getByText("Enabled")).toHaveCount(0);
     await expect(page.getByText("Disable 2FA")).toHaveCount(0);
     await expect(
-      page.locator("div").filter({ has: page.getByText("Secret version") }).getByText("1", { exact: true })
+      page.getByText("Secret version", { exact: true }).locator("..").getByText("1", { exact: true })
     ).toBeVisible();
 
     await page.getByRole("button", { name: "Enable 2FA" }).click();
     await expect(page.getByRole("button", { name: "Disable 2FA" })).toBeVisible();
 
     await page.getByRole("button", { name: "Create Activation Token" }).click();
-    await expect(page.getByText("One-time activation token")).toBeVisible();
+    await expect(page.getByText("One-time activation token", { exact: true })).toBeVisible();
     await expect(page.getByText("activate-shop-one-123456")).toBeVisible();
 
     await page.getByRole("button", { name: "Deactivate" }).first().click();

@@ -4,18 +4,18 @@ from __future__ import annotations
 from datetime import UTC, datetime
 from decimal import Decimal
 
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from app.models.lot import Lot, LotLine
+from app.api._logs import write_business_log
 from app.models.log import StockinLog
+from app.models.lot import Lot, LotLine
 from app.models.product import Product
 from app.models.shop import Shop
 from app.models.stock_inward import StockInward, StockInwardLine, StockInwardStatus
 from app.models.user import User
 from app.models.vendor import Vendor
-from app.api._logs import write_business_log
 
 _AUTO_VENDOR_NAME = "Vendor link disabled"
 _MONEY_QUANTUM = Decimal("0.01")
@@ -258,6 +258,8 @@ async def list_stock_inwards(
     *,
     shop_id: int | None,
     status: StockInwardStatus | None = None,
+    limit: int | None = None,
+    offset: int = 0,
 ) -> list[StockInward]:
     stmt = select(StockInward).options(
         selectinload(StockInward.lines),
@@ -271,7 +273,20 @@ async def list_stock_inwards(
     if status is not None:
         stmt = stmt.where(StockInward.status == status)
     stmt = stmt.order_by(StockInward.created_at.desc(), StockInward.id.desc())
+    if limit is not None:
+        stmt = stmt.limit(limit).offset(offset)
     return (await db.execute(stmt)).scalars().all()
+
+
+async def count_stock_inwards(
+    db: AsyncSession, *, shop_id: int | None, status: StockInwardStatus | None = None
+) -> int:
+    stmt = select(func.count(StockInward.id))
+    if shop_id is not None:
+        stmt = stmt.where(StockInward.shop_id == shop_id)
+    if status is not None:
+        stmt = stmt.where(StockInward.status == status)
+    return int((await db.execute(stmt)).scalar_one())
 
 
 async def get_stock_inward(

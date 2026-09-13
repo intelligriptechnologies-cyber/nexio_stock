@@ -6,11 +6,12 @@
 // the product becomes sellable at checkout.
 
 import { useCallback, useEffect, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { Clock, RefreshCw, Pencil, XCircle, CheckCircle2 } from "lucide-react";
 import { ApiError } from "../api/client";
 import {
   activateProduct,
-  listPendingProducts,
+  listPendingProductsPage,
   rejectProduct,
   updateProduct,
   type PendingProductRow,
@@ -18,6 +19,8 @@ import {
 import { invalidateCache } from "../api/catalog";
 import { notifyPendingProductsChanged } from "../api/pending-products-events";
 import { useShopScope } from "../auth/ShopScopeProvider";
+import { Pagination } from "../components/Pagination";
+import { pageOffset, pageSizeParam, positiveInt, STANDARD_PAGE_SIZES } from "../utils/pagination";
 
 interface EditingState {
   productId: number;
@@ -44,6 +47,10 @@ function originLabel(o: PendingProductRow["last_event_origin"]): string {
 export function PendingProductsPage() {
   const { actingShopId } = useShopScope();
   const [rows, setRows] = useState<PendingProductRow[]>([]);
+  const [total, setTotal] = useState(0);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const page = positiveInt(searchParams.get("page"), 1);
+  const pageSize = pageSizeParam(searchParams.get("pageSize"), STANDARD_PAGE_SIZES, 25);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [info, setInfo] = useState<string | null>(null);
@@ -54,8 +61,11 @@ export function PendingProductsPage() {
     setLoading(true);
     setError(null);
     try {
-      const list = await listPendingProducts(actingShopId);
-      setRows(list);
+      const result = await listPendingProductsPage(
+        actingShopId, pageSize, pageOffset(page, pageSize)
+      );
+      setRows(result.data);
+      setTotal(result.total);
     } catch (e) {
       if (e instanceof ApiError) {
         if (e.status === 0) setError("Network error — could not load pending list.");
@@ -66,7 +76,16 @@ export function PendingProductsPage() {
     } finally {
       setLoading(false);
     }
-  }, [actingShopId]);
+  }, [actingShopId, page, pageSize]);
+
+  const setPage = useCallback((nextPage: number, nextSize = pageSize, replace = false) => {
+    setSearchParams((current) => {
+      const next = new URLSearchParams(current);
+      next.set("page", String(nextPage));
+      next.set("pageSize", String(nextSize));
+      return next;
+    }, { replace });
+  }, [pageSize, setSearchParams]);
 
   useEffect(() => {
     void reload();
@@ -154,9 +173,9 @@ export function PendingProductsPage() {
         </h1>
         <div className="flex items-center gap-4 text-sm font-medium text-slate-500">
           <span>
-            {rows.length === 0
+            {total === 0
               ? "No products pending."
-              : `${rows.length} product${rows.length === 1 ? "" : "s"} awaiting a price`}
+              : `${total} product${total === 1 ? "" : "s"} awaiting a price`}
           </span>
           <button
             type="button"
@@ -321,6 +340,10 @@ export function PendingProductsPage() {
           </li>
         ))}
       </ul>
+      <Pagination page={page} pageSize={pageSize} total={total} disabled={loading}
+        label="pending products" pageSizes={STANDARD_PAGE_SIZES}
+        onPageChange={setPage}
+        onPageSizeChange={(size) => setPage(1, size, true)} />
     </div>
   );
 }

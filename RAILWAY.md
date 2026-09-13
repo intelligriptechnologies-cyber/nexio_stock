@@ -150,9 +150,84 @@ railway logs -s frontend --deployment
 Backend exposes a public health snapshot plus the existing liveness/readiness endpoints:
 
 ```
-curl https://<backend-domain>/health    # public status + timestamp + environment
 curl https://<backend-domain>/healthz   # liveness
 curl https://<backend-domain>/readyz    # DB connectivity check
+```
+
+### Custom domain DNS ownership and outage recovery
+
+Railway can verify a custom domain and issue a certificate even while the
+public internet is still using the wrong DNS provider. When that happens,
+Railway shows the domain as active, but browsers still connect somewhere else.
+
+As of **2026-09-04**, the live delegation for `nexiohyper.com` is:
+
+```
+ns1.vercel-dns.com
+ns2.vercel-dns.com
+```
+
+That means **Vercel DNS is authoritative right now**. DNS records added only in
+Hostinger have no effect until nameserver delegation is changed back.
+
+Use exactly one source of truth for DNS:
+
+- Recommended: keep the current Vercel nameservers and update the Vercel DNS
+  zone.
+- Alternative: switch the domain's nameservers back to Hostinger, then keep the
+  same records there.
+
+For the current Railway project, the authoritative zone must contain these
+exact CNAME records:
+
+| Name        | Type    | Value                    |
+|-------------|---------|--------------------------|
+| `bstock`    | `CNAME` | `qlv48h0u.up.railway.app` |
+| `stock`     | `CNAME` | `4i5pfp7n.up.railway.app` |
+| `www.stock` | `CNAME` | `d8hvnm8c.up.railway.app` |
+
+Remove any conflicting old records for:
+
+- `bstock.nexiohyper.com`
+- `stock.nexiohyper.com`
+- `www.stock.nexiohyper.com`
+
+Expected failure mode before the fix:
+
+- `stock.nexiohyper.com` resolves to `64.29.17.1` / `64.29.17.65`
+- `bstock.nexiohyper.com` resolves to `64.29.17.65` / `216.198.79.1`
+- `www.stock.nexiohyper.com` resolves to `216.198.79.65` / `216.198.79.1`
+- `curl -I https://stock.nexiohyper.com` fails during the TLS handshake
+- `curl -I https://bstock.nexiohyper.com/healthz` fails during the TLS handshake
+
+Expected success mode after the fix:
+
+- `nslookup stock.nexiohyper.com 8.8.8.8` shows the Railway CNAME path
+- `nslookup bstock.nexiohyper.com 8.8.8.8` shows the Railway CNAME path
+- `nslookup www.stock.nexiohyper.com 8.8.8.8` shows the Railway CNAME path
+- `curl -I https://stock.nexiohyper.com` returns `200`
+- `curl -I https://bstock.nexiohyper.com/healthz` returns `200`
+- `curl -I https://www.stock.nexiohyper.com` returns `200`
+
+Useful verification commands:
+
+```
+nslookup -type=ns nexiohyper.com
+nslookup stock.nexiohyper.com 8.8.8.8
+nslookup bstock.nexiohyper.com 8.8.8.8
+nslookup www.stock.nexiohyper.com 8.8.8.8
+curl -I https://stock.nexiohyper.com
+curl -I https://bstock.nexiohyper.com/healthz
+curl -I https://www.stock.nexiohyper.com
+```
+
+If you need to prove the app itself is healthy while custom DNS is broken, test
+the Railway-generated service domains directly:
+
+```
+curl -I https://frontend-prod-5a1e.up.railway.app
+curl https://backend-prod-6692.up.railway.app/healthz
+curl https://backend-prod-6692.up.railway.app/readyz
 ```
 
 ## 6. Known deploy fix baked into this repo

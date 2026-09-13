@@ -38,6 +38,21 @@ const products = [
     current_stock: 3,
     can_permanently_delete: true,
   },
+  {
+    id: 3,
+    shop_id: 3,
+    barcode: "CAT-003",
+    brand: "Unpriced Brand",
+    size_label: "375ml",
+    price: null,
+    low_stock_threshold: null,
+    is_active: true,
+    status: "pending",
+    created_at: "2026-01-01T00:00:00Z",
+    updated_at: "2026-01-01T00:00:00Z",
+    current_stock: 0,
+    can_permanently_delete: false,
+  },
 ];
 
 function tokenFor(): string {
@@ -113,7 +128,11 @@ async function mockShellApis(page: Page, productUrls: string[] = []) {
   });
   await page.route("**/products?**", async (route) => {
     productUrls.push(route.request().url());
-    await route.fulfill({ contentType: "application/json", body: JSON.stringify(products) });
+    const params = new URL(route.request().url()).searchParams;
+    const responseProducts = params.get("missing_price_only") === "true"
+      ? products.filter((product) => product.price == null)
+      : products;
+    await route.fulfill({ contentType: "application/json", body: JSON.stringify(responseProducts) });
   });
 }
 
@@ -129,6 +148,32 @@ test.describe("product catalog cleanup", () => {
     await expect(header.getByRole("columnheader", { name: "Low-stock" })).toBeVisible();
     await expect(header.getByRole("columnheader", { name: "Shop" })).toHaveCount(0);
     await expect(page.getByLabel("Shop", { exact: true })).toHaveCount(0);
+  });
+
+  test("missing-price filter requests and displays only unpriced products", async ({ page }) => {
+    const productUrls: string[] = [];
+    await seedSession(page, "owner");
+    await mockShellApis(page, productUrls);
+    await page.goto("/admin/products");
+
+    const filter = page.getByRole("checkbox", { name: "Only products with no pricing" });
+    await expect(filter).not.toBeChecked();
+    await expect(page.getByRole("cell", { name: "Central Brand" })).toBeVisible();
+    await expect(page.getByRole("cell", { name: "Unpriced Brand" })).toBeVisible();
+
+    await filter.check();
+    await expect
+      .poll(() => productUrls.some((url) => new URL(url).searchParams.get("missing_price_only") === "true"))
+      .toBe(true);
+    await expect(page.getByRole("cell", { name: "Unpriced Brand" })).toBeVisible();
+    await expect(page.getByRole("cell", { name: "Central Brand" })).toHaveCount(0);
+
+    await filter.uncheck();
+    await expect
+      .poll(() => productUrls.filter((url) => !new URL(url).searchParams.has("missing_price_only")).length)
+      .toBeGreaterThan(1);
+    await expect(page.getByRole("cell", { name: "Central Brand" })).toBeVisible();
+    await expect(page.getByRole("cell", { name: "Unpriced Brand" })).toBeVisible();
   });
 
   test("superadmin all-shops catalog calls products without shop_id and shows shop labels", async ({

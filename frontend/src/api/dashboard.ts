@@ -17,7 +17,7 @@
 // default exists as a belt-and-braces fallback, not as something this
 // client depends on.
 
-import { api, withShopId, withShopIdParams } from "./client";
+import { api, apiPage, withShopId, withShopIdParams } from "./client";
 import { downloadAuthedFile } from "../utils/csv";
 
 export function todayLocalDateString(): string {
@@ -175,10 +175,13 @@ export function updateEodHistoryEntry(
 
 export function downloadEodHistoryExport(
   signoffIds: number[],
-  shopId?: number | null
+  shopId?: number | null,
+  filters?: { fromDate?: string; toDate?: string }
 ): Promise<{ blob: Blob; filename: string | null }> {
   const params = withShopIdParams(new URLSearchParams(), shopId);
   for (const signoffId of signoffIds) params.append("signoff_id", String(signoffId));
+  if (filters?.fromDate) params.set("from_date", filters.fromDate);
+  if (filters?.toDate) params.set("to_date", filters.toDate);
   return downloadAuthedFile(`/dashboard/eod-history/export?${params.toString()}`);
 }
 
@@ -193,4 +196,22 @@ export function getLowStock(limit = 50, shopId?: number | null): Promise<LowStoc
 // No query params; the backend scopes by the caller's role.
 export function getStockOverview(): Promise<StockOverviewResponse> {
   return api<StockOverviewResponse>("/dashboard/stock-overview");
+}
+
+export function getLowStockPage(limit: number, offset: number, shopId?: number | null, signal?: AbortSignal) {
+  const params = withShopIdParams(new URLSearchParams({ limit: String(limit), offset: String(offset) }), shopId);
+  return apiPage<LowStockResponse>(`/dashboard/low-stock?${params.toString()}`, { signal });
+}
+
+export function getStockOverviewPage(limit: number, offset: number, signal?: AbortSignal) {
+  return apiPage<StockOverviewResponse>(`/dashboard/stock-overview?limit=${limit}&offset=${offset}`, { signal });
+}
+
+export function getEodHistoryPage(options: {
+  limit: number; offset: number; fromDate?: string; toDate?: string; shopId?: number | null; signal?: AbortSignal;
+}) {
+  const params = withShopIdParams(new URLSearchParams({ limit: String(options.limit), offset: String(options.offset) }), options.shopId);
+  if (options.fromDate) params.set("from_date", options.fromDate);
+  if (options.toDate) params.set("to_date", options.toDate);
+  return apiPage<SignOffHistoryResponse>(`/dashboard/eod-history?${params.toString()}`, { signal: options.signal });
 }

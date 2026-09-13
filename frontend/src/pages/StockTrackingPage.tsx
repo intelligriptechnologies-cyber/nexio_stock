@@ -1,10 +1,13 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { Download, FileClock, RefreshCw, X } from "lucide-react";
 import { toUserMessage } from "../api/client";
-import { listStockInwards, type LotPublic } from "../api/lots";
+import { downloadStockInwardsExport, listStockInwardsPage, type LotPublic } from "../api/lots";
 import { useShopScope } from "../auth/ShopScopeProvider";
 import { ModalDialog } from "../components/ModalDialog";
-import { csvTimestamp, downloadCsv } from "../utils/csv";
+import { triggerDownload } from "../utils/csv";
+import { Pagination } from "../components/Pagination";
+import { pageOffset, pageSizeParam, positiveInt, STANDARD_PAGE_SIZES } from "../utils/pagination";
 
 function statusClass(status: LotPublic["status"]): string {
   switch (status) {
@@ -53,6 +56,11 @@ function money(value: string | null | undefined): string {
 export function StockTrackingPage() {
   const { actingShopId } = useShopScope();
   const [items, setItems] = useState<LotPublic[] | null>(null);
+  const [total, setTotal] = useState(0);
+  const [loading, setLoading] = useState(false);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const page = positiveInt(searchParams.get("page"), 1);
+  const pageSize = pageSizeParam(searchParams.get("pageSize"), STANDARD_PAGE_SIZES, 25);
   const [error, setError] = useState<string | null>(null);
   const [selectedLot, setSelectedLot] = useState<LotPublic | null>(null);
 
@@ -66,16 +74,26 @@ export function StockTrackingPage() {
 
   const reload = useCallback(async () => {
     setError(null);
+    setLoading(true);
     try {
-      const result = await listStockInwards(actingShopId, 200);
-      setItems(result.lots);
+      const result = await listStockInwardsPage(actingShopId, pageSize, pageOffset(page, pageSize));
+      setItems(result.data.lots);
+      setTotal(result.total);
       setSelectedLot((current) =>
-        current ? result.lots.find((lot) => lot.id === current.id) ?? null : null
+        current ? result.data.lots.find((lot) => lot.id === current.id) ?? null : null
       );
     } catch (e) {
       setError(toUserMessage(e, "Could not load stock tracking history."));
-    }
-  }, [actingShopId]);
+    } finally { setLoading(false); }
+  }, [actingShopId, page, pageSize]);
+
+  const setPage = useCallback((nextPage: number, nextSize = pageSize, replace = false) => {
+    setSearchParams((current) => {
+      const next = new URLSearchParams(current);
+      next.set("page", String(nextPage)); next.set("pageSize", String(nextSize));
+      return next;
+    }, { replace });
+  }, [pageSize, setSearchParams]);
 
   useEffect(() => {
     void reload();
@@ -89,54 +107,12 @@ export function StockTrackingPage() {
     };
   }, [selectedLot]);
 
-  const exportRows = () => {
+  const exportRows = async () => {
     if (items === null || items.length === 0) return;
-    downloadCsv(
-      items.map((item) => ({
-        inward_id: item.id,
-        shop_id: item.shop_id,
-        status: item.status,
-        vendor_name: item.vendor?.name ?? "",
-        vendor_invoice_number: item.vendor_invoice_number || "",
-        purchase_date: item.purchase_date || "",
-        invoice_value: item.invoice_value || "",
-        merchandise_total: item.merchandise_total || "",
-        reference: item.reference ?? "",
-        notes: item.notes ?? "",
-        received_at: item.received_at,
-        created_at: item.created_at,
-        approved_at: item.approved_at ?? "",
-        completed_at: item.completed_at ?? "",
-        created_by_name: item.created_by_name ?? "",
-        approved_by_name: item.approved_by_name ?? "",
-        line_items: item.lines
-          .map(
-            (line) =>
-              `${line.product_brand} ${line.product_size_label} x${line.quantity} @ ${line.unit_cost ?? "--"} = ${line.line_total ?? "--"} (good ${line.good_condition_quantity}, breakage ${line.breakage_quantity})`
-          )
-          .join("; "),
-      })),
-      `stock-tracking-${csvTimestamp()}.csv`,
-      [
-        "inward_id",
-        "shop_id",
-        "status",
-        "vendor_name",
-        "vendor_invoice_number",
-        "purchase_date",
-        "invoice_value",
-        "merchandise_total",
-        "reference",
-        "notes",
-        "received_at",
-        "created_at",
-        "approved_at",
-        "completed_at",
-        "created_by_name",
-        "approved_by_name",
-        "line_items",
-      ]
-    );
+    try {
+      const result = await downloadStockInwardsExport(actingShopId);
+      triggerDownload(result.blob, result.filename ?? "stock-tracking.csv");
+    } catch (e) { setError(toUserMessage(e, "Export failed.")); }
   };
 
   return (
@@ -153,7 +129,7 @@ export function StockTrackingPage() {
         <div className="flex items-center gap-2">
           <button
             type="button"
-            onClick={exportRows}
+            onClick={() => void exportRows()}
             disabled={items === null || items.length === 0}
             className="flex h-10 w-10 items-center justify-center rounded-xl bg-white text-slate-600 shadow-sm ring-1 ring-slate-200 transition-colors hover:bg-slate-50 hover:text-slate-900 disabled:pointer-events-none disabled:opacity-50"
             aria-label="Download stock tracking CSV"
@@ -187,7 +163,7 @@ export function StockTrackingPage() {
           No stock inward history yet.
         </div>
       ) : (
-        <div className="overflow-hidden rounded-xl border border-slate-200/50 bg-white/60 shadow-[0_8px_30px_rgb(0,0,0,0.02)] backdrop-blur-xl">
+        <div className={`overflow-hidden rounded-xl border border-slate-200/50 bg-white/60 shadow-[0_8px_30px_rgb(0,0,0,0.02)] backdrop-blur-xl ${loading ? "opacity-70" : ""}`} aria-busy={loading}>
             <table className="app-list-table min-w-[1260px]" aria-label="Stock tracking table">
             <thead>
               <tr>
@@ -275,6 +251,9 @@ export function StockTrackingPage() {
               })}
             </tbody>
           </table>
+          <div className="px-6 pb-4"><Pagination page={page} pageSize={pageSize} total={total}
+            disabled={loading} label="stock tracking" pageSizes={STANDARD_PAGE_SIZES}
+            onPageChange={setPage} onPageSizeChange={(size) => setPage(1, size, true)} /></div>
         </div>
       )}
 

@@ -1,8 +1,11 @@
 import { useCallback, useEffect, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { CheckCircle2, RefreshCw, XCircle, PackagePlus } from "lucide-react";
 import { toUserMessage } from "../api/client";
-import { approveLot, listStockInwards, rejectLot, type LotPublic } from "../api/lots";
+import { approveLot, listStockInwardsPage, rejectLot, type LotPublic } from "../api/lots";
 import { useShopScope } from "../auth/ShopScopeProvider";
+import { Pagination } from "../components/Pagination";
+import { pageOffset, pageSizeParam, positiveInt, STANDARD_PAGE_SIZES } from "../utils/pagination";
 
 function statusLabel(status: LotPublic["status"]): string {
   switch (status) {
@@ -20,6 +23,10 @@ function statusLabel(status: LotPublic["status"]): string {
 export function StockInwardApprovalsPage() {
   const { actingShopId } = useShopScope();
   const [items, setItems] = useState<LotPublic[] | null>(null);
+  const [total, setTotal] = useState(0);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const page = positiveInt(searchParams.get("page"), 1);
+  const pageSize = pageSizeParam(searchParams.get("pageSize"), STANDARD_PAGE_SIZES, 25);
   const [error, setError] = useState<string | null>(null);
   const [busyId, setBusyId] = useState<number | null>(null);
   const [info, setInfo] = useState<string | null>(null);
@@ -27,12 +34,20 @@ export function StockInwardApprovalsPage() {
   const reload = useCallback(async () => {
     setError(null);
     try {
-      const result = await listStockInwards(actingShopId, 100, "pending");
-      setItems(result.lots);
+      const result = await listStockInwardsPage(actingShopId, pageSize, pageOffset(page, pageSize), "pending");
+      setItems(result.data.lots);
+      setTotal(result.total);
     } catch (e) {
       setError(toUserMessage(e, "Could not load stock inward queue."));
     }
-  }, [actingShopId]);
+  }, [actingShopId, page, pageSize]);
+
+  const setPage = useCallback((nextPage: number, nextSize = pageSize, replace = false) => {
+    setSearchParams((current) => {
+      const next = new URLSearchParams(current);
+      next.set("page", String(nextPage)); next.set("pageSize", String(nextSize)); return next;
+    }, { replace });
+  }, [pageSize, setSearchParams]);
 
   useEffect(() => {
     void reload();
@@ -153,6 +168,9 @@ export function StockInwardApprovalsPage() {
           ))}
         </ul>
       )}
+      <Pagination page={page} pageSize={pageSize} total={total} disabled={busyId !== null}
+        label="stock inward approvals" pageSizes={STANDARD_PAGE_SIZES}
+        onPageChange={setPage} onPageSizeChange={(size) => setPage(1, size, true)} />
     </div>
   );
 }

@@ -18,6 +18,8 @@ free of log-table coupling (D-47 / R-37).
 """
 from __future__ import annotations
 
+import csv
+import io
 from datetime import date
 from typing import Annotated, Literal
 
@@ -61,6 +63,7 @@ from app.services.checkout import (
 )
 from app.services.invoices import (
     attach_cashier_names,
+    count_invoices,
     edit_current_invoice,
     list_current_invoices,
     list_past_invoices,
@@ -302,6 +305,7 @@ async def _load_invoice_or_404(db: AsyncSession, invoice_id: int) -> Invoice | P
 )
 async def list_invoices(
     db: DbSession,
+    response: Response,
     _user: User = Depends(require_role(*_checkout_roles, UserRole.RECEIVER_USER)),
     source: Annotated[Literal["current", "past"], Query()] = "current",
     date_from: Annotated[date | None, Query()] = None,
@@ -309,13 +313,20 @@ async def list_invoices(
     cashier_user_id: Annotated[int | None, Query(alias="cashier")] = None,
     payment_mode: Annotated[PaymentMode | None, Query()] = None,
     invoice_status: Annotated[InvoiceStatus | None, Query(alias="status")] = None,
-    limit: Annotated[int, Query(ge=1, le=500)] = 100,
+    limit: Annotated[int, Query(ge=1, le=500)] = 25,
     offset: Annotated[int, Query(ge=0)] = 0,
     shop_id: Annotated[int | None, Query()] = None,
 ) -> InvoiceListResponse:
     scoped_shop_id = resolve_read_shop_id(_user, shop_id)
     if scoped_shop_id is None:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="shop_id is required")
+    response.headers["X-Total-Count"] = str(
+        await count_invoices(
+            db, source=source, shop_id=scoped_shop_id, date_from=date_from,
+            date_to=date_to, cashier_user_id=cashier_user_id,
+            payment_mode=payment_mode, status=invoice_status,
+        )
+    )
     if source == "current":
         rows = await list_current_invoices(
             db,
@@ -343,6 +354,46 @@ async def list_invoices(
     await resolve_missing_snapshots(db, [line for row in rows for line in row.lines])
     await attach_cashier_names(db, rows)
     return InvoiceListResponse(invoices=[InvoicePublic.model_validate(row) for row in rows])
+
+
+@router.get("/invoices/export", summary="Export every filtered invoice as CSV")
+async def export_invoices(
+    db: DbSession,
+    _user: User = Depends(require_role(*_checkout_roles, UserRole.RECEIVER_USER)),
+    source: Literal["current", "past"] = "current",
+    date_from: date | None = None,
+    date_to: date | None = None,
+    cashier_user_id: int | None = Query(default=None, alias="cashier"),
+    payment_mode: PaymentMode | None = None,
+    invoice_status: InvoiceStatus | None = Query(default=None, alias="status"),
+    shop_id: int | None = None,
+) -> Response:
+    scoped_shop_id = resolve_read_shop_id(_user, shop_id)
+    if scoped_shop_id is None:
+        raise HTTPException(status_code=400, detail="shop_id is required")
+    loader = list_current_invoices if source == "current" else list_past_invoices
+    rows = await loader(
+        db, shop_id=scoped_shop_id, date_from=date_from, date_to=date_to,
+        cashier_user_id=cashier_user_id, payment_mode=payment_mode,
+        status=invoice_status, limit=1_000_000, offset=0,
+    )
+    await resolve_missing_snapshots(db, [line for row in rows for line in row.lines])
+    await attach_cashier_names(db, rows)
+    out = io.StringIO()
+    fields = ["invoice_id", "invoice_number", "business_date", "finalized_at", "status", "cashier_user_id", "cashier_name", "total_amount", "note", "payments", "line_items"]
+    writer = csv.DictWriter(out, fieldnames=fields)
+    writer.writeheader()
+    for row in rows:
+        writer.writerow({
+            "invoice_id": row.id, "invoice_number": row.invoice_number,
+            "business_date": row.business_date, "finalized_at": row.finalized_at.isoformat(),
+            "status": row.status.value, "cashier_user_id": row.cashier_user_id,
+            "cashier_name": getattr(row, "cashier_name", ""), "total_amount": row.total_amount,
+            "note": row.note or "",
+            "payments": "; ".join(f"{p.mode.value} {p.amount}" for p in row.payments),
+            "line_items": "; ".join(f"{line.product_brand} {line.product_size_label} x{line.quantity} @ {line.unit_price}" for line in row.lines),
+        })
+    return Response(content=out.getvalue(), media_type="text/csv", headers={"Content-Disposition": f'attachment; filename="invoices-{source}.csv"'})
 
 
 @router.patch(

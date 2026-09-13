@@ -1,5 +1,6 @@
-import { ApiError, api, withShopId } from "./client";
+import { ApiError, api, apiPage, withShopId } from "./client";
 import { resolveBarcode, type CatalogProduct } from "./catalog";
+import { downloadAuthedFile } from "../utils/csv";
 
 export interface LotLineCreate {
   barcode: string;
@@ -91,6 +92,23 @@ export function listStockInwards(
   if (shopId != null) params.set("shop_id", String(shopId));
   if (status) params.set("status", status);
   return api<{ lots: LotPublic[] }>(`/lots?${params.toString()}`);
+}
+
+export function listStockInwardsPage(
+  shopId: number | null | undefined, limit: number, offset: number,
+  status?: LotPublic["status"], signal?: AbortSignal
+): Promise<{ data: { lots: LotPublic[] }; total: number }> {
+  const params = new URLSearchParams({ limit: String(limit), offset: String(offset) });
+  if (shopId != null) params.set("shop_id", String(shopId));
+  if (status) params.set("status", status);
+  return apiPage<{ lots: LotPublic[] }>(`/lots?${params.toString()}`, { signal });
+}
+
+export function downloadStockInwardsExport(shopId?: number | null, status?: LotPublic["status"]) {
+  const params = new URLSearchParams();
+  if (shopId != null) params.set("shop_id", String(shopId));
+  if (status) params.set("status", status);
+  return downloadAuthedFile(`/lots/export?${params.toString()}`);
 }
 
 export function approveLot(lotId: number): Promise<LotPublic> {

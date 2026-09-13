@@ -83,7 +83,7 @@ async def compute_low_stock(
                 )
             )
 
-    rows.sort(key=lambda r: (r.current_stock, r.product.brand, r.product.size_label))
+    rows.sort(key=lambda r: (r.current_stock, r.product.brand, r.product.size_label, r.product.id))
     return rows
 
 

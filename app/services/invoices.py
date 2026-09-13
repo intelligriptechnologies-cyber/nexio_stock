@@ -6,7 +6,7 @@ from dataclasses import dataclass
 from datetime import date
 from decimal import Decimal
 
-from sqlalchemy import exists, select
+from sqlalchemy import exists, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -121,11 +121,16 @@ async def list_current_invoices(
     limit: int,
     offset: int,
 ) -> list[Invoice]:
-    stmt = (
-        select(Invoice)
-        .where(Invoice.shop_id == shop_id)
-        .options(selectinload(Invoice.lines), selectinload(Invoice.payments))
-    )
+    stmt = _current_invoice_stmt(
+        shop_id=shop_id, date_from=date_from, date_to=date_to,
+        cashier_user_id=cashier_user_id, payment_mode=payment_mode, status=status,
+    ).options(selectinload(Invoice.lines), selectinload(Invoice.payments))
+    stmt = stmt.order_by(Invoice.finalized_at.desc(), Invoice.id.desc()).limit(limit).offset(offset)
+    return list((await db.execute(stmt)).scalars().all())
+
+
+def _current_invoice_stmt(*, shop_id, date_from, date_to, cashier_user_id, payment_mode, status):
+    stmt = select(Invoice).where(Invoice.shop_id == shop_id)
     if date_from is not None:
         stmt = stmt.where(Invoice.business_date >= date_from)
     if date_to is not None:
@@ -138,8 +143,7 @@ async def list_current_invoices(
         stmt = stmt.where(
             exists().where(Payment.invoice_id == Invoice.id, Payment.mode == payment_mode)
         )
-    stmt = stmt.order_by(Invoice.finalized_at.desc()).limit(limit).offset(offset)
-    return list((await db.execute(stmt)).scalars().all())
+    return stmt
 
 
 async def list_past_invoices(
@@ -154,13 +158,18 @@ async def list_past_invoices(
     limit: int,
     offset: int,
 ) -> list[PastInvoice]:
+    stmt = _past_invoice_stmt(
+        shop_id=shop_id, date_from=date_from, date_to=date_to,
+        cashier_user_id=cashier_user_id, payment_mode=payment_mode, status=status,
+    ).options(selectinload(PastInvoice.lines), selectinload(PastInvoice.payments))
+    stmt = stmt.order_by(PastInvoice.finalized_at.desc(), PastInvoice.id.desc()).limit(limit).offset(offset)
+    return list((await db.execute(stmt)).scalars().all())
+
+
+def _past_invoice_stmt(*, shop_id, date_from, date_to, cashier_user_id, payment_mode, status):
     from app.models.invoice import PastPayment
 
-    stmt = (
-        select(PastInvoice)
-        .where(PastInvoice.shop_id == shop_id)
-        .options(selectinload(PastInvoice.lines), selectinload(PastInvoice.payments))
-    )
+    stmt = select(PastInvoice).where(PastInvoice.shop_id == shop_id)
     if date_from is not None:
         stmt = stmt.where(PastInvoice.business_date >= date_from)
     if date_to is not None:
@@ -173,8 +182,20 @@ async def list_past_invoices(
         stmt = stmt.where(
             exists().where(PastPayment.invoice_id == PastInvoice.id, PastPayment.mode == payment_mode)
         )
-    stmt = stmt.order_by(PastInvoice.finalized_at.desc()).limit(limit).offset(offset)
-    return list((await db.execute(stmt)).scalars().all())
+    return stmt
+
+
+async def count_invoices(
+    db: AsyncSession, *, source: str, shop_id: int, date_from: date | None,
+    date_to: date | None, cashier_user_id: int | None, payment_mode: PaymentMode | None,
+    status: InvoiceStatus | None,
+) -> int:
+    builder = _current_invoice_stmt if source == "current" else _past_invoice_stmt
+    stmt = builder(
+        shop_id=shop_id, date_from=date_from, date_to=date_to,
+        cashier_user_id=cashier_user_id, payment_mode=payment_mode, status=status,
+    ).subquery()
+    return int((await db.execute(select(func.count()).select_from(stmt))).scalar_one())
 
 
 async def edit_current_invoice(

@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { FileText, RefreshCw, Download, Save } from "lucide-react";
 import { useAuth } from "../auth/AuthProvider";
 import { useShopScope } from "../auth/ShopScopeProvider";
@@ -6,11 +7,13 @@ import { AppTabButton } from "../components/AppTabs";
 import { ApiError } from "../api/client";
 import {
   downloadLogFile,
-  listLogFiles,
+  listLogFilesPage,
   updateLogRetention,
   type LogFileRow,
   type LogType,
 } from "../api/logs";
+import { Pagination } from "../components/Pagination";
+import { pageOffset, pageSizeParam, positiveInt, STANDARD_PAGE_SIZES } from "../utils/pagination";
 
 const LOG_TABS: Array<{ type: LogType; label: string; superadminOnly?: boolean }> = [
   { type: "checkout", label: "Checkout / Invoice Creation" },
@@ -38,18 +41,25 @@ export function LogsPage() {
     () => LOG_TABS.filter((tab) => !tab.superadminOnly || user?.role === "superadmin"),
     [user?.role]
   );
-  const [type, setType] = useState<LogType>(tabs[0]?.type ?? "checkout");
+  const [searchParams, setSearchParams] = useSearchParams();
+  const requestedType = searchParams.get("tab") as LogType | null;
+  const type = tabs.some((tab) => tab.type === requestedType) ? requestedType! : (tabs[0]?.type ?? "checkout");
+  const page = positiveInt(searchParams.get("page"), 1);
+  const pageSize = pageSizeParam(searchParams.get("pageSize"), STANDARD_PAGE_SIZES, 25);
+  const [total, setTotal] = useState(0);
+  const [loading, setLoading] = useState(false);
   const [files, setFiles] = useState<LogFileRow[]>([]);
   const [retentionDays, setRetentionDays] = useState(10);
   const [draftRetentionDays, setDraftRetentionDays] = useState("10");
   const [error, setError] = useState<string | null>(null);
   const [info, setInfo] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (!tabs.some((tab) => tab.type === type)) {
-      setType(tabs[0]?.type ?? "checkout");
-    }
-  }, [tabs, type]);
+  const setType = (nextType: LogType) => setSearchParams((current) => {
+    const next = new URLSearchParams(current);
+    next.set("tab", nextType);
+    next.set("page", "1");
+    return next;
+  });
 
   const scopedShopId = user?.role === "superadmin" ? actingShopId : null;
   const activeTab = tabs.find((tab) => tab.type === type);
@@ -58,15 +68,28 @@ export function LogsPage() {
   const reload = useCallback(async () => {
     setError(null);
     setInfo(null);
+    setLoading(true);
     try {
-      const result = await listLogFiles(type, scopedShopId);
-      setFiles(result.files);
-      setRetentionDays(result.retention_days);
-      setDraftRetentionDays(String(result.retention_days));
+      const result = await listLogFilesPage(type, scopedShopId, pageSize, pageOffset(page, pageSize));
+      setFiles(result.data.files);
+      setTotal(result.total);
+      setRetentionDays(result.data.retention_days);
+      setDraftRetentionDays(String(result.data.retention_days));
     } catch (e) {
       setError(e instanceof ApiError ? e.detail : "Could not load log files.");
+    } finally {
+      setLoading(false);
     }
-  }, [scopedShopId, type]);
+  }, [scopedShopId, type, page, pageSize]);
+
+  const setPage = (nextPage: number, nextSize = pageSize, replace = false) => {
+    setSearchParams((current) => {
+      const next = new URLSearchParams(current);
+      next.set("page", String(nextPage));
+      next.set("pageSize", String(nextSize));
+      return next;
+    }, { replace });
+  };
 
   useEffect(() => {
     void reload();
@@ -228,6 +251,11 @@ export function LogsPage() {
                 )}
               </tbody>
             </table>
+            <div className="px-6 pb-4">
+              <Pagination page={page} pageSize={pageSize} total={total} disabled={loading}
+                label="log files" pageSizes={STANDARD_PAGE_SIZES}
+                onPageChange={setPage} onPageSizeChange={(size) => setPage(1, size, true)} />
+            </div>
           </div>
         </div>
       </div>

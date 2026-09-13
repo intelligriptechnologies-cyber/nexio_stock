@@ -1,11 +1,13 @@
-import { useEffect, useMemo, useState } from "react";
-import { Link } from "react-router-dom";
+import { useCallback, useEffect, useState } from "react";
+import { Link, useSearchParams } from "react-router-dom";
 import { toUserMessage } from "../api/client";
-import { listProducts, type Product } from "../api/products";
+import { downloadInventoryExport, listInventoryPage, type Product } from "../api/products";
 import { useAuth } from "../auth/AuthProvider";
 import { useShopScope, useShopScopeGuard } from "../auth/ShopScopeProvider";
 import { PackageOpen, Search, Filter, ArrowDownUp, ArrowDownToLine, ShoppingCart, Edit3, Download } from "lucide-react";
-import { csvTimestamp, downloadCsv } from "../utils/csv";
+import { triggerDownload } from "../utils/csv";
+import { Pagination } from "../components/Pagination";
+import { pageOffset, pageSizeParam, positiveInt, STANDARD_PAGE_SIZES } from "../utils/pagination";
 
 type StockFilter = "all" | "in_stock" | "low_stock" | "out_of_stock";
 type SortMode = "name" | "stock_asc" | "stock_desc";
@@ -52,64 +54,69 @@ export function InventoryPage() {
   const { actingShopId } = useShopScope();
   const shopScopeGuard = useShopScopeGuard();
   const [items, setItems] = useState<Product[] | null>(null);
+  const [total, setTotal] = useState(0);
+  const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [query, setQuery] = useState("");
-  const [stockFilter, setStockFilter] = useState<StockFilter>("all");
-  const [sortMode, setSortMode] = useState<SortMode>("name");
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [query, setQuery] = useState(searchParams.get("q") ?? "");
+  const stockFilter = (["in_stock", "low_stock", "out_of_stock"].includes(searchParams.get("stock") ?? "") ? searchParams.get("stock") : "all") as StockFilter;
+  const sortMode = (["stock_asc", "stock_desc"].includes(searchParams.get("sort") ?? "") ? searchParams.get("sort") : "name") as SortMode;
+  const page = positiveInt(searchParams.get("page"), 1);
+  const pageSize = pageSizeParam(searchParams.get("pageSize"), STANDARD_PAGE_SIZES, 25);
 
   useEffect(() => {
-    let cancelled = false;
+    const restored = searchParams.get("q") ?? "";
+    if (restored !== query) setQuery(restored);
+  }, [searchParams]);
+
+  const updateParams = useCallback((changes: Record<string, string | null>, replace = false) => {
+    setSearchParams((current) => {
+      const next = new URLSearchParams(current);
+      for (const [key, value] of Object.entries(changes)) {
+        if (!value || (key !== "page" && value === "all") || (key === "sort" && value === "name")) next.delete(key);
+        else next.set(key, value);
+      }
+      return next;
+    }, { replace });
+  }, [setSearchParams]);
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => updateParams({ q: query.trim() || null, page: "1" }, true), 300);
+    return () => window.clearTimeout(timer);
+  }, [query, updateParams]);
+
+  useEffect(() => {
+    const controller = new AbortController();
     if (shopScopeGuard.blocked) {
       setItems([]);
       setError(shopScopeGuard.message);
       return () => {
-        cancelled = true;
+        controller.abort();
       };
     }
 
-    setItems(null);
+    setBusy(true);
     setError(null);
-    listProducts({ shopId: actingShopId })
-      .then((rows) => {
-        if (!cancelled) setItems(rows);
+    listInventoryPage({
+      shopId: actingShopId, q: searchParams.get("q") ?? undefined,
+      stockState: stockFilter, sort: sortMode, limit: pageSize,
+      offset: pageOffset(page, pageSize), signal: controller.signal,
+    })
+      .then(({ data, total: nextTotal }) => {
+        setItems(data);
+        setTotal(nextTotal);
       })
       .catch((e) => {
-        if (!cancelled) {
-          setItems([]);
-          setError(toUserMessage(e, "Could not load inventory."));
-        }
-      });
+        if (!(e instanceof DOMException && e.name === "AbortError")) setError(toUserMessage(e, "Could not load inventory."));
+      })
+      .finally(() => { if (!controller.signal.aborted) setBusy(false); });
 
     return () => {
-      cancelled = true;
+      controller.abort();
     };
-  }, [actingShopId, shopScopeGuard.blocked, shopScopeGuard.message]);
+  }, [actingShopId, shopScopeGuard.blocked, shopScopeGuard.message, searchParams, stockFilter, sortMode, page, pageSize]);
 
-  const visibleItems = useMemo(() => {
-    const normalizedQuery = query.trim().toLowerCase();
-    const filtered = (items ?? []).filter((item) => {
-      const state = stockState(item);
-      if (stockFilter !== "all" && state !== stockFilter) return false;
-      if (!normalizedQuery) return true;
-      return [item.brand, item.size_label, item.barcode].some((value) =>
-        value.toLowerCase().includes(normalizedQuery)
-      );
-    });
-
-    return [...filtered].sort((a, b) => {
-      if (sortMode === "stock_asc") {
-        return a.current_stock - b.current_stock || a.brand.localeCompare(b.brand);
-      }
-      if (sortMode === "stock_desc") {
-        return b.current_stock - a.current_stock || a.brand.localeCompare(b.brand);
-      }
-      return (
-        a.brand.localeCompare(b.brand) ||
-        a.size_label.localeCompare(b.size_label) ||
-        a.barcode.localeCompare(b.barcode)
-      );
-    });
-  }, [items, query, sortMode, stockFilter]);
+  const visibleItems = items ?? [];
 
   const canReceive =
     user?.role === "receiver_user" || user?.role === "owner" || user?.role === "superadmin";
@@ -117,32 +124,14 @@ export function InventoryPage() {
   const canEditProduct = user?.role === "owner" || user?.role === "superadmin";
   const exportDisabled = items === null || visibleItems.length === 0 || shopScopeGuard.blocked;
 
-  const exportRows = () => {
-    downloadCsv(
-      visibleItems.map((item) => ({
-        brand: item.brand,
-        size_label: item.size_label,
-        barcode: item.barcode,
-        price: item.price ?? "",
-        latest_unit_cost: item.latest_unit_cost ?? "",
-        inventory_value: item.latest_unit_cost === null ? "" : (Number(item.latest_unit_cost) * item.current_stock).toFixed(2),
-        current_stock: item.current_stock,
-        low_stock_threshold: item.low_stock_threshold ?? "",
-        stock_state: stockLabel(stockState(item)),
-      })),
-      `inventory-${csvTimestamp()}.csv`,
-      [
-        "brand",
-        "size_label",
-        "barcode",
-        "price",
-        "latest_unit_cost",
-        "inventory_value",
-        "current_stock",
-        "low_stock_threshold",
-        "stock_state",
-      ]
-    );
+  const exportRows = async () => {
+    try {
+      const result = await downloadInventoryExport({
+        q: searchParams.get("q") ?? undefined, stockState: stockFilter,
+        sort: sortMode, shopId: actingShopId,
+      });
+      triggerDownload(result.blob, result.filename ?? "inventory.csv");
+    } catch (e) { setError(toUserMessage(e, "Export failed.")); }
   };
 
   return (
@@ -158,7 +147,7 @@ export function InventoryPage() {
         </div>
         <button
           type="button"
-          onClick={exportRows}
+          onClick={() => void exportRows()}
           disabled={exportDisabled}
           className="flex h-10 w-10 items-center justify-center rounded-xl bg-white text-slate-600 shadow-sm ring-1 ring-slate-200 transition-colors hover:bg-slate-50 hover:text-slate-900 disabled:pointer-events-none disabled:opacity-50"
           aria-label="Download inventory CSV"
@@ -190,7 +179,7 @@ export function InventoryPage() {
             <span className="flex items-center gap-1.5"><Filter className="h-4 w-4" /> Stock state</span>
             <select
               value={stockFilter}
-              onChange={(e) => setStockFilter(e.target.value as StockFilter)}
+              onChange={(e) => updateParams({ stock: e.target.value, page: "1" })}
               className="h-11 w-full rounded-xl border border-slate-200 bg-white/50 px-4 text-sm font-medium text-slate-700 shadow-sm outline-none transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:bg-white focus-visible:ring-2 focus-visible:ring-action/40 focus-visible:border-action"
             >
               <option value="all">All</option>
@@ -203,7 +192,7 @@ export function InventoryPage() {
             <span className="flex items-center gap-1.5"><ArrowDownUp className="h-4 w-4" /> Sort</span>
             <select
               value={sortMode}
-              onChange={(e) => setSortMode(e.target.value as SortMode)}
+              onChange={(e) => updateParams({ sort: e.target.value, page: "1" })}
               className="h-11 w-full rounded-xl border border-slate-200 bg-white/50 px-4 text-sm font-medium text-slate-700 shadow-sm outline-none transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:bg-white focus-visible:ring-2 focus-visible:ring-action/40 focus-visible:border-action"
             >
               <option value="name">Product name</option>
@@ -221,7 +210,7 @@ export function InventoryPage() {
           No inventory rows match the current filters.
         </div>
       ) : visibleItems.length > 0 ? (
-        <div className="overflow-hidden rounded-xl border border-slate-200/50 bg-white/60 shadow-[0_8px_30px_rgb(0,0,0,0.02)] backdrop-blur-xl">
+        <div className={`overflow-hidden rounded-xl border border-slate-200/50 bg-white/60 shadow-[0_8px_30px_rgb(0,0,0,0.02)] backdrop-blur-xl ${busy ? "opacity-70" : ""}`} aria-busy={busy}>
           <div className="overflow-x-auto">
             <table className="app-list-table min-w-[1120px]" aria-label="Inventory table">
               <thead className="bg-slate-50/80 text-[11px] uppercase tracking-widest text-slate-500">
@@ -304,6 +293,12 @@ export function InventoryPage() {
                 })}
               </tbody>
             </table>
+          </div>
+          <div className="px-6 pb-4">
+            <Pagination page={page} pageSize={pageSize} total={total} disabled={busy}
+              label="inventory" pageSizes={STANDARD_PAGE_SIZES}
+              onPageChange={(next) => updateParams({ page: String(next) })}
+              onPageSizeChange={(size) => updateParams({ page: "1", pageSize: String(size) }, true)} />
           </div>
         </div>
       ) : null}

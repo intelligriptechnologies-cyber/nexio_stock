@@ -1,11 +1,13 @@
 import { useCallback, useEffect, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { ApiError, toUserMessage } from "../api/client";
 import {
   archiveProduct,
   createProduct,
   copyProductsFromShop,
+  downloadProductsExport,
   importProductsCsv,
-  listProducts,
+  listProductsPage,
   permanentlyDeleteProduct,
   restoreProduct,
   updateProduct,
@@ -21,8 +23,10 @@ import { useShopScope, useShopScopeGuard } from "../auth/ShopScopeProvider";
 import { useBarcodeScanner } from "../hooks/useBarcodeScanner";
 import { AppTabButton } from "../components/AppTabs";
 import { ModalDialog } from "../components/ModalDialog";
+import { Pagination } from "../components/Pagination";
 import { Package, Search, Filter, RefreshCw, Edit3, Trash2, RotateCcw, XOctagon, Download, Upload, Copy, AlertCircle, PlusCircle } from "lucide-react";
-import { csvTimestamp, downloadCsv } from "../utils/csv";
+import { triggerDownload } from "../utils/csv";
+import { lastPage, pageOffset, pageSizeParam, positiveInt, STANDARD_PAGE_SIZES } from "../utils/pagination";
 
 type Tab = "list" | "create" | "import" | "copy";
 interface InitialBarcode {
@@ -39,11 +43,40 @@ interface ActionDialogState {
 
 export function ProductsPage() {
   const { actingShopId } = useShopScope();
-  const [tab, setTab] = useState<Tab>("list");
-  const [catalogQuery, setCatalogQuery] = useState("");
+  const [searchParams, setSearchParams] = useSearchParams();
+  const rawTab = searchParams.get("tab");
+  const tab: Tab = rawTab === "create" || rawTab === "import" || rawTab === "copy" ? rawTab : "list";
+  const [catalogQuery, setCatalogQuery] = useState(searchParams.get("q") ?? "");
   const [editingId, setEditingId] = useState<number | null>(null);
   const [initialBarcode, setInitialBarcode] = useState<InitialBarcode | null>(null);
   const [scannerError, setScannerError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const restored = searchParams.get("q") ?? "";
+    if (restored !== catalogQuery) setCatalogQuery(restored);
+  }, [searchParams]);
+
+  const setTab = useCallback((nextTab: Tab) => {
+    setSearchParams((current) => {
+      const next = new URLSearchParams(current);
+      if (nextTab === "list") next.delete("tab"); else next.set("tab", nextTab);
+      next.set("page", "1");
+      return next;
+    });
+  }, [setSearchParams]);
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      setSearchParams((current) => {
+        const next = new URLSearchParams(current);
+        const value = catalogQuery.trim();
+        if (value) next.set("q", value); else next.delete("q");
+        next.set("page", "1");
+        return next;
+      }, { replace: true });
+    }, 300);
+    return () => window.clearTimeout(timer);
+  }, [catalogQuery, setSearchParams]);
 
   const handleScan = useCallback(
     async (raw: string) => {
@@ -118,6 +151,7 @@ export function ProductsPage() {
           {tab === "list" && (
             <ListTab
               q={catalogQuery}
+              requestQ={searchParams.get("q") ?? ""}
               onQueryChange={setCatalogQuery}
               editingId={editingId}
               onEditingIdChange={setEditingId}
@@ -136,11 +170,13 @@ export function ProductsPage() {
 
 function ListTab({
   q,
+  requestQ,
   onQueryChange,
   editingId,
   onEditingIdChange,
 }: {
   q: string;
+  requestQ: string;
   onQueryChange: (q: string) => void;
   editingId: number | null;
   onEditingIdChange: (id: number | null) => void;
@@ -150,9 +186,15 @@ function ListTab({
   const isSuperadmin = user?.role === "superadmin";
   const canManage = user?.role === "owner" || user?.role === "superadmin";
   const [items, setItems] = useState<Product[] | null>(null);
+  const [total, setTotal] = useState(0);
+  const [busy, setBusy] = useState(false);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const page = positiveInt(searchParams.get("page"), 1);
+  const pageSize = pageSizeParam(searchParams.get("pageSize"), STANDARD_PAGE_SIZES, 25);
   const [shops, setShops] = useState<ShopSummary[]>([]);
   const [selectedShopId, setSelectedShopId] = useState<number | null>(actingShopId);
-  const [includeInactive, setIncludeInactive] = useState(false);
+  const includeInactive = searchParams.get("inactive") === "true";
+  const missingPriceOnly = searchParams.get("missingPrice") === "true";
   const [error, setError] = useState<string | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);
   const [actionDialog, setActionDialog] = useState<ActionDialogState | null>(null);
@@ -173,24 +215,52 @@ function ListTab({
   }, [actingShopId, isSuperadmin]);
 
   useEffect(() => {
-    let cancelled = false;
-    setItems(null);
+    const controller = new AbortController();
+    setBusy(true);
     setError(null);
-    listProducts({
-      q: q || undefined,
+    listProductsPage({
+      q: requestQ || undefined,
       includeInactive,
+      missingPriceOnly,
       shopId: isSuperadmin ? selectedShopId : actingShopId,
+      limit: pageSize,
+      offset: pageOffset(page, pageSize),
+      signal: controller.signal,
     })
-      .then((rows) => {
-        if (!cancelled) setItems(rows);
+      .then(({ data, total: nextTotal }) => {
+        setItems(data);
+        setTotal(nextTotal);
       })
       .catch((e) => {
-        if (!cancelled) setError(toUserMessage(e, "Load failed."));
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [q, includeInactive, refreshKey, actingShopId, isSuperadmin, selectedShopId]);
+        if (e instanceof DOMException && e.name === "AbortError") return;
+        setError(toUserMessage(e, "Load failed."));
+      })
+      .finally(() => { if (!controller.signal.aborted) setBusy(false); });
+    return () => controller.abort();
+  }, [requestQ, includeInactive, missingPriceOnly, refreshKey, actingShopId, isSuperadmin, selectedShopId, page, pageSize]);
+
+  const updatePaging = useCallback((nextPage: number, nextSize = pageSize, replace = false) => {
+    setSearchParams((current) => {
+      const next = new URLSearchParams(current);
+      next.set("page", String(nextPage));
+      next.set("pageSize", String(nextSize));
+      return next;
+    }, { replace });
+  }, [pageSize, setSearchParams]);
+
+  useEffect(() => {
+    const finalPage = lastPage(total, pageSize);
+    if (!busy && page > finalPage) updatePaging(finalPage, pageSize, true);
+  }, [busy, page, pageSize, total, updatePaging]);
+
+  const updateBooleanFilter = (key: string, checked: boolean) => {
+    setSearchParams((current) => {
+      const next = new URLSearchParams(current);
+      if (checked) next.set(key, "true"); else next.delete(key);
+      next.set("page", "1");
+      return next;
+    });
+  };
 
   const reload = useCallback(() => setRefreshKey((k) => k + 1), []);
   const shopById = new Map(shops.map((shop) => [shop.id, shop]));
@@ -231,31 +301,14 @@ function ListTab({
     }
   };
 
-  const exportRows = () => {
-    if (items === null || items.length === 0) return;
-    downloadCsv(
-      items.map((product) => ({
-        brand: product.brand,
-        ...(isSuperadmin ? { shop: formatShopLabel(product.shop_id, shopById) } : {}),
-        size_label: product.size_label,
-        barcode: product.barcode,
-        price: product.price ?? "",
-        latest_unit_cost: product.latest_unit_cost ?? "",
-        low_stock_threshold: product.low_stock_threshold ?? "",
-        status: product.is_active ? "Active" : "Inactive",
-      })),
-      `products-catalog-${csvTimestamp()}.csv`,
-      [
-        "brand",
-        ...(isSuperadmin ? ["shop"] : []),
-        "size_label",
-        "barcode",
-        "price",
-        "latest_unit_cost",
-        "low_stock_threshold",
-        "status",
-      ]
-    );
+  const exportRows = async () => {
+    try {
+      const result = await downloadProductsExport({
+        q: requestQ || undefined, includeInactive, missingPriceOnly,
+        shopId: isSuperadmin ? selectedShopId : actingShopId,
+      });
+      triggerDownload(result.blob, result.filename ?? "products.csv");
+    } catch (e) { setError(toUserMessage(e, "Export failed.")); }
   };
 
   return (
@@ -277,7 +330,10 @@ function ListTab({
             <select
               aria-label="Shop"
               value={selectedShopId ?? ""}
-              onChange={(e) => setSelectedShopId(e.target.value ? Number(e.target.value) : null)}
+              onChange={(e) => {
+                setSelectedShopId(e.target.value ? Number(e.target.value) : null);
+                updatePaging(1, pageSize, true);
+              }}
               className="h-11 rounded-xl border border-slate-200 bg-white/50 px-4 text-sm font-medium text-slate-700 shadow-sm outline-none transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:bg-white focus-visible:ring-2 focus-visible:ring-action/40 focus-visible:border-action"
             >
               <option value="">All shops</option>
@@ -293,7 +349,7 @@ function ListTab({
           <div className="flex items-center gap-2">
             <button
               type="button"
-              onClick={exportRows}
+              onClick={() => void exportRows()}
               disabled={items === null || items.length === 0 || (isSuperadmin && selectedShopId === null)}
               className="flex h-11 w-11 items-center justify-center rounded-xl bg-white text-slate-600 shadow-sm ring-1 ring-slate-200 transition-colors hover:bg-slate-50 hover:text-slate-900 disabled:pointer-events-none disabled:opacity-50"
               aria-label="Download catalog CSV"
@@ -310,15 +366,26 @@ function ListTab({
             </button>
           </div>
         </div>
-        <label className="flex items-center gap-2 text-sm font-medium text-slate-600 md:col-span-4">
-          <input
-            type="checkbox"
-            checked={includeInactive}
-            onChange={(e) => setIncludeInactive(e.target.checked)}
-            className="h-4 w-4 rounded border-slate-300 text-action focus:ring-action"
-          />
-          Include inactive products
-        </label>
+        <div className="flex flex-wrap items-center gap-x-6 gap-y-2 md:col-span-4">
+          <label className="flex items-center gap-2 text-sm font-medium text-slate-600">
+            <input
+              type="checkbox"
+              checked={includeInactive}
+              onChange={(e) => updateBooleanFilter("inactive", e.target.checked)}
+              className="h-4 w-4 rounded border-slate-300 text-action focus:ring-action"
+            />
+            Include inactive products
+          </label>
+          <label className="flex items-center gap-2 text-sm font-medium text-slate-600">
+            <input
+              type="checkbox"
+              checked={missingPriceOnly}
+              onChange={(e) => updateBooleanFilter("missingPrice", e.target.checked)}
+              className="h-4 w-4 rounded border-slate-300 text-action focus:ring-action"
+            />
+            Only products with no pricing
+          </label>
+        </div>
       </div>
 
       {error && (
@@ -334,7 +401,7 @@ function ListTab({
           No products match the current filter.
         </div>
       ) : (
-        <div className="overflow-hidden rounded-xl border border-slate-200/50 bg-white/60 shadow-[0_8px_30px_rgb(0,0,0,0.02)] backdrop-blur-xl">
+        <div className={`relative overflow-hidden rounded-xl border border-slate-200/50 bg-white/60 shadow-[0_8px_30px_rgb(0,0,0,0.02)] backdrop-blur-xl ${busy ? "opacity-70" : ""}`} aria-busy={busy}>
           <div className="overflow-x-auto">
             <table className="app-list-table min-w-[980px]">
               <thead className="bg-slate-50/80 text-[11px] uppercase tracking-widest text-slate-500">
@@ -343,7 +410,7 @@ function ListTab({
                   {isSuperadmin && <th className="px-6 py-4 font-semibold">Shop</th>}
                   <th className="px-6 py-4 font-semibold">Size</th>
                   <th className="px-6 py-4 font-semibold">Barcode</th>
-                  <th className="px-6 py-4 text-right font-semibold">Sell price</th>
+                  <th className="whitespace-nowrap px-6 py-4 text-right font-semibold">Sell price</th>
                   <th className="px-6 py-4 text-right font-semibold">Cost</th>
                   <th className="px-6 py-4 text-right font-semibold">Low-stock</th>
                   <th className="px-6 py-4 font-semibold">Status</th>
@@ -372,7 +439,7 @@ function ListTab({
                     )}
                     <td className="px-6 py-4 text-slate-700">{p.size_label}</td>
                     <td className="px-6 py-4 font-mono text-xs text-slate-500">{p.barcode}</td>
-                    <td className="px-6 py-4 text-right font-mono font-semibold text-slate-900">
+                    <td className="whitespace-nowrap px-6 py-4 text-right font-mono font-semibold text-slate-900">
                       {p.price == null ? "—" : `₹${p.price}`}
                     </td>
                     <td className="px-6 py-4 text-right font-mono font-semibold text-slate-900">
@@ -437,6 +504,18 @@ function ListTab({
               )}
               </tbody>
             </table>
+          </div>
+          <div className="px-6 pb-4">
+            <Pagination
+              page={page}
+              pageSize={pageSize}
+              total={total}
+              disabled={busy}
+              label="products"
+              pageSizes={STANDARD_PAGE_SIZES}
+              onPageChange={(next) => updatePaging(next)}
+              onPageSizeChange={(size) => updatePaging(1, size, true)}
+            />
           </div>
         </div>
       )}

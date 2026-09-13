@@ -21,9 +21,22 @@ logic lives in ``app.services.products``.
 """
 from __future__ import annotations
 
+import csv
+import io
 from typing import Annotated, Literal
 
-from fastapi import APIRouter, Depends, File, Form, Header, HTTPException, Query, UploadFile, status
+from fastapi import (
+    APIRouter,
+    Depends,
+    File,
+    Form,
+    Header,
+    HTTPException,
+    Query,
+    Response,
+    UploadFile,
+    status,
+)
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api._logs import write_business_log
@@ -39,11 +52,11 @@ from app.models.log import AdminLog
 from app.models.product import Product, ProductStatus
 from app.models.user import User, UserRole
 from app.schemas.product import (
-    ProductActionConfirmation,
-    ProductDeleteResponse,
     PendingProductRow,
+    ProductActionConfirmation,
     ProductActivate,
     ProductCreate,
+    ProductDeleteResponse,
     ProductImportError,
     ProductImportResponse,
     ProductPublic,
@@ -66,8 +79,8 @@ from app.services.product_lifecycle import ProductLifecycleError
 from app.services.products import (
     ProductError,
     QuickAddConflictError,
-    archive_product,
     activate_pending_product,
+    archive_product,
     count_pending_products,
     get_product_for_write,
     latest_unit_cost_by_product_ids,
@@ -338,10 +351,14 @@ async def quick_add_product(
 )
 async def list_products(
     db: DbSession,
+    response: Response,
     _user: User = Depends(require_role(*_write_roles, *_lookup_roles)),
     active_only: Annotated[bool, Query(description="Filter out deactivated products")] = True,
+    missing_price_only: Annotated[
+        bool, Query(description="Return only products whose sell price is missing")
+    ] = False,
     q: Annotated[str | None, Query(description="Substring match on brand")] = None,
-    limit: Annotated[int, Query(ge=1, le=500)] = 100,
+    limit: Annotated[int, Query(ge=1, le=500)] = 25,
     offset: Annotated[int, Query(ge=0)] = 0,
     shop_id: Annotated[
         int | None,
@@ -353,13 +370,120 @@ async def list_products(
         db,
         shop_id=scoped_shop_id,
         active_only=active_only,
+        missing_price_only=missing_price_only,
         q=q,
         limit=limit,
         offset=offset,
     )
+    response.headers["X-Total-Count"] = str(
+        await products_svc.count_products(
+            db,
+            shop_id=scoped_shop_id,
+            active_only=active_only,
+            missing_price_only=missing_price_only,
+            q=q,
+        )
+    )
     # Issue #40 — attach current_stock via the shared stock service so
     # the catalog column never diverges from the dashboard's low-stock
     # list for the same product.
+    return await _public_with_stock(db, list(rows))
+
+
+@router.get(
+    "/inventory",
+    response_model=list[ProductPublic],
+    summary="Paged inventory with server-side derived-stock filtering and sorting",
+)
+async def list_inventory(
+    db: DbSession,
+    response: Response,
+    _user: User = Depends(require_role(*_lookup_roles)),
+    q: Annotated[str | None, Query()] = None,
+    stock_state: Annotated[Literal["all", "in_stock", "low_stock", "out_of_stock"], Query()] = "all",
+    sort: Annotated[Literal["name", "stock_asc", "stock_desc"], Query()] = "name",
+    limit: Annotated[int, Query(ge=1, le=100)] = 25,
+    offset: Annotated[int, Query(ge=0)] = 0,
+    shop_id: Annotated[int | None, Query(description="Superadmin only: acting shop")] = None,
+) -> list[ProductPublic]:
+    scoped_shop_id = resolve_read_shop_id(_user, shop_id)
+    rows, total = await products_svc.list_inventory(
+        db, shop_id=scoped_shop_id, q=q, stock_state=stock_state,
+        sort=sort, limit=limit, offset=offset,
+    )
+    response.headers["X-Total-Count"] = str(total)
+    return await _public_with_stock(db, rows)
+
+
+def _products_csv(rows: list[ProductPublic]) -> str:
+    out = io.StringIO()
+    fields = ["id", "shop_id", "brand", "size_label", "barcode", "price", "latest_unit_cost", "current_stock", "low_stock_threshold", "status", "is_active"]
+    writer = csv.DictWriter(out, fieldnames=fields)
+    writer.writeheader()
+    for row in rows:
+        values = {field: getattr(row, field) for field in fields}
+        values["status"] = row.status.value
+        writer.writerow(values)
+    return out.getvalue()
+
+
+@router.get("/export", summary="Export the complete filtered product catalog as CSV")
+async def export_products(
+    db: DbSession,
+    _user: User = Depends(require_role(*_write_roles, *_lookup_roles)),
+    active_only: bool = True,
+    missing_price_only: bool = False,
+    q: str | None = None,
+    shop_id: int | None = None,
+) -> Response:
+    scoped_shop_id = resolve_read_shop_id(_user, shop_id)
+    products = await products_svc.list_products(
+        db, shop_id=scoped_shop_id, active_only=active_only,
+        missing_price_only=missing_price_only, q=q, limit=1_000_000, offset=0,
+    )
+    rows = await _public_with_stock(db, list(products))
+    return Response(content=_products_csv(rows), media_type="text/csv", headers={"Content-Disposition": 'attachment; filename="products.csv"'})
+
+
+@router.get("/inventory/export", summary="Export the complete filtered inventory as CSV")
+async def export_inventory(
+    db: DbSession,
+    _user: User = Depends(require_role(*_lookup_roles)),
+    q: str | None = None,
+    stock_state: Literal["all", "in_stock", "low_stock", "out_of_stock"] = "all",
+    sort: Literal["name", "stock_asc", "stock_desc"] = "name",
+    shop_id: int | None = None,
+) -> Response:
+    scoped_shop_id = resolve_read_shop_id(_user, shop_id)
+    products, _ = await products_svc.list_inventory(
+        db, shop_id=scoped_shop_id, q=q, stock_state=stock_state,
+        sort=sort, limit=1_000_000, offset=0,
+    )
+    rows = await _public_with_stock(db, products)
+    return Response(content=_products_csv(rows), media_type="text/csv", headers={"Content-Disposition": 'attachment; filename="inventory.csv"'})
+
+
+@router.get(
+    "/catalog",
+    response_model=list[ProductPublic],
+    summary="Full active product catalog for scanner and receiving workflows",
+)
+async def product_catalog(
+    db: DbSession,
+    _user: User = Depends(require_role(*_lookup_roles)),
+    shop_id: Annotated[int | None, Query(description="Superadmin only: acting shop")] = None,
+) -> list[ProductPublic]:
+    """Unpaginated lookup catalog, intentionally separate from persistent grids."""
+    scoped_shop_id = resolve_read_shop_id(_user, shop_id)
+    rows = await products_svc.list_products(
+        db,
+        shop_id=scoped_shop_id,
+        active_only=True,
+        missing_price_only=False,
+        q=None,
+        limit=1_000_000,
+        offset=0,
+    )
     return await _public_with_stock(db, list(rows))
 
 
@@ -652,14 +776,22 @@ async def pending_product_count(
 )
 async def list_pending_products(
     db: DbSession,
+    response: Response,
     _user: User = Depends(require_role(*_pending_roles)),
     shop_id: Annotated[
         int | None,
         Query(description="Superadmin only: scope the listing to one shop"),
     ] = None,
+    limit: Annotated[int, Query(ge=1, le=100)] = 25,
+    offset: Annotated[int, Query(ge=0)] = 0,
 ) -> list[PendingProductRow]:
     scoped_shop_id = resolve_read_shop_id(_user, shop_id)
-    rows = await products_svc.list_pending_products(db, shop_id=scoped_shop_id)
+    response.headers["X-Total-Count"] = str(
+        await count_pending_products(db, shop_id=scoped_shop_id)
+    )
+    rows = await products_svc.list_pending_products(
+        db, shop_id=scoped_shop_id, limit=limit, offset=offset
+    )
     return [
         PendingProductRow(
             id=r.product.id,

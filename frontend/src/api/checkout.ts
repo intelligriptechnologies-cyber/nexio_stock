@@ -2,7 +2,8 @@
 // stay separate. The page component owns the cart; these helpers just hit
 // the backend.
 
-import { api, withShopId } from "./client";
+import { api, apiPage, withShopId } from "./client";
+import { downloadAuthedFile } from "../utils/csv";
 
 export type PaymentMode = "cash" | "upi" | "card" | "other";
 
@@ -108,6 +109,32 @@ export function listInvoices(opts: {
   if (opts.status) params.set("status", opts.status);
   if (opts.shopId != null) params.set("shop_id", String(opts.shopId));
   return api<{ invoices: InvoicePublic[] }>(`/invoices?${params.toString()}`);
+}
+
+export function listInvoicesPage(opts: Parameters<typeof listInvoices>[0] & {
+  limit: number; offset: number; signal?: AbortSignal;
+}): Promise<{ data: { invoices: InvoicePublic[] }; total: number }> {
+  const params = new URLSearchParams({
+    source: opts.source, limit: String(opts.limit), offset: String(opts.offset),
+  });
+  if (opts.dateFrom) params.set("date_from", opts.dateFrom);
+  if (opts.dateTo) params.set("date_to", opts.dateTo);
+  if (opts.cashier) params.set("cashier", String(opts.cashier));
+  if (opts.paymentMode) params.set("payment_mode", opts.paymentMode);
+  if (opts.status) params.set("status", opts.status);
+  if (opts.shopId != null) params.set("shop_id", String(opts.shopId));
+  return apiPage<{ invoices: InvoicePublic[] }>(`/invoices?${params.toString()}`, { signal: opts.signal });
+}
+
+export function downloadInvoicesExport(opts: Parameters<typeof listInvoices>[0]) {
+  const params = new URLSearchParams({ source: opts.source });
+  if (opts.dateFrom) params.set("date_from", opts.dateFrom);
+  if (opts.dateTo) params.set("date_to", opts.dateTo);
+  if (opts.cashier) params.set("cashier", String(opts.cashier));
+  if (opts.paymentMode) params.set("payment_mode", opts.paymentMode);
+  if (opts.status) params.set("status", opts.status);
+  if (opts.shopId != null) params.set("shop_id", String(opts.shopId));
+  return downloadAuthedFile(`/invoices/export?${params.toString()}`);
 }
 
 export function editInvoice(

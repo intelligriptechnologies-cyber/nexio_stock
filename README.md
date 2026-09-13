@@ -1,5 +1,7 @@
 # Barstock
 
+See [docs/PAGINATION.md](docs/PAGINATION.md) for the shared list pagination, URL-state, and export contract.
+
 Single-counter liquor shop inventory & billing system for a friend's shop in
 Odisha, India. See `harness/03-prd.md` for the product requirements and
 `harness/02-ledger.md` for the design decisions behind them.

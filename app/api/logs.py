@@ -11,7 +11,7 @@ from typing import Annotated, Literal
 from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
 from fastapi.responses import FileResponse
 from pydantic import BaseModel
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.orm import selectinload
 
 from app.api.deps import DbSession, require_role, resolve_read_shop_id
@@ -141,8 +141,11 @@ async def _resolve_file_scope(
 async def list_log_files_endpoint(
     log_type: LogFileType,
     db: DbSession,
+    response: Response,
     _user: User = Depends(require_role(*_owner_only)),
     shop_id: Annotated[int | None, Query(description="Superadmin only")] = None,
+    limit: Annotated[int, Query(ge=1, le=100)] = 25,
+    offset: Annotated[int, Query(ge=0)] = 0,
 ) -> LogFileListResponse:
     _ensure_file_log_access(log_type, _user)
     scoped_shop_id = await _resolve_file_scope(
@@ -193,10 +196,11 @@ async def list_log_files_endpoint(
             shop_id=scoped_shop_id,
             retention_days=retention_days,
         )
+    response.headers["X-Total-Count"] = str(len(rows))
     return LogFileListResponse(
         log_type=log_type,
         retention_days=retention_days,
-        files=[_file_row_to_public(row) for row in rows],
+        files=[_file_row_to_public(row) for row in rows[offset : offset + limit]],
     )
 
 
@@ -328,7 +332,7 @@ async def _query_logs(
         stmt = stmt.where(log_cls.created_at >= date_from)
     if date_to is not None:
         stmt = stmt.where(log_cls.created_at <= date_to)
-    stmt = stmt.order_by(log_cls.created_at.desc()).limit(limit).offset(offset)
+    stmt = stmt.order_by(log_cls.created_at.desc(), log_cls.id.desc()).limit(limit).offset(offset)
     return [_row_to_public(row) for row in (await db.execute(stmt)).scalars().all()]
 
 
@@ -364,15 +368,30 @@ async def _list_logs_handler(
 async def list_logs(
     log_type: Literal["invoicing", "stockin", "admin"],
     db: DbSession,
+    response: Response,
     _user: User = Depends(require_role(*_owner_only)),
     shop_id: Annotated[int | None, Query(description="Superadmin only")] = None,
     user_id: Annotated[int | None, Query()] = None,
     event_type: Annotated[str | None, Query()] = None,
     date_from: Annotated[datetime | None, Query()] = None,
     date_to: Annotated[datetime | None, Query()] = None,
-    limit: Annotated[int, Query(ge=1, le=1000)] = 100,
+    limit: Annotated[int, Query(ge=1, le=1000)] = 25,
     offset: Annotated[int, Query(ge=0)] = 0,
 ) -> BusinessLogResponse:
+    log_cls = _LOG_TYPES[log_type]
+    scoped_shop_id = resolve_read_shop_id(_user, shop_id)
+    count_stmt = select(func.count(log_cls.id))
+    if scoped_shop_id is not None:
+        count_stmt = count_stmt.where(log_cls.shop_id == scoped_shop_id)
+    if user_id is not None:
+        count_stmt = count_stmt.where(log_cls.actor_user_id == user_id)
+    if event_type:
+        count_stmt = count_stmt.where(log_cls.event_type == event_type)
+    if date_from is not None:
+        count_stmt = count_stmt.where(log_cls.created_at >= date_from)
+    if date_to is not None:
+        count_stmt = count_stmt.where(log_cls.created_at <= date_to)
+    response.headers["X-Total-Count"] = str((await db.execute(count_stmt)).scalar_one())
     return await _list_logs_handler(
         log_type,
         db,

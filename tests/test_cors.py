@@ -60,3 +60,18 @@ def test_create_app_uses_only_env_configured_cors_origins() -> None:
     app = create_app()
 
     assert app.state.cors_allow_origins == ("https://stock.nexiohyper.com",)
+
+
+@pytest.mark.asyncio
+async def test_pagination_and_download_headers_are_exposed() -> None:
+    get_settings.cache_clear()  # type: ignore[attr-defined]
+    _configure_test_env()
+    os.environ["CORS_ALLOW_ORIGINS"] = '["https://stock.nexiohyper.com"]'
+    app = create_app()
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+        response = await client.get(
+            "/healthz", headers={"Origin": "https://stock.nexiohyper.com"}
+        )
+    exposed = response.headers["access-control-expose-headers"].lower()
+    assert "x-total-count" in exposed
+    assert "content-disposition" in exposed

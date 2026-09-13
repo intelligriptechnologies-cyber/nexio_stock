@@ -14,8 +14,8 @@ from __future__ import annotations
 
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
-from sqlalchemy import select
+from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
+from sqlalchemy import func, select
 from sqlalchemy.dialects.postgresql.asyncpg import AsyncAdapt_asyncpg_dbapi
 from sqlalchemy.exc import IntegrityError
 
@@ -117,11 +117,14 @@ async def create_staff(
 )
 async def list_staff(
     db: DbSession,
+    response: Response,
     user: User = Depends(require_role(UserRole.OWNER, UserRole.SUPERADMIN)),
     shop_id: Annotated[
         int | None,
         Query(description="Superadmin-only: selected shop to list staff for"),
     ] = None,
+    limit: Annotated[int, Query(ge=1, le=100)] = 25,
+    offset: Annotated[int, Query(ge=0)] = 0,
 ) -> list[UserPublic]:
     if user.role == UserRole.OWNER:
         if shop_id is not None:
@@ -141,7 +144,12 @@ async def list_staff(
         User.shop_id == scoped_shop_id,
         User.role.in_((UserRole.RECEIVER_USER, UserRole.CASHIER_USER)),
     )
-    rows = (await db.execute(stmt.order_by(User.id))).scalars().all()
+    response.headers["X-Total-Count"] = str(
+        (await db.execute(select(func.count()).select_from(stmt.subquery()))).scalar_one()
+    )
+    rows = (
+        await db.execute(stmt.order_by(User.full_name, User.id).limit(limit).offset(offset))
+    ).scalars().all()
     return [UserPublic.model_validate(r) for r in rows]
 
 

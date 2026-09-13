@@ -24,11 +24,126 @@ async function prepareReceivingSession(page: Page) {
   await loginAsReceiver(page);
 }
 
+async function openPurchaseReview(page: Page) {
+  await page.getByPlaceholder("Scan or enter barcode").fill("8901234567890");
+  await page.getByRole("button", { name: "ADD" }).click();
+  await expect(page.getByText(/Added:/)).toBeVisible({ timeout: 5000 });
+  await page.getByRole("button", { name: "Review & Submit" }).click();
+  const dialog = page.getByRole("dialog", { name: "Review purchase details" });
+  await expect(dialog).toBeVisible({ timeout: 5000 });
+  return dialog;
+}
+
+async function prepareMockedPurchaseReview(page: Page) {
+  const header = Buffer.from(JSON.stringify({ alg: "none", typ: "JWT" })).toString("base64url");
+  const payload = Buffer.from(
+    JSON.stringify({
+      sub: "1",
+      shop_id: 1,
+      role: "receiver_user",
+      exp: Math.floor(Date.now() / 1000) + 3600,
+    })
+  ).toString("base64url");
+
+  await page.addInitScript((token) => {
+    sessionStorage.setItem("barstock.token", token);
+    sessionStorage.setItem(
+      "barstock.user",
+      JSON.stringify({
+        id: 1,
+        shopId: 1,
+        role: "receiver_user",
+        username: "receiver1",
+        fullName: "Receiver One",
+        phone: "0000000001",
+      })
+    );
+  }, `${header}.${payload}.signature`);
+
+  await page.route("http://127.0.0.1:8000/**", async (route) => {
+    const path = new URL(route.request().url()).pathname;
+    if (path === "/products" || path === "/products/catalog") {
+      await route.fulfill({
+        contentType: "application/json",
+        body: JSON.stringify([
+          {
+            id: 1,
+            barcode: "8901234567890",
+            brand: "Royal Stag",
+            size_label: "750ml",
+            price: "100.00",
+            is_active: true,
+            status: "active",
+            current_stock: 12,
+          },
+        ]),
+      });
+      return;
+    }
+    if (path === "/vendors") {
+      await route.fulfill({
+        contentType: "application/json",
+        body: JSON.stringify([
+          {
+            id: 1,
+            shop_id: 1,
+            name: "E2E Vendor",
+            gstin: null,
+            address: null,
+            email: null,
+            phone: null,
+            is_active: true,
+            created_at: "2026-01-01T00:00:00Z",
+            updated_at: "2026-01-01T00:00:00Z",
+          },
+        ]),
+      });
+      return;
+    }
+    if (path === "/shops/me") {
+      await route.fulfill({
+        contentType: "application/json",
+        body: JSON.stringify({
+          id: 1,
+          name: "Shop One",
+          code: "shop1",
+          current_business_date: "2026-09-13",
+          gstin: null,
+          excise_duty_rate: null,
+          low_stock_threshold_default: null,
+          cashier_login_restriction_enabled: false,
+          receiving_vendor_link_enabled: true,
+          allowed_login_cidrs: [],
+        }),
+      });
+      return;
+    }
+    if (path === "/settings/me") {
+      await route.fulfill({
+        contentType: "application/json",
+        body: JSON.stringify({
+          app_display_name: "Nexio Stock",
+          action_color: "#22c55e",
+          active_tab_color: "#5a5148",
+          sidebar_menu_inactive_text_color: "#535353cf",
+          sidebar_menu_active_text_color: "#ffffff",
+        }),
+      });
+      return;
+    }
+    await route.fulfill({ contentType: "application/json", body: "{}" });
+  });
+
+  await page.goto("/receiving");
+  await expect(page.getByRole("heading", { name: "Stock Inward" })).toBeVisible();
+  return openPurchaseReview(page);
+}
+
 test.describe("stock inward - new lot", () => {
   test("renders the receiving panel for a receiver", async ({ page }) => {
     await loginAsReceiver(page);
     await expect(page.getByRole("heading", { name: "Stock Inward" })).toBeVisible();
-    await expect(page.getByRole("button", { name: "REVIEW & SAVE" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Review & Submit" })).toBeVisible();
     await expect(page.getByText("No items yet")).toBeVisible();
   });
 
@@ -205,17 +320,14 @@ test.describe("stock inward - quicksearch (issue #23)", () => {
     page,
   }) => {
     await prepareReceivingSession(page);
-    await page.getByPlaceholder("Scan or enter barcode").fill("8901234567890");
-    await page.getByRole("button", { name: "ADD" }).click();
-    await page.getByRole("button", { name: "REVIEW & SAVE" }).click();
-    const dialog = page.getByRole("dialog", { name: "Review purchase details" });
-    await expect(dialog).toBeVisible({ timeout: 5000 });
+    const dialog = await openPurchaseReview(page);
     await expect(
-      dialog.getByText("Use the stepper to adjust good-condition quantity for each line.")
+      dialog.getByText(/Submit stays blocked until the merchandise total matches/i)
     ).toBeVisible();
     await dialog.getByLabel("Vendor").selectOption({ label: "E2E Vendor" });
     await dialog.getByLabel("Vendor invoice number").fill("E2E-INV-1");
     await dialog.getByLabel("Invoice value").fill("100.00");
+    await dialog.getByLabel("Unit cost").fill("100.00");
     await dialog.getByLabel("Decrease good quantity").click();
     await dialog.getByRole("button", { name: "Confirm save" }).click();
     await expect(dialog).toContainText("Add notes when any breakage exists.");
@@ -223,6 +335,116 @@ test.describe("stock inward - quicksearch (issue #23)", () => {
     await dialog.getByRole("button", { name: "Confirm save" }).click();
     await expect(page.getByRole("dialog", { name: "Review purchase details" })).toHaveCount(0);
     await expect(page.getByText(/Lot #\d+ saved/)).toBeVisible({ timeout: 5000 });
+  });
+
+  test("purchase review fills a 1280 by 800 viewport and keeps every item column visible", async ({
+    page,
+  }) => {
+    const dialog = await prepareMockedPurchaseReview(page);
+    const dialogBox = await dialog.boundingBox();
+
+    expect(dialogBox).not.toBeNull();
+    expect(dialogBox?.x).toBe(0);
+    expect(dialogBox?.y).toBe(0);
+    expect(dialogBox?.width).toBe(1280);
+    expect(dialogBox?.height).toBe(800);
+
+    const lineItems = dialog.getByTestId("purchase-review-line-items");
+    const horizontalMetrics = await lineItems.evaluate((element) => ({
+      clientWidth: element.clientWidth,
+      scrollWidth: element.scrollWidth,
+    }));
+    expect(horizontalMetrics.scrollWidth).toBeLessThanOrEqual(horizontalMetrics.clientWidth);
+
+    await expect(dialog.getByLabel("Unit cost")).toBeInViewport();
+    await expect(dialog.getByRole("columnheader", { name: "Line total" })).toBeInViewport();
+
+    for (const heading of ["Product", "Received", "Good", "Breakage", "Unit cost", "Line total"]) {
+      await expect(dialog.getByRole("columnheader", { name: heading })).toHaveCSS(
+        "white-space",
+        "nowrap"
+      );
+    }
+
+    const productCell = dialog.getByRole("cell").first();
+    await expect(productCell).toHaveCSS("white-space", "nowrap");
+    await expect(productCell.getByText("Royal Stag", { exact: true })).toHaveCSS(
+      "white-space",
+      "nowrap"
+    );
+    await expect(dialog.getByLabel("Good-condition quantity").locator("xpath=..")).toHaveCSS(
+      "flex-wrap",
+      "nowrap"
+    );
+    await expect(dialog.getByLabel("Unit cost").locator("xpath=..")).toHaveCSS(
+      "white-space",
+      "nowrap"
+    );
+
+    const header = dialog.getByTestId("purchase-review-header");
+    const footer = dialog.getByTestId("purchase-review-footer");
+    const content = dialog.getByTestId("purchase-review-content");
+    const headerBefore = await header.boundingBox();
+    const footerBefore = await footer.boundingBox();
+    await content.evaluate((element) => element.scrollTo(0, element.scrollHeight));
+    expect(await header.boundingBox()).toEqual(headerBefore);
+    expect(await footer.boundingBox()).toEqual(footerBefore);
+  });
+
+  test("narrow purchase review contains horizontal scrolling inside the item table", async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 600, height: 700 });
+    const dialog = await prepareMockedPurchaseReview(page);
+    const dialogBox = await dialog.boundingBox();
+
+    expect(dialogBox).not.toBeNull();
+    expect(dialogBox?.x).toBe(0);
+    expect(dialogBox?.y).toBe(0);
+    expect(dialogBox?.width).toBe(600);
+    expect(dialogBox?.height).toBe(700);
+
+    const lineItems = dialog.getByTestId("purchase-review-line-items");
+    const horizontalMetrics = await lineItems.evaluate((element) => ({
+      clientWidth: element.clientWidth,
+      scrollWidth: element.scrollWidth,
+    }));
+    expect(horizontalMetrics.scrollWidth).toBeGreaterThan(horizontalMetrics.clientWidth);
+    expect(
+      await page.evaluate(() => {
+        const browser = globalThis as typeof globalThis & {
+          document: { documentElement: { scrollWidth: number } };
+          innerWidth: number;
+        };
+        return browser.document.documentElement.scrollWidth <= browser.innerWidth;
+      })
+    ).toBe(true);
+  });
+
+  test("full-screen purchase review preserves focus trapping and every close action", async ({
+    page,
+  }) => {
+    let dialog = await prepareMockedPurchaseReview(page);
+    const closeButton = dialog.getByRole("button", { name: "Close purchase review" });
+    const cancelButton = dialog.getByRole("button", { name: "Cancel" });
+
+    await expect(closeButton).toBeFocused();
+    await page.keyboard.press("Shift+Tab");
+    await expect(cancelButton).toBeFocused();
+    await page.keyboard.press("Tab");
+    await expect(closeButton).toBeFocused();
+    await page.keyboard.press("Escape");
+    await expect(dialog).toHaveCount(0);
+
+    await page.getByRole("button", { name: "Review & Submit" }).click();
+    dialog = page.getByRole("dialog", { name: "Review purchase details" });
+    await dialog.getByRole("button", { name: "Close purchase review" }).click();
+    await expect(dialog).toHaveCount(0);
+
+    await page.getByRole("button", { name: "Review & Submit" }).click();
+    dialog = page.getByRole("dialog", { name: "Review purchase details" });
+    await dialog.getByRole("button", { name: "Cancel" }).click();
+    await expect(dialog).toHaveCount(0);
   });
 
 });

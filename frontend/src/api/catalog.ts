@@ -5,7 +5,7 @@
 // and the resolved product is added to the cache so the next scan of the
 // same barcode is instant.
 
-import { api, withShopIdParams } from "./client";
+import { api, apiPage, withShopIdParams } from "./client";
 
 export interface CatalogProduct {
   id: number;
@@ -49,9 +49,19 @@ export async function prefetchCatalog(
 ): Promise<Map<string, CatalogProduct>> {
   if (cache && cacheShopId === (shopId ?? null)) return cache;
   if (inflight && cacheShopId === (shopId ?? null)) return inflight;
-  const params = withShopIdParams(new URLSearchParams({ active_only: "true", limit: "500" }), shopId);
   inflight = (async () => {
-    const items = await api<CatalogProduct[]>(`/products?${params.toString()}`);
+    const items: CatalogProduct[] = [];
+    const batchSize = 500;
+    let offset = 0;
+    while (true) {
+      const params = withShopIdParams(new URLSearchParams({
+        active_only: "true", limit: String(batchSize), offset: String(offset),
+      }), shopId);
+      const page = await apiPage<CatalogProduct[]>(`/products?${params.toString()}`);
+      items.push(...page.data);
+      offset += page.data.length;
+      if (page.data.length === 0 || offset >= page.total || page.data.length < batchSize) break;
+    }
     const m = new Map<string, CatalogProduct>();
     for (const p of items) m.set(p.barcode, p);
     cache = m;

@@ -124,8 +124,23 @@ async function mockShellApis(page: Page) {
   await page.route("**/products/pending/count**", async (route) => {
     await route.fulfill({ contentType: "application/json", body: JSON.stringify({ count: 0 }) });
   });
-  await page.route("**/products?**", async (route) => {
-    await route.fulfill({ contentType: "application/json", body: JSON.stringify(products) });
+  await page.route(/\/products(?:\/inventory)?\?.*$/, async (route) => {
+    const params = new URL(route.request().url()).searchParams;
+    const query = (params.get("q") ?? "").toLowerCase();
+    const state = params.get("stock_state") ?? "all";
+    const filtered = products.filter((product) => {
+      if (query && ![product.brand, product.size_label, product.barcode].some((value) => value.toLowerCase().includes(query))) return false;
+      const productState = product.current_stock <= 0
+        ? "out_of_stock"
+        : product.low_stock_threshold != null && product.current_stock <= product.low_stock_threshold
+          ? "low_stock" : "in_stock";
+      return state === "all" || state === productState;
+    });
+    await route.fulfill({
+      contentType: "application/json",
+      headers: { "X-Total-Count": String(filtered.length) },
+      body: JSON.stringify(filtered),
+    });
   });
   await page.route(/\/shops(?:\?.*)?$/, async (route) => {
     await route.fulfill({

@@ -1,10 +1,12 @@
 """Vendor CRUD and selection routes."""
 from __future__ import annotations
 
+import csv
+import io
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
-from sqlalchemy import select
+from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
+from sqlalchemy import func, or_, select
 from sqlalchemy.dialects.postgresql.asyncpg import AsyncAdapt_asyncpg_dbapi
 from sqlalchemy.exc import IntegrityError
 
@@ -23,18 +25,54 @@ _write_roles = (UserRole.OWNER, UserRole.SUPERADMIN)
 @router.get("", response_model=list[VendorPublic], summary="List vendors for the acting shop")
 async def list_vendors(
     db: DbSession,
+    response: Response,
     user: User = Depends(require_role(*_read_roles)),
     shop_id: Annotated[int | None, Query(description="Superadmin-only target shop")] = None,
     include_inactive: bool = False,
+    q: Annotated[str | None, Query()] = None,
+    limit: Annotated[int, Query(ge=1, le=100)] = 25,
+    offset: Annotated[int, Query(ge=0)] = 0,
 ) -> list[VendorPublic]:
     actor_shop_id = await resolve_write_shop_id(db, user, shop_id)
     stmt = select(Vendor).where(Vendor.shop_id == actor_shop_id)
     if not include_inactive or user.role == UserRole.RECEIVER_USER:
         stmt = stmt.where(Vendor.is_active.is_(True))
+    if q:
+        like = f"%{q}%"
+        stmt = stmt.where(or_(Vendor.name.ilike(like), Vendor.gstin.ilike(like), Vendor.phone.ilike(like)))
+    count_stmt = select(func.count()).select_from(stmt.order_by(None).subquery())
+    response.headers["X-Total-Count"] = str((await db.execute(count_stmt)).scalar_one())
     rows = (
-        await db.execute(stmt.order_by(Vendor.is_active.desc(), Vendor.name, Vendor.id))
+        await db.execute(
+            stmt.order_by(Vendor.is_active.desc(), Vendor.name, Vendor.id).limit(limit).offset(offset)
+        )
     ).scalars().all()
     return [VendorPublic.model_validate(row) for row in rows]
+
+
+@router.get("/export", summary="Export every filtered vendor as CSV")
+async def export_vendors(
+    db: DbSession,
+    user: User = Depends(require_role(*_read_roles)),
+    shop_id: int | None = None,
+    include_inactive: bool = False,
+    q: str | None = None,
+) -> Response:
+    actor_shop_id = await resolve_write_shop_id(db, user, shop_id)
+    stmt = select(Vendor).where(Vendor.shop_id == actor_shop_id)
+    if not include_inactive or user.role == UserRole.RECEIVER_USER:
+        stmt = stmt.where(Vendor.is_active.is_(True))
+    if q:
+        like = f"%{q}%"
+        stmt = stmt.where(or_(Vendor.name.ilike(like), Vendor.gstin.ilike(like), Vendor.phone.ilike(like)))
+    rows = (await db.execute(stmt.order_by(Vendor.is_active.desc(), Vendor.name, Vendor.id))).scalars().all()
+    out = io.StringIO()
+    fields = ["id", "shop_id", "name", "gstin", "address", "email", "phone", "is_active", "created_at", "updated_at"]
+    writer = csv.DictWriter(out, fieldnames=fields)
+    writer.writeheader()
+    for row in rows:
+        writer.writerow({field: getattr(row, field) for field in fields})
+    return Response(content=out.getvalue(), media_type="text/csv", headers={"Content-Disposition": 'attachment; filename="vendors.csv"'})
 
 
 @router.post(

@@ -4,7 +4,7 @@
 //   POST  /staff                  create a new staff account (owner only)
 //   PATCH /staff/{id}/password    reset a staff member's password/PIN (owner or superadmin)
 
-import { api, withShopId, withShopIdParams } from "./client";
+import { api, apiPage, withShopId, withShopIdParams } from "./client";
 
 export type StaffRole = "receiver_user" | "cashier_user";
 
@@ -31,6 +31,13 @@ export function listStaff(shopId?: number | null): Promise<StaffMember[]> {
   const params = withShopIdParams(new URLSearchParams(), shopId);
   const qs = params.toString();
   return api<StaffMember[]>(`/staff${qs ? `?${qs}` : ""}`);
+}
+
+export function listStaffPage(
+  shopId: number | null | undefined, limit: number, offset: number, signal?: AbortSignal
+): Promise<{ data: StaffMember[]; total: number }> {
+  const params = withShopIdParams(new URLSearchParams({ limit: String(limit), offset: String(offset) }), shopId);
+  return apiPage<StaffMember[]>(`/staff?${params.toString()}`, { signal });
 }
 
 export function createStaff(

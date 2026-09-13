@@ -114,7 +114,7 @@ async function mockShopMaintenanceApis(page: Page) {
     await route.fulfill({ contentType: "application/json", body: JSON.stringify(shop) });
   });
 
-  await page.route((url) => isApi(url) && /\/shops\/\d+\/users$/.test(url.href), async (route) => {
+  await page.route((url) => isApi(url) && /\/shops\/\d+\/users(?:\?.*)?$/.test(url.href), async (route) => {
     await route.fulfill({
       contentType: "application/json",
       body: JSON.stringify([
@@ -131,6 +131,22 @@ async function mockShopMaintenanceApis(page: Page) {
       ]),
     });
   });
+
+  await page.route((url) => isApi(url) && /\/shops\/\d+\/two-factor$/.test(url.href), async (route) => {
+    await route.fulfill({ contentType: "application/json", body: JSON.stringify({
+      two_factor_enabled: false, two_factor_secret_version: null,
+      two_factor_rotated_at: null, has_active_secret: false,
+    }) });
+  });
+
+  await page.route((url) => isApi(url) && /\/shops\/me\/devices(?:\?.*)?$/.test(url.href), async (route) => {
+    await route.fulfill({ contentType: "application/json", body: JSON.stringify([]) });
+  });
+
+  await page.route(
+    (url) => isApi(url) && /\/shops\/\d+\/two-factor\/authenticator-activations(?:\?.*)?$/.test(url.href),
+    async (route) => route.fulfill({ contentType: "application/json", body: JSON.stringify([]) })
+  );
 
   await page.route(
     (url) => isApi(url) && /\/shops\/\d+\/users\/\d+\/password$/.test(url.href),

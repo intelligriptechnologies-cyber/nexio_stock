@@ -175,6 +175,38 @@ export async function api<T = unknown>(
   return (await res.text()) as unknown as T;
 }
 
+/** Fetch a list endpoint without changing its compatibility response body. */
+export async function apiPage<T>(
+  path: string,
+  init: RequestInit = {}
+): Promise<{ data: T; total: number }> {
+  const headers = new Headers(init.headers ?? {});
+  const token = getToken();
+  if (token) headers.set("Authorization", `Bearer ${token}`);
+  let res: Response;
+  try {
+    res = await fetch(`${API_BASE}${path}`, { ...init, headers });
+  } catch (e) {
+    throw new ApiError(0, "Could not reach the server. Check that the backend is running, then refresh.", e);
+  }
+  if (!res.ok) {
+    let detail = res.statusText;
+    try {
+      const payload = (await res.json()) as { detail?: unknown };
+      if (payload.detail != null) detail = typeof payload.detail === "string" ? payload.detail : JSON.stringify(payload.detail);
+    } catch { /* non-JSON error */ }
+    throw new ApiError(res.status, detail);
+  }
+  const data = (await res.json()) as T;
+  const nestedRows = data != null && typeof data === "object"
+    ? Object.values(data as Record<string, unknown>).find(Array.isArray)
+    : undefined;
+  const fallback = Array.isArray(data) ? data.length : Array.isArray(nestedRows) ? nestedRows.length : 0;
+  const rawTotal = res.headers.get("X-Total-Count");
+  const parsed = rawTotal === null ? Number.NaN : Number(rawTotal);
+  return { data, total: Number.isFinite(parsed) && parsed >= 0 ? parsed : fallback };
+}
+
 // Convenience helpers for the typed endpoints.
 export const Api = {
   loginSuperadmin: (username: string, password: string) =>
