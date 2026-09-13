@@ -1,0 +1,32 @@
+name: Deploy staging
+
+on:
+  push:
+    branches: [improved_ui]
+
+concurrency:
+  group: barstock-staging
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy to Hetzner staging
+        env:
+          DEPLOY_KEY: ${{ secrets.HETZNER_DEPLOY_KEY }}
+          HOST: ${{ secrets.HETZNER_HOST }}
+          USER: ${{ secrets.HETZNER_USER }}
+        run: |
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$DEPLOY_KEY" > ~/.ssh/barstock_deploy
+          chmod 600 ~/.ssh/barstock_deploy
+          ssh-keyscan -H "$HOST" >> ~/.ssh/known_hosts
+          ssh -i ~/.ssh/barstock_deploy "$USER@$HOST" <<'REMOTE'
+            set -euo pipefail
+            cd /opt/barstock
+            git pull --ff-only origin improved_ui
+            docker compose --env-file .env.staging -f deploy/compose.staging.yaml build
+            docker compose --env-file .env.staging -f deploy/compose.staging.yaml up -d
+            docker compose --env-file .env.staging -f deploy/compose.staging.yaml ps
+          REMOTE
