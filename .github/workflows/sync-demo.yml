@@ -1,0 +1,25 @@
+name: Sync demo branch
+
+on:
+  push:
+    branches: [improved_ui]
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Fast-forward demo branch
+        run: |
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git fetch origin improved_ui_demo
+          git checkout improved_ui_demo
+          git merge --ff-only origin/improved_ui
+          git push origin improved_ui_demo
