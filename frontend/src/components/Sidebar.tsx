@@ -158,7 +158,7 @@ export function Sidebar() {
 
       {/* Drawer overlay on mobile, fixed sidebar on desktop */}
       <aside
-        className={`fixed inset-y-0 left-0 z-30 flex w-[280px] flex-col border-r border-slate-200/60 bg-[#dbe4ee] text-slate-900 shadow-[20px_0_60px_rgba(0,0,0,0.03)] backdrop-blur-2xl transition-transform duration-500 ease-out md:translate-x-0 ${
+        className={`fixed inset-y-0 left-0 z-30 flex w-[280px] flex-col border-r border-slate-200/60 bg-[rgb(255,252,200)] text-slate-900 shadow-[20px_0_60px_rgba(0,0,0,0.03)] backdrop-blur-2xl transition-transform duration-500 ease-out md:translate-x-0 ${
           open ? "translate-x-0" : "-translate-x-full"
         }`}
         aria-label="Main navigation"
