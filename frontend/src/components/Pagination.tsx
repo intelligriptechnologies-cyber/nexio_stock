@@ -10,6 +10,7 @@ interface PaginationProps {
   pageSizes?: readonly number[];
   disabled?: boolean;
   label?: string;
+  position?: "top" | "bottom";
 }
 
 export function Pagination({
@@ -21,19 +22,22 @@ export function Pagination({
   pageSizes = [25, 50, 100],
   disabled = false,
   label = "results",
+  position,
 }: PaginationProps) {
   const navRef = useRef<HTMLElement>(null);
   const settledPage = useRef(page);
+  const ownsEffects = position !== "top";
+  const accessibleLabel = position ? `${label} ${position}` : label;
   const pages = lastPage(total, pageSize);
   const first = total === 0 ? 0 : (page - 1) * pageSize + 1;
   const last = Math.min(total, page * pageSize);
 
   useEffect(() => {
-    if (page > pages) onPageChange(pages);
-  }, [page, pages, onPageChange]);
+    if (ownsEffects && page > pages) onPageChange(pages);
+  }, [ownsEffects, page, pages, onPageChange]);
 
   useEffect(() => {
-    if (disabled || settledPage.current === page) return;
+    if (!ownsEffects || disabled || settledPage.current === page) return;
     settledPage.current = page;
     const container = navRef.current?.closest("section") ?? navRef.current?.parentElement;
     const heading = container?.querySelector<HTMLElement>("h1, h2, h3");
@@ -42,7 +46,7 @@ export function Pagination({
       heading.focus({ preventScroll: true });
       heading.scrollIntoView({ behavior: "smooth", block: "start" });
     }
-  }, [disabled, page]);
+  }, [disabled, ownsEffects, page]);
 
   const button = (text: string, target: number, ariaLabel: string, current = false) => (
     <button
@@ -58,7 +62,11 @@ export function Pagination({
   );
 
   return (
-    <nav ref={navRef} className="mt-4 flex flex-wrap items-center justify-between gap-3" aria-label={`${label} pagination`}>
+    <nav
+      ref={navRef}
+      className={`${position === "top" ? "mb-4" : "mt-4"} flex flex-wrap items-center justify-between gap-3`}
+      aria-label={`${accessibleLabel} pagination`}
+    >
       <p className="text-sm text-slate-600">Items {first}–{last} of {total}</p>
       <div className="flex flex-wrap items-center gap-1">
         {button("«", 1, "First page")}
@@ -74,7 +82,7 @@ export function Pagination({
           value={pageSize}
           disabled={disabled}
           onChange={(event) => onPageSizeChange(Number(event.target.value))}
-          aria-label={`${label} items per page`}
+          aria-label={`${accessibleLabel} items per page`}
         >
           {pageSizes.map((size) => <option key={size} value={size}>{size}</option>)}
         </select>

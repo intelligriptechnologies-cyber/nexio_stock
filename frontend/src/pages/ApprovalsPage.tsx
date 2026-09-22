@@ -173,6 +173,10 @@ export function ApprovalsPage() {
         </div>
 
         <div className="app-tab-panel">
+          <Pagination page={page} pageSize={pageSize}
+            total={activeTab === "voids" ? voidTotal : inwardTotal}
+            disabled={busyKey !== null} label={`${activeTab} approvals`} position="top" pageSizes={STANDARD_PAGE_SIZES}
+            onPageChange={setPage} onPageSizeChange={(size) => setPage(1, size, true)} />
           {visibleItems === null ? (
             <div className="flex h-32 items-center justify-center rounded-xl border border-slate-200/50 bg-white/60 p-6 shadow-[0_8px_30px_rgb(0,0,0,0.02)] backdrop-blur-xl">
               <div className="text-sm font-medium text-slate-500">Loading...</div>
@@ -338,7 +342,7 @@ export function ApprovalsPage() {
           )}
           <Pagination page={page} pageSize={pageSize}
             total={activeTab === "voids" ? voidTotal : inwardTotal}
-            disabled={busyKey !== null} label={`${activeTab} approvals`} pageSizes={STANDARD_PAGE_SIZES}
+            disabled={busyKey !== null} label={`${activeTab} approvals`} position="bottom" pageSizes={STANDARD_PAGE_SIZES}
             onPageChange={setPage} onPageSizeChange={(size) => setPage(1, size, true)} />
         </div>
       </div>

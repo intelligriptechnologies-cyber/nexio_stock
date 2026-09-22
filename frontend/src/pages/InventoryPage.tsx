@@ -211,6 +211,12 @@ export function InventoryPage() {
         </div>
       ) : visibleItems.length > 0 ? (
         <div className={`overflow-hidden rounded-xl border border-slate-200/50 bg-white/60 shadow-[0_8px_30px_rgb(0,0,0,0.02)] backdrop-blur-xl ${busy ? "opacity-70" : ""}`} aria-busy={busy}>
+          <div className="px-6 pt-4">
+            <Pagination page={page} pageSize={pageSize} total={total} disabled={busy}
+              label="inventory" position="top" pageSizes={STANDARD_PAGE_SIZES}
+              onPageChange={(next) => updateParams({ page: String(next) })}
+              onPageSizeChange={(size) => updateParams({ page: "1", pageSize: String(size) }, true)} />
+          </div>
           <div className="overflow-x-auto">
             <table className="app-list-table min-w-[1120px]" aria-label="Inventory table">
               <thead className="bg-slate-50/80 text-[11px] uppercase tracking-widest text-slate-500">
@@ -296,7 +302,7 @@ export function InventoryPage() {
           </div>
           <div className="px-6 pb-4">
             <Pagination page={page} pageSize={pageSize} total={total} disabled={busy}
-              label="inventory" pageSizes={STANDARD_PAGE_SIZES}
+              label="inventory" position="bottom" pageSizes={STANDARD_PAGE_SIZES}
               onPageChange={(next) => updateParams({ page: String(next) })}
               onPageSizeChange={(size) => updateParams({ page: "1", pageSize: String(size) }, true)} />
           </div>

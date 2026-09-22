@@ -58,9 +58,10 @@ async function seedSuperadmin(page: Page, actingShopId: number | null = 1) {
   );
 }
 
-async function mockShopMaintenanceApis(page: Page) {
+async function mockShopMaintenanceApis(page: Page, productTotal?: number) {
   let shops: Shop[] = [{ ...baseShop }];
   const resetPasswordCalls: Array<{ shopId: number; userId: number; password: string }> = [];
+  const productUrls: string[] = [];
   const isApi = (url: URL) => url.origin === "http://127.0.0.1:8000";
 
   await page.route("**/settings/me**", async (route) => {
@@ -176,8 +177,13 @@ async function mockShopMaintenanceApis(page: Page) {
   );
 
   await page.route("**/products?**", async (route) => {
+    productUrls.push(route.request().url());
     await route.fulfill({
       contentType: "application/json",
+      headers: productTotal == null ? undefined : {
+        "Access-Control-Expose-Headers": "X-Total-Count",
+        "X-Total-Count": String(productTotal),
+      },
       body: JSON.stringify([
         {
           id: 20,
@@ -231,10 +237,39 @@ async function mockShopMaintenanceApis(page: Page) {
     });
   });
 
-  return { resetPasswordCalls };
+  return { resetPasswordCalls, productUrls };
 }
 
 test.describe("shop maintenance", () => {
+  test("quick inventory top and bottom pagination stay synchronized", async ({ page }) => {
+    await seedSuperadmin(page);
+    const { productUrls } = await mockShopMaintenanceApis(page, 60);
+
+    await page.goto("/admin/shops");
+    await page.getByRole("tab", { name: "Quick Inventory Check" }).click();
+
+    const top = page.getByRole("navigation", { name: "Quick inventory top pagination" });
+    const bottom = page.getByRole("navigation", { name: "Quick inventory bottom pagination" });
+    await expect(top).toBeVisible();
+    await expect(bottom).toBeVisible();
+
+    await page.getByLabel("Quick inventory top items per page").selectOption("50");
+    await expect.poll(() => new URL(page.url()).searchParams.get("inventoryPage")).toBe("1");
+    await expect.poll(() => new URL(page.url()).searchParams.get("inventoryPageSize")).toBe("50");
+    await expect.poll(() => productUrls.some((raw) => {
+      const params = new URL(raw).searchParams;
+      return params.get("limit") === "50" && params.get("offset") === "0";
+    })).toBe(true);
+    await expect(page.getByLabel("Quick inventory bottom items per page")).toHaveValue("50");
+
+    await top.getByRole("button", { name: "Next page" }).click();
+    await expect.poll(() => new URL(page.url()).searchParams.get("inventoryPage")).toBe("2");
+    await expect(bottom.getByRole("button", { name: "Page 2" })).toHaveAttribute("aria-current", "page");
+
+    await page.getByRole("tab", { name: "Allotted Users" }).click();
+    await expect(page.getByRole("navigation", { name: "Allotted users top pagination" })).toHaveCount(0);
+  });
+
   test("sidebar shop picker shows explicit empty state before a shop is selected", async ({ page }) => {
     await seedSuperadmin(page, null);
     await mockShopMaintenanceApis(page);

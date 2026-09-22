@@ -402,6 +402,19 @@ function ListTab({
         </div>
       ) : (
         <div className={`relative overflow-hidden rounded-xl border border-slate-200/50 bg-white/60 shadow-[0_8px_30px_rgb(0,0,0,0.02)] backdrop-blur-xl ${busy ? "opacity-70" : ""}`} aria-busy={busy}>
+          <div className="px-6 pt-4">
+            <Pagination
+              page={page}
+              pageSize={pageSize}
+              total={total}
+              disabled={busy}
+              label="products"
+              position="top"
+              pageSizes={STANDARD_PAGE_SIZES}
+              onPageChange={(next) => updatePaging(next)}
+              onPageSizeChange={(size) => updatePaging(1, size, true)}
+            />
+          </div>
           <div className="overflow-x-auto">
             <table className="app-list-table min-w-[980px]">
               <thead className="bg-slate-50/80 text-[11px] uppercase tracking-widest text-slate-500">
@@ -512,6 +525,7 @@ function ListTab({
               total={total}
               disabled={busy}
               label="products"
+              position="bottom"
               pageSizes={STANDARD_PAGE_SIZES}
               onPageChange={(next) => updatePaging(next)}
               onPageSizeChange={(size) => updatePaging(1, size, true)}

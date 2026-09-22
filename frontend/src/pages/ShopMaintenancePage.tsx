@@ -955,6 +955,16 @@ function InventoryPanel({
           Include inactive
         </label>
       </div>
+      <Pagination
+        page={page}
+        pageSize={pageSize}
+        total={total}
+        pageSizes={STANDARD_PAGE_SIZES}
+        label="Quick inventory"
+        position="top"
+        onPageChange={onPageChange}
+        onPageSizeChange={onPageSizeChange}
+      />
       <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white">
         <table className="app-list-table">
           <thead className="bg-slate-50/80 text-[11px] uppercase tracking-widest text-slate-500">
@@ -1006,6 +1016,7 @@ function InventoryPanel({
         total={total}
         pageSizes={STANDARD_PAGE_SIZES}
         label="Quick inventory"
+        position="bottom"
         onPageChange={onPageChange}
         onPageSizeChange={onPageSizeChange}
       />

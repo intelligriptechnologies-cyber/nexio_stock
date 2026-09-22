@@ -164,6 +164,9 @@ export function StockTrackingPage() {
         </div>
       ) : (
         <div className={`overflow-hidden rounded-xl border border-slate-200/50 bg-white/60 shadow-[0_8px_30px_rgb(0,0,0,0.02)] backdrop-blur-xl ${loading ? "opacity-70" : ""}`} aria-busy={loading}>
+          <div className="px-6 pt-4"><Pagination page={page} pageSize={pageSize} total={total}
+            disabled={loading} label="stock tracking" position="top" pageSizes={STANDARD_PAGE_SIZES}
+            onPageChange={setPage} onPageSizeChange={(size) => setPage(1, size, true)} /></div>
             <table className="app-list-table min-w-[1260px]" aria-label="Stock tracking table">
             <thead>
               <tr>
@@ -252,7 +255,7 @@ export function StockTrackingPage() {
             </tbody>
           </table>
           <div className="px-6 pb-4"><Pagination page={page} pageSize={pageSize} total={total}
-            disabled={loading} label="stock tracking" pageSizes={STANDARD_PAGE_SIZES}
+            disabled={loading} label="stock tracking" position="bottom" pageSizes={STANDARD_PAGE_SIZES}
             onPageChange={setPage} onPageSizeChange={(size) => setPage(1, size, true)} /></div>
         </div>
       )}

@@ -1,5 +1,4 @@
 import { expect, test, type Page } from "@playwright/test";
-import { loginAsOwner } from "./helpers/login";
 
 type Role = "owner" | "superadmin";
 
@@ -113,14 +112,17 @@ const stockLots = [
 
 function tokenFor(role: Role): string {
   const header = Buffer.from(JSON.stringify({ alg: "none", typ: "JWT" })).toString("base64url");
-  const payload = Buffer.from(
-    JSON.stringify({
-      sub: "1",
-      shop_id: role === "superadmin" ? null : 1,
-      role,
-      exp: Math.floor(Date.now() / 1000) + 3600,
-    })
-  ).toString("base64url");
+  const payloadBody: { sub: string; shop_id: number | null; role: Role; exp: number; test_pad?: string } = {
+    sub: "1",
+    shop_id: role === "superadmin" ? null : 1,
+    role,
+    exp: Math.floor(Date.now() / 1000) + 3600,
+  };
+  let payload = Buffer.from(JSON.stringify(payloadBody)).toString("base64url");
+  while (payload.length % 4 !== 0) {
+    payloadBody.test_pad = `${payloadBody.test_pad ?? ""}x`;
+    payload = Buffer.from(JSON.stringify(payloadBody)).toString("base64url");
+  }
   return `${header}.${payload}.signature`;
 }
 
@@ -147,7 +149,7 @@ async function seedSession(page: Page, role: Role, actingShopId: number | null =
   );
 }
 
-async function mockStockTrackingApis(page: Page) {
+async function mockStockTrackingApis(page: Page, lotUrls: string[] = [], lotTotal?: number) {
   const settings = {
     id: 1,
     name: "Shop One",
@@ -192,23 +194,51 @@ async function mockStockTrackingApis(page: Page) {
   });
 
   await page.route("**/lots**", async (route) => {
+    lotUrls.push(route.request().url());
     const url = new URL(route.request().url());
     const status = url.searchParams.get("status");
     const lots = status ? stockLots.filter((lot) => lot.status === status) : stockLots;
     await route.fulfill({
       contentType: "application/json",
+      headers: lotTotal == null ? undefined : {
+        "Access-Control-Expose-Headers": "X-Total-Count",
+        "X-Total-Count": String(lotTotal),
+      },
       body: JSON.stringify({ lots }),
     });
   });
 }
 
 test.describe("stock tracking", () => {
+  test("top and bottom pagination stay synchronized", async ({ page }) => {
+    const lotUrls: string[] = [];
+    await mockStockTrackingApis(page, lotUrls, 60);
+    await seedSession(page, "owner");
+
+    await page.goto("/admin/stock-tracking");
+
+    const top = page.getByRole("navigation", { name: "stock tracking top pagination" });
+    const bottom = page.getByRole("navigation", { name: "stock tracking bottom pagination" });
+    await expect(top).toBeVisible();
+    await expect(bottom).toBeVisible();
+
+    await page.getByLabel("stock tracking top items per page").selectOption("50");
+    await expect.poll(() => new URL(page.url()).searchParams.get("page")).toBe("1");
+    await expect.poll(() => new URL(page.url()).searchParams.get("pageSize")).toBe("50");
+    await expect.poll(() => lotUrls.some((raw) => {
+      const params = new URL(raw).searchParams;
+      return params.get("limit") === "50" && params.get("offset") === "0";
+    })).toBe(true);
+    await expect(page.getByLabel("stock tracking bottom items per page")).toHaveValue("50");
+
+    await top.getByRole("button", { name: "Next page" }).click();
+    await expect.poll(() => new URL(page.url()).searchParams.get("page")).toBe("2");
+    await expect(bottom.getByRole("button", { name: "Page 2" })).toHaveAttribute("aria-current", "page");
+  });
+
   test("owner sees summary rows and can open the dialog from a row", async ({ page }) => {
     await mockStockTrackingApis(page);
-    await loginAsOwner(page);
-    await page.evaluate(() => {
-      sessionStorage.setItem("barstock.actingShopId", "1");
-    });
+    await seedSession(page, "owner");
 
     await page.goto("/admin/stock-tracking");
 

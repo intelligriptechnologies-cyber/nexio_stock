@@ -91,7 +91,7 @@ async function seedSession(page: Page, role: Role, actingShopId: number | null =
   );
 }
 
-async function mockShellApis(page: Page, productUrls: string[] = []) {
+async function mockShellApis(page: Page, productUrls: string[] = [], productTotal?: number) {
   await page.route("**/settings/me**", async (route) => {
     await route.fulfill({
       contentType: "application/json",
@@ -132,11 +132,45 @@ async function mockShellApis(page: Page, productUrls: string[] = []) {
     const responseProducts = params.get("missing_price_only") === "true"
       ? products.filter((product) => product.price == null)
       : products;
-    await route.fulfill({ contentType: "application/json", body: JSON.stringify(responseProducts) });
+    await route.fulfill({
+      contentType: "application/json",
+      headers: productTotal == null ? undefined : {
+        "Access-Control-Expose-Headers": "X-Total-Count",
+        "X-Total-Count": String(productTotal),
+      },
+      body: JSON.stringify(responseProducts),
+    });
   });
 }
 
 test.describe("product catalog cleanup", () => {
+  test("top and bottom pagination stay synchronized", async ({ page }) => {
+    const productUrls: string[] = [];
+    await seedSession(page, "owner");
+    await mockShellApis(page, productUrls, 60);
+
+    await page.goto("/admin/products");
+
+    const top = page.getByRole("navigation", { name: "products top pagination" });
+    const bottom = page.getByRole("navigation", { name: "products bottom pagination" });
+    await expect(top).toBeVisible();
+    await expect(bottom).toBeVisible();
+
+    await page.getByLabel("products top items per page").selectOption("50");
+    await expect.poll(() => new URL(page.url()).searchParams.get("page")).toBe("1");
+    await expect.poll(() => new URL(page.url()).searchParams.get("pageSize")).toBe("50");
+    await expect.poll(() => productUrls.some((raw) => {
+      const params = new URL(raw).searchParams;
+      return params.get("limit") === "50" && params.get("offset") === "0";
+    })).toBe(true);
+    await expect(page.getByLabel("products top items per page")).toHaveValue("50");
+    await expect(page.getByLabel("products bottom items per page")).toHaveValue("50");
+
+    await top.getByRole("button", { name: "Next page" }).click();
+    await expect.poll(() => new URL(page.url()).searchParams.get("page")).toBe("2");
+    await expect(bottom.getByRole("button", { name: "Page 2" })).toHaveAttribute("aria-current", "page");
+  });
+
   test("owner catalog omits stock, keeps low-stock, and has no shop filter", async ({ page }) => {
     await seedSession(page, "owner");
     await mockShellApis(page);

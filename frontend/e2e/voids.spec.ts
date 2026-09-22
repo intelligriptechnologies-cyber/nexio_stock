@@ -1,12 +1,21 @@
 import { test, expect, type Page, type Route } from "@playwright/test";
-import {
-  loginAsOwner as _loginAsOwner,
-} from "./helpers/login";
 
-const _login = { loginAsOwner: _loginAsOwner };
-
-async function loginAsOwner(page: Page) {
-  return _login.loginAsOwner(page);
+async function seedOwner(page: Page) {
+  const header = Buffer.from(JSON.stringify({ alg: "none", typ: "JWT" })).toString("base64url");
+  const payloadBody: { sub: string; shop_id: number; role: "owner"; exp: number; test_pad?: string } = {
+    sub: "1", shop_id: 1, role: "owner", exp: Math.floor(Date.now() / 1000) + 3600,
+  };
+  let payload = Buffer.from(JSON.stringify(payloadBody)).toString("base64url");
+  while (payload.length % 4 !== 0) {
+    payloadBody.test_pad = `${payloadBody.test_pad ?? ""}x`;
+    payload = Buffer.from(JSON.stringify(payloadBody)).toString("base64url");
+  }
+  await page.addInitScript((token) => {
+    sessionStorage.setItem("barstock.token", token);
+    sessionStorage.setItem("barstock.user", JSON.stringify({
+      id: 1, shopId: 1, role: "owner", username: "owner", fullName: "Owner", phone: "0000000000",
+    }));
+  }, `${header}.${payload}.signature`);
 }
 
 function makeVoidInvoice(id = 101) {
@@ -78,24 +87,43 @@ function makeInwardLot(id = 202) {
   };
 }
 
-function routeApprovals(page: Page) {
+function routeApprovals(page: Page, totals?: { voids: number; inward: number }) {
   let voidInvoices = [makeVoidInvoice()];
   let inwardLots = [makeInwardLot()];
+  const approvalUrls: string[] = [];
 
-  const fulfillJson = async (route: Route, payload: unknown) => {
+  const fulfillJson = async (route: Route, payload: unknown, total?: number) => {
     await route.fulfill({
       status: 200,
       contentType: "application/json",
+      headers: total == null ? undefined : {
+        "Access-Control-Expose-Headers": "X-Total-Count",
+        "X-Total-Count": String(total),
+      },
       body: JSON.stringify(payload),
     });
   };
 
   void page.route("**/dashboard/void-queue*", async (route) => {
-    await fulfillJson(route, { invoices: voidInvoices });
+    approvalUrls.push(route.request().url());
+    await fulfillJson(route, { invoices: voidInvoices }, totals?.voids);
+  });
+
+  void page.route("**/settings/me**", async (route) => {
+    await fulfillJson(route, {
+      id: 1, name: "Shop One", code: "shop1", app_display_name: "BarStock",
+      action_color: "#22c55e", active_tab_color: "#5a5148",
+      sidebar_menu_inactive_text_color: "#535353cf", sidebar_menu_active_text_color: "#ffffff",
+    });
+  });
+
+  void page.route("**/products/pending/count**", async (route) => {
+    await fulfillJson(route, { count: 0 });
   });
 
   void page.route(/\/lots\?.*status=pending.*/, async (route) => {
-    await fulfillJson(route, { lots: inwardLots });
+    approvalUrls.push(route.request().url());
+    await fulfillJson(route, { lots: inwardLots }, totals?.inward);
   });
 
   void page.route("**/invoices/101/void/approve", async (route) => {
@@ -117,13 +145,48 @@ function routeApprovals(page: Page) {
   return {
     voidInvoices: () => voidInvoices,
     inwardLots: () => inwardLots,
+    approvalUrls,
   };
 }
 
 test.describe("approvals", () => {
+  test("both approval tabs expose synchronized top and bottom pagination", async ({ page }) => {
+    const { approvalUrls } = routeApprovals(page, { voids: 60, inward: 90 });
+    await seedOwner(page);
+    await page.goto("/approvals");
+
+    const voidTop = page.getByRole("navigation", { name: "voids approvals top pagination" });
+    const voidBottom = page.getByRole("navigation", { name: "voids approvals bottom pagination" });
+    await expect(voidTop).toContainText("of 60");
+    await expect(voidBottom).toContainText("of 60");
+
+    await page.getByLabel("voids approvals top items per page").selectOption("50");
+    await expect.poll(() => new URL(page.url()).searchParams.get("page")).toBe("1");
+    await expect.poll(() => new URL(page.url()).searchParams.get("pageSize")).toBe("50");
+    await expect.poll(() => approvalUrls.filter((raw) => {
+      const params = new URL(raw).searchParams;
+      return params.get("limit") === "50" && params.get("offset") === "0";
+    }).length).toBeGreaterThanOrEqual(2);
+    await expect(page.getByLabel("voids approvals bottom items per page")).toHaveValue("50");
+
+    await page.getByRole("button", { name: "Inward Approvals (90)" }).click();
+    const inwardTop = page.getByRole("navigation", { name: "inward approvals top pagination" });
+    const inwardBottom = page.getByRole("navigation", { name: "inward approvals bottom pagination" });
+    await expect(inwardTop).toContainText("of 90");
+    await expect(inwardBottom).toContainText("of 90");
+    await expect(page.getByLabel("inward approvals top items per page")).toHaveValue("50");
+    await expect(page.getByLabel("inward approvals bottom items per page")).toHaveValue("50");
+
+    await inwardTop.getByRole("button", { name: "Next page" }).click();
+    await expect.poll(() => new URL(page.url()).searchParams.get("tab")).toBe("inward");
+    await expect.poll(() => new URL(page.url()).searchParams.get("page")).toBe("2");
+    await expect(inwardBottom.getByRole("button", { name: "Page 2" })).toHaveAttribute("aria-current", "page");
+  });
+
   test("owner sees both queues and can act on the right type", async ({ page }) => {
     const queues = routeApprovals(page);
-    await loginAsOwner(page);
+    await seedOwner(page);
+    await page.goto("/dashboard");
 
     await expect(page.getByRole("link", { name: /Approvals \(2\)/ })).toBeVisible();
     await expect(page.getByRole("link", { name: /Approvals \(2\)/ }).getByText("NEW")).toBeVisible();
@@ -152,7 +215,7 @@ test.describe("approvals", () => {
 
   test("legacy routes redirect to the unified approvals screen", async ({ page }) => {
     routeApprovals(page);
-    await loginAsOwner(page);
+    await seedOwner(page);
 
     await page.goto("/admin/voids");
     await expect(page).toHaveURL(/\/approvals\?tab=voids$/);
