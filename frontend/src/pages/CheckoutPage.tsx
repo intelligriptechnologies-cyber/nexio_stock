@@ -347,11 +347,12 @@ export function CheckoutPage() {
         setCart((prev) => {
           const existing = prev.find((l) => l.product.barcode === code);
           if (existing) {
-            return prev.map((l) =>
-              l.lineId === existing.lineId ? { ...l, quantity: l.quantity + 1 } : l
-            );
+            return [
+              { ...existing, quantity: existing.quantity + 1 },
+              ...prev.filter((l) => l.lineId !== existing.lineId),
+            ];
           }
-          return [...prev, { lineId: uid(), product, quantity: 1 }];
+          return [{ lineId: uid(), product, quantity: 1 }, ...prev];
         });
         setInfo(`Added: ${product.brand} ${product.size_label}`);
         if (options.showScanOverlay) {
@@ -381,11 +382,12 @@ export function CheckoutPage() {
         setCart((prev) => {
           const existing = prev.find((l) => l.product.barcode === code);
           if (existing) {
-            return prev.map((l) =>
-              l.lineId === existing.lineId ? { ...l, quantity: l.quantity + 1 } : l
-            );
+            return [
+              { ...existing, quantity: existing.quantity + 1 },
+              ...prev.filter((l) => l.lineId !== existing.lineId),
+            ];
           }
-          return [...prev, { lineId: uid(), product, quantity: 1 }];
+          return [{ lineId: uid(), product, quantity: 1 }, ...prev];
         });
         setInfo(`Added: ${product.brand} ${product.size_label}`);
         if (options.showScanOverlay) {
@@ -434,11 +436,12 @@ export function CheckoutPage() {
     setCart((prev) => {
       const existing = prev.find((l) => l.product.barcode === product.barcode);
       if (existing) {
-        return prev.map((l) =>
-          l.lineId === existing.lineId ? { ...l, quantity: l.quantity + 1 } : l
-        );
+        return [
+          { ...existing, quantity: existing.quantity + 1 },
+          ...prev.filter((l) => l.lineId !== existing.lineId),
+        ];
       }
-      return [...prev, { lineId: uid(), product, quantity: 1 }];
+      return [{ lineId: uid(), product, quantity: 1 }, ...prev];
     });
     setInfo(`Added: ${product.brand} ${product.size_label}`);
   }, [checkoutLocked]);
@@ -1337,7 +1340,7 @@ export function CheckoutPage() {
           disabled={checkoutLocked}
         />
 
-        <ul className="flex flex-col gap-stack-gap">
+        <ul data-testid="checkout-cart-lines" className="flex flex-col gap-stack-gap">
           {cart.length === 0 && (
             <li className="rounded-xl bg-slate-50 p-6 text-center text-sm font-medium text-slate-500 ring-1 ring-slate-200">
               Cart is empty. Scan a barcode to begin.

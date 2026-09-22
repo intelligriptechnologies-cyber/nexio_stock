@@ -6,7 +6,7 @@ export interface LotLineCreate {
   barcode: string;
   quantity: number;
   good_condition_quantity: number;
-  unit_cost: string;
+  unit_cost?: string;
 }
 
 export interface LotCreate {
@@ -53,6 +53,7 @@ export interface LotPublic {
   vendor_invoice_number: string;
   invoice_value: string;
   merchandise_total: string | null;
+  purchase_details_captured: boolean;
   reference: string | null;
   notes: string | null;
   status: "pending" | "approved" | "rejected" | "completed";

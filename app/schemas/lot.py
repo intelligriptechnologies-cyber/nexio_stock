@@ -19,7 +19,7 @@ class LotLineCreate(BaseModel):
     barcode: str = Field(min_length=1, max_length=64, description="scanned or typed")
     quantity: int = Field(gt=0, le=100_000)
     good_condition_quantity: int | None = Field(default=None, ge=0, le=100_000)
-    unit_cost: Decimal = Field(gt=Decimal("0"), max_digits=12, decimal_places=2)
+    unit_cost: Decimal | None = Field(default=None, max_digits=12, decimal_places=2)
 
     @model_validator(mode="after")
     def _condition_not_exceed_received(self) -> LotLineCreate:
@@ -82,6 +82,7 @@ class LotPublic(BaseModel):
     vendor_invoice_number: str
     invoice_value: Decimal
     merchandise_total: Decimal | None
+    purchase_details_captured: bool
     reference: str | None
     notes: str | None
     status: StockInwardStatus

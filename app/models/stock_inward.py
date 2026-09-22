@@ -128,6 +128,15 @@ class StockInward(Base):
         total = sum((line.line_total or Decimal("0.00")) for line in self.lines)
         return total.quantize(Decimal("0.01"))
 
+    @property
+    def purchase_details_captured(self) -> bool:
+        """Whether user-facing purchase reconciliation was recorded.
+
+        Disabled shops retain non-null database placeholders on the inward header,
+        so consumers must use this flag instead of interpreting those placeholders.
+        """
+        return self.vendor_id is not None and self.merchandise_total is not None
+
 
 class StockInwardLine(Base):
     __tablename__ = "stock_inward_lines"

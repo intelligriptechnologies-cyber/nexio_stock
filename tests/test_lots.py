@@ -210,11 +210,13 @@ async def test_receiving_persists_vendor_and_condition_breakdown(
             "purchase_date": "2026-07-13",
             "vendor_invoice_number": "INV-99",
             "invoice_value": "1234.50",
+            "notes": "Two bottles broken",
             "lines": [
                 {
                     "barcode": "8911111111111",
                     "quantity": 10,
                     "good_condition_quantity": 8,
+                    "unit_cost": "123.45",
                 }
             ],
         },
@@ -225,6 +227,7 @@ async def test_receiving_persists_vendor_and_condition_breakdown(
     assert body["vendor"]["name"] == "Acme Distributors"
     assert body["purchase_date"] == "2026-07-13"
     assert body["invoice_value"] == "1234.50"
+    assert body["purchase_details_captured"] is True
     assert body["lines"][0]["good_condition_quantity"] == 8
     assert body["lines"][0]["breakage_quantity"] == 2
 
@@ -249,12 +252,33 @@ async def test_receiving_can_save_without_vendor_link(
     assert resp.status_code == 200, resp.text
 
     await _create_product(owner_client, "8922222222222", brand="No Vendor Link")
+    missing_breakage_notes = await receiver_client.post(
+        "/lots",
+        json={
+            "lines": [
+                {
+                    "barcode": "8922222222222",
+                    "quantity": 5,
+                    "good_condition_quantity": 4,
+                }
+            ]
+        },
+    )
+    assert missing_breakage_notes.status_code == 400
+    assert missing_breakage_notes.json()["detail"]["code"] == "breakage_notes_required"
+
     resp = await receiver_client.post(
         "/lots",
         json={
             "reference": "AUTO-LOT",
             "notes": "No vendor prompt",
-            "lines": [{"barcode": "8922222222222", "quantity": 5}],
+            "lines": [
+                {
+                    "barcode": "8922222222222",
+                    "quantity": 5,
+                    "good_condition_quantity": 4,
+                }
+            ],
         },
     )
     assert resp.status_code == 201, resp.text
@@ -264,10 +288,59 @@ async def test_receiving_can_save_without_vendor_link(
     assert body["purchase_date"] == date.today().isoformat()
     assert body["vendor_invoice_number"] == "AUTO-RECEIPT"
     assert body["invoice_value"] == "0.00"
+    assert body["purchase_details_captured"] is False
+    assert body["merchandise_total"] is None
+    assert body["lines"][0]["unit_cost"] is None
+    assert body["lines"][0]["line_total"] is None
+    assert body["lines"][0]["breakage_quantity"] == 1
 
     rows = (await db_session.execute(select(StockinLog))).scalars().all()
     assert len(rows) == 1
-    assert rows[0].payload["vendor_name"] == "Vendor link disabled"
+    assert rows[0].payload["purchase_details_captured"] is False
+    assert rows[0].payload["vendor_name"] is None
+    assert rows[0].payload["purchase_date"] is None
+    assert rows[0].payload["vendor_invoice_number"] is None
+    assert rows[0].payload["invoice_value"] is None
+    assert rows[0].payload["lines"][0]["unit_cost"] is None
+    committed_lines = (await db_session.execute(select(LotLine))).scalars().all()
+    assert len(committed_lines) == 1
+    assert committed_lines[0].good_condition_quantity == 4
+
+
+@pytest.mark.usefixtures("owner", "receiver", "cashier")
+async def test_vendor_link_enabled_requires_complete_purchase_reconciliation(
+    owner_client: AsyncClient,
+    receiver_client: AsyncClient,
+) -> None:
+    product = await _create_product(owner_client, "8933333333333", brand="Strict Purchase")
+    vendor = await _create_vendor(owner_client, name="Strict Supplier")
+    line = {"barcode": product["barcode"], "quantity": 2}
+
+    missing_vendor = await receiver_client.post("/lots", json={"lines": [line]})
+    assert missing_vendor.status_code == 400
+    assert missing_vendor.json()["detail"] == "vendor_id is required"
+
+    header = {
+        "vendor_id": vendor["id"],
+        "purchase_date": "2026-09-22",
+        "vendor_invoice_number": "STRICT-1",
+        "invoice_value": "20.00",
+    }
+    missing_cost = await receiver_client.post("/lots", json={**header, "lines": [line]})
+    assert missing_cost.status_code == 400
+    assert missing_cost.json()["detail"]["code"] == "unit_cost_required"
+
+    non_positive_cost = await receiver_client.post(
+        "/lots", json={**header, "lines": [{**line, "unit_cost": "0.00"}]}
+    )
+    assert non_positive_cost.status_code == 400
+    assert non_positive_cost.json()["detail"]["code"] == "unit_cost_required"
+
+    mismatch = await receiver_client.post(
+        "/lots", json={**header, "lines": [{**line, "unit_cost": "9.00"}]}
+    )
+    assert mismatch.status_code == 400
+    assert mismatch.json()["detail"]["code"] == "invoice_value_mismatch"
 
 
 @pytest.mark.usefixtures("owner", "receiver", "cashier")

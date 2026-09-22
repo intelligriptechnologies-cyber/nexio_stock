@@ -34,7 +34,15 @@ async function openPurchaseReview(page: Page) {
   return dialog;
 }
 
-async function prepareMockedPurchaseReview(page: Page) {
+async function prepareMockedPurchaseReview(
+  page: Page,
+  options: {
+    vendorLinkEnabled?: boolean;
+    onVendorRequest?: () => void;
+    onLotPayload?: (payload: unknown) => void;
+  } = {}
+) {
+  const vendorLinkEnabled = options.vendorLinkEnabled ?? true;
   const header = Buffer.from(JSON.stringify({ alg: "none", typ: "JWT" })).toString("base64url");
   const payload = Buffer.from(
     JSON.stringify({
@@ -81,6 +89,7 @@ async function prepareMockedPurchaseReview(page: Page) {
       return;
     }
     if (path === "/vendors") {
+      options.onVendorRequest?.();
       await route.fulfill({
         contentType: "application/json",
         body: JSON.stringify([
@@ -112,8 +121,55 @@ async function prepareMockedPurchaseReview(page: Page) {
           excise_duty_rate: null,
           low_stock_threshold_default: null,
           cashier_login_restriction_enabled: false,
-          receiving_vendor_link_enabled: true,
+          receiving_vendor_link_enabled: vendorLinkEnabled,
           allowed_login_cidrs: [],
+        }),
+      });
+      return;
+    }
+    if (path === "/lots" && route.request().method() === "POST") {
+      const payload = route.request().postDataJSON();
+      options.onLotPayload?.(payload);
+      await route.fulfill({
+        status: 201,
+        contentType: "application/json",
+        body: JSON.stringify({
+          id: 42,
+          shop_id: 1,
+          vendor_id: null,
+          received_by_user_id: 1,
+          purchase_date: "2026-09-13",
+          vendor_invoice_number: "AUTO-RECEIPT",
+          invoice_value: "0.00",
+          merchandise_total: null,
+          purchase_details_captured: false,
+          reference: null,
+          notes: payload.notes ?? null,
+          status: "pending",
+          approved_by_user_id: null,
+          rejected_by_user_id: null,
+          lot_id: null,
+          created_by_name: "Receiver One",
+          approved_by_name: null,
+          rejected_by_name: null,
+          approved_at: null,
+          rejected_at: null,
+          completed_at: null,
+          received_at: "2026-09-13T12:00:00Z",
+          created_at: "2026-09-13T12:00:00Z",
+          updated_at: "2026-09-13T12:00:00Z",
+          vendor: null,
+          lines: [{
+            id: 1,
+            product_id: 1,
+            quantity: 1,
+            good_condition_quantity: 1,
+            breakage_quantity: 0,
+            unit_cost: null,
+            line_total: null,
+            product_brand: "Royal Stag",
+            product_size_label: "750ml",
+          }],
         }),
       });
       return;
@@ -136,7 +192,14 @@ async function prepareMockedPurchaseReview(page: Page) {
 
   await page.goto("/receiving");
   await expect(page.getByRole("heading", { name: "Stock Inward" })).toBeVisible();
-  return openPurchaseReview(page);
+  if (vendorLinkEnabled) return openPurchaseReview(page);
+  await page.getByPlaceholder("Scan or enter barcode").fill("8901234567890");
+  await page.getByRole("button", { name: "ADD" }).click();
+  await expect(page.getByText(/Added:/)).toBeVisible({ timeout: 5000 });
+  await page.getByRole("button", { name: "Review & Submit" }).click();
+  const dialog = page.getByRole("dialog", { name: "Review inward" });
+  await expect(dialog).toBeVisible({ timeout: 5000 });
+  return dialog;
 }
 
 test.describe("stock inward - new lot", () => {
@@ -335,6 +398,47 @@ test.describe("stock inward - quicksearch (issue #23)", () => {
     await dialog.getByRole("button", { name: "Confirm save" }).click();
     await expect(page.getByRole("dialog", { name: "Review purchase details" })).toHaveCount(0);
     await expect(page.getByText(/Lot #\d+ saved/)).toBeVisible({ timeout: 5000 });
+  });
+
+  test("disabled vendor linking uses the simplified review and reduced payload", async ({ page }) => {
+    let vendorRequests = 0;
+    let submittedPayload: Record<string, unknown> | null = null;
+    const dialog = await prepareMockedPurchaseReview(page, {
+      vendorLinkEnabled: false,
+      onVendorRequest: () => { vendorRequests += 1; },
+      onLotPayload: (payload) => { submittedPayload = payload as Record<string, unknown>; },
+    });
+
+    await expect(dialog.getByLabel("Vendor")).toHaveCount(0);
+    await expect(dialog.getByLabel("Purchase date")).toHaveCount(0);
+    await expect(dialog.getByLabel("Vendor invoice number")).toHaveCount(0);
+    await expect(dialog.getByLabel("Invoice value")).toHaveCount(0);
+    await expect(dialog.getByLabel("Unit cost")).toHaveCount(0);
+    expect(vendorRequests).toBe(0);
+
+    await dialog.getByLabel("Decrease good quantity").click();
+    await dialog.getByRole("button", { name: "Confirm save" }).click();
+    await expect(dialog).toContainText("Add notes when any breakage exists.");
+    await dialog.getByLabel("Notes (required when breakage exists)").fill("One bottle broken");
+    await dialog.getByRole("button", { name: "Confirm save" }).click();
+
+    expect(submittedPayload).not.toBeNull();
+    const savedPayload = (submittedPayload ?? {}) as Record<string, unknown>;
+    expect(savedPayload).toMatchObject({
+      notes: "One bottle broken",
+      lines: [{
+        barcode: "8901234567890",
+        quantity: 1,
+        good_condition_quantity: 0,
+      }],
+    });
+    for (const field of ["vendor_id", "purchase_date", "vendor_invoice_number", "invoice_value"]) {
+      expect(savedPayload).not.toHaveProperty(field);
+    }
+    expect((savedPayload.lines as Array<Record<string, unknown>>)[0]).not.toHaveProperty("unit_cost");
+    await expect(page.getByText("Purchase details not captured")).toBeVisible();
+    await expect(page.getByText("AUTO-RECEIPT")).toHaveCount(0);
+    await expect(page.getByText("Rs 0.00")).toHaveCount(0);
   });
 
   test("purchase review fills a 1280 by 800 viewport and keeps every item column visible", async ({

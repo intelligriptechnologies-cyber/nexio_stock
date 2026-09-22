@@ -17,7 +17,6 @@ from app.models.stock_inward import StockInward, StockInwardLine, StockInwardSta
 from app.models.user import User
 from app.models.vendor import Vendor
 
-_AUTO_VENDOR_NAME = "Vendor link disabled"
 _MONEY_QUANTUM = Decimal("0.01")
 
 
@@ -40,6 +39,7 @@ async def create_stock_inward(
     reference: str | None,
     notes: str | None,
     lines: list[dict],
+    purchase_details_captured: bool,
 ) -> StockInward:
     invoice_value = invoice_value.quantize(_MONEY_QUANTUM)
     barcodes = [line["barcode"] for line in lines]
@@ -60,6 +60,8 @@ async def create_stock_inward(
         )
 
     vendor = None
+    if purchase_details_captured and vendor_id is None:
+        raise StockInwardError("vendor_required", "vendor_id is required")
     if vendor_id is not None:
         vendor = (
             await db.execute(
@@ -71,19 +73,29 @@ async def create_stock_inward(
         if not vendor.is_active:
             raise StockInwardError("vendor_inactive", "vendor is inactive")
 
-    merchandise_total = Decimal("0.00")
-    for line in lines:
-        unit_cost = line.get("unit_cost")
-        if unit_cost is None or unit_cost <= 0:
-            raise StockInwardError("unit_cost_required", "each line requires a positive unit_cost")
-        line_total = (unit_cost * line["quantity"]).quantize(_MONEY_QUANTUM)
-        merchandise_total += line_total
-    merchandise_total = merchandise_total.quantize(_MONEY_QUANTUM)
-    if merchandise_total != invoice_value:
+    if any(
+        line["good_condition_quantity"] < line["quantity"] for line in lines
+    ) and not (notes or "").strip():
         raise StockInwardError(
-            "invoice_value_mismatch",
-            f"invoice_value must match merchandise total exactly ({merchandise_total})",
+            "breakage_notes_required", "notes are required when breakage exists"
         )
+
+    if purchase_details_captured:
+        merchandise_total = Decimal("0.00")
+        for line in lines:
+            unit_cost = line.get("unit_cost")
+            if unit_cost is None or unit_cost <= 0:
+                raise StockInwardError(
+                    "unit_cost_required", "each line requires a positive unit_cost"
+                )
+            line_total = (unit_cost * line["quantity"]).quantize(_MONEY_QUANTUM)
+            merchandise_total += line_total
+        merchandise_total = merchandise_total.quantize(_MONEY_QUANTUM)
+        if merchandise_total != invoice_value:
+            raise StockInwardError(
+                "invoice_value_mismatch",
+                f"invoice_value must match merchandise total exactly ({merchandise_total})",
+            )
 
     inward = StockInward(
         shop_id=actor_shop_id,
@@ -107,7 +119,7 @@ async def create_stock_inward(
                 product_id=product.id,
                 quantity=line["quantity"],
                 good_condition_quantity=line["good_condition_quantity"],
-                unit_cost=line["unit_cost"],
+                unit_cost=line.get("unit_cost") if purchase_details_captured else None,
                 product_brand=product.brand,
                 product_size_label=product.size_label,
             )
@@ -183,14 +195,15 @@ async def approve_stock_inward(
             "actor_name": actor.full_name if actor is not None else None,
             "lot_id": lot.id,
             "vendor_id": inward.vendor.id if inward.vendor is not None else None,
-            "vendor_name": inward.vendor.name if inward.vendor is not None else _AUTO_VENDOR_NAME,
+            "purchase_details_captured": inward.purchase_details_captured,
+            "vendor_name": inward.vendor.name if inward.purchase_details_captured and inward.vendor is not None else None,
             "vendor_gstin": inward.vendor.gstin if inward.vendor is not None else None,
             "vendor_address": inward.vendor.address if inward.vendor is not None else None,
             "vendor_email": inward.vendor.email if inward.vendor is not None else None,
             "vendor_phone": inward.vendor.phone if inward.vendor is not None else None,
-            "purchase_date": inward.purchase_date.isoformat(),
-            "vendor_invoice_number": inward.vendor_invoice_number,
-            "invoice_value": str(inward.invoice_value),
+            "purchase_date": inward.purchase_date.isoformat() if inward.purchase_details_captured else None,
+            "vendor_invoice_number": inward.vendor_invoice_number if inward.purchase_details_captured else None,
+            "invoice_value": str(inward.invoice_value) if inward.purchase_details_captured else None,
             "merchandise_total": str(inward.merchandise_total)
             if inward.merchandise_total is not None
             else None,

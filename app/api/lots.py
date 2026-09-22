@@ -19,7 +19,6 @@ from app.api.deps import (
     resolve_read_shop_id,
     resolve_write_shop_id,
 )
-from app.config import get_settings
 from app.db import unit_of_work
 from app.logging_config import get_logger
 from app.models.shop import Shop
@@ -48,9 +47,11 @@ _STOCK_INWARD_CODE_TO_STATUS: dict[str, int] = {
     "unknown_barcode": status.HTTP_404_NOT_FOUND,
     "vendor_not_found": status.HTTP_404_NOT_FOUND,
     "vendor_inactive": status.HTTP_400_BAD_REQUEST,
+    "vendor_required": status.HTTP_400_BAD_REQUEST,
     "not_pending": status.HTTP_409_CONFLICT,
     "unit_cost_required": status.HTTP_400_BAD_REQUEST,
     "invoice_value_mismatch": status.HTTP_400_BAD_REQUEST,
+    "breakage_notes_required": status.HTTP_400_BAD_REQUEST,
 }
 
 
@@ -69,28 +70,14 @@ async def create_lot(
     actor_shop_id = await resolve_write_shop_id(db, _user, payload.shop_id)
     await require_no_offline_session_lock(db, shop_id=actor_shop_id, action="stock inward")
 
-    settings = get_settings()
     shop = await db.get(Shop, actor_shop_id)
     vendor_link_enabled = True if shop is None else shop.receiving_vendor_link_enabled
     vendor = None
     if vendor_link_enabled:
         if payload.vendor_id is None:
-            if settings.app_env != "test":
-                raise HTTPException(
-                    status_code=status.HTTP_400_BAD_REQUEST, detail="vendor_id is required"
-                )
-            vendor = (
-                await db.execute(
-                    select(Vendor)
-                    .where(Vendor.shop_id == actor_shop_id, Vendor.is_active.is_(True))
-                    .order_by(Vendor.id)
-                )
-            ).scalars().first()
-            if vendor is None:
-                raise HTTPException(
-                    status_code=status.HTTP_400_BAD_REQUEST,
-                    detail="at least one active vendor is required for stock inward",
-                )
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST, detail="vendor_id is required"
+            )
         else:
             vendor = (
                 await db.execute(
@@ -101,38 +88,25 @@ async def create_lot(
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="vendor not found")
         if not vendor.is_active:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="vendor is inactive")
-    else:
-        if payload.vendor_id is not None:
-            vendor = (
-                await db.execute(
-                    select(Vendor).where(Vendor.id == payload.vendor_id, Vendor.shop_id == actor_shop_id)
-                )
-            ).scalar_one_or_none()
-            if vendor is not None and not vendor.is_active:
-                raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="vendor is inactive")
-
     purchase_date = payload.purchase_date
     vendor_invoice_number = payload.vendor_invoice_number
     invoice_value = payload.invoice_value
     if vendor_link_enabled:
         if purchase_date is None or vendor_invoice_number is None or invoice_value is None:
-            if settings.app_env != "test":
-                raise HTTPException(
-                    status_code=status.HTTP_400_BAD_REQUEST,
-                    detail="purchase_date, vendor_invoice_number, and invoice_value are required",
-                )
-            purchase_date = purchase_date or date_cls.today()
-            vendor_invoice_number = vendor_invoice_number or "TEST-INVOICE"
-            invoice_value = invoice_value or Decimal("0.00")
-        elif invoice_value <= 0 and settings.app_env != "test":
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="purchase_date, vendor_invoice_number, and invoice_value are required",
+            )
+        if invoice_value <= 0:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="invoice_value must be greater than zero",
             )
     else:
-        purchase_date = purchase_date or date_cls.today()
-        vendor_invoice_number = vendor_invoice_number or "AUTO-RECEIPT"
-        invoice_value = invoice_value if invoice_value is not None else Decimal("0.00")
+        vendor = None
+        purchase_date = date_cls.today()
+        vendor_invoice_number = "AUTO-RECEIPT"
+        invoice_value = Decimal("0.00")
 
     try:
         async with unit_of_work(db):
@@ -153,10 +127,11 @@ async def create_lot(
                         "good_condition_quantity": line.good_condition_quantity
                         if line.good_condition_quantity is not None
                         else line.quantity,
-                        "unit_cost": line.unit_cost,
+                        "unit_cost": line.unit_cost if vendor_link_enabled else None,
                     }
                     for line in payload.lines
                 ],
+                purchase_details_captured=vendor_link_enabled,
             )
     except StockInwardError as exc:
         raise map_error_to_http(
@@ -338,15 +313,17 @@ async def export_lots(
     rows = await list_stock_inwards(db, shop_id=resolved_shop_id, status=status_filter)
     public = [LotPublic.model_validate(row) for row in rows]
     out = io.StringIO()
-    fields = ["inward_id", "shop_id", "status", "vendor_name", "vendor_invoice_number", "purchase_date", "invoice_value", "reference", "created_at", "approved_at", "line_items"]
+    fields = ["inward_id", "shop_id", "status", "purchase_details_captured", "vendor_name", "vendor_invoice_number", "purchase_date", "invoice_value", "reference", "created_at", "approved_at", "line_items"]
     writer = csv.DictWriter(out, fieldnames=fields)
     writer.writeheader()
     for row in public:
         writer.writerow({
             "inward_id": row.id, "shop_id": row.shop_id, "status": row.status.value,
-            "vendor_name": row.vendor.name if row.vendor else "",
-            "vendor_invoice_number": row.vendor_invoice_number, "purchase_date": row.purchase_date,
-            "invoice_value": row.invoice_value, "reference": row.reference or "",
+            "purchase_details_captured": row.purchase_details_captured,
+            "vendor_name": row.vendor.name if row.purchase_details_captured and row.vendor else "",
+            "vendor_invoice_number": row.vendor_invoice_number if row.purchase_details_captured else "",
+            "purchase_date": row.purchase_date if row.purchase_details_captured else "",
+            "invoice_value": row.invoice_value if row.purchase_details_captured else "", "reference": row.reference or "",
             "created_at": row.created_at.isoformat(),
             "approved_at": row.approved_at.isoformat() if row.approved_at else "",
             "line_items": "; ".join(f"{line.product_brand} {line.product_size_label} x{line.quantity}" for line in row.lines),

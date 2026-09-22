@@ -72,7 +72,7 @@ export function ReceivingPage() {
   const [notes, setNotes] = useState("");
   const [lines, setLines] = useState<ReceivingLine[]>([]);
   const [vendors, setVendors] = useState<VendorPublic[]>([]);
-  const [vendorLinkEnabled, setVendorLinkEnabled] = useState(true);
+  const [vendorLinkEnabled, setVendorLinkEnabled] = useState<boolean | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [info, setInfo] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -93,7 +93,6 @@ export function ReceivingPage() {
     onResolved: (product) => {
       setCatalogReady(true);
       setLines((prev) => [
-        ...prev,
         {
           lineId: uid(),
           barcode: product.barcode,
@@ -102,6 +101,7 @@ export function ReceivingPage() {
           quantity: 1,
           currentStock: product.current_stock,
         },
+        ...prev,
       ]);
         setInfo(
           `Quick-added to stock inward (pending approval): ${product.brand} ${product.size_label}`
@@ -121,6 +121,7 @@ export function ReceivingPage() {
 
   useEffect(() => {
     let cancelled = false;
+    setVendorLinkEnabled(null);
     if (user?.role === "superadmin" && actingShopId == null) {
       setVendorLinkEnabled(true);
       setVendors([]);
@@ -146,7 +147,7 @@ export function ReceivingPage() {
       setVendors([]);
       return;
     }
-    if (!vendorLinkEnabled) {
+    if (vendorLinkEnabled !== true) {
       setVendors([]);
       return;
     }
@@ -179,12 +180,12 @@ export function ReceivingPage() {
         setLines((prev) => {
           const existing = prev.find((l) => l.barcode === code);
           if (existing) {
-            return prev.map((l) =>
-              l.lineId === existing.lineId ? { ...l, quantity: l.quantity + 1 } : l
-            );
+            return [
+              { ...existing, quantity: existing.quantity + 1 },
+              ...prev.filter((l) => l.lineId !== existing.lineId),
+            ];
           }
           return [
-            ...prev,
             {
               lineId: uid(),
               barcode: product.barcode,
@@ -193,6 +194,7 @@ export function ReceivingPage() {
               quantity: 1,
               currentStock: product.current_stock,
             },
+            ...prev,
           ];
         });
         setInfo(`Added: ${product.brand} ${product.size_label}`);
@@ -224,12 +226,12 @@ export function ReceivingPage() {
     setLines((prev) => {
       const existing = prev.find((l) => l.barcode === product.barcode);
       if (existing) {
-        return prev.map((l) =>
-          l.lineId === existing.lineId ? { ...l, quantity: l.quantity + 1 } : l
-        );
+        return [
+          { ...existing, quantity: existing.quantity + 1 },
+          ...prev.filter((l) => l.lineId !== existing.lineId),
+        ];
       }
       return [
-        ...prev,
         {
           lineId: uid(),
           barcode: product.barcode,
@@ -238,6 +240,7 @@ export function ReceivingPage() {
           quantity: 1,
           currentStock: product.current_stock,
         },
+        ...prev,
       ];
     });
     setInfo(`Added: ${product.brand} ${product.size_label}`);
@@ -289,6 +292,10 @@ export function ReceivingPage() {
       setError("Pick a shop first (top of the sidebar).");
       return;
     }
+    if (vendorLinkEnabled === null) {
+      setError("Shop settings are still loading. Try again in a moment.");
+      return;
+    }
     if (vendorLinkEnabled && vendors.length === 0) {
       setError("Add at least one active vendor before saving a lot.");
       return;
@@ -303,17 +310,23 @@ export function ReceivingPage() {
     try {
       const lot = await createLotSafe(
         {
-          ...(vendorLinkEnabled && review.vendorId !== "" ? { vendor_id: Number(review.vendorId) } : {}),
-          purchase_date: review.purchaseDate,
-          vendor_invoice_number: review.vendorInvoiceNumber.trim(),
-          invoice_value: review.invoiceValue.trim(),
+          ...(vendorLinkEnabled === true
+            ? {
+                vendor_id: Number(review.vendorId),
+                purchase_date: review.purchaseDate,
+                vendor_invoice_number: review.vendorInvoiceNumber.trim(),
+                invoice_value: review.invoiceValue.trim(),
+              }
+            : {}),
           reference: reference.trim() || undefined,
           notes: notes.trim() || undefined,
           lines: lines.map((line) => ({
             barcode: line.barcode,
             quantity: line.quantity,
             good_condition_quantity: review.lineConditions[line.lineId] ?? line.quantity,
-            unit_cost: review.unitCosts[line.lineId].trim(),
+            ...(vendorLinkEnabled === true
+              ? { unit_cost: review.unitCosts[line.lineId]?.trim() }
+              : {}),
           })),
         },
         actingShopId
@@ -408,7 +421,7 @@ export function ReceivingPage() {
           />
         </div>
 
-        <ul className="mt-4 flex flex-col gap-3">
+        <ul data-testid="receiving-lines" className="mt-4 flex flex-col gap-3">
           {lines.length === 0 && (
             <li className="rounded-xl border border-dashed border-slate-300 py-12 text-center text-sm font-medium text-slate-500">
               No items yet. Scan a barcode to begin.
@@ -540,7 +553,7 @@ export function ReceivingPage() {
       {reviewOpen && (
         <PurchaseReviewModal
           vendors={vendors}
-          vendorLinkEnabled={vendorLinkEnabled}
+          vendorLinkEnabled={vendorLinkEnabled === true}
           lines={lines}
           busy={busy}
           notes={notes}
@@ -570,7 +583,7 @@ export function ReceivingPage() {
             </header>
             
             <div className="grid gap-4 rounded-2xl bg-slate-50 p-6 ring-1 ring-slate-200/50 md:grid-cols-2">
-              {vendorLinkEnabled ? (
+              {lastLot.purchase_details_captured ? (
                 <>
                   <div>
                     <div className="text-[11px] font-semibold uppercase tracking-widest text-slate-500">
@@ -617,7 +630,7 @@ export function ReceivingPage() {
                     Inward details
                   </div>
                   <div className="mt-1 text-sm font-medium text-slate-600">
-                    Vendor link disabled. Hidden placeholder inward details were stored with this request.
+                    Purchase details not captured
                   </div>
                 </div>
               )}
@@ -639,8 +652,12 @@ export function ReceivingPage() {
                     <th className="px-6 py-4 text-right font-semibold">Received</th>
                     <th className="px-6 py-4 text-right font-semibold">Good</th>
                     <th className="px-6 py-4 text-right font-semibold">Breakage</th>
-                    <th className="px-6 py-4 text-right font-semibold">Unit cost</th>
-                    <th className="px-6 py-4 text-right font-semibold">Line total</th>
+                    {lastLot.purchase_details_captured && (
+                      <>
+                        <th className="px-6 py-4 text-right font-semibold">Unit cost</th>
+                        <th className="px-6 py-4 text-right font-semibold">Line total</th>
+                      </>
+                    )}
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
@@ -653,8 +670,12 @@ export function ReceivingPage() {
                       <td className="px-6 py-3 text-right font-mono font-medium text-slate-900">{line.quantity}</td>
                       <td className="px-6 py-3 text-right font-mono font-medium text-emerald-600">{line.good_condition_quantity}</td>
                       <td className="px-6 py-3 text-right font-mono font-medium text-red-500">{line.breakage_quantity}</td>
-                      <td className="px-6 py-3 text-right font-mono font-medium text-slate-900">{formatMoney(line.unit_cost)}</td>
-                      <td className="px-6 py-3 text-right font-mono font-medium text-slate-900">{formatMoney(line.line_total)}</td>
+                      {lastLot.purchase_details_captured && (
+                        <>
+                          <td className="px-6 py-3 text-right font-mono font-medium text-slate-900">{formatMoney(line.unit_cost)}</td>
+                          <td className="px-6 py-3 text-right font-mono font-medium text-slate-900">{formatMoney(line.line_total)}</td>
+                        </>
+                      )}
                     </tr>
                   ))}
                 </tbody>
@@ -748,15 +769,15 @@ function PurchaseReviewModal({
       setLocalError("Pick a vendor.");
       return;
     }
-    if (!purchaseDate) {
+    if (vendorLinkEnabled && !purchaseDate) {
       setLocalError("Pick a purchase date.");
       return;
     }
-    if (!vendorInvoiceNumber.trim()) {
+    if (vendorLinkEnabled && !vendorInvoiceNumber.trim()) {
       setLocalError("Enter the vendor invoice number.");
       return;
     }
-    if ((invoiceCents ?? 0) <= 0) {
+    if (vendorLinkEnabled && (invoiceCents ?? 0) <= 0) {
       setLocalError("Enter a valid invoice value.");
       return;
     }
@@ -767,11 +788,11 @@ function PurchaseReviewModal({
         return;
       }
     }
-    if (!allUnitCostsValid) {
+    if (vendorLinkEnabled && !allUnitCostsValid) {
       setLocalError("Every line needs a positive unit cost.");
       return;
     }
-    if (!totalsMatch) {
+    if (vendorLinkEnabled && !totalsMatch) {
       setLocalError("Invoice value must exactly match the computed merchandise total.");
       return;
     }
@@ -804,7 +825,7 @@ function PurchaseReviewModal({
           className="flex flex-none items-center justify-between gap-4 border-b border-slate-200 px-4 py-4 sm:px-8"
         >
           <h2 id="purchase-review-title" className="flex min-w-0 items-center gap-3 truncate text-2xl font-semibold tracking-tight text-slate-900">
-            <Save className="h-6 w-6 text-action" /> Review purchase details
+            <Save className="h-6 w-6 text-action" /> {vendorLinkEnabled ? "Review purchase details" : "Review inward"}
           </h2>
           <button
             type="button"
@@ -840,13 +861,8 @@ function PurchaseReviewModal({
                 ))}
               </select>
             </label>
-          ) : (
-            <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-6 py-5 text-sm text-slate-600 md:col-span-2">
-              Vendor linking is disabled for this shop. Purchase date, invoice number, invoice total,
-              and line costs are still required for reconciliation.
-            </div>
-          )}
-          <label className="flex flex-col gap-1.5 text-xs font-semibold uppercase tracking-wider text-slate-500">
+          ) : null}
+          {vendorLinkEnabled && <label className="flex flex-col gap-1.5 text-xs font-semibold uppercase tracking-wider text-slate-500">
             <span className="flex items-center gap-1.5">
               <Calendar className="h-4 w-4" /> Purchase date
             </span>
@@ -856,8 +872,8 @@ function PurchaseReviewModal({
               onChange={(e) => setPurchaseDate(e.target.value)}
               className="h-11 w-full rounded-xl border border-slate-200 bg-white/50 px-4 text-sm font-medium text-slate-700 shadow-sm outline-none transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:bg-white focus-visible:ring-2 focus-visible:ring-action/40 focus-visible:border-action"
             />
-          </label>
-          <label className="flex flex-col gap-1.5 text-xs font-semibold uppercase tracking-wider text-slate-500">
+          </label>}
+          {vendorLinkEnabled && <label className="flex flex-col gap-1.5 text-xs font-semibold uppercase tracking-wider text-slate-500">
             <span className="flex items-center gap-1.5">
               <FileDigit className="h-4 w-4" /> Vendor invoice number
             </span>
@@ -867,8 +883,8 @@ function PurchaseReviewModal({
               onChange={(e) => setVendorInvoiceNumber(e.target.value)}
               className="h-11 w-full rounded-xl border border-slate-200 bg-white/50 px-4 text-sm font-medium text-slate-700 shadow-sm outline-none transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:bg-white focus-visible:ring-2 focus-visible:ring-action/40 focus-visible:border-action"
             />
-          </label>
-          <label className="flex flex-col gap-1.5 text-xs font-semibold uppercase tracking-wider text-slate-500">
+          </label>}
+          {vendorLinkEnabled && <label className="flex flex-col gap-1.5 text-xs font-semibold uppercase tracking-wider text-slate-500">
             <span className="flex items-center gap-1.5">
               <IndianRupee className="h-4 w-4" /> Invoice value
             </span>
@@ -880,22 +896,22 @@ function PurchaseReviewModal({
               onChange={(e) => setInvoiceValue(e.target.value)}
               className="h-11 w-full rounded-xl border border-slate-200 bg-white/50 px-4 text-sm font-medium text-slate-700 shadow-sm outline-none transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:bg-white focus-visible:ring-2 focus-visible:ring-action/40 focus-visible:border-action"
             />
-          </label>
+          </label>}
         </div>
 
         <div className="overflow-hidden rounded-2xl border border-slate-200">
-          <div className="border-b border-slate-200 bg-slate-50/80 px-6 py-3 text-[11px] font-medium uppercase tracking-widest text-slate-500">
+          {vendorLinkEnabled && <div className="border-b border-slate-200 bg-slate-50/80 px-6 py-3 text-[11px] font-medium uppercase tracking-widest text-slate-500">
             Enter purchase cost per received unit. Submit stays blocked until the merchandise total matches the invoice value exactly.
-          </div>
+          </div>}
           <div data-testid="purchase-review-line-items" className="max-w-full overflow-x-auto">
-            <table className="app-list-table min-w-[1120px] table-fixed">
+            <table className={`app-list-table table-fixed ${vendorLinkEnabled ? "min-w-[1120px]" : "min-w-[760px]"}`}>
               <colgroup>
                 <col className="w-[280px]" />
                 <col className="w-[120px]" />
                 <col className="w-[250px]" />
                 <col className="w-[130px]" />
-                <col className="w-[180px]" />
-                <col className="w-[160px]" />
+                {vendorLinkEnabled && <col className="w-[180px]" />}
+                {vendorLinkEnabled && <col className="w-[160px]" />}
               </colgroup>
               <thead className="bg-slate-50/80 text-[11px] uppercase tracking-widest text-slate-500">
                 <tr>
@@ -903,8 +919,8 @@ function PurchaseReviewModal({
                   <th className="whitespace-nowrap px-6 py-4 text-right font-semibold">Received</th>
                   <th className="whitespace-nowrap px-6 py-4 text-right font-semibold">Good</th>
                   <th className="whitespace-nowrap px-6 py-4 text-right font-semibold">Breakage</th>
-                  <th className="whitespace-nowrap px-6 py-4 text-right font-semibold">Unit cost</th>
-                  <th className="whitespace-nowrap px-6 py-4 text-right font-semibold">Line total</th>
+                  {vendorLinkEnabled && <th className="whitespace-nowrap px-6 py-4 text-right font-semibold">Unit cost</th>}
+                  {vendorLinkEnabled && <th className="whitespace-nowrap px-6 py-4 text-right font-semibold">Line total</th>}
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
@@ -959,7 +975,7 @@ function PurchaseReviewModal({
                         </div>
                       </td>
                       <td className="whitespace-nowrap px-6 py-4 text-right font-mono font-medium text-slate-500">{line.quantity - good}</td>
-                      <td className="whitespace-nowrap px-6 py-4 text-right">
+                      {vendorLinkEnabled && <td className="whitespace-nowrap px-6 py-4 text-right">
                         <input
                           type="text"
                           inputMode="decimal"
@@ -969,10 +985,10 @@ function PurchaseReviewModal({
                           className="w-24 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-right font-mono text-sm font-medium shadow-sm transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:border-slate-300 focus-visible:ring-2 focus-visible:ring-action/40 focus-visible:border-action outline-none"
                           aria-label="Unit cost"
                         />
-                      </td>
-                      <td className="whitespace-nowrap px-6 py-4 text-right font-mono font-medium text-slate-900">
+                      </td>}
+                      {vendorLinkEnabled && <td className="whitespace-nowrap px-6 py-4 text-right font-mono font-medium text-slate-900">
                         {lineTotal ? formatMoney(lineTotal) : "--"}
-                      </td>
+                      </td>}
                     </tr>
                   );
                 })}
@@ -981,7 +997,7 @@ function PurchaseReviewModal({
           </div>
         </div>
 
-        <div className="grid gap-4 rounded-2xl bg-slate-50 p-5 ring-1 ring-slate-200/60 md:grid-cols-3">
+        {vendorLinkEnabled && <div className="grid gap-4 rounded-2xl bg-slate-50 p-5 ring-1 ring-slate-200/60 md:grid-cols-3">
           <div>
             <div className="text-[11px] font-semibold uppercase tracking-widest text-slate-500">
               Merchandise total
@@ -1006,7 +1022,7 @@ function PurchaseReviewModal({
               {totalsMatch ? "Matched" : "Mismatch"}
             </div>
           </div>
-        </div>
+        </div>}
 
         <label className="flex flex-col gap-1.5 text-xs font-semibold uppercase tracking-wider text-slate-500">
           Notes {breakageExists ? "(required when breakage exists)" : "(optional)"}
@@ -1040,7 +1056,7 @@ function PurchaseReviewModal({
           </button>
           <button
             type="submit"
-            disabled={busy || !allUnitCostsValid || !totalsMatch}
+            disabled={busy || (vendorLinkEnabled && (!allUnitCostsValid || !totalsMatch))}
             className="flex h-11 items-center justify-center rounded-xl bg-action px-8 text-sm font-bold tracking-wide text-white shadow-sm transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:-translate-y-0.5 hover:shadow-[var(--color-action)]/30 active:scale-[0.97] disabled:pointer-events-none disabled:opacity-50"
           >
             {busy ? "Saving..." : "Confirm save"}

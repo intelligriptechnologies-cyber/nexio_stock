@@ -125,7 +125,9 @@ export function StockInwardApprovalsPage() {
                     <span>by {item.created_by_name ?? `user #${item.received_by_user_id}`}</span>
                   </div>
                   <div className="text-sm font-medium text-slate-600">
-                    {item.vendor?.name ?? "No vendor linked"} - Ref {item.reference ?? "--"}
+                    {item.purchase_details_captured
+                      ? item.vendor?.name ?? "Unknown vendor"
+                      : "Purchase details not captured"} - Ref {item.reference ?? "--"}
                   </div>
                 </div>
                 <div className="flex gap-3">
@@ -149,14 +151,16 @@ export function StockInwardApprovalsPage() {
               </div>
 
               <div className="mt-5 grid gap-3 rounded-xl bg-slate-50 p-4 ring-1 ring-slate-200/50 md:grid-cols-3">
-                <div>
+                {item.purchase_details_captured ? <><div>
                   <div className="text-[11px] font-semibold uppercase tracking-widest text-slate-500">Invoice</div>
                   <div className="mt-1 font-mono text-slate-900">{item.vendor_invoice_number}</div>
                 </div>
                 <div>
                   <div className="text-[11px] font-semibold uppercase tracking-widest text-slate-500">Purchase date</div>
                   <div className="mt-1 text-slate-900">{item.purchase_date}</div>
-                </div>
+                </div></> : (
+                  <div className="font-medium text-slate-600 md:col-span-2">Purchase details not captured</div>
+                )}
                 <div>
                   <div className="text-[11px] font-semibold uppercase tracking-widest text-slate-500">Lines / units</div>
                   <div className="mt-1 text-slate-900">

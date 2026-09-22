@@ -207,18 +207,18 @@ export function StockTrackingPage() {
                       </span>
                     </td>
                     <td className="px-6 py-4">
-                      <div className="font-medium text-slate-900">{item.vendor?.name ?? "No vendor"}</div>
-                      <div className="text-sm text-slate-500">
-                        Invoice {item.vendor_invoice_number || "--"}
-                        {item.reference ? ` · Ref ${item.reference}` : ""}
-                      </div>
+                      {item.purchase_details_captured ? <>
+                        <div className="font-medium text-slate-900">{item.vendor?.name ?? "Unknown vendor"}</div>
+                        <div className="text-sm text-slate-500">Invoice {item.vendor_invoice_number}</div>
+                      </> : <div className="font-medium text-slate-600">Purchase details not captured</div>}
+                      {item.reference && <div className="text-sm text-slate-500">Ref {item.reference}</div>}
                     </td>
                     <td className="px-6 py-4 text-sm text-slate-600">
                       <div>Created {formatDateTime(item.created_at)}</div>
                       <div>Received {formatDateTime(item.received_at)}</div>
                     </td>
                     <td className="px-6 py-4 text-right font-mono font-semibold text-slate-900">
-                      {money(item.merchandise_total)}
+                      {item.purchase_details_captured ? money(item.merchandise_total) : "--"}
                     </td>
                     <td className="px-6 py-4 text-right">
                       <div className="font-mono text-sm font-semibold text-slate-900">{lotUnits(item)}</div>
@@ -289,12 +289,16 @@ export function StockTrackingPage() {
 
             <div className="max-h-[80vh] overflow-y-auto px-6 py-6">
               <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-                <InfoCard label="Vendor" value={selectedLot.vendor?.name ?? "No vendor"} />
-                <InfoCard label="Vendor invoice" value={selectedLot.vendor_invoice_number || "--"} />
-                <InfoCard label="Purchase date" value={formatDate(selectedLot.purchase_date)} />
+                {selectedLot.purchase_details_captured ? <>
+                  <InfoCard label="Vendor" value={selectedLot.vendor?.name ?? "Unknown vendor"} />
+                  <InfoCard label="Vendor invoice" value={selectedLot.vendor_invoice_number} />
+                  <InfoCard label="Purchase date" value={formatDate(selectedLot.purchase_date)} />
+                </> : <InfoCard label="Purchase details" value="Purchase details not captured" wide />}
                 <InfoCard label="Reference" value={selectedLot.reference ?? "--"} />
-                <InfoCard label="Invoice value" value={money(selectedLot.invoice_value)} />
-                <InfoCard label="Merchandise total" value={money(selectedLot.merchandise_total)} />
+                {selectedLot.purchase_details_captured && <>
+                  <InfoCard label="Invoice value" value={money(selectedLot.invoice_value)} />
+                  <InfoCard label="Merchandise total" value={money(selectedLot.merchandise_total)} />
+                </>}
                 <InfoCard label="Shop" value={`shop ${selectedLot.shop_id}`} />
                 <InfoCard
                   label="Created by"
@@ -328,8 +332,10 @@ export function StockTrackingPage() {
                       <th className="text-right">Qty</th>
                       <th className="text-right">Good</th>
                       <th className="text-right">Breakage</th>
-                      <th className="text-right">Unit cost</th>
-                      <th className="text-right">Line total</th>
+                      {selectedLot.purchase_details_captured && <>
+                        <th className="text-right">Unit cost</th>
+                        <th className="text-right">Line total</th>
+                      </>}
                     </tr>
                   </thead>
                   <tbody>
@@ -344,8 +350,10 @@ export function StockTrackingPage() {
                           {line.good_condition_quantity}
                         </td>
                         <td className="px-6 py-4 text-right font-mono text-red-500">{line.breakage_quantity}</td>
-                        <td className="px-6 py-4 text-right font-mono text-slate-900">{money(line.unit_cost)}</td>
-                        <td className="px-6 py-4 text-right font-mono text-slate-900">{money(line.line_total)}</td>
+                        {selectedLot.purchase_details_captured && <>
+                          <td className="px-6 py-4 text-right font-mono text-slate-900">{money(line.unit_cost)}</td>
+                          <td className="px-6 py-4 text-right font-mono text-slate-900">{money(line.line_total)}</td>
+                        </>}
                       </tr>
                     ))}
                   </tbody>

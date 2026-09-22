@@ -36,6 +36,7 @@ function makeInwardLot(id = 202) {
     purchase_date: "2026-07-14",
     vendor_invoice_number: "VIN-9",
     invoice_value: "450.00",
+    purchase_details_captured: true,
     reference: "REF-22",
     notes: null,
     status: "pending",

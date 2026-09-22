@@ -638,23 +638,33 @@ def receiving_text(
 ) -> str:
     actor = _fmt_actor(actor_id, actor_name)
     shop = payload.get("shop_name") or f"shop #{payload.get('shop_id', 'unknown')}"
+    purchase_details_captured = payload.get("purchase_details_captured", True)
     vendor = payload.get("vendor_name") or f"vendor #{payload.get('vendor_id', 'unknown')}"
     lines = ", ".join(
         (
             f"{line.get('product_name_snapshot') or _snapshot_name(line.get('product_brand'), line.get('product_size_label'))} "
             f"x {line.get('quantity')} (good {line.get('good_condition_quantity')}, breakage {line.get('breakage_quantity')}) "
-            f"at {_fmt_money(line.get('unit_cost', '0.00'))}, "
-            f"row total {_fmt_money(line.get('row_total', '0.00'))}"
+            + (
+                f"at {_fmt_money(line.get('unit_cost'))}, row total {_fmt_money(line.get('row_total'))}"
+                if purchase_details_captured
+                else "purchase details not captured"
+            )
         ).strip()
         for line in payload.get("lines", [])
         if isinstance(line, dict)
     ) or "no lines listed"
     reference = payload.get("reference") or "no reference"
     notes = payload.get("notes") or "no notes"
+    purchase_summary = (
+        f"from {vendor}; purchase date {payload.get('purchase_date')}; "
+        f"vendor invoice {payload.get('vendor_invoice_number')}; "
+        f"invoice value {_fmt_money(payload.get('invoice_value'))}; "
+        f"merchandise total {_fmt_money(payload.get('merchandise_total'))}"
+        if purchase_details_captured
+        else "purchase details not captured"
+    )
     return (
-        f"Receiving lot #{payload.get('lot_id')} for {shop} from {vendor} by {actor}; "
-        f"purchase date {payload.get('purchase_date')}; vendor invoice {payload.get('vendor_invoice_number')}; "
-        f"invoice value {_fmt_money(payload.get('invoice_value'))}; merchandise total {_fmt_money(payload.get('merchandise_total'))}; "
+        f"Receiving lot #{payload.get('lot_id')} for {shop} by {actor}; {purchase_summary}; "
         f"reference {reference}; notes {notes}; products received: {lines}."
     )
 

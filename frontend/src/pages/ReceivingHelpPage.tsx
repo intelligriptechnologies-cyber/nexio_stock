@@ -6,7 +6,7 @@ const RECEIVING_STEPS = [
   "Check that the item appears in the inward list.",
   "Use + or - to change quantity, or remove the line if needed.",
   "Tap Review & Submit when all lines are ready.",
-  "Check vendor, invoice, and good-condition quantities.",
+  "Check received, good-condition, and breakage quantities. If vendor linking is enabled, also reconcile vendor, invoice, and unit costs.",
   "Tap Confirm save to submit the inward.",
 ];
 
@@ -25,7 +25,7 @@ const RECEIVING_PROBLEMS = [
   },
   {
     title: "Validation failure on review",
-    body: "Check good-condition quantity, invoice value, purchase date, and notes for breakage before saving again.",
+    body: "Check good-condition quantity and add notes for any breakage. With vendor linking enabled, also check purchase date, invoice value, and unit costs.",
   },
 ];
 
@@ -112,7 +112,7 @@ function MockReviewShot() {
         <span>Review modal</span>
       </div>
       <div className="auth-help-shot__body">
-        <div className="auth-help-shot__callout auth-help-shot__callout--top-left">Check vendor and invoice</div>
+        <div className="auth-help-shot__callout auth-help-shot__callout--top-left">Check quantities and breakage</div>
         <div className="auth-help-shot__panel">
           <div className="auth-help-shot__field">Vendor</div>
           <div className="auth-help-shot__field">Vendor invoice number</div>
@@ -121,7 +121,7 @@ function MockReviewShot() {
         </div>
         <div className="auth-help-shot__callout auth-help-shot__callout--bottom-right">Validation runs here</div>
       </div>
-      <p className="auth-help-shot__caption">The review step is where you catch invoice or quantity mistakes before saving.</p>
+      <p className="auth-help-shot__caption">The review step always checks quantities and breakage. Purchase fields appear only when vendor linking is enabled.</p>
     </article>
   );
 }
@@ -174,7 +174,7 @@ export function ReceivingHelpPage() {
       variant="shop"
       badge="STOCK INWARD HELP"
       title="Stock Inward Help"
-      subcopy="Simple steps for receiving stock, reviewing invoice details, fixing quantity, and using quick-add for unknown barcodes."
+      subcopy="Simple steps for receiving stock, reviewing quantities and breakage, reconciling purchases when enabled, and using quick-add for unknown barcodes."
       contentWidthClassName="max-w-[60rem]"
       headerLink={{ label: "Back to Shop Login", to: "/login" }}
       footerLink={{ label: "Back to Shop Login", to: "/login" }}
@@ -199,6 +199,16 @@ export function ReceivingHelpPage() {
               <li key={step}>{step}</li>
             ))}
           </ol>
+          <div className="auth-help-note">
+            When Vendor link for receiving is enabled, select the vendor and enter the purchase
+            date, invoice number, invoice value, and each unit cost. The invoice and merchandise
+            totals must match exactly.
+          </div>
+          <div className="auth-help-note">
+            When Vendor link for receiving is disabled, the review shows only product, received,
+            good, and breakage quantities plus notes. Notes are required only when breakage exists;
+            purchase details and unit costs are not collected.
+          </div>
         </section>
 
         <section className="auth-help-section">
