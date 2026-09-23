@@ -1,13 +1,13 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { Download, FileClock, RefreshCw, X } from "lucide-react";
-import { toUserMessage } from "../api/client";
+import { isAbortError, toUserMessage } from "../api/client";
 import { downloadStockInwardsExport, listStockInwardsPage, type LotPublic } from "../api/lots";
 import { useShopScope } from "../auth/ShopScopeProvider";
 import { ModalDialog } from "../components/ModalDialog";
 import { triggerDownload } from "../utils/csv";
 import { Pagination } from "../components/Pagination";
-import { pageOffset, pageSizeParam, positiveInt, STANDARD_PAGE_SIZES } from "../utils/pagination";
+import { lastPage, pageOffset, pageSizeParam, positiveInt, STANDARD_PAGE_SIZES } from "../utils/pagination";
 
 function statusClass(status: LotPublic["status"]): string {
   switch (status) {
@@ -63,6 +63,7 @@ export function StockTrackingPage() {
   const pageSize = pageSizeParam(searchParams.get("pageSize"), STANDARD_PAGE_SIZES, 25);
   const [error, setError] = useState<string | null>(null);
   const [selectedLot, setSelectedLot] = useState<LotPublic | null>(null);
+  const requestController = useRef<AbortController | null>(null);
 
   const closeDialog = useCallback(() => {
     setSelectedLot(null);
@@ -73,19 +74,26 @@ export function StockTrackingPage() {
   }, []);
 
   const reload = useCallback(async () => {
+    requestController.current?.abort();
+    const controller = new AbortController(); requestController.current = controller;
     setError(null);
     setLoading(true);
     try {
-      const result = await listStockInwardsPage(actingShopId, pageSize, pageOffset(page, pageSize));
+      const result = await listStockInwardsPage(actingShopId, pageSize, pageOffset(page, pageSize), undefined, controller.signal);
+      if (controller.signal.aborted) return;
       setItems(result.data.lots);
       setTotal(result.total);
       setSelectedLot((current) =>
         current ? result.data.lots.find((lot) => lot.id === current.id) ?? null : null
       );
+      const finalPage = lastPage(result.total, pageSize);
+      if (page > finalPage) setSearchParams((current) => {
+        const next = new URLSearchParams(current); next.set("page", String(finalPage)); return next;
+      }, { replace: true });
     } catch (e) {
-      setError(toUserMessage(e, "Could not load stock tracking history."));
-    } finally { setLoading(false); }
-  }, [actingShopId, page, pageSize]);
+      if (!isAbortError(e)) setError(toUserMessage(e, "Could not load stock tracking history."));
+    } finally { if (!controller.signal.aborted) setLoading(false); }
+  }, [actingShopId, page, pageSize, setSearchParams]);
 
   const setPage = useCallback((nextPage: number, nextSize = pageSize, replace = false) => {
     setSearchParams((current) => {
@@ -97,6 +105,7 @@ export function StockTrackingPage() {
 
   useEffect(() => {
     void reload();
+    return () => requestController.current?.abort();
   }, [reload]);
 
   const selectedStats = useMemo(() => {

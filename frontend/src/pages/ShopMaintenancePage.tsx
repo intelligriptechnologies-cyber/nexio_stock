@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Store, RefreshCw, Plus, Save, Users, Package, Settings, Shield, KeyRound } from "lucide-react";
 import { listProductsPage, type Product } from "../api/products";
@@ -34,7 +34,7 @@ import { useShopScope } from "../auth/ShopScopeProvider";
 import { AppTabButton } from "../components/AppTabs";
 import { ModalDialog } from "../components/ModalDialog";
 import { Pagination } from "../components/Pagination";
-import { pageOffset, pageSizeParam, positiveInt, STANDARD_PAGE_SIZES } from "../utils/pagination";
+import { lastPage, pageOffset, pageSizeParam, positiveInt, STANDARD_PAGE_SIZES } from "../utils/pagination";
 
 const ROLES: ShopUserRole[] = ["owner", "cashier_user", "receiver_user"];
 const ROLE_FILTERS = ["all", ...ROLES] as const;
@@ -86,13 +86,16 @@ export function ShopMaintenancePage() {
   const [activations, setActivations] = useState<ShopAuthenticatorActivation[]>([]);
   const [activationTotal, setActivationTotal] = useState(0);
   const [activationToken, setActivationToken] = useState<ShopAuthenticatorActivationToken | null>(null);
-  const [productQuery, setProductQuery] = useState(searchParams.get("inventoryQ") ?? "");
-  const [requestProductQuery, setRequestProductQuery] = useState(productQuery);
+  const inventoryQuery = searchParams.get("inventoryQ") ?? "";
+  const [productQuery, setProductQuery] = useState(inventoryQuery);
   const [includeInactiveProducts, setIncludeInactiveProducts] = useState(
     searchParams.get("inventoryInactive") === "true"
   );
   const roleParam = searchParams.get("role");
   const statusParam = searchParams.get("status");
+  const tabParam = searchParams.get("tab");
+  const inactiveParam = searchParams.get("inventoryInactive") === "true";
+  const shopParam = searchParams.get("shop");
   const [roleFilter, setRoleFilter] = useState<RoleFilter>(
     ROLE_FILTERS.includes(roleParam as RoleFilter) ? roleParam as RoleFilter : "all"
   );
@@ -102,6 +105,7 @@ export function ShopMaintenancePage() {
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);
+  const shopRequestId = useRef(0);
 
   const setListPage = useCallback((prefix: string, page: number, size: number, replace = false) => {
     setSearchParams((current) => {
@@ -113,38 +117,40 @@ export function ShopMaintenancePage() {
   }, [setSearchParams]);
 
   useEffect(() => {
+    const normalizedQuery = productQuery.trim();
+    if (normalizedQuery === inventoryQuery) return;
     const timer = window.setTimeout(() => {
-      setRequestProductQuery(productQuery);
       setSearchParams((current) => {
         const next = new URLSearchParams(current);
-        if (productQuery.trim()) next.set("inventoryQ", productQuery.trim());
+        if (normalizedQuery) next.set("inventoryQ", normalizedQuery);
         else next.delete("inventoryQ");
         next.set("inventoryPage", "1");
         return next;
       }, { replace: true });
     }, 300);
     return () => window.clearTimeout(timer);
-  }, [productQuery, setSearchParams]);
+  }, [inventoryQuery, productQuery, setSearchParams]);
 
   useEffect(() => {
-    const nextTab = searchParams.get("tab");
-    setActiveTab(TABS.some((tab) => tab.id === nextTab) ? nextTab as ShopTab : "details");
-    const nextRole = searchParams.get("role");
-    setRoleFilter(ROLE_FILTERS.includes(nextRole as RoleFilter) ? nextRole as RoleFilter : "all");
-    const nextStatus = searchParams.get("status");
-    setStatusFilter(STATUS_FILTERS.includes(nextStatus as StatusFilter) ? nextStatus as StatusFilter : "all");
-    setIncludeInactiveProducts(searchParams.get("inventoryInactive") === "true");
-    setProductQuery(searchParams.get("inventoryQ") ?? "");
-    const nextShop = Number(searchParams.get("shop"));
+    setActiveTab(TABS.some((tab) => tab.id === tabParam) ? tabParam as ShopTab : "details");
+    setRoleFilter(ROLE_FILTERS.includes(roleParam as RoleFilter) ? roleParam as RoleFilter : "all");
+    setStatusFilter(STATUS_FILTERS.includes(statusParam as StatusFilter) ? statusParam as StatusFilter : "all");
+    setIncludeInactiveProducts(inactiveParam);
+    setProductQuery((current) => current === inventoryQuery ? current : inventoryQuery);
+    const nextShop = Number(shopParam);
     if (Number.isInteger(nextShop) && nextShop > 0) setSelectedShopId(nextShop);
-  }, [searchParams]);
+  }, [inactiveParam, inventoryQuery, roleParam, shopParam, statusParam, tabParam]);
 
   const loadShops = useCallback(
     async (nextSelectedShopId?: number | null) => {
+      const requestId = ++shopRequestId.current;
       const result = await listShopsPage(shopPageSize, pageOffset(shopPage, shopPageSize));
+      if (requestId !== shopRequestId.current) return;
       const rows = result.data;
       setShops(rows);
       setShopTotal(result.total);
+      const finalPage = lastPage(result.total, shopPageSize);
+      if (shopPage > finalPage) setListPage("shop", finalPage, shopPageSize, true);
       setSelectedShopId((current) => {
         if (nextSelectedShopId !== undefined) return nextSelectedShopId;
         if (current != null && rows.some((shop) => shop.id === current)) return current;
@@ -152,7 +158,7 @@ export function ShopMaintenancePage() {
         return rows[0]?.id ?? null;
       });
     },
-    [actingShopId, shopPage, shopPageSize]
+    [actingShopId, setListPage, shopPage, shopPageSize]
   );
 
   const refreshPageData = useCallback(() => {
@@ -162,6 +168,7 @@ export function ShopMaintenancePage() {
 
   useEffect(() => {
     loadShops().catch((e) => setError(toUserMessage(e, "Could not load shops.")));
+    return () => { shopRequestId.current += 1; };
   }, [loadShops, refreshKey]);
 
   useEffect(() => {
@@ -189,7 +196,7 @@ export function ShopMaintenancePage() {
       }),
       listProductsPage({
         shopId: selectedShopId,
-        q: requestProductQuery.trim() || undefined,
+        q: inventoryQuery || undefined,
         includeInactive: includeInactiveProducts,
         limit: inventoryPageSize,
         offset: pageOffset(inventoryPage, inventoryPageSize),
@@ -212,6 +219,16 @@ export function ShopMaintenancePage() {
         setDeviceTotal(deviceResult.total);
         setActivations(activationResult.data);
         setActivationTotal(activationResult.total);
+        const pages: Array<[string, number, number, number]> = [
+          ["user", userPage, userPageSize, userResult.total],
+          ["inventory", inventoryPage, inventoryPageSize, productResult.total],
+          ["device", devicePage, devicePageSize, deviceResult.total],
+          ["activation", activationPage, activationPageSize, activationResult.total],
+        ];
+        for (const [prefix, currentPage, size, nextTotal] of pages) {
+          const finalPage = lastPage(nextTotal, size);
+          if (currentPage > finalPage) setListPage(prefix, finalPage, size, true);
+        }
       })
       .catch((e) => {
         if (!cancelled) setError(toUserMessage(e, "Could not load selected shop."));
@@ -220,9 +237,9 @@ export function ShopMaintenancePage() {
       cancelled = true;
     };
   }, [
-    selectedShopId, requestProductQuery, includeInactiveProducts, refreshKey,
+    selectedShopId, inventoryQuery, includeInactiveProducts, refreshKey,
     userPage, userPageSize, roleFilter, statusFilter, inventoryPage, inventoryPageSize,
-    devicePage, devicePageSize, activationPage, activationPageSize,
+    devicePage, devicePageSize, activationPage, activationPageSize, setListPage,
   ]);
 
   const selectedShop = shops.find((shop) => shop.id === selectedShopId) ?? null;

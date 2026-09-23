@@ -725,7 +725,13 @@ async def list_pending_voids(
         .all()
     )
     rows = [*current_rows, *past_rows]
-    rows.sort(key=lambda row: row.void_requested_at or datetime.max.replace(tzinfo=UTC))
+    rows.sort(
+        key=lambda row: (
+            row.void_requested_at or datetime.max.replace(tzinfo=UTC),
+            0 if isinstance(row, Invoice) else 1,
+            row.id,
+        )
+    )
     return rows[offset : offset + limit]
 
 

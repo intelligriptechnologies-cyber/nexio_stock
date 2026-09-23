@@ -178,28 +178,38 @@ async function mockShopMaintenanceApis(page: Page, productTotal?: number) {
 
   await page.route("**/products?**", async (route) => {
     productUrls.push(route.request().url());
+    const params = new URL(route.request().url()).searchParams;
+    const offset = Number(params.get("offset") ?? 0);
+    const limit = Number(params.get("limit") ?? 25);
+    const baseProduct = {
+      id: 20,
+      shop_id: 1,
+      barcode: "CHK-001",
+      brand: "Check Brand",
+      size_label: "750ml",
+      price: "500.00",
+      low_stock_threshold: 4,
+      is_active: true,
+      status: "active",
+      created_at: "2026-01-01T00:00:00Z",
+      updated_at: "2026-01-01T00:00:00Z",
+      current_stock: 8,
+    };
+    const responseProducts = productTotal == null
+      ? [baseProduct]
+      : Array.from({ length: Math.max(0, Math.min(limit, productTotal - offset)) }, (_, index) => ({
+          ...baseProduct,
+          id: offset + index + 1,
+          barcode: `CHK-${String(offset + index + 1).padStart(3, "0")}`,
+          brand: `Quick inventory record ${offset + index + 1}`,
+        }));
     await route.fulfill({
       contentType: "application/json",
       headers: productTotal == null ? undefined : {
         "Access-Control-Expose-Headers": "X-Total-Count",
         "X-Total-Count": String(productTotal),
       },
-      body: JSON.stringify([
-        {
-          id: 20,
-          shop_id: 1,
-          barcode: "CHK-001",
-          brand: "Check Brand",
-          size_label: "750ml",
-          price: "500.00",
-          low_stock_threshold: 4,
-          is_active: true,
-          status: "active",
-          created_at: "2026-01-01T00:00:00Z",
-          updated_at: "2026-01-01T00:00:00Z",
-          current_stock: 8,
-        },
-      ]),
+      body: JSON.stringify(responseProducts),
     });
   });
 
@@ -265,6 +275,10 @@ test.describe("shop maintenance", () => {
     await top.getByRole("button", { name: "Next page" }).click();
     await expect.poll(() => new URL(page.url()).searchParams.get("inventoryPage")).toBe("2");
     await expect(bottom.getByRole("button", { name: "Page 2" })).toHaveAttribute("aria-current", "page");
+    await expect(page.getByText("Quick inventory record 51")).toBeVisible();
+    await page.waitForTimeout(400);
+    await expect.poll(() => new URL(page.url()).searchParams.get("inventoryPage")).toBe("2");
+    await expect(page.getByText("Quick inventory record 51")).toBeVisible();
 
     await page.getByRole("tab", { name: "Allotted Users" }).click();
     await expect(page.getByRole("navigation", { name: "Allotted users top pagination" })).toHaveCount(0);

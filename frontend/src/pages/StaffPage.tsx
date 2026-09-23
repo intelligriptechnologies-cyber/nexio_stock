@@ -1,7 +1,7 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { Users, RefreshCw, KeyRound, UserPlus, Power, CheckCircle2 } from "lucide-react";
-import { ApiError } from "../api/client";
+import { ApiError, isAbortError } from "../api/client";
 import {
   createStaff,
   listStaffPage,
@@ -14,7 +14,7 @@ import {
 import { useAuth } from "../auth/AuthProvider";
 import { SHOP_SCOPE_MESSAGE, useShopScope } from "../auth/ShopScopeProvider";
 import { Pagination } from "../components/Pagination";
-import { pageOffset, pageSizeParam, positiveInt, STANDARD_PAGE_SIZES } from "../utils/pagination";
+import { lastPage, pageOffset, pageSizeParam, positiveInt, STANDARD_PAGE_SIZES } from "../utils/pagination";
 
 export function StaffPage() {
   const { user } = useAuth();
@@ -29,8 +29,11 @@ export function StaffPage() {
   const [info, setInfo] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const scopedShopId = user?.role === "superadmin" ? actingShopId : null;
+  const requestController = useRef<AbortController | null>(null);
 
   const reload = useCallback(async () => {
+    requestController.current?.abort();
+    const controller = new AbortController(); requestController.current = controller;
     setLoading(true);
     setError(null);
     if (user?.role === "superadmin" && actingShopId === null) {
@@ -40,13 +43,18 @@ export function StaffPage() {
       return;
     }
     try {
-      const result = await listStaffPage(scopedShopId, pageSize, pageOffset(page, pageSize));
+      const result = await listStaffPage(scopedShopId, pageSize, pageOffset(page, pageSize), controller.signal);
+      if (controller.signal.aborted) return;
       setItems(result.data);
       setTotal(result.total);
+      const finalPage = lastPage(result.total, pageSize);
+      if (page > finalPage) setSearchParams((current) => {
+        const next = new URLSearchParams(current); next.set("page", String(finalPage)); return next;
+      }, { replace: true });
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Load failed.");
-    } finally { setLoading(false); }
-  }, [actingShopId, scopedShopId, user?.role, page, pageSize]);
+      if (!isAbortError(e)) setError(e instanceof Error ? e.message : "Load failed.");
+    } finally { if (!controller.signal.aborted) setLoading(false); }
+  }, [actingShopId, scopedShopId, user?.role, page, pageSize, setSearchParams]);
 
   const setPage = useCallback((nextPage: number, nextSize = pageSize, replace = false) => {
     setSearchParams((current) => {
@@ -58,6 +66,7 @@ export function StaffPage() {
 
   useEffect(() => {
     void reload();
+    return () => requestController.current?.abort();
   }, [reload]);
 
   const onCreate = async (payload: StaffCreatePayload) => {

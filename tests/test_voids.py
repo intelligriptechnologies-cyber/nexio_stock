@@ -116,6 +116,36 @@ async def test_pending_void_still_counts_as_sold_until_approved(
 
 
 @pytest.mark.usefixtures("owner", "receiver", "cashier")
+async def test_pending_void_queue_paginates_with_stable_boundaries_and_total(
+    cashier_client: AsyncClient, owner_client: AsyncClient, receiver_client: AsyncClient
+) -> None:
+    barcode = "8902000000099"
+    await _seed_product(owner_client, barcode, price="100.00")
+    await _seed_lot(receiver_client, owner_client, items=[(barcode, 10)])
+    invoice_ids: list[int] = []
+    for _ in range(3):
+        invoice = await _finalize(
+            cashier_client, barcode=barcode, quantity=1, amount="100.00"
+        )
+        invoice_ids.append(invoice["id"])
+        requested = await cashier_client.post(f"/invoices/{invoice['id']}/void")
+        assert requested.status_code == 200, requested.text
+
+    first = await owner_client.get("/dashboard/void-queue", params={"limit": 2, "offset": 0})
+    second = await owner_client.get("/dashboard/void-queue", params={"limit": 2, "offset": 2})
+    repeated = await owner_client.get("/dashboard/void-queue", params={"limit": 2, "offset": 0})
+    beyond = await owner_client.get("/dashboard/void-queue", params={"limit": 2, "offset": 20})
+
+    assert first.status_code == second.status_code == repeated.status_code == beyond.status_code == 200
+    assert first.headers["X-Total-Count"] == second.headers["X-Total-Count"] == "3"
+    first_ids = [row["id"] for row in first.json()["invoices"]]
+    second_ids = [row["id"] for row in second.json()["invoices"]]
+    assert first_ids == [row["id"] for row in repeated.json()["invoices"]]
+    assert set(first_ids + second_ids) == set(invoice_ids)
+    assert beyond.json()["invoices"] == []
+
+
+@pytest.mark.usefixtures("owner", "receiver", "cashier")
 async def test_cashier_cannot_request_void_for_another_users_invoice(
     cashier_client: AsyncClient, owner_client: AsyncClient, receiver_client: AsyncClient
 ) -> None:

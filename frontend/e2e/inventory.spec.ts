@@ -95,7 +95,12 @@ async function seedSession(page: Page, role: Role, actingShopId: number | null =
   );
 }
 
-async function mockShellApis(page: Page, productUrls: string[] = [], productTotal?: number) {
+async function mockShellApis(
+  page: Page,
+  productUrls: string[] = [],
+  productTotal?: number,
+  delaySecondPage = false
+) {
   await page.route("**/settings/me**", async (route) => {
     await route.fulfill({
       contentType: "application/json",
@@ -137,13 +142,24 @@ async function mockShellApis(page: Page, productUrls: string[] = [], productTota
           ? "low_stock" : "in_stock";
       return state === "all" || state === productState;
     });
+    const offset = Number(params.get("offset") ?? 0);
+    const limit = Number(params.get("limit") ?? 25);
+    if (delaySecondPage && offset > 0) await new Promise((resolve) => setTimeout(resolve, 500));
+    const responseProducts = productTotal == null
+      ? filtered
+      : Array.from({ length: Math.max(0, Math.min(limit, productTotal - offset)) }, (_, index) => ({
+          ...products[0],
+          id: offset + index + 1,
+          barcode: `INV-PAGED-${String(offset + index + 1).padStart(3, "0")}`,
+          brand: `Inventory page record ${offset + index + 1}`,
+        }));
     await route.fulfill({
       contentType: "application/json",
       headers: {
         "Access-Control-Expose-Headers": "X-Total-Count",
         "X-Total-Count": String(productTotal ?? filtered.length),
       },
-      body: JSON.stringify(filtered),
+      body: JSON.stringify(responseProducts),
     });
   });
   await page.route(/\/shops(?:\?.*)?$/, async (route) => {
@@ -155,6 +171,24 @@ async function mockShellApis(page: Page, productUrls: string[] = [], productTota
 }
 
 test.describe("inventory", () => {
+  test("an aborted older page cannot replace the restored page or show a network error", async ({ page }) => {
+    await seedSession(page, "owner");
+    await mockShellApis(page, [], 60, true);
+    await page.goto("/inventory?page=1&pageSize=25");
+    await expect(page.getByText("Inventory page record 1", { exact: true })).toBeVisible();
+
+    await page.getByRole("navigation", { name: "inventory top pagination" })
+      .getByRole("button", { name: "Next page" }).click();
+    await expect.poll(() => new URL(page.url()).searchParams.get("page")).toBe("2");
+    await page.goBack();
+
+    await expect.poll(() => new URL(page.url()).searchParams.get("page")).toBe("1");
+    await expect(page.getByText("Inventory page record 1", { exact: true })).toBeVisible();
+    await page.waitForTimeout(600);
+    await expect(page.getByText("Inventory page record 26", { exact: true })).toHaveCount(0);
+    await expect(page.getByRole("alert")).toHaveCount(0);
+  });
+
   test("top and bottom pagination stay synchronized", async ({ page }) => {
     const productUrls: string[] = [];
     await seedSession(page, "owner");
@@ -179,6 +213,11 @@ test.describe("inventory", () => {
     await top.getByRole("button", { name: "Next page" }).click();
     await expect.poll(() => new URL(page.url()).searchParams.get("page")).toBe("2");
     await expect(bottom.getByRole("button", { name: "Page 2" })).toHaveAttribute("aria-current", "page");
+    await expect(page.getByText("Inventory page record 51")).toBeVisible();
+    await page.waitForTimeout(400);
+    await expect.poll(() => new URL(page.url()).searchParams.get("page")).toBe("2");
+    await expect(page.getByText("Inventory page record 51")).toBeVisible();
+    await expect(page.getByRole("alert")).toHaveCount(0);
   });
 
   test("owner can open inventory and see the table", async ({ page }) => {

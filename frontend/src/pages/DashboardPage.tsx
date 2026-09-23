@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import {
   getEodHistoryPage,
@@ -11,14 +11,14 @@ import {
   type StockOverviewResponse,
 } from "../api/dashboard";
 import type { PaymentMode } from "../api/checkout";
-import { toUserMessage } from "../api/client";
+import { isAbortError, toUserMessage } from "../api/client";
 import { formatPaymentLabel } from "../payment-modes";
 import { getPendingProductCount } from "../api/products";
 import { getPendingApprovalsCount } from "../api/approvals";
 import { useShopScope, useShopScopeGuard } from "../auth/ShopScopeProvider";
 import { Calendar, Banknote, ShieldAlert, CheckCircle2, RefreshCw, Box, Map, History, LayoutDashboard } from "lucide-react";
 import { Pagination } from "../components/Pagination";
-import { DASHBOARD_PAGE_SIZES, pageOffset, pageSizeParam, positiveInt } from "../utils/pagination";
+import { DASHBOARD_PAGE_SIZES, lastPage, pageOffset, pageSizeParam, positiveInt } from "../utils/pagination";
 
 function moneyFmt(s: string): string {
   return `₹${Number(s).toLocaleString("en-IN", { maximumFractionDigits: 2 })}`;
@@ -47,6 +47,7 @@ export function DashboardPage() {
   const [lowTotal, setLowTotal] = useState(0);
   const [stockTotal, setStockTotal] = useState(0);
   const [historyTotal, setHistoryTotal] = useState(0);
+  const requestController = useRef<AbortController | null>(null);
 
   const setPaging = (prefix: "low" | "stock" | "history", page: number, size: number, replace = false) => {
     setSearchParams((current) => {
@@ -57,7 +58,9 @@ export function DashboardPage() {
     }, { replace });
   };
 
-  const reload = async () => {
+  const reload = useCallback(async () => {
+    requestController.current?.abort();
+    const controller = new AbortController(); requestController.current = controller;
     if (shopScopeGuard.blocked) {
       setToday(null);
       setLowStock(null);
@@ -74,16 +77,17 @@ export function DashboardPage() {
       // The catch keeps the rest of the batch alive (mirrors how
       // listPendingProducts is wrapped below).
       const [t, l, h, p, v, so] = await Promise.all([
-        getEodTotals(undefined, actingShopId),
-        getLowStockPage(lowPageSize, pageOffset(lowPage, lowPageSize), actingShopId),
-        getEodHistoryPage({ limit: historyPageSize, offset: pageOffset(historyPage, historyPageSize), shopId: actingShopId }),
+        getEodTotals(undefined, actingShopId, "day", controller.signal),
+        getLowStockPage(lowPageSize, pageOffset(lowPage, lowPageSize), actingShopId, controller.signal),
+        getEodHistoryPage({ limit: historyPageSize, offset: pageOffset(historyPage, historyPageSize), shopId: actingShopId, signal: controller.signal }),
         // Issue #25 — the pending-products badge count. Fetched
         // alongside the other dashboard data so the badge appears
         // immediately when the dashboard mounts.
         getPendingProductCount(actingShopId).catch(() => ({ count: 0 })),
         getPendingApprovalsCount(actingShopId).catch(() => 0),
-        getStockOverviewPage(stockPageSize, pageOffset(stockPage, stockPageSize)).catch(() => null),
+        getStockOverviewPage(stockPageSize, pageOffset(stockPage, stockPageSize), controller.signal).catch(() => null),
       ]);
+      if (controller.signal.aborted) return;
       setToday(t);
       setLowStock(l.data);
       setLowTotal(l.total);
@@ -93,14 +97,29 @@ export function DashboardPage() {
       setApprovalCount(v);
       setStockOverview(so?.data ?? null);
       setStockTotal(so?.total ?? 0);
+      const finalPages = {
+        low: lastPage(l.total, lowPageSize),
+        stock: lastPage(so?.total ?? 0, stockPageSize),
+        history: lastPage(h.total, historyPageSize),
+      };
+      if (lowPage > finalPages.low || stockPage > finalPages.stock || historyPage > finalPages.history) {
+        setSearchParams((current) => {
+          const next = new URLSearchParams(current);
+          if (lowPage > finalPages.low) next.set("lowPage", String(finalPages.low));
+          if (stockPage > finalPages.stock) next.set("stockPage", String(finalPages.stock));
+          if (historyPage > finalPages.history) next.set("historyPage", String(finalPages.history));
+          return next;
+        }, { replace: true });
+      }
     } catch (e) {
-      setError(toUserMessage(e, "Load failed."));
+      if (!isAbortError(e)) setError(toUserMessage(e, "Load failed."));
     }
-  };
+  }, [actingShopId, historyPage, historyPageSize, lowPage, lowPageSize, setSearchParams, shopScopeGuard.blocked, stockPage, stockPageSize]);
 
   useEffect(() => {
     void reload();
-  }, [actingShopId, lowPage, lowPageSize, stockPage, stockPageSize, historyPage, historyPageSize]);
+    return () => requestController.current?.abort();
+  }, [reload]);
   return (
     <div className="flex flex-col gap-section-gap p-6 font-sans">
       <header className="flex flex-wrap items-center justify-between gap-stack-gap rounded-xl border border-slate-200/50 bg-white/60 p-6 shadow-sm backdrop-blur-xl">

@@ -1,13 +1,13 @@
 import { useCallback, useEffect, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
-import { toUserMessage } from "../api/client";
+import { isAbortError, toUserMessage } from "../api/client";
 import { downloadInventoryExport, listInventoryPage, type Product } from "../api/products";
 import { useAuth } from "../auth/AuthProvider";
 import { useShopScope, useShopScopeGuard } from "../auth/ShopScopeProvider";
 import { PackageOpen, Search, Filter, ArrowDownUp, ArrowDownToLine, ShoppingCart, Edit3, Download } from "lucide-react";
 import { triggerDownload } from "../utils/csv";
 import { Pagination } from "../components/Pagination";
-import { pageOffset, pageSizeParam, positiveInt, STANDARD_PAGE_SIZES } from "../utils/pagination";
+import { lastPage, pageOffset, pageSizeParam, positiveInt, STANDARD_PAGE_SIZES } from "../utils/pagination";
 
 type StockFilter = "all" | "in_stock" | "low_stock" | "out_of_stock";
 type SortMode = "name" | "stock_asc" | "stock_desc";
@@ -59,15 +59,15 @@ export function InventoryPage() {
   const [error, setError] = useState<string | null>(null);
   const [searchParams, setSearchParams] = useSearchParams();
   const [query, setQuery] = useState(searchParams.get("q") ?? "");
+  const requestQuery = searchParams.get("q") ?? "";
   const stockFilter = (["in_stock", "low_stock", "out_of_stock"].includes(searchParams.get("stock") ?? "") ? searchParams.get("stock") : "all") as StockFilter;
   const sortMode = (["stock_asc", "stock_desc"].includes(searchParams.get("sort") ?? "") ? searchParams.get("sort") : "name") as SortMode;
   const page = positiveInt(searchParams.get("page"), 1);
   const pageSize = pageSizeParam(searchParams.get("pageSize"), STANDARD_PAGE_SIZES, 25);
 
   useEffect(() => {
-    const restored = searchParams.get("q") ?? "";
-    if (restored !== query) setQuery(restored);
-  }, [searchParams]);
+    setQuery((current) => current === requestQuery ? current : requestQuery);
+  }, [requestQuery]);
 
   const updateParams = useCallback((changes: Record<string, string | null>, replace = false) => {
     setSearchParams((current) => {
@@ -81,9 +81,14 @@ export function InventoryPage() {
   }, [setSearchParams]);
 
   useEffect(() => {
-    const timer = window.setTimeout(() => updateParams({ q: query.trim() || null, page: "1" }, true), 300);
+    const normalizedQuery = query.trim();
+    if (normalizedQuery === requestQuery) return;
+    const timer = window.setTimeout(
+      () => updateParams({ q: normalizedQuery || null, page: "1" }, true),
+      300
+    );
     return () => window.clearTimeout(timer);
-  }, [query, updateParams]);
+  }, [query, requestQuery, updateParams]);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -98,23 +103,26 @@ export function InventoryPage() {
     setBusy(true);
     setError(null);
     listInventoryPage({
-      shopId: actingShopId, q: searchParams.get("q") ?? undefined,
+      shopId: actingShopId, q: requestQuery || undefined,
       stockState: stockFilter, sort: sortMode, limit: pageSize,
       offset: pageOffset(page, pageSize), signal: controller.signal,
     })
       .then(({ data, total: nextTotal }) => {
+        if (controller.signal.aborted) return;
         setItems(data);
         setTotal(nextTotal);
+        const finalPage = lastPage(nextTotal, pageSize);
+        if (page > finalPage) updateParams({ page: String(finalPage) }, true);
       })
       .catch((e) => {
-        if (!(e instanceof DOMException && e.name === "AbortError")) setError(toUserMessage(e, "Could not load inventory."));
+        if (!isAbortError(e)) setError(toUserMessage(e, "Could not load inventory."));
       })
       .finally(() => { if (!controller.signal.aborted) setBusy(false); });
 
     return () => {
       controller.abort();
     };
-  }, [actingShopId, shopScopeGuard.blocked, shopScopeGuard.message, searchParams, stockFilter, sortMode, page, pageSize]);
+  }, [actingShopId, shopScopeGuard.blocked, shopScopeGuard.message, requestQuery, stockFilter, sortMode, page, pageSize, updateParams]);
 
   const visibleItems = items ?? [];
 
@@ -127,7 +135,7 @@ export function InventoryPage() {
   const exportRows = async () => {
     try {
       const result = await downloadInventoryExport({
-        q: searchParams.get("q") ?? undefined, stockState: stockFilter,
+        q: requestQuery || undefined, stockState: stockFilter,
         sort: sortMode, shopId: actingShopId,
       });
       triggerDownload(result.blob, result.filename ?? "inventory.csv");

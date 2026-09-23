@@ -104,7 +104,8 @@ export interface StockOverviewResponse {
 export function getEodTotals(
   businessDate?: string,
   shopId?: number | null,
-  scope: "day" | "open_backlog" = "day"
+  scope: "day" | "open_backlog" = "day",
+  signal?: AbortSignal
 ): Promise<EodTotalsResponse> {
   const params = withShopIdParams(new URLSearchParams(), shopId);
   params.set("scope", scope);
@@ -116,7 +117,7 @@ export function getEodTotals(
     params.set("business_date", businessDate ?? todayLocalDateString());
   }
   const qs = params.toString();
-  return api<EodTotalsResponse>(`/dashboard/eod-totals${qs ? `?${qs}` : ""}`);
+  return api<EodTotalsResponse>(`/dashboard/eod-totals${qs ? `?${qs}` : ""}`, { signal });
 }
 
 export function signOffEod(

@@ -1,10 +1,10 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { FileText, RefreshCw, Download, Save } from "lucide-react";
 import { useAuth } from "../auth/AuthProvider";
 import { useShopScope } from "../auth/ShopScopeProvider";
 import { AppTabButton } from "../components/AppTabs";
-import { ApiError } from "../api/client";
+import { ApiError, isAbortError } from "../api/client";
 import {
   downloadLogFile,
   listLogFilesPage,
@@ -13,7 +13,7 @@ import {
   type LogType,
 } from "../api/logs";
 import { Pagination } from "../components/Pagination";
-import { pageOffset, pageSizeParam, positiveInt, STANDARD_PAGE_SIZES } from "../utils/pagination";
+import { lastPage, pageOffset, pageSizeParam, positiveInt, STANDARD_PAGE_SIZES } from "../utils/pagination";
 
 const LOG_TABS: Array<{ type: LogType; label: string; superadminOnly?: boolean }> = [
   { type: "checkout", label: "Checkout / Invoice Creation" },
@@ -53,6 +53,7 @@ export function LogsPage() {
   const [draftRetentionDays, setDraftRetentionDays] = useState("10");
   const [error, setError] = useState<string | null>(null);
   const [info, setInfo] = useState<string | null>(null);
+  const requestController = useRef<AbortController | null>(null);
 
   const setType = (nextType: LogType) => setSearchParams((current) => {
     const next = new URLSearchParams(current);
@@ -66,21 +67,28 @@ export function LogsPage() {
   const retentionNeedsShop = user?.role === "superadmin" && type !== "exceptions" && actingShopId === null;
 
   const reload = useCallback(async () => {
+    requestController.current?.abort();
+    const controller = new AbortController(); requestController.current = controller;
     setError(null);
     setInfo(null);
     setLoading(true);
     try {
-      const result = await listLogFilesPage(type, scopedShopId, pageSize, pageOffset(page, pageSize));
+      const result = await listLogFilesPage(type, scopedShopId, pageSize, pageOffset(page, pageSize), controller.signal);
+      if (controller.signal.aborted) return;
       setFiles(result.data.files);
       setTotal(result.total);
       setRetentionDays(result.data.retention_days);
       setDraftRetentionDays(String(result.data.retention_days));
+      const finalPage = lastPage(result.total, pageSize);
+      if (page > finalPage) setSearchParams((current) => {
+        const next = new URLSearchParams(current); next.set("page", String(finalPage)); return next;
+      }, { replace: true });
     } catch (e) {
-      setError(e instanceof ApiError ? e.detail : "Could not load log files.");
+      if (!isAbortError(e)) setError(e instanceof ApiError ? e.detail : "Could not load log files.");
     } finally {
-      setLoading(false);
+      if (!controller.signal.aborted) setLoading(false);
     }
-  }, [scopedShopId, type, page, pageSize]);
+  }, [scopedShopId, type, page, pageSize, setSearchParams]);
 
   const setPage = (nextPage: number, nextSize = pageSize, replace = false) => {
     setSearchParams((current) => {
@@ -93,6 +101,7 @@ export function LogsPage() {
 
   useEffect(() => {
     void reload();
+    return () => requestController.current?.abort();
   }, [reload]);
 
   const saveRetention = async () => {

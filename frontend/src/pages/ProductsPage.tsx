@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
-import { ApiError, toUserMessage } from "../api/client";
+import { ApiError, isAbortError, toUserMessage } from "../api/client";
 import {
   archiveProduct,
   createProduct,
@@ -47,14 +47,14 @@ export function ProductsPage() {
   const rawTab = searchParams.get("tab");
   const tab: Tab = rawTab === "create" || rawTab === "import" || rawTab === "copy" ? rawTab : "list";
   const [catalogQuery, setCatalogQuery] = useState(searchParams.get("q") ?? "");
+  const requestQuery = searchParams.get("q") ?? "";
   const [editingId, setEditingId] = useState<number | null>(null);
   const [initialBarcode, setInitialBarcode] = useState<InitialBarcode | null>(null);
   const [scannerError, setScannerError] = useState<string | null>(null);
 
   useEffect(() => {
-    const restored = searchParams.get("q") ?? "";
-    if (restored !== catalogQuery) setCatalogQuery(restored);
-  }, [searchParams]);
+    setCatalogQuery((current) => current === requestQuery ? current : requestQuery);
+  }, [requestQuery]);
 
   const setTab = useCallback((nextTab: Tab) => {
     setSearchParams((current) => {
@@ -66,17 +66,18 @@ export function ProductsPage() {
   }, [setSearchParams]);
 
   useEffect(() => {
+    const value = catalogQuery.trim();
+    if (value === requestQuery) return;
     const timer = window.setTimeout(() => {
       setSearchParams((current) => {
         const next = new URLSearchParams(current);
-        const value = catalogQuery.trim();
         if (value) next.set("q", value); else next.delete("q");
         next.set("page", "1");
         return next;
       }, { replace: true });
     }, 300);
     return () => window.clearTimeout(timer);
-  }, [catalogQuery, setSearchParams]);
+  }, [catalogQuery, requestQuery, setSearchParams]);
 
   const handleScan = useCallback(
     async (raw: string) => {
@@ -97,7 +98,7 @@ export function ProductsPage() {
         setScannerError(toUserMessage(e, "Could not resolve scanned barcode."));
       }
     },
-    [actingShopId]
+    [actingShopId, setTab]
   );
 
   useBarcodeScanner({ enabled: true, onScan: (barcode) => void handleScan(barcode) });
@@ -151,7 +152,7 @@ export function ProductsPage() {
           {tab === "list" && (
             <ListTab
               q={catalogQuery}
-              requestQ={searchParams.get("q") ?? ""}
+              requestQ={requestQuery}
               onQueryChange={setCatalogQuery}
               editingId={editingId}
               onEditingIdChange={setEditingId}
@@ -228,16 +229,25 @@ function ListTab({
       signal: controller.signal,
     })
       .then(({ data, total: nextTotal }) => {
+        if (controller.signal.aborted) return;
         setItems(data);
         setTotal(nextTotal);
+        const finalPage = lastPage(nextTotal, pageSize);
+        if (page > finalPage) {
+          setSearchParams((current) => {
+            const next = new URLSearchParams(current);
+            next.set("page", String(finalPage));
+            return next;
+          }, { replace: true });
+        }
       })
       .catch((e) => {
-        if (e instanceof DOMException && e.name === "AbortError") return;
+        if (isAbortError(e)) return;
         setError(toUserMessage(e, "Load failed."));
       })
       .finally(() => { if (!controller.signal.aborted) setBusy(false); });
     return () => controller.abort();
-  }, [requestQ, includeInactive, missingPriceOnly, refreshKey, actingShopId, isSuperadmin, selectedShopId, page, pageSize]);
+  }, [requestQ, includeInactive, missingPriceOnly, refreshKey, actingShopId, isSuperadmin, selectedShopId, page, pageSize, setSearchParams]);
 
   const updatePaging = useCallback((nextPage: number, nextSize = pageSize, replace = false) => {
     setSearchParams((current) => {
@@ -247,11 +257,6 @@ function ListTab({
       return next;
     }, { replace });
   }, [pageSize, setSearchParams]);
-
-  useEffect(() => {
-    const finalPage = lastPage(total, pageSize);
-    if (!busy && page > finalPage) updatePaging(finalPage, pageSize, true);
-  }, [busy, page, pageSize, total, updatePaging]);
 
   const updateBooleanFilter = (key: string, checked: boolean) => {
     setSearchParams((current) => {

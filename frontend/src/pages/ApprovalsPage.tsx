@@ -1,8 +1,8 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { CheckCircle2, PackagePlus, RefreshCw, ShieldAlert, XCircle } from "lucide-react";
 import { useSearchParams } from "react-router-dom";
 import type { InvoicePublic } from "../api/checkout";
-import { toUserMessage } from "../api/client";
+import { isAbortError, toUserMessage } from "../api/client";
 import { approveLot, rejectLot, type LotPublic } from "../api/lots";
 import { approveVoid, rejectVoid } from "../api/voids";
 import { listPendingApprovalsPage } from "../api/approvals";
@@ -10,7 +10,7 @@ import { notifyApprovalsChanged } from "../api/approvals-events";
 import { useShopScope, useShopScopeGuard } from "../auth/ShopScopeProvider";
 import { AppTabButton } from "../components/AppTabs";
 import { Pagination } from "../components/Pagination";
-import { pageOffset, pageSizeParam, positiveInt, STANDARD_PAGE_SIZES } from "../utils/pagination";
+import { lastPage, pageOffset, pageSizeParam, positiveInt, STANDARD_PAGE_SIZES } from "../utils/pagination";
 
 type ApprovalTab = "voids" | "inward";
 
@@ -45,6 +45,7 @@ export function ApprovalsPage() {
   const [error, setError] = useState<string | null>(null);
   const [busyKey, setBusyKey] = useState<string | null>(null);
   const [info, setInfo] = useState<string | null>(null);
+  const requestController = useRef<AbortController | null>(null);
 
   const activeTab = parseTab(searchParams.get("tab"));
   const page = positiveInt(searchParams.get("page"), 1);
@@ -61,26 +62,35 @@ export function ApprovalsPage() {
   );
 
   const reload = useCallback(async () => {
+    requestController.current?.abort();
+    const controller = new AbortController();
+    requestController.current = controller;
     if (shopScopeGuard.blocked) {
       setVoidItems(null);
       setInwardItems(null);
       return;
     }
-    setVoidItems(null);
-    setInwardItems(null);
     setError(null);
     try {
       const pending = await listPendingApprovalsPage(
-        actingShopId, pageSize, pageOffset(page, pageSize)
+        actingShopId, pageSize, pageOffset(page, pageSize), controller.signal
       );
+      if (controller.signal.aborted) return;
       setVoidItems(pending.voids);
       setInwardItems(pending.inward);
       setVoidTotal(pending.voidTotal);
       setInwardTotal(pending.inwardTotal);
+      const activeTotal = activeTab === "voids" ? pending.voidTotal : pending.inwardTotal;
+      const finalPage = lastPage(activeTotal, pageSize);
+      if (page > finalPage) {
+        setSearchParams((current) => {
+          const next = new URLSearchParams(current); next.set("page", String(finalPage)); return next;
+        }, { replace: true });
+      }
     } catch (e) {
-      setError(toUserMessage(e, "Could not load approvals."));
+      if (!isAbortError(e)) setError(toUserMessage(e, "Could not load approvals."));
     }
-  }, [actingShopId, shopScopeGuard.blocked, page, pageSize]);
+  }, [actingShopId, activeTab, shopScopeGuard.blocked, page, pageSize, setSearchParams]);
 
   const setPage = useCallback((nextPage: number, nextSize = pageSize, replace = false) => {
     setSearchParams((current) => {
@@ -92,6 +102,7 @@ export function ApprovalsPage() {
 
   useEffect(() => {
     void reload();
+    return () => requestController.current?.abort();
   }, [reload]);
 
   const act = async (

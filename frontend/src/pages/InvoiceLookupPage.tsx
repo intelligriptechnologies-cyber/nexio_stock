@@ -1,9 +1,9 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { useAuth } from "../auth/AuthProvider";
 import { useShopScope } from "../auth/ShopScopeProvider";
 import { AppTabButton } from "../components/AppTabs";
-import { ApiError } from "../api/client";
+import { ApiError, isAbortError } from "../api/client";
 import {
   downloadEodHistoryExport,
   getEodHistoryPage,
@@ -30,7 +30,7 @@ import { ModalDialog } from "../components/ModalDialog";
 import { ReceiptText, RefreshCw, Download, XOctagon, Calendar, MapPin, Filter } from "lucide-react";
 import { csvTimestamp, triggerDownload } from "../utils/csv";
 import { Pagination } from "../components/Pagination";
-import { pageOffset, pageSizeParam, positiveInt, STANDARD_PAGE_SIZES } from "../utils/pagination";
+import { lastPage, pageOffset, pageSizeParam, positiveInt, STANDARD_PAGE_SIZES } from "../utils/pagination";
 
 type Source = "current" | "past" | "reconciled";
 
@@ -115,6 +115,7 @@ export function InvoiceLookupPage() {
   const [editLines, setEditLines] = useState<
     { barcode: string; quantity: number; label: string; unitPrice: string }[]
   >([]);
+  const requestController = useRef<AbortController | null>(null);
 
   const canManageReconciledHistory = user?.role === "owner" || user?.role === "superadmin";
   const selectedShop = useMemo(
@@ -191,6 +192,8 @@ export function InvoiceLookupPage() {
   }, [info]);
 
   const reload = useCallback(async () => {
+    requestController.current?.abort();
+    const controller = new AbortController(); requestController.current = controller;
     if (user?.role === "superadmin" && actingShopId === null) {
       setInvoiceRows([]);
       setReconciliationRows([]);
@@ -198,6 +201,7 @@ export function InvoiceLookupPage() {
       setSelectedReconciliation(null);
       setEodTotals(null);
       setError(null);
+      setBusy(false);
       return;
     }
     setBusy(true);
@@ -210,7 +214,9 @@ export function InvoiceLookupPage() {
           fromDate: dateFrom || undefined,
           toDate: dateTo || undefined,
           shopId: actingShopId,
+          signal: controller.signal,
         });
+        if (controller.signal.aborted) return;
         setInvoiceRows([]);
         setReconciliationRows(result.data.signoffs);
         setTotal(result.total);
@@ -219,6 +225,8 @@ export function InvoiceLookupPage() {
           current ? result.data.signoffs.find((row) => row.id === current.id) ?? null : null
         );
         setEodTotals(null);
+        const finalPage = lastPage(result.total, pageSize);
+        if (page > finalPage) updateUrl({ page: String(finalPage) }, true);
         return;
       }
 
@@ -231,27 +239,31 @@ export function InvoiceLookupPage() {
         status: statusFilter || undefined,
         limit: pageSize,
         offset: pageOffset(page, pageSize),
+        signal: controller.signal,
       });
+      const nextEodTotals = source === "current"
+        ? await getEodTotals(undefined, actingShopId, "open_backlog", controller.signal)
+        : null;
+      if (controller.signal.aborted) return;
       setInvoiceRows(result.data.invoices);
       setTotal(result.total);
       setReconciliationRows([]);
       setSelectedInvoice((current) =>
         current ? result.data.invoices.find((row) => row.id === current.id) ?? null : null
       );
-      setEodTotals(
-        source === "current"
-          ? await getEodTotals(undefined, actingShopId, "open_backlog")
-          : null
-      );
+      setEodTotals(nextEodTotals);
+      const finalPage = lastPage(result.total, pageSize);
+      if (page > finalPage) updateUrl({ page: String(finalPage) }, true);
     } catch (e) {
-      setError(e instanceof ApiError ? e.detail : "Could not load invoices.");
+      if (!isAbortError(e)) setError(e instanceof ApiError ? e.detail : "Could not load invoices.");
     } finally {
-      setBusy(false);
+      if (!controller.signal.aborted) setBusy(false);
     }
-  }, [actingShopId, dateFrom, dateTo, paymentMode, source, statusFilter, user?.role, page, pageSize]);
+  }, [actingShopId, dateFrom, dateTo, paymentMode, source, statusFilter, user?.role, page, pageSize, updateUrl]);
 
   useEffect(() => {
     void reload();
+    return () => requestController.current?.abort();
   }, [reload]);
 
   const canEdit = (invoice: InvoicePublic) =>

@@ -1,7 +1,7 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { Truck, RefreshCw, Plus, Save, Download } from "lucide-react";
-import { ApiError, toUserMessage } from "../api/client";
+import { ApiError, isAbortError, toUserMessage } from "../api/client";
 import {
   createVendor,
   downloadVendorsExport,
@@ -12,7 +12,7 @@ import {
 import { useShopScope } from "../auth/ShopScopeProvider";
 import { triggerDownload } from "../utils/csv";
 import { Pagination } from "../components/Pagination";
-import { pageOffset, pageSizeParam, positiveInt, STANDARD_PAGE_SIZES } from "../utils/pagination";
+import { lastPage, pageOffset, pageSizeParam, positiveInt, STANDARD_PAGE_SIZES } from "../utils/pagination";
 
 export function VendorsPage() {
   const { actingShopId } = useShopScope();
@@ -26,25 +26,39 @@ export function VendorsPage() {
   const [error, setError] = useState<string | null>(null);
   const [info, setInfo] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const requestController = useRef<AbortController | null>(null);
 
-  useEffect(() => {
+  const refresh = useCallback(() => {
+    requestController.current?.abort();
+    const controller = new AbortController(); requestController.current = controller;
     if (actingShopId == null) {
       setVendors([]);
+      setBusy(false);
       return;
     }
     setError(null);
     setBusy(true);
-    void listVendorsPage({ shopId: actingShopId, includeInactive, limit: pageSize, offset: pageOffset(page, pageSize) })
+    void listVendorsPage({ shopId: actingShopId, includeInactive, limit: pageSize, offset: pageOffset(page, pageSize), signal: controller.signal })
       .then((result) => {
+        if (controller.signal.aborted) return;
         setVendors(result.data);
         setTotal(result.total);
         setSelectedId((current) =>
           current != null && result.data.some((vendor) => vendor.id === current) ? current : null
         );
+        const finalPage = lastPage(result.total, pageSize);
+        if (page > finalPage) setSearchParams((current) => {
+          const next = new URLSearchParams(current); next.set("page", String(finalPage)); return next;
+        }, { replace: true });
       })
-      .catch((e) => setError(toUserMessage(e, "Could not load vendors.")))
-      .finally(() => setBusy(false));
-  }, [actingShopId, includeInactive, page, pageSize]);
+      .catch((e) => { if (!isAbortError(e)) setError(toUserMessage(e, "Could not load vendors.")); })
+      .finally(() => { if (!controller.signal.aborted) setBusy(false); });
+  }, [actingShopId, includeInactive, page, pageSize, setSearchParams]);
+
+  useEffect(() => {
+    refresh();
+    return () => requestController.current?.abort();
+  }, [refresh]);
 
   const selected = useMemo(
     () => vendors.find((vendor) => vendor.id === selectedId) ?? null,
@@ -60,20 +74,6 @@ export function VendorsPage() {
       </div>
     );
   }
-
-  const refresh = () => {
-    setBusy(true);
-    void listVendorsPage({ shopId: actingShopId, includeInactive, limit: pageSize, offset: pageOffset(page, pageSize) })
-      .then((result) => {
-        setVendors(result.data);
-        setTotal(result.total);
-        setSelectedId((current) =>
-          current != null && result.data.some((vendor) => vendor.id === current) ? current : null
-        );
-      })
-      .catch((e) => setError(toUserMessage(e, "Could not load vendors.")))
-      .finally(() => setBusy(false));
-  };
 
   const setPage = (nextPage: number, nextSize = pageSize, replace = false) => {
     setSearchParams((current) => {

@@ -8,7 +8,69 @@ async function loginAsCashier(page: Page) {
   return _login.loginAsCashier(page);
 }
 
+async function openMockedProductCatalog(page: Page) {
+  const header = Buffer.from(JSON.stringify({ alg: "none", typ: "JWT" })).toString("base64url");
+  const payloadBody: { sub: string; shop_id: number; role: string; exp: number; test_pad?: string } = {
+    sub: "1", shop_id: 1, role: "owner", exp: Math.floor(Date.now() / 1000) + 3600,
+  };
+  let payload = Buffer.from(JSON.stringify(payloadBody)).toString("base64url");
+  while (payload.length % 4 !== 0) {
+    payloadBody.test_pad = `${payloadBody.test_pad ?? ""}x`;
+    payload = Buffer.from(JSON.stringify(payloadBody)).toString("base64url");
+  }
+  await page.addInitScript((token) => {
+    sessionStorage.setItem("barstock.token", token);
+    sessionStorage.setItem("barstock.user", JSON.stringify({
+      id: 1, shopId: 1, role: "owner", username: "owner", fullName: "Owner", phone: "0000000000",
+    }));
+  }, `${header}.${payload}.signature`);
+  await page.route("**/settings/me**", (route) => route.fulfill({
+    contentType: "application/json",
+    body: JSON.stringify({
+      id: 1, name: "Shop One", code: "shop1", app_display_name: "BarStock",
+      action_color: "#22c55e", active_tab_color: "#5a5148",
+      sidebar_menu_inactive_text_color: "#535353cf", sidebar_menu_active_text_color: "#ffffff",
+      email_enabled: false, smtp_host: null, smtp_port: null, smtp_username: null,
+      smtp_from_email: null, smtp_from_name: null, smtp_use_tls: true,
+    }),
+  }));
+  await page.route("**/products/pending/count**", (route) => route.fulfill({
+    contentType: "application/json", body: JSON.stringify({ count: 0 }),
+  }));
+  await page.route(
+    (url) => url.origin === "http://127.0.0.1:8000" && /\/products\?.*$/.test(url.href),
+    async (route) => {
+    const params = new URL(route.request().url()).searchParams;
+    const offset = Number(params.get("offset") ?? 0);
+    const limit = Number(params.get("limit") ?? 25);
+    const rows = Array.from({ length: Math.max(0, Math.min(limit, 60 - offset)) }, (_, index) => ({
+      id: offset + index + 1, shop_id: 1,
+      barcode: `PRODUCT-${String(offset + index + 1).padStart(3, "0")}`,
+      brand: `Product page record ${offset + index + 1}`, size_label: "750ml", price: "500.00",
+      low_stock_threshold: 4, is_active: true, status: "active",
+      created_at: "2026-01-01T00:00:00Z", updated_at: "2026-01-01T00:00:00Z", current_stock: 8,
+    }));
+    await route.fulfill({
+      contentType: "application/json",
+      headers: { "Access-Control-Expose-Headers": "X-Total-Count", "X-Total-Count": "60" },
+      body: JSON.stringify(rows),
+    });
+    }
+  );
+  await page.goto("/admin/products?page=2&pageSize=25");
+}
+
 test.describe("product catalog — owner", () => {
+  test("direct page 2 remains selected after the search debounce", async ({ page }) => {
+    await openMockedProductCatalog(page);
+
+    await expect(page.getByText("Product page record 26")).toBeVisible();
+    await page.waitForTimeout(400);
+    await expect.poll(() => new URL(page.url()).searchParams.get("page")).toBe("2");
+    await expect(page.getByText("Product page record 26")).toBeVisible();
+    await expect(page.getByRole("alert")).toHaveCount(0);
+  });
+
   test("renders list + tabs and can search", async ({ page }) => {
     await loginAsOwner(page);
     await page.goto("/admin/products");

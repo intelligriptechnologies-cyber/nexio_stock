@@ -1,11 +1,11 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { CheckCircle2, RefreshCw, XCircle, PackagePlus } from "lucide-react";
-import { toUserMessage } from "../api/client";
+import { isAbortError, toUserMessage } from "../api/client";
 import { approveLot, listStockInwardsPage, rejectLot, type LotPublic } from "../api/lots";
 import { useShopScope } from "../auth/ShopScopeProvider";
 import { Pagination } from "../components/Pagination";
-import { pageOffset, pageSizeParam, positiveInt, STANDARD_PAGE_SIZES } from "../utils/pagination";
+import { lastPage, pageOffset, pageSizeParam, positiveInt, STANDARD_PAGE_SIZES } from "../utils/pagination";
 
 function statusLabel(status: LotPublic["status"]): string {
   switch (status) {
@@ -30,17 +30,25 @@ export function StockInwardApprovalsPage() {
   const [error, setError] = useState<string | null>(null);
   const [busyId, setBusyId] = useState<number | null>(null);
   const [info, setInfo] = useState<string | null>(null);
+  const requestController = useRef<AbortController | null>(null);
 
   const reload = useCallback(async () => {
+    requestController.current?.abort();
+    const controller = new AbortController(); requestController.current = controller;
     setError(null);
     try {
-      const result = await listStockInwardsPage(actingShopId, pageSize, pageOffset(page, pageSize), "pending");
+      const result = await listStockInwardsPage(actingShopId, pageSize, pageOffset(page, pageSize), "pending", controller.signal);
+      if (controller.signal.aborted) return;
       setItems(result.data.lots);
       setTotal(result.total);
+      const finalPage = lastPage(result.total, pageSize);
+      if (page > finalPage) setSearchParams((current) => {
+        const next = new URLSearchParams(current); next.set("page", String(finalPage)); return next;
+      }, { replace: true });
     } catch (e) {
-      setError(toUserMessage(e, "Could not load stock inward queue."));
+      if (!isAbortError(e)) setError(toUserMessage(e, "Could not load stock inward queue."));
     }
-  }, [actingShopId, page, pageSize]);
+  }, [actingShopId, page, pageSize, setSearchParams]);
 
   const setPage = useCallback((nextPage: number, nextSize = pageSize, replace = false) => {
     setSearchParams((current) => {
@@ -51,6 +59,7 @@ export function StockInwardApprovalsPage() {
 
   useEffect(() => {
     void reload();
+    return () => requestController.current?.abort();
   }, [reload]);
 
   const act = async (id: number, fn: () => Promise<unknown>, label: string) => {

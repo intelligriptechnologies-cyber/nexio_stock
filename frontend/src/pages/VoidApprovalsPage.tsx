@@ -1,13 +1,13 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { ShieldAlert, RefreshCw, CheckCircle2, XCircle } from "lucide-react";
-import { toUserMessage } from "../api/client";
+import { isAbortError, toUserMessage } from "../api/client";
 import { getInvoice, type InvoicePublic } from "../api/checkout";
 import { approveVoid, listPendingVoidsPage, rejectVoid } from "../api/voids";
 import { notifyVoidApprovalsChanged } from "../api/void-approvals-events";
 import { useShopScope, useShopScopeGuard } from "../auth/ShopScopeProvider";
 import { Pagination } from "../components/Pagination";
-import { pageOffset, pageSizeParam, positiveInt, STANDARD_PAGE_SIZES } from "../utils/pagination";
+import { lastPage, pageOffset, pageSizeParam, positiveInt, STANDARD_PAGE_SIZES } from "../utils/pagination";
 
 function moneyFmt(s: string): string {
   return `₹${s}`;
@@ -24,21 +24,31 @@ export function VoidApprovalsPage() {
   const [error, setError] = useState<string | null>(null);
   const [busyId, setBusyId] = useState<number | null>(null);
   const [info, setInfo] = useState<string | null>(null);
+  const requestController = useRef<AbortController | null>(null);
 
   const reload = useCallback(async () => {
+    requestController.current?.abort();
+    const controller = new AbortController();
+    requestController.current = controller;
     if (shopScopeGuard.blocked) {
       setItems(null);
       return;
     }
-    setItems(null);
     try {
-      const res = await listPendingVoidsPage(actingShopId, pageSize, pageOffset(page, pageSize));
+      const res = await listPendingVoidsPage(actingShopId, pageSize, pageOffset(page, pageSize), controller.signal);
+      if (controller.signal.aborted) return;
       setItems(res.data.invoices);
       setTotal(res.total);
+      const finalPage = lastPage(res.total, pageSize);
+      if (page > finalPage) {
+        setSearchParams((current) => {
+          const next = new URLSearchParams(current); next.set("page", String(finalPage)); return next;
+        }, { replace: true });
+      }
     } catch (e) {
-      setError(toUserMessage(e, "Load failed."));
+      if (!isAbortError(e)) setError(toUserMessage(e, "Load failed."));
     }
-  }, [actingShopId, shopScopeGuard.blocked, page, pageSize]);
+  }, [actingShopId, shopScopeGuard.blocked, page, pageSize, setSearchParams]);
 
   const setPage = useCallback((nextPage: number, nextSize = pageSize, replace = false) => {
     setSearchParams((current) => {
@@ -49,6 +59,7 @@ export function VoidApprovalsPage() {
 
   useEffect(() => {
     void reload();
+    return () => requestController.current?.abort();
   }, [reload]);
 
   const act = async (id: number, fn: () => Promise<unknown>, label: string) => {

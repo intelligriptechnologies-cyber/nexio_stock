@@ -102,6 +102,11 @@ export function toUserMessage(e: unknown, fallback: string): string {
   return fallback;
 }
 
+/** Native fetch cancellation is control flow, not a network failure. */
+export function isAbortError(e: unknown): e is { name: "AbortError" } {
+  return typeof e === "object" && e !== null && "name" in e && e.name === "AbortError";
+}
+
 // `shopId` (the superadmin's acting shop, D-66) gets merged onto a
 // request body or query params the same way at every write call site:
 // present it as `shop_id` when set, omit it otherwise. One helper for
@@ -146,6 +151,7 @@ export async function api<T = unknown>(
   try {
     res = await fetch(`${API_BASE}${path}`, { ...init, headers, body });
   } catch (e) {
+    if (isAbortError(e)) throw e;
     throw new ApiError(
       0,
       "Could not reach the server. Check that the backend is running, then refresh.",
@@ -187,6 +193,7 @@ export async function apiPage<T>(
   try {
     res = await fetch(`${API_BASE}${path}`, { ...init, headers });
   } catch (e) {
+    if (isAbortError(e)) throw e;
     throw new ApiError(0, "Could not reach the server. Check that the backend is running, then refresh.", e);
   }
   if (!res.ok) {
