@@ -26,6 +26,7 @@ import { TermsPage } from "./pages/TermsPage";
 import { LoginHelpPage } from "./pages/LoginHelpPage";
 import { CheckoutHelpPage } from "./pages/CheckoutHelpPage";
 import { ReceivingHelpPage } from "./pages/ReceivingHelpPage";
+import { PurchaseOrdersPage } from "./pages/PurchaseOrdersPage";
 
 const FOCUSED_MODE_STORAGE_KEY = "nexio.focused-mode-enabled";
 const FOCUSED_MODE_PATHS = new Set(["/checkout", "/receiving"]);
@@ -187,6 +188,14 @@ export default function App() {
             <AuthedShell>
               <ReceivingPage />
             </AuthedShell>
+          </Protected>
+        }
+      />
+      <Route
+        path="/purchase-orders"
+        element={
+          <Protected allow={["receiver_user", "owner", "superadmin"]}>
+            <AuthedShell><PurchaseOrdersPage /></AuthedShell>
           </Protected>
         }
       />

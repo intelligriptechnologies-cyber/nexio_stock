@@ -19,6 +19,7 @@ Issue #30: route handlers here own request parsing and error-to-HTTP
 translation only — the CRUD/quick-add/pending-list/activation/CSV-import
 logic lives in ``app.services.products``.
 """
+
 from __future__ import annotations
 
 import csv
@@ -39,6 +40,7 @@ from fastapi import (
 )
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.api._errors import map_error_to_http
 from app.api._logs import write_business_log
 from app.api.deps import (
     DbSession,
@@ -47,10 +49,12 @@ from app.api.deps import (
     resolve_read_shop_id,
     resolve_write_shop_id,
 )
+from app.db import unit_of_work
 from app.logging_config import get_logger
 from app.models.log import AdminLog
 from app.models.product import Product, ProductStatus
 from app.models.user import User, UserRole
+from app.schemas.lot import InventoryAdjustmentCreate, LotPublic
 from app.schemas.product import (
     PendingProductRow,
     ProductActionConfirmation,
@@ -85,6 +89,7 @@ from app.services.products import (
     get_product_for_write,
     latest_unit_cost_by_product_ids,
     lookup_product_by_barcode,
+    pending_inward_product_ids,
     permanent_delete_blockers,
     permanent_delete_eligible_ids,
     quick_add_log_entry,
@@ -93,6 +98,11 @@ from app.services.products import (
     update_product_fields,
 )
 from app.services.stock import compute_derived_stock
+from app.services.stock_inwards import (
+    StockInwardError,
+    create_inventory_adjustment,
+    get_stock_inward,
+)
 
 router = APIRouter(prefix="/products", tags=["products"])
 log = get_logger(__name__)
@@ -105,7 +115,12 @@ _write_roles = (UserRole.OWNER, UserRole.SUPERADMIN)
 # Quick-add is intentionally broader than /products POST: receiver and
 # cashier are the primary users (D-v2-1); owner is a superset of both
 # (D-v2-10). Superadmin may quick-add only with an explicit acting shop.
-_quick_add_roles = (UserRole.OWNER, UserRole.RECEIVER_USER, UserRole.CASHIER_USER, UserRole.SUPERADMIN)
+_quick_add_roles = (
+    UserRole.OWNER,
+    UserRole.RECEIVER_USER,
+    UserRole.CASHIER_USER,
+    UserRole.SUPERADMIN,
+)
 _pending_roles = (UserRole.OWNER, UserRole.SUPERADMIN)
 
 _PRODUCT_ERROR_CODE_TO_STATUS: dict[str, int] = {
@@ -139,9 +154,7 @@ def _lifecycle_error_to_http(exc: ProductLifecycleError) -> HTTPException:
     )
 
 
-async def _public_with_stock(
-    db: AsyncSession, rows: list[Product]
-) -> list[ProductPublic]:
+async def _public_with_stock(db: AsyncSession, rows: list[Product]) -> list[ProductPublic]:
     """Build ``ProductPublic`` for each row, attaching ``current_stock``
     in one batched query (issue #40, R-v3-4).
 
@@ -157,6 +170,7 @@ async def _public_with_stock(
     stock = await compute_derived_stock(db, product_ids=product_ids)
     latest_costs = await latest_unit_cost_by_product_ids(db, product_ids=product_ids)
     eligible_ids = await permanent_delete_eligible_ids(db, product_ids=product_ids)
+    pending_ids = await pending_inward_product_ids(db, product_ids=product_ids)
     out: list[ProductPublic] = []
     for r in rows:
         # model_validate picks up the schema-default current_stock=0;
@@ -166,6 +180,7 @@ async def _public_with_stock(
         data["current_stock"] = stock.get(r.id, 0)
         data["latest_unit_cost"] = latest_costs.get(r.id)
         data["can_permanently_delete"] = r.id in eligible_ids and not r.is_active
+        data["has_pending_inventory_request"] = r.id in pending_ids
         out.append(ProductPublic(**data))
     return out
 
@@ -188,9 +203,7 @@ async def create_product(
     # Owner/receiver/cashier create in their own shop; superadmin must
     # name the target shop explicitly (D-64/D-65).
     actor_shop_id = await resolve_write_shop_id(db, _user, payload.shop_id)
-    await require_no_offline_session_lock(
-        db, shop_id=actor_shop_id, action="product creation"
-    )
+    await require_no_offline_session_lock(db, shop_id=actor_shop_id, action="product creation")
 
     try:
         product = await create_product_row(
@@ -214,6 +227,54 @@ async def create_product(
         barcode=product.barcode,
     )
     return ProductPublic.model_validate(product)
+
+
+@router.post(
+    "/{product_id}/inventory-adjustments",
+    response_model=LotPublic,
+    status_code=status.HTTP_201_CREATED,
+    summary="Superadmin submits a signed inventory adjustment for approval",
+)
+async def create_product_inventory_adjustment(
+    product_id: int,
+    payload: InventoryAdjustmentCreate,
+    db: DbSession,
+    _user: User = Depends(require_role(UserRole.SUPERADMIN)),
+) -> LotPublic:
+    shop_id = await resolve_write_shop_id(db, _user, payload.shop_id)
+    await require_no_offline_session_lock(db, shop_id=shop_id, action="inventory adjustment")
+    try:
+        async with unit_of_work(db):
+            inward = await create_inventory_adjustment(
+                db,
+                actor_id=_user.id,
+                shop_id=shop_id,
+                product_id=product_id,
+                quantity_delta=payload.quantity_delta,
+                reason=payload.reason,
+            )
+    except StockInwardError as exc:
+        code_to_status = {
+            "not_found": status.HTTP_404_NOT_FOUND,
+            "pending_inventory_request": status.HTTP_409_CONFLICT,
+        }
+        raise map_error_to_http(
+            exc,
+            code_to_status=code_to_status,
+            log_event="inventory_adjustment.unmapped_error_code",
+        ) from exc
+
+    loaded = await get_stock_inward(db, inward_id=inward.id, shop_id=shop_id)
+    assert loaded is not None
+    log.info(
+        "inventory_adjustment.created",
+        actor_user_id=_user.id,
+        shop_id=shop_id,
+        product_id=product_id,
+        stock_inward_id=loaded.id,
+        quantity_delta=payload.quantity_delta,
+    )
+    return LotPublic.model_validate(loaded)
 
 
 @router.post(
@@ -310,14 +371,14 @@ async def quick_add_product(
         ) from exc
     except ProductError as exc:
         raise _error_to_http(exc) from exc
-    await require_no_offline_session_lock(
-        db, shop_id=product.shop_id, action="product update"
-    )
+    await require_no_offline_session_lock(db, shop_id=product.shop_id, action="product update")
     await db.refresh(product)
 
     # Audit-log to the right domain table (D-v2-13): receiving ->
     # stockin_logs, checkout -> invoicing_logs.
-    quick_add_log_entry(db, actor_id=actor_id, shop_id=actor_shop_id, product=product, origin=origin)
+    quick_add_log_entry(
+        db, actor_id=actor_id, shop_id=actor_shop_id, product=product, origin=origin
+    )
     await db.commit()
 
     log.info(
@@ -400,7 +461,9 @@ async def list_inventory(
     response: Response,
     _user: User = Depends(require_role(*_lookup_roles)),
     q: Annotated[str | None, Query()] = None,
-    stock_state: Annotated[Literal["all", "in_stock", "low_stock", "out_of_stock"], Query()] = "all",
+    stock_state: Annotated[
+        Literal["all", "in_stock", "low_stock", "out_of_stock"], Query()
+    ] = "all",
     sort: Annotated[Literal["name", "stock_asc", "stock_desc"], Query()] = "name",
     limit: Annotated[int, Query(ge=1, le=100)] = 25,
     offset: Annotated[int, Query(ge=0)] = 0,
@@ -408,8 +471,13 @@ async def list_inventory(
 ) -> list[ProductPublic]:
     scoped_shop_id = resolve_read_shop_id(_user, shop_id)
     rows, total = await products_svc.list_inventory(
-        db, shop_id=scoped_shop_id, q=q, stock_state=stock_state,
-        sort=sort, limit=limit, offset=offset,
+        db,
+        shop_id=scoped_shop_id,
+        q=q,
+        stock_state=stock_state,
+        sort=sort,
+        limit=limit,
+        offset=offset,
     )
     response.headers["X-Total-Count"] = str(total)
     return await _public_with_stock(db, rows)
@@ -417,7 +485,19 @@ async def list_inventory(
 
 def _products_csv(rows: list[ProductPublic]) -> str:
     out = io.StringIO()
-    fields = ["id", "shop_id", "brand", "size_label", "barcode", "price", "latest_unit_cost", "current_stock", "low_stock_threshold", "status", "is_active"]
+    fields = [
+        "id",
+        "shop_id",
+        "brand",
+        "size_label",
+        "barcode",
+        "price",
+        "latest_unit_cost",
+        "current_stock",
+        "low_stock_threshold",
+        "status",
+        "is_active",
+    ]
     writer = csv.DictWriter(out, fieldnames=fields)
     writer.writeheader()
     for row in rows:
@@ -438,11 +518,20 @@ async def export_products(
 ) -> Response:
     scoped_shop_id = resolve_read_shop_id(_user, shop_id)
     products = await products_svc.list_products(
-        db, shop_id=scoped_shop_id, active_only=active_only,
-        missing_price_only=missing_price_only, q=q, limit=1_000_000, offset=0,
+        db,
+        shop_id=scoped_shop_id,
+        active_only=active_only,
+        missing_price_only=missing_price_only,
+        q=q,
+        limit=1_000_000,
+        offset=0,
     )
     rows = await _public_with_stock(db, list(products))
-    return Response(content=_products_csv(rows), media_type="text/csv", headers={"Content-Disposition": 'attachment; filename="products.csv"'})
+    return Response(
+        content=_products_csv(rows),
+        media_type="text/csv",
+        headers={"Content-Disposition": 'attachment; filename="products.csv"'},
+    )
 
 
 @router.get("/inventory/export", summary="Export the complete filtered inventory as CSV")
@@ -456,11 +545,20 @@ async def export_inventory(
 ) -> Response:
     scoped_shop_id = resolve_read_shop_id(_user, shop_id)
     products, _ = await products_svc.list_inventory(
-        db, shop_id=scoped_shop_id, q=q, stock_state=stock_state,
-        sort=sort, limit=1_000_000, offset=0,
+        db,
+        shop_id=scoped_shop_id,
+        q=q,
+        stock_state=stock_state,
+        sort=sort,
+        limit=1_000_000,
+        offset=0,
     )
     rows = await _public_with_stock(db, products)
-    return Response(content=_products_csv(rows), media_type="text/csv", headers={"Content-Disposition": 'attachment; filename="inventory.csv"'})
+    return Response(
+        content=_products_csv(rows),
+        media_type="text/csv",
+        headers={"Content-Disposition": 'attachment; filename="inventory.csv"'},
+    )
 
 
 @router.get(
@@ -903,9 +1001,7 @@ async def import_products_csv(
     # triggers a lazy load on a closed session.
     actor_id = _user.id
     actor_shop_id = await resolve_write_shop_id(db, _user, shop_id)
-    await require_no_offline_session_lock(
-        db, shop_id=actor_shop_id, action="product CSV import"
-    )
+    await require_no_offline_session_lock(db, shop_id=actor_shop_id, action="product CSV import")
 
     raw = await file.read()
     try:
@@ -923,5 +1019,7 @@ async def import_products_csv(
     return ProductImportResponse(
         created=summary.created,
         failed=len(summary.errors),
-        errors=[ProductImportError(row=e.row, barcode=e.barcode, error=e.error) for e in summary.errors],
+        errors=[
+            ProductImportError(row=e.row, barcode=e.barcode, error=e.error) for e in summary.errors
+        ],
     )

@@ -1,4 +1,5 @@
 """Stock inward + committed lot schemas."""
+
 from __future__ import annotations
 
 from datetime import date, datetime
@@ -7,7 +8,7 @@ from decimal import Decimal
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from app.models.lot import Lot, LotLine
-from app.models.stock_inward import StockInward, StockInwardLine, StockInwardStatus
+from app.models.stock_inward import StockInwardStatus, StockMovementType
 from app.schemas.vendor import VendorPublic
 
 
@@ -20,10 +21,14 @@ class LotLineCreate(BaseModel):
     quantity: int = Field(gt=0, le=100_000)
     good_condition_quantity: int | None = Field(default=None, ge=0, le=100_000)
     unit_cost: Decimal | None = Field(default=None, max_digits=12, decimal_places=2)
+    purchase_order_line_id: int | None = Field(default=None, gt=0)
 
     @model_validator(mode="after")
     def _condition_not_exceed_received(self) -> LotLineCreate:
-        if self.good_condition_quantity is not None and self.good_condition_quantity > self.quantity:
+        if (
+            self.good_condition_quantity is not None
+            and self.good_condition_quantity > self.quantity
+        ):
             raise ValueError("good_condition_quantity cannot exceed quantity")
         return self
 
@@ -42,6 +47,8 @@ class LotLinePublic(BaseModel):
     line_total: Decimal | None
     product_brand: str
     product_size_label: str
+    purchase_order_line_id: int | None
+    purchase_order_ordered_bottles: int | None
 
 
 class LotCreate(BaseModel):
@@ -57,6 +64,8 @@ class LotCreate(BaseModel):
     )
     reference: str | None = Field(default=None, max_length=100)
     notes: str | None = Field(default=None, max_length=500)
+    purchase_order_id: int | None = Field(default=None, gt=0)
+    over_receipt_reason: str | None = Field(default=None, max_length=500)
     lines: list[LotLineCreate] = Field(min_length=1, max_length=500)
     # Superadmin-only: names the target shop, since superadmin has no shop_id.
     shop_id: int | None = Field(default=None)
@@ -75,8 +84,12 @@ class LotPublic(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
     id: int
+    movement_type: StockMovementType
     shop_id: int
     vendor_id: int | None
+    purchase_order_id: int | None
+    purchase_order_token: str | None
+    over_receipt_reason: str | None
     received_by_user_id: int
     purchase_date: date
     vendor_invoice_number: str
@@ -106,7 +119,25 @@ class LotListResponse(BaseModel):
     lots: list[LotPublic]
 
 
+class InventoryAdjustmentCreate(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    shop_id: int
+    quantity_delta: int = Field(ge=-100_000, le=100_000)
+    reason: str = Field(min_length=1, max_length=500)
+
+    @model_validator(mode="after")
+    def _validate_adjustment(self) -> InventoryAdjustmentCreate:
+        if self.quantity_delta == 0:
+            raise ValueError("quantity_delta must be non-zero")
+        if not self.reason.strip():
+            raise ValueError("reason must not be blank")
+        self.reason = self.reason.strip()
+        return self
+
+
 __all__ = [
+    "InventoryAdjustmentCreate",
     "Lot",
     "LotCreate",
     "LotLine",

@@ -16,6 +16,8 @@ const products = [
     created_at: "2026-01-01T00:00:00Z",
     updated_at: "2026-01-01T00:00:00Z",
     current_stock: 12,
+    latest_unit_cost: "400.00",
+    has_pending_inventory_request: false,
   },
   {
     id: 2,
@@ -30,6 +32,8 @@ const products = [
     created_at: "2026-01-01T00:00:00Z",
     updated_at: "2026-01-01T00:00:00Z",
     current_stock: 3,
+    latest_unit_cost: "500.00",
+    has_pending_inventory_request: false,
   },
   {
     id: 3,
@@ -44,6 +48,8 @@ const products = [
     created_at: "2026-01-01T00:00:00Z",
     updated_at: "2026-01-01T00:00:00Z",
     current_stock: 0,
+    latest_unit_cost: null,
+    has_pending_inventory_request: true,
   },
 ];
 
@@ -273,6 +279,46 @@ test.describe("inventory", () => {
     await expect(page.getByRole("heading", { name: "Inventory" })).toBeVisible();
     await expect(page.getByRole("table", { name: "Inventory table" })).toBeVisible();
     await expect(page.getByRole("link", { name: "Inventory" })).toBeVisible();
+    await expect(page.getByRole("button", { name: /Adjust inventory for/ })).toHaveCount(2);
+    await expect(page.getByText("Pending", { exact: true })).toHaveCount(1);
+  });
+
+  test("superadmin submits a signed adjustment and the row becomes pending", async ({ page }) => {
+    await seedSession(page, "superadmin", 1);
+    await mockShellApis(page);
+    let submitted: unknown = null;
+    await page.route("**/products/1/inventory-adjustments", async (route) => {
+      submitted = route.request().postDataJSON();
+      await route.fulfill({
+        status: 201,
+        contentType: "application/json",
+        body: JSON.stringify({ id: 77, movement_type: "adjustment" }),
+      });
+    });
+    await page.goto("/inventory");
+
+    await page.getByRole("button", { name: "Adjust inventory for Healthy Brand 750ml" }).click();
+    const dialog = page.getByRole("dialog", { name: "Inventory adjustment" });
+    await expect(dialog).toContainText("Current stock");
+    await dialog.getByLabel("Signed adjustment").fill("-5");
+    await expect(dialog).toContainText("7");
+    await dialog.getByLabel("Reason").fill("Cycle count correction");
+    await dialog.getByRole("button", { name: "Submit for approval" }).click();
+
+    await expect(dialog).toHaveCount(0);
+    expect(submitted).toEqual({
+      shop_id: 1,
+      quantity_delta: -5,
+      reason: "Cycle count correction",
+    });
+    await expect(page.getByRole("button", { name: "Adjust inventory for Healthy Brand 750ml" })).toHaveCount(0);
+  });
+
+  test("inventory adjustment controls are hidden from owners", async ({ page }) => {
+    await seedSession(page, "owner");
+    await mockShellApis(page);
+    await page.goto("/inventory");
+    await expect(page.getByRole("button", { name: /Adjust inventory for/ })).toHaveCount(0);
   });
 
   test("search filters by brand, size, and barcode", async ({ page }) => {

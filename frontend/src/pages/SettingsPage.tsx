@@ -1,7 +1,8 @@
 import { useEffect, useState, type FormEventHandler, type ReactNode } from "react";
-import { FileText, KeyRound, Lock, Mail, Palette, Save, Settings, Shield } from "lucide-react";
+import { FileText, KeyRound, Lock, Mail, PackageOpen, Palette, Save, Settings, Shield } from "lucide-react";
 import { ApiError } from "../api/client";
 import { getMySettings, updateMySettings, type SettingsPublic } from "../api/settings";
+import { getCasePackRules, updateCasePackRules, type CasePackRule } from "../api/purchase-orders";
 import {
   changeMyPassword,
   getMyTwoFactor,
@@ -17,7 +18,7 @@ import { useShopScope } from "../auth/ShopScopeProvider";
 import { AppTabButton } from "../components/AppTabs";
 import { useSettingsTheme } from "../theme/settingsThemeContext";
 
-type Tab = "general" | "email" | "invoice" | "security";
+type Tab = "general" | "email" | "invoice" | "case-packs" | "security";
 
 const DEFAULT_SIDEBAR_BRAND_NAME = "BarStock";
 
@@ -326,6 +327,9 @@ export function SettingsPage() {
               </AppTabButton>
               <AppTabButton active={tab === "invoice"} onClick={() => setTab("invoice")}>
                 <FileText className="h-4 w-4" /> Invoice Settings
+              </AppTabButton>
+              <AppTabButton active={tab === "case-packs"} onClick={() => setTab("case-packs")}>
+                <PackageOpen className="h-4 w-4" /> Case Sizes
               </AppTabButton>
               <AppTabButton active={tab === "security"} onClick={() => setTab("security")}>
                 <Shield className="h-4 w-4" /> Security
@@ -798,6 +802,13 @@ export function SettingsPage() {
                   )}
                 </section>
               )}
+              {tab === "case-packs" && (
+                <CasePackSettings
+                  shopId={actingShopId}
+                  onError={setError}
+                  onInfo={setInfo}
+                />
+              )}
             </div>
           </div>
         </>
@@ -1098,6 +1109,44 @@ function shopFormFromSettings(next: SettingsPublic): ShopFormState {
     dutyRate: next.excise_duty_rate ?? "",
     threshold: next.low_stock_threshold_default === null ? "" : String(next.low_stock_threshold_default),
   };
+}
+
+function CasePackSettings({ shopId, onError, onInfo }: {
+  shopId: number | null;
+  onError: (message: string | null) => void;
+  onInfo: (message: string | null) => void;
+}) {
+  const [rules, setRules] = useState<CasePackRule[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    setLoading(true);
+    void getCasePackRules(shopId).then((rows) => {
+      if (!cancelled) setRules(rows);
+    }).catch((e) => {
+      if (!cancelled) onError(apiErrorMessage(e, "Could not load case sizes."));
+    }).finally(() => {
+      if (!cancelled) setLoading(false);
+    });
+    return () => { cancelled = true; };
+  }, [onError, shopId]);
+
+  if (loading) return <LoadingCard title="Loading case sizes" />;
+  return (
+    <section className="rounded-xl border border-slate-200/50 bg-white/60 p-8 shadow-sm">
+      <div className="mb-6"><h2 className="text-xl font-bold text-slate-900">Bottle case sizes</h2><p className="mt-1 text-sm text-slate-500">Used to convert OSBCL case quantities into auditable bottle quantities.</p></div>
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        {rules.map((rule, index) => <div key={rule.id} className="flex items-end gap-2 rounded-xl border border-slate-200 bg-white p-4">
+          <label className="text-xs font-bold uppercase text-slate-500">Bottle ml<input aria-label="Bottle size ml" type="number" value={rule.size_ml} onChange={(event) => setRules((current) => current.map((row, rowIndex) => rowIndex === index ? { ...row, size_ml: Number(event.target.value) } : row))} className="mt-1 h-10 w-full rounded border px-3 text-sm font-normal text-slate-900" /></label>
+          <label className="text-xs font-bold uppercase text-slate-500">Per case<input aria-label="Bottles per case" type="number" value={rule.bottles_per_case} onChange={(event) => setRules((current) => current.map((row, rowIndex) => rowIndex === index ? { ...row, bottles_per_case: Number(event.target.value) } : row))} className="mt-1 h-10 w-full rounded border px-3 text-sm font-normal text-slate-900" /></label>
+          <button type="button" aria-label={`Remove ${rule.size_ml} ml rule`} className="h-10 px-2 text-red-600" onClick={() => setRules((current) => current.filter((_, rowIndex) => rowIndex !== index))}>×</button>
+        </div>)}
+      </div>
+      <div className="mt-5 flex gap-3"><button type="button" className="app-button-secondary" onClick={() => setRules((current) => [...current, { id: -Date.now(), shop_id: shopId ?? 0, size_ml: 275, bottles_per_case: 24 }])}>Add size</button><button type="button" disabled={saving || rules.length === 0} className="app-button-primary" onClick={() => { setSaving(true); onError(null); void updateCasePackRules(rules.map(({ size_ml, bottles_per_case }) => ({ size_ml, bottles_per_case })), shopId).then((rows) => { setRules(rows); onInfo("Case sizes saved."); }).catch((e) => onError(apiErrorMessage(e, "Save failed."))).finally(() => setSaving(false)); }}>{saving ? "Saving…" : "Save case sizes"}</button></div>
+    </section>
+  );
 }
 
 function securityFormFromUser(next: UserPublic): SecurityFormState {

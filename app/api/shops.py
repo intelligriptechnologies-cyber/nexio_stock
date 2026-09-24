@@ -53,6 +53,7 @@ from app.schemas.shop import (
 )
 from app.security.passwords import hash_password
 from app.services.admin_logs import write_admin_log
+from app.services.purchase_orders import ensure_case_pack_rules
 from app.services.two_factor import (
     SHOP_2FA_REQUIRED_ROLES,
     TwoFactorProvisioningRequiredError,
@@ -111,6 +112,8 @@ async def create_shop(
     )
     db.add(shop)
     try:
+        await db.flush()
+        await ensure_case_pack_rules(db, shop.id)
         await db.commit()
     except (IntegrityError, AsyncAdapt_asyncpg_dbapi.IntegrityError) as exc:
         await db.rollback()

@@ -1,13 +1,15 @@
 import { useCallback, useEffect, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { isAbortError, toUserMessage } from "../api/client";
-import { downloadInventoryExport, listInventoryPage, type Product } from "../api/products";
+import { createInventoryAdjustment, downloadInventoryExport, listInventoryPage, type Product } from "../api/products";
+import { notifyApprovalsChanged } from "../api/approvals-events";
 import { useAuth } from "../auth/AuthProvider";
 import { useShopScope, useShopScopeGuard } from "../auth/ShopScopeProvider";
-import { PackageOpen, Search, Filter, ArrowDownUp, ArrowDownToLine, ShoppingCart, Edit3, Download } from "lucide-react";
+import { PackageOpen, Search, Filter, ArrowDownUp, ArrowDownToLine, ShoppingCart, Edit3, Download, X } from "lucide-react";
 import { triggerDownload } from "../utils/csv";
 import { Pagination } from "../components/Pagination";
 import { lastPage, pageOffset, pageSizeParam, positiveInt, STANDARD_PAGE_SIZES } from "../utils/pagination";
+import { ModalDialog } from "../components/ModalDialog";
 
 type StockFilter = "all" | "in_stock" | "low_stock" | "out_of_stock";
 type SortMode = "name" | "stock_asc" | "stock_desc";
@@ -57,6 +59,11 @@ export function InventoryPage() {
   const [total, setTotal] = useState(0);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [adjusting, setAdjusting] = useState<Product | null>(null);
+  const [quantityDelta, setQuantityDelta] = useState("");
+  const [adjustmentReason, setAdjustmentReason] = useState("");
+  const [adjustmentBusy, setAdjustmentBusy] = useState(false);
+  const [adjustmentError, setAdjustmentError] = useState<string | null>(null);
   const [searchParams, setSearchParams] = useSearchParams();
   const [query, setQuery] = useState(searchParams.get("q") ?? "");
   const requestQuery = searchParams.get("q") ?? "";
@@ -131,6 +138,45 @@ export function InventoryPage() {
   const canCheckout = user?.role === "cashier_user";
   const canEditProduct = user?.role === "owner" || user?.role === "superadmin";
   const exportDisabled = items === null || visibleItems.length === 0 || shopScopeGuard.blocked;
+  const parsedDelta = Number(quantityDelta);
+  const validIntegerDelta = Number.isInteger(parsedDelta) && parsedDelta !== 0 && Math.abs(parsedDelta) <= 100_000;
+  const projectedStock = adjusting && validIntegerDelta ? adjusting.current_stock + parsedDelta : null;
+  const canSubmitAdjustment = Boolean(
+    adjusting && actingShopId != null && validIntegerDelta && projectedStock != null &&
+    projectedStock >= 0 && adjustmentReason.trim() && !adjustmentBusy
+  );
+
+  const closeAdjustment = () => {
+    if (adjustmentBusy) return;
+    setAdjusting(null);
+    setQuantityDelta("");
+    setAdjustmentReason("");
+    setAdjustmentError(null);
+  };
+
+  const submitAdjustment = async () => {
+    if (!adjusting || actingShopId == null || !canSubmitAdjustment) return;
+    setAdjustmentBusy(true);
+    setAdjustmentError(null);
+    try {
+      await createInventoryAdjustment(adjusting.id, {
+        shop_id: actingShopId,
+        quantity_delta: parsedDelta,
+        reason: adjustmentReason.trim(),
+      });
+      setItems((current) => current?.map((item) =>
+        item.id === adjusting.id ? { ...item, has_pending_inventory_request: true } : item
+      ) ?? current);
+      notifyApprovalsChanged();
+      setAdjusting(null);
+      setQuantityDelta("");
+      setAdjustmentReason("");
+    } catch (e) {
+      setAdjustmentError(toUserMessage(e, "Could not submit inventory adjustment."));
+    } finally {
+      setAdjustmentBusy(false);
+    }
+  };
 
   const exportRows = async () => {
     try {
@@ -252,7 +298,23 @@ export function InventoryPage() {
                       <td className="px-6 py-4 text-right font-mono font-semibold text-slate-900">{money(item.price)}</td>
                       <td className="px-6 py-4 text-right font-mono font-semibold text-slate-900">{money(item.latest_unit_cost)}</td>
                       <td className="px-6 py-4 text-right font-mono text-base font-bold text-slate-900">
-                        {item.current_stock}
+                        <span className="inline-flex items-center justify-end gap-2">
+                          {item.current_stock}
+                          {user?.role === "superadmin" && actingShopId != null && !item.has_pending_inventory_request && (
+                            <button
+                              type="button"
+                              onClick={() => { setAdjusting(item); setAdjustmentError(null); }}
+                              className="inline-flex h-8 w-8 items-center justify-center rounded-md bg-white text-slate-600 shadow-sm ring-1 ring-slate-200 transition-colors hover:text-action"
+                              aria-label={`Adjust inventory for ${item.brand} ${item.size_label}`}
+                              title="Adjust inventory"
+                            >
+                              <Edit3 className="h-4 w-4" />
+                            </button>
+                          )}
+                          {item.has_pending_inventory_request && (
+                            <span className="font-sans text-[10px] font-semibold uppercase tracking-wider text-amber-700">Pending</span>
+                          )}
+                        </span>
                       </td>
                       <td className="px-6 py-4 text-right font-mono font-semibold text-slate-900">{valuation(item)}</td>
                       <td className="px-6 py-4 text-right font-mono text-slate-500">
@@ -316,6 +378,49 @@ export function InventoryPage() {
           </div>
         </div>
       ) : null}
+
+      {adjusting && (
+        <ModalDialog labelledBy="inventory-adjustment-title" describedBy="inventory-adjustment-description" onDismiss={closeAdjustment}>
+          <form
+            className="w-full max-w-lg rounded-2xl bg-white p-6 shadow-2xl ring-1 ring-slate-200"
+            onSubmit={(event) => { event.preventDefault(); void submitAdjustment(); }}
+          >
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <h2 id="inventory-adjustment-title" className="text-xl font-bold text-slate-900">Inventory adjustment</h2>
+                <p id="inventory-adjustment-description" className="mt-1 text-sm text-slate-500">
+                  {adjusting.brand} {adjusting.size_label}. Enter a signed change; approval is required before stock changes.
+                </p>
+              </div>
+              <button type="button" onClick={closeAdjustment} disabled={adjustmentBusy} aria-label="Close adjustment dialog" className="rounded-lg p-2 text-slate-500 hover:bg-slate-100">
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            <div className="mt-6 grid grid-cols-2 gap-3 rounded-xl bg-slate-50 p-4">
+              <div><div className="text-xs font-semibold uppercase tracking-wider text-slate-500">Current stock</div><div className="mt-1 font-mono text-xl font-bold">{adjusting.current_stock}</div></div>
+              <div><div className="text-xs font-semibold uppercase tracking-wider text-slate-500">Projected stock</div><div className={`mt-1 font-mono text-xl font-bold ${projectedStock != null && projectedStock < 0 ? "text-red-600" : "text-slate-900"}`}>{projectedStock ?? "--"}</div></div>
+            </div>
+
+            <label className="mt-5 block text-sm font-semibold text-slate-700">
+              Signed adjustment
+              <input type="number" min="-100000" max="100000" step="1" required value={quantityDelta} onChange={(event) => setQuantityDelta(event.target.value)} placeholder="+5 or -5" className="mt-2 h-11 w-full rounded-xl border border-slate-200 px-4 font-mono outline-none focus:ring-2 focus:ring-action/40" />
+            </label>
+            <label className="mt-4 block text-sm font-semibold text-slate-700">
+              Reason
+              <textarea required maxLength={500} rows={3} value={adjustmentReason} onChange={(event) => setAdjustmentReason(event.target.value)} className="mt-2 w-full rounded-xl border border-slate-200 px-4 py-3 outline-none focus:ring-2 focus:ring-action/40" />
+            </label>
+            {quantityDelta && !validIntegerDelta && <p className="mt-3 text-sm text-red-600">Enter a non-zero whole number between -100,000 and 100,000.</p>}
+            {projectedStock != null && projectedStock < 0 && <p className="mt-3 text-sm text-red-600">The projected stock cannot be negative.</p>}
+            {adjustmentError && <p role="alert" className="mt-3 text-sm text-red-600">{adjustmentError}</p>}
+
+            <div className="mt-6 flex justify-end gap-3">
+              <button type="button" onClick={closeAdjustment} disabled={adjustmentBusy} className="app-button-secondary">Cancel</button>
+              <button type="submit" disabled={!canSubmitAdjustment} className="app-button-primary">{adjustmentBusy ? "Submitting..." : "Submit for approval"}</button>
+            </div>
+          </form>
+        </ModalDialog>
+      )}
     </div>
   );
 }

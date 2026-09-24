@@ -5,6 +5,7 @@ type Role = "owner" | "superadmin";
 const stockLots = [
   {
     id: 901,
+    movement_type: "receipt",
     shop_id: 1,
     vendor_id: 11,
     received_by_user_id: 7,
@@ -62,6 +63,7 @@ const stockLots = [
   },
   {
     id: 902,
+    movement_type: "receipt",
     shop_id: 1,
     vendor_id: 12,
     received_by_user_id: 8,

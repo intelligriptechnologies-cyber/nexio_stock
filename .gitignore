@@ -262,3 +262,6 @@ openapi.json
 
 # Scratch outputs (architecture reviews, ad hoc reports) — not part of the app.
 /tmp/
+
+# graft's local graph cache — regenerable, not committed (run `graft build`).
+/graft/

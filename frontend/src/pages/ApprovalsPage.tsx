@@ -267,11 +267,12 @@ export function ApprovalsPage() {
                   <div className="flex flex-wrap items-start justify-between gap-6">
                     <div className="flex flex-col gap-2">
                       <span className="flex items-center gap-3 text-xl font-bold tracking-tight text-slate-900">
-                        <PackagePlus className="h-5 w-5 text-action" /> Inward #{item.id}
+                        <PackagePlus className="h-5 w-5 text-action" /> {item.movement_type === "adjustment" ? "Inventory adjustment" : "Inward"} #{item.id}
                       </span>
                       <div className="flex flex-wrap items-center gap-3 text-xs font-semibold uppercase tracking-wider text-slate-500">
-                        <span className="rounded-full bg-slate-100 px-2.5 py-1 text-slate-700">Pending inward</span>
+                        <span className="rounded-full bg-slate-100 px-2.5 py-1 text-slate-700">{item.movement_type === "adjustment" ? "Inventory adjustment" : "Pending inward"}</span>
                         <span className="font-mono text-slate-700">shop {item.shop_id}</span>
+                        {item.purchase_order_id && <span className="rounded-full bg-amber-100 px-2.5 py-1 text-amber-800">PO {item.purchase_order_token ?? `#${item.purchase_order_id}`}</span>}
                         <span aria-hidden="true" className="text-slate-300">
                           ·
                         </span>
@@ -282,7 +283,9 @@ export function ApprovalsPage() {
                         <span>by {item.created_by_name ?? `user #${item.received_by_user_id}`}</span>
                       </div>
                       <div className="text-sm font-medium text-slate-600">
-                        {item.purchase_details_captured
+                        {item.movement_type === "adjustment"
+                          ? `${item.lines[0]?.product_brand ?? "Product"} ${item.lines[0]?.product_size_label ?? ""} (${(item.lines[0]?.quantity ?? 0) > 0 ? "+" : ""}${item.lines[0]?.quantity ?? 0})`
+                          : item.purchase_details_captured
                           ? item.vendor?.name ?? "Unknown vendor"
                           : "Purchase details not captured"} · Ref {item.reference ?? "--"}
                       </div>
@@ -322,30 +325,48 @@ export function ApprovalsPage() {
                   </div>
 
                   <div className="mt-5 grid gap-3 rounded-xl bg-slate-50 p-4 ring-1 ring-slate-200/50 md:grid-cols-3">
-                    {item.purchase_details_captured ? <><div>
-                      <div className="text-[11px] font-semibold uppercase tracking-widest text-slate-500">Invoice</div>
-                      <div className="mt-1 font-mono text-slate-900">{item.vendor_invoice_number}</div>
-                    </div>
-                    <div>
-                      <div className="text-[11px] font-semibold uppercase tracking-widest text-slate-500">Merchandise total</div>
-                      <div className="mt-1 font-mono text-slate-900">{moneyFmt(item.merchandise_total ?? item.invoice_value)}</div>
-                    </div>
-                    <div>
-                      <div className="text-[11px] font-semibold uppercase tracking-widest text-slate-500">Purchase date</div>
-                      <div className="mt-1 text-slate-900">{item.purchase_date}</div>
-                    </div></> : (
-                      <div className="font-medium text-slate-600 md:col-span-3">Purchase details not captured</div>
-                    )}
-                    <div>
-                      <div className="text-[11px] font-semibold uppercase tracking-widest text-slate-500">Lines / units</div>
-                      <div className="mt-1 text-slate-900">
-                        {item.lines.length} / {inwardTotalUnits(item)}
+                    {item.movement_type === "adjustment" ? <>
+                      <div>
+                        <div className="text-[11px] font-semibold uppercase tracking-widest text-slate-500">Product</div>
+                        <div className="mt-1 text-slate-900">{item.lines[0]?.product_brand} {item.lines[0]?.product_size_label}</div>
                       </div>
-                    </div>
-                    <div>
-                      <div className="text-[11px] font-semibold uppercase tracking-widest text-slate-500">Breakage</div>
-                      <div className="mt-1 text-slate-900">{inwardHasBreakage(item) ? "Present" : "None"}</div>
-                    </div>
+                      <div>
+                        <div className="text-[11px] font-semibold uppercase tracking-widest text-slate-500">Signed quantity</div>
+                        <div className="mt-1 font-mono font-bold text-slate-900">{(item.lines[0]?.quantity ?? 0) > 0 ? "+" : ""}{item.lines[0]?.quantity ?? 0}</div>
+                      </div>
+                      <div>
+                        <div className="text-[11px] font-semibold uppercase tracking-widest text-slate-500">Reason</div>
+                        <div className="mt-1 text-slate-900">{item.notes}</div>
+                      </div>
+                    </> : <>
+                      {item.purchase_details_captured ? <>
+                        <div>
+                          <div className="text-[11px] font-semibold uppercase tracking-widest text-slate-500">Invoice</div>
+                          <div className="mt-1 font-mono text-slate-900">{item.vendor_invoice_number}</div>
+                        </div>
+                        <div>
+                          <div className="text-[11px] font-semibold uppercase tracking-widest text-slate-500">Merchandise total</div>
+                          <div className="mt-1 font-mono text-slate-900">{moneyFmt(item.merchandise_total ?? item.invoice_value)}</div>
+                        </div>
+                        <div>
+                          <div className="text-[11px] font-semibold uppercase tracking-widest text-slate-500">Purchase date</div>
+                          <div className="mt-1 text-slate-900">{item.purchase_date}</div>
+                        </div>
+                      </> : <div className="font-medium text-slate-600 md:col-span-3">Purchase details not captured</div>}
+                      <div>
+                        <div className="text-[11px] font-semibold uppercase tracking-widest text-slate-500">Lines / units</div>
+                        <div className="mt-1 text-slate-900">{item.lines.length} / {inwardTotalUnits(item)}</div>
+                      </div>
+                      <div>
+                        <div className="text-[11px] font-semibold uppercase tracking-widest text-slate-500">Breakage</div>
+                        <div className="mt-1 text-slate-900">{inwardHasBreakage(item) ? "Present" : "None"}</div>
+                      </div>
+                    </>}
+                    {item.purchase_order_id && <div className="md:col-span-3">
+                      <div className="text-[11px] font-semibold uppercase tracking-widest text-slate-500">PO variance for this receipt</div>
+                      <div className="mt-2 flex flex-wrap gap-2 text-xs">{item.lines.map((line) => <span key={line.id} className={`rounded-lg px-2 py-1 ${line.purchase_order_ordered_bottles != null && line.quantity > line.purchase_order_ordered_bottles ? "bg-red-100 text-red-800" : "bg-white text-slate-700"}`}>{line.product_brand}: receive {line.quantity} / PO line {line.purchase_order_ordered_bottles ?? "?"}</span>)}</div>
+                      {item.over_receipt_reason && <div className="mt-2 text-sm text-amber-800">Override reason: {item.over_receipt_reason}</div>}
+                    </div>}
                   </div>
                 </li>
               ))}

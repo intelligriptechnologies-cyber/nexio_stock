@@ -142,6 +142,7 @@ class ProductPublic(BaseModel):
     # in tests that construct ProductPublic directly from a bare row.
     current_stock: int = 0
     latest_unit_cost: Decimal | None = None
+    has_pending_inventory_request: bool = False
 
 
 class ProductActionConfirmation(BaseModel):
@@ -239,13 +240,13 @@ class ProductActivate(BaseModel):
 __all__ = [
     "PendingProductRow",
     "Product",
+    "ProductActionConfirmation",
     "ProductActivate",
     "ProductCreate",
+    "ProductDeleteResponse",
     "ProductImportError",
     "ProductImportResponse",
     "ProductImportRow",
-    "ProductActionConfirmation",
-    "ProductDeleteResponse",
     "ProductPublic",
     "ProductQuickAdd",
     "ProductUpdate",

@@ -10,6 +10,7 @@ export interface Product extends CatalogProduct {
   updated_at: string;
   current_stock: number;
   latest_unit_cost: string | null;
+  has_pending_inventory_request: boolean;
 }
 
 export interface ProductCreatePayload {
@@ -157,6 +158,16 @@ export function createProduct(
   shopId?: number | null
 ): Promise<Product> {
   return api<Product>("/products", { method: "POST", json: withShopId(payload, shopId) });
+}
+
+export function createInventoryAdjustment(
+  productId: number,
+  payload: { shop_id: number; quantity_delta: number; reason: string }
+): Promise<import("./lots").LotPublic> {
+  return api<import("./lots").LotPublic>(`/products/${productId}/inventory-adjustments`, {
+    method: "POST",
+    json: payload,
+  });
 }
 
 /**

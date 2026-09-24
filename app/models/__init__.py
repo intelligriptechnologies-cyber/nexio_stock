@@ -28,8 +28,20 @@ from app.models.offline_session import (
     OfflineSessionState,
 )
 from app.models.product import MasterProduct, Product, ProductStatus
+from app.models.purchase_order import (
+    ExtractionStatus,
+    PurchaseOrder,
+    PurchaseOrderLine,
+    PurchaseOrderStatus,
+    ShopCasePackRule,
+)
 from app.models.shop import Shop
-from app.models.stock_inward import StockInward, StockInwardLine, StockInwardStatus
+from app.models.stock_inward import (
+    StockInward,
+    StockInwardLine,
+    StockInwardStatus,
+    StockMovementType,
+)
 from app.models.two_factor import (
     AuthenticatorActivation,
     AuthenticatorActivationToken,
@@ -48,6 +60,7 @@ __all__ = [
     "AuthenticatorActivationToken",
     "DeviceBinding",
     "EodSignOff",
+    "ExtractionStatus",
     "IdempotencyKey",
     "Invoice",
     "InvoiceLine",
@@ -67,10 +80,15 @@ __all__ = [
     "PendingAuthChallenge",
     "Product",
     "ProductStatus",
+    "PurchaseOrder",
+    "PurchaseOrderLine",
+    "PurchaseOrderStatus",
     "Shop",
+    "ShopCasePackRule",
     "StockInward",
     "StockInwardLine",
     "StockInwardStatus",
+    "StockMovementType",
     "StockinLog",
     "TwoFactorSecret",
     "TwoFactorSubjectType",

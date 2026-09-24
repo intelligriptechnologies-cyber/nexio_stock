@@ -1,19 +1,30 @@
 """Committed stock lot + LotLine - created only after inward approval."""
+
 from __future__ import annotations
 
 from datetime import date, datetime
 from decimal import Decimal
 from typing import TYPE_CHECKING
 
-from sqlalchemy import CheckConstraint, Date, DateTime, ForeignKey, Index, Integer, Numeric, String, func
+from sqlalchemy import (
+    CheckConstraint,
+    Date,
+    DateTime,
+    ForeignKey,
+    Index,
+    Integer,
+    Numeric,
+    String,
+    func,
+)
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db import Base
 
 if TYPE_CHECKING:
-    from app.models.stock_inward import StockInward
     from app.models.product import Product
     from app.models.shop import Shop
+    from app.models.stock_inward import StockInward
     from app.models.user import User
     from app.models.vendor import Vendor
 
@@ -59,7 +70,7 @@ class Lot(Base):
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )
 
-    lines: Mapped[list["LotLine"]] = relationship(back_populates="lot", cascade="all, delete-orphan")
+    lines: Mapped[list[LotLine]] = relationship(back_populates="lot", cascade="all, delete-orphan")
     received_by: Mapped[User] = relationship()
     shop: Mapped[Shop] = relationship()
     vendor: Mapped[Vendor | None] = relationship()
@@ -75,7 +86,8 @@ class LotLine(Base):
         Index("uq_lot_lines_lot_product", "lot_id", "product_id", unique=True),
         Index("ix_lot_lines_product", "product_id"),
         CheckConstraint(
-            "good_condition_quantity >= 0 AND good_condition_quantity <= quantity",
+            "(quantity > 0 AND good_condition_quantity >= 0 AND good_condition_quantity <= quantity) "
+            "OR (quantity < 0 AND good_condition_quantity = quantity)",
             name="ck_lot_lines_good_condition_quantity",
         ),
     )

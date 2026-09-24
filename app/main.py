@@ -22,6 +22,7 @@ from app.api import (
     lots,
     offline_sessions,
     products,
+    purchase_orders,
     shops,
     staff,
     users,
@@ -183,6 +184,7 @@ def create_app() -> FastAPI:
     app.include_router(staff.router)
     app.include_router(users.router)
     app.include_router(products.router)
+    app.include_router(purchase_orders.router)
     app.include_router(lots.router)
     app.include_router(vendors.router)
     app.include_router(offline_sessions.router)

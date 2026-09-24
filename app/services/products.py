@@ -14,6 +14,7 @@ don't already have their own (``ProductConflictError`` for inserts,
 maps it to HTTP via a ``code -> status`` table, same pattern as
 ``app.services.voids.VoidError`` / ``app.services.checkout.CheckoutError``.
 """
+
 from __future__ import annotations
 
 import csv
@@ -51,6 +52,7 @@ class ProductError(Exception):
         super().__init__(message)
         self.code = code
         self.message = message
+
 
 # --- shared shop-scoping (list / lookup / pending) ----------------------
 #
@@ -115,12 +117,16 @@ async def count_products(
     missing_price_only: bool,
     q: str | None,
 ) -> int:
-    filtered = _products_filtered_stmt(
-        shop_id=shop_id,
-        active_only=active_only,
-        missing_price_only=missing_price_only,
-        q=q,
-    ).order_by(None).subquery()
+    filtered = (
+        _products_filtered_stmt(
+            shop_id=shop_id,
+            active_only=active_only,
+            missing_price_only=missing_price_only,
+            q=q,
+        )
+        .order_by(None)
+        .subquery()
+    )
     return int((await db.execute(select(func.count()).select_from(filtered))).scalar_one())
 
 
@@ -156,28 +162,50 @@ def _inventory_stock_expression():
 
 def _inventory_stmt(*, shop_id: int | None, q: str | None, stock_state: str):
     stock = _inventory_stock_expression()
-    effective_threshold = func.coalesce(Product.low_stock_threshold, Shop.low_stock_threshold_default)
+    effective_threshold = func.coalesce(
+        Product.low_stock_threshold, Shop.low_stock_threshold_default
+    )
     stmt = select(Product).join(Shop, Shop.id == Product.shop_id).where(Product.is_active.is_(True))
     if shop_id is not None:
         stmt = stmt.where(Product.shop_id == shop_id)
     if q:
         like = f"%{q}%"
-        stmt = stmt.where(or_(Product.brand.ilike(like), Product.barcode.ilike(like), Product.size_label.ilike(like)))
+        stmt = stmt.where(
+            or_(
+                Product.brand.ilike(like),
+                Product.barcode.ilike(like),
+                Product.size_label.ilike(like),
+            )
+        )
     if stock_state == "out_of_stock":
         stmt = stmt.where(stock <= 0)
     elif stock_state == "low_stock":
-        stmt = stmt.where(and_(stock > 0, effective_threshold.is_not(None), stock <= effective_threshold))
+        stmt = stmt.where(
+            and_(stock > 0, effective_threshold.is_not(None), stock <= effective_threshold)
+        )
     elif stock_state == "in_stock":
-        stmt = stmt.where(and_(stock > 0, or_(effective_threshold.is_(None), stock > effective_threshold)))
+        stmt = stmt.where(
+            and_(stock > 0, or_(effective_threshold.is_(None), stock > effective_threshold))
+        )
     return stmt, stock
 
 
 async def list_inventory(
-    db: AsyncSession, *, shop_id: int | None, q: str | None, stock_state: str,
-    sort: str, limit: int, offset: int,
+    db: AsyncSession,
+    *,
+    shop_id: int | None,
+    q: str | None,
+    stock_state: str,
+    sort: str,
+    limit: int,
+    offset: int,
 ) -> tuple[list[Product], int]:
     stmt, stock = _inventory_stmt(shop_id=shop_id, q=q, stock_state=stock_state)
-    total = int((await db.execute(select(func.count()).select_from(stmt.order_by(None).subquery()))).scalar_one())
+    total = int(
+        (
+            await db.execute(select(func.count()).select_from(stmt.order_by(None).subquery()))
+        ).scalar_one()
+    )
     if sort == "stock_asc":
         ordering = (stock.asc(), Product.brand.asc(), Product.id.asc())
     elif sort == "stock_desc":
@@ -188,9 +216,7 @@ async def list_inventory(
     return list(rows), total
 
 
-async def permanent_delete_eligible_ids(
-    db: AsyncSession, *, product_ids: list[int]
-) -> set[int]:
+async def permanent_delete_eligible_ids(db: AsyncSession, *, product_ids: list[int]) -> set[int]:
     if not product_ids:
         return set()
 
@@ -234,6 +260,22 @@ async def latest_unit_cost_by_product_ids(
             continue
         latest[product_id] = unit_cost
     return latest
+
+
+async def pending_inward_product_ids(db: AsyncSession, *, product_ids: list[int]) -> set[int]:
+    """Return product ids present on any pending inward in one query."""
+    if not product_ids:
+        return set()
+    rows = await db.execute(
+        select(StockInwardLine.product_id)
+        .join(StockInward, StockInward.id == StockInwardLine.stock_inward_id)
+        .where(
+            StockInwardLine.product_id.in_(product_ids),
+            StockInward.status == StockInwardStatus.PENDING,
+        )
+        .group_by(StockInwardLine.product_id)
+    )
+    return set(rows.scalars().all())
 
 
 async def permanent_delete_blockers(db: AsyncSession, *, product_id: int) -> list[str]:
@@ -520,9 +562,7 @@ def _decode_csv_bytes(raw: bytes) -> str:
         return raw.decode("latin-1", errors="replace")
 
 
-async def import_products_csv(
-    db: AsyncSession, *, shop_id: int, raw: bytes
-) -> ImportSummary:
+async def import_products_csv(db: AsyncSession, *, shop_id: int, raw: bytes) -> ImportSummary:
     """Bulk import per D-61 / R-42. Returns a summary even when some
     rows fail -- per-row errors are listed so the cashier-facing UI can
     show "X succeeded, Y failed" rather than silently partial-failing.
@@ -566,7 +606,11 @@ async def import_products_csv(
             price = Decimal(price_raw)
         except (InvalidOperation, ValueError):
             errors.append(
-                ImportRowError(row=row_num, barcode=barcode, error=f"price '{price_raw}' is not a valid decimal")
+                ImportRowError(
+                    row=row_num,
+                    barcode=barcode,
+                    error=f"price '{price_raw}' is not a valid decimal",
+                )
             )
             continue
         if price <= 0:
@@ -587,7 +631,9 @@ async def import_products_csv(
                 continue
             if threshold < 0:
                 errors.append(
-                    ImportRowError(row=row_num, barcode=barcode, error="low_stock_threshold must be >= 0")
+                    ImportRowError(
+                        row=row_num, barcode=barcode, error="low_stock_threshold must be >= 0"
+                    )
                 )
                 continue
 
@@ -610,7 +656,9 @@ async def import_products_csv(
             )
         except ProductConflictError as exc:
             errors.append(
-                ImportRowError(row=row_num, barcode=barcode, error=f"barcode '{exc.barcode}' already exists")
+                ImportRowError(
+                    row=row_num, barcode=barcode, error=f"barcode '{exc.barcode}' already exists"
+                )
             )
             continue
 

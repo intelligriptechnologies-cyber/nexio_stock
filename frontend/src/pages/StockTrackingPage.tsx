@@ -208,7 +208,7 @@ export function StockTrackingPage() {
                     }}
                   >
                     <td className="px-6 py-4">
-                      <div className="font-semibold text-slate-900">Inward #{item.id}</div>
+                      <div className="font-semibold text-slate-900">{item.movement_type === "adjustment" ? "Inventory adjustment" : "Inward"} #{item.id}</div>
                       <div className="text-xs font-medium uppercase tracking-widest text-slate-500">
                         shop {item.shop_id}
                       </div>
@@ -219,7 +219,10 @@ export function StockTrackingPage() {
                       </span>
                     </td>
                     <td className="px-6 py-4">
-                      {item.purchase_details_captured ? <>
+                      {item.movement_type === "adjustment" ? <>
+                        <div className="font-medium text-slate-900">{item.lines[0]?.product_brand} {item.lines[0]?.product_size_label}</div>
+                        <div className="text-sm text-slate-500">Reason: {item.notes}</div>
+                      </> : item.purchase_details_captured ? <>
                         <div className="font-medium text-slate-900">{item.vendor?.name ?? "Unknown vendor"}</div>
                         <div className="text-sm text-slate-500">Invoice {item.vendor_invoice_number}</div>
                       </> : <div className="font-medium text-slate-600">Purchase details not captured</div>}
@@ -276,7 +279,7 @@ export function StockTrackingPage() {
               <div>
                 <div className="flex flex-wrap items-center gap-3">
                   <h2 id="stock-tracking-dialog-title" className="text-2xl font-bold tracking-tight text-slate-900">
-                    Inward #{selectedLot.id}
+                    {selectedLot.movement_type === "adjustment" ? "Inventory adjustment" : "Inward"} #{selectedLot.id}
                   </h2>
                   <span
                     className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold capitalize ${statusClass(selectedLot.status)}`}
@@ -301,7 +304,10 @@ export function StockTrackingPage() {
 
             <div className="max-h-[80vh] overflow-y-auto px-6 py-6">
               <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-                {selectedLot.purchase_details_captured ? <>
+                {selectedLot.movement_type === "adjustment" ? <>
+                  <InfoCard label="Movement type" value="Inventory adjustment" />
+                  <InfoCard label="Reason" value={selectedLot.notes ?? "--"} wide />
+                </> : selectedLot.purchase_details_captured ? <>
                   <InfoCard label="Vendor" value={selectedLot.vendor?.name ?? "Unknown vendor"} />
                   <InfoCard label="Vendor invoice" value={selectedLot.vendor_invoice_number} />
                   <InfoCard label="Purchase date" value={formatDate(selectedLot.purchase_date)} />
@@ -342,8 +348,7 @@ export function StockTrackingPage() {
                     <tr>
                       <th>Product</th>
                       <th className="text-right">Qty</th>
-                      <th className="text-right">Good</th>
-                      <th className="text-right">Breakage</th>
+                      {selectedLot.movement_type === "receipt" && <><th className="text-right">Good</th><th className="text-right">Breakage</th></>}
                       {selectedLot.purchase_details_captured && <>
                         <th className="text-right">Unit cost</th>
                         <th className="text-right">Line total</th>
@@ -357,11 +362,11 @@ export function StockTrackingPage() {
                           <div className="font-medium text-slate-900">{line.product_brand}</div>
                           <div className="text-slate-500">{line.product_size_label}</div>
                         </td>
-                        <td className="px-6 py-4 text-right font-mono text-slate-900">{line.quantity}</td>
-                        <td className="px-6 py-4 text-right font-mono text-emerald-600">
+                        <td className="px-6 py-4 text-right font-mono text-slate-900">{selectedLot.movement_type === "adjustment" && line.quantity > 0 ? "+" : ""}{line.quantity}</td>
+                        {selectedLot.movement_type === "receipt" && <><td className="px-6 py-4 text-right font-mono text-emerald-600">
                           {line.good_condition_quantity}
                         </td>
-                        <td className="px-6 py-4 text-right font-mono text-red-500">{line.breakage_quantity}</td>
+                        <td className="px-6 py-4 text-right font-mono text-red-500">{line.breakage_quantity}</td></>}
                         {selectedLot.purchase_details_captured && <>
                           <td className="px-6 py-4 text-right font-mono text-slate-900">{money(line.unit_cost)}</td>
                           <td className="px-6 py-4 text-right font-mono text-slate-900">{money(line.line_total)}</td>

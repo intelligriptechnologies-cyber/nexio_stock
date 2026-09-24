@@ -2,6 +2,16 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer components {
+  .app-button-primary {
+    @apply min-h-10 rounded-xl bg-action px-4 py-2 text-sm font-bold text-on-action shadow-sm transition hover:-translate-y-0.5 disabled:pointer-events-none disabled:opacity-50;
+  }
+
+  .app-button-secondary {
+    @apply min-h-10 rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50 disabled:pointer-events-none disabled:opacity-50;
+  }
+}
+
 @layer base {
   :root {
     --color-action: #22c55e;

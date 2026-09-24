@@ -7,6 +7,7 @@ export interface LotLineCreate {
   quantity: number;
   good_condition_quantity: number;
   unit_cost?: string;
+  purchase_order_line_id?: number | null;
 }
 
 export interface LotCreate {
@@ -16,6 +17,8 @@ export interface LotCreate {
   invoice_value?: string | null;
   reference?: string;
   notes?: string;
+  purchase_order_id?: number | null;
+  over_receipt_reason?: string | null;
   lines: LotLineCreate[];
 }
 
@@ -29,6 +32,8 @@ export interface LotLinePublic {
   line_total: string | null;
   product_brand: string;
   product_size_label: string;
+  purchase_order_line_id: number | null;
+  purchase_order_ordered_bottles: number | null;
 }
 
 export interface VendorPublic {
@@ -46,8 +51,12 @@ export interface VendorPublic {
 
 export interface LotPublic {
   id: number;
+  movement_type: "receipt" | "adjustment";
   shop_id: number;
   vendor_id: number | null;
+  purchase_order_id: number | null;
+  purchase_order_token: string | null;
+  over_receipt_reason: string | null;
   received_by_user_id: number;
   purchase_date: string;
   vendor_invoice_number: string;

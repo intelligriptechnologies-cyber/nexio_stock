@@ -52,6 +52,11 @@ _STOCK_INWARD_CODE_TO_STATUS: dict[str, int] = {
     "unit_cost_required": status.HTTP_400_BAD_REQUEST,
     "invoice_value_mismatch": status.HTTP_400_BAD_REQUEST,
     "breakage_notes_required": status.HTTP_400_BAD_REQUEST,
+    "purchase_order_not_found": status.HTTP_404_NOT_FOUND,
+    "purchase_order_unavailable": status.HTTP_409_CONFLICT,
+    "purchase_order_line_invalid": status.HTTP_400_BAD_REQUEST,
+    "over_receipt_reason_required": status.HTTP_409_CONFLICT,
+    "insufficient_stock_for_adjustment": status.HTTP_409_CONFLICT,
 }
 
 
@@ -132,6 +137,9 @@ async def create_lot(
                     for line in payload.lines
                 ],
                 purchase_details_captured=vendor_link_enabled,
+                purchase_order_id=payload.purchase_order_id,
+                over_receipt_reason=payload.over_receipt_reason,
+                purchase_order_line_ids=[line.purchase_order_line_id for line in payload.lines],
             )
     except StockInwardError as exc:
         raise map_error_to_http(
@@ -313,17 +321,18 @@ async def export_lots(
     rows = await list_stock_inwards(db, shop_id=resolved_shop_id, status=status_filter)
     public = [LotPublic.model_validate(row) for row in rows]
     out = io.StringIO()
-    fields = ["inward_id", "shop_id", "status", "purchase_details_captured", "vendor_name", "vendor_invoice_number", "purchase_date", "invoice_value", "reference", "created_at", "approved_at", "line_items"]
+    fields = ["inward_id", "shop_id", "movement_type", "status", "purchase_details_captured", "vendor_name", "vendor_invoice_number", "purchase_date", "invoice_value", "reference", "reason", "created_at", "approved_at", "line_items"]
     writer = csv.DictWriter(out, fieldnames=fields)
     writer.writeheader()
     for row in public:
         writer.writerow({
-            "inward_id": row.id, "shop_id": row.shop_id, "status": row.status.value,
+            "inward_id": row.id, "shop_id": row.shop_id, "movement_type": row.movement_type.value, "status": row.status.value,
             "purchase_details_captured": row.purchase_details_captured,
             "vendor_name": row.vendor.name if row.purchase_details_captured and row.vendor else "",
             "vendor_invoice_number": row.vendor_invoice_number if row.purchase_details_captured else "",
             "purchase_date": row.purchase_date if row.purchase_details_captured else "",
             "invoice_value": row.invoice_value if row.purchase_details_captured else "", "reference": row.reference or "",
+            "reason": row.notes if row.movement_type.value == "adjustment" else "",
             "created_at": row.created_at.isoformat(),
             "approved_at": row.approved_at.isoformat() if row.approved_at else "",
             "line_items": "; ".join(f"{line.product_brand} {line.product_size_label} x{line.quantity}" for line in row.lines),

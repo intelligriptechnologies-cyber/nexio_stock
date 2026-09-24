@@ -1,9 +1,10 @@
 """Stock inward request - pending/approved/rejected/completed workflow."""
+
 from __future__ import annotations
 
-import enum
 from datetime import date, datetime
 from decimal import Decimal
+from enum import StrEnum
 from typing import TYPE_CHECKING
 
 from sqlalchemy import Date, DateTime, Enum, ForeignKey, Index, Numeric, String, func
@@ -12,18 +13,23 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.db import Base
 
 if TYPE_CHECKING:
-    from app.models.lot import Lot
     from app.models.product import Product
+    from app.models.purchase_order import PurchaseOrder, PurchaseOrderLine
     from app.models.shop import Shop
     from app.models.user import User
     from app.models.vendor import Vendor
 
 
-class StockInwardStatus(str, enum.Enum):
+class StockInwardStatus(StrEnum):
     PENDING = "pending"
     APPROVED = "approved"
     REJECTED = "rejected"
     COMPLETED = "completed"
+
+
+class StockMovementType(StrEnum):
+    RECEIPT = "receipt"
+    ADJUSTMENT = "adjustment"
 
 
 class StockInward(Base):
@@ -44,6 +50,10 @@ class StockInward(Base):
         nullable=True,
         index=True,
     )
+    purchase_order_id: Mapped[int | None] = mapped_column(
+        ForeignKey("purchase_orders.id", ondelete="restrict"), nullable=True, index=True
+    )
+    over_receipt_reason: Mapped[str | None] = mapped_column(String(500), nullable=True)
     created_by_user_id: Mapped[int] = mapped_column(
         ForeignKey("users.id", ondelete="restrict"),
         nullable=False,
@@ -70,6 +80,18 @@ class StockInward(Base):
     vendor_invoice_number: Mapped[str] = mapped_column(String(100), nullable=False)
     invoice_value: Mapped[Decimal] = mapped_column(Numeric(12, 2), nullable=False)
     notes: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    movement_type: Mapped[StockMovementType] = mapped_column(
+        Enum(
+            StockMovementType,
+            name="stock_movement_type",
+            native_enum=False,
+            length=16,
+            values_callable=lambda e: [m.value for m in e],
+        ),
+        nullable=False,
+        default=StockMovementType.RECEIPT,
+        server_default=StockMovementType.RECEIPT.value,
+    )
     status: Mapped[StockInwardStatus] = mapped_column(
         Enum(
             StockInwardStatus,
@@ -94,10 +116,11 @@ class StockInward(Base):
 
     shop: Mapped[Shop] = relationship()
     vendor: Mapped[Vendor | None] = relationship()
+    purchase_order: Mapped[PurchaseOrder | None] = relationship()
     created_by: Mapped[User] = relationship(foreign_keys=[created_by_user_id])
     approved_by: Mapped[User | None] = relationship(foreign_keys=[approved_by_user_id])
     rejected_by: Mapped[User | None] = relationship(foreign_keys=[rejected_by_user_id])
-    lines: Mapped[list["StockInwardLine"]] = relationship(
+    lines: Mapped[list[StockInwardLine]] = relationship(
         back_populates="stock_inward", cascade="all, delete-orphan"
     )
 
@@ -137,6 +160,11 @@ class StockInward(Base):
         """
         return self.vendor_id is not None and self.merchandise_total is not None
 
+    @property
+    def purchase_order_token(self) -> str | None:
+        purchase_order = self.__dict__.get("purchase_order")
+        return purchase_order.osbcl_token if purchase_order is not None else None
+
 
 class StockInwardLine(Base):
     __tablename__ = "stock_inward_lines"
@@ -154,6 +182,9 @@ class StockInwardLine(Base):
         ForeignKey("products.id", ondelete="restrict"),
         nullable=False,
     )
+    purchase_order_line_id: Mapped[int | None] = mapped_column(
+        ForeignKey("purchase_order_lines.id", ondelete="restrict"), nullable=True, index=True
+    )
     quantity: Mapped[int] = mapped_column(nullable=False)
     good_condition_quantity: Mapped[int] = mapped_column(nullable=False)
     unit_cost: Mapped[Decimal | None] = mapped_column(Numeric(12, 2), nullable=True)
@@ -162,6 +193,7 @@ class StockInwardLine(Base):
 
     stock_inward: Mapped[StockInward] = relationship(back_populates="lines")
     product: Mapped[Product] = relationship()
+    purchase_order_line: Mapped[PurchaseOrderLine | None] = relationship()
 
     @property
     def breakage_quantity(self) -> int:
@@ -172,3 +204,8 @@ class StockInwardLine(Base):
         if self.unit_cost is None:
             return None
         return (self.unit_cost * self.quantity).quantize(Decimal("0.01"))
+
+    @property
+    def purchase_order_ordered_bottles(self) -> int | None:
+        purchase_order_line = self.__dict__.get("purchase_order_line")
+        return purchase_order_line.ordered_bottles if purchase_order_line is not None else None

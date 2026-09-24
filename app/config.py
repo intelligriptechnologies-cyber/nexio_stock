@@ -45,6 +45,10 @@ class Settings(BaseSettings):
     # Daily human-readable operational log files. In production this
     # should point at a persistent mounted directory.
     log_files_dir: Path = Path("runtime/logs")
+    # Immutable, shop-scoped originals for OSBCL purchase-order imports.
+    po_storage_root: Path = Path("runtime/purchase-orders")
+    po_max_upload_mb: int = 25
+    po_max_pages: int = 25
 
 
 @lru_cache(maxsize=1)

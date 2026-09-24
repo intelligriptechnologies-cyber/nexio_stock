@@ -21,6 +21,7 @@ async function seedOwner(page: Page) {
 function makeVoidInvoice(id = 101) {
   return {
     id,
+    movement_type: "receipt",
     shop_id: 1,
     cashier_user_id: 7,
     cashier_name: "Cashier One",
@@ -87,9 +88,22 @@ function makeInwardLot(id = 202) {
   };
 }
 
-function routeApprovals(page: Page, totals?: { voids: number; inward: number }) {
+function routeApprovals(page: Page, totals?: { voids: number; inward: number }, adjustment = false) {
   let voidInvoices = [makeVoidInvoice()];
-  let inwardLots = [makeInwardLot()];
+  let inwardLots = [adjustment ? {
+    ...makeInwardLot(),
+    movement_type: "adjustment",
+    purchase_details_captured: false,
+    vendor_id: null,
+    vendor: null,
+    notes: "Cycle count correction",
+    lines: [{
+      ...makeInwardLot().lines[0],
+      quantity: -3,
+      good_condition_quantity: -3,
+      breakage_quantity: 0,
+    }],
+  } : makeInwardLot()];
   const approvalUrls: string[] = [];
 
   const fulfillJson = async (route: Route, payload: unknown, total?: number) => {
@@ -224,6 +238,21 @@ test.describe("approvals", () => {
     await page.goto("/admin/stock-inward-queue");
     await expect(page).toHaveURL(/\/approvals\?tab=inward$/);
     await expect(page.getByRole("heading", { name: "Approvals" })).toBeVisible();
+  });
+
+  test("inventory adjustments show signed quantity, product, requester, and reason", async ({ page }) => {
+    routeApprovals(page, undefined, true);
+    await seedOwner(page);
+    await page.goto("/approvals?tab=inward");
+
+    const row = page.locator("li").filter({ hasText: "Inventory adjustment #202" }).first();
+    await expect(row).toBeVisible();
+    await expect(row).toContainText("Royal Oak");
+    await expect(row).toContainText("-3");
+    await expect(row).toContainText("Receiver One");
+    await expect(row).toContainText("Cycle count correction");
+    await expect(row).not.toContainText("Merchandise total");
+    await expect(row).not.toContainText("Breakage");
   });
 
 });

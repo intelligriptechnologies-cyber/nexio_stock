@@ -1,11 +1,13 @@
 import { useEffect, useMemo, useState, useCallback } from "react";
 import { createPortal } from "react-dom";
+import { useSearchParams } from "react-router-dom";
 import { ApiError } from "../api/client";
 import { invalidateCache, prefetchCatalog, type CatalogProduct } from "../api/catalog";
 import { createLotSafe, type LotPublic } from "../api/lots";
 import { notifyApprovalsChanged } from "../api/approvals-events";
 import { listVendors, type VendorPublic } from "../api/vendors";
 import { getMyShop } from "../api/shops";
+import { getPurchaseOrder } from "../api/purchase-orders";
 import { FocusedModeActions } from "../components/FocusedModeActions";
 import { QuickSearch } from "../components/QuickSearch";
 import { QuickAddModal } from "../components/QuickAddModal";
@@ -24,6 +26,7 @@ interface ReceivingLine {
   sizeLabel: string;
   quantity: number;
   currentStock?: number;
+  purchaseOrderLineId?: number;
 }
 
 interface ScanOverlayProduct {
@@ -67,9 +70,12 @@ function localDateInputValue(): string {
 export function ReceivingPage() {
   const { user } = useAuth();
   const { actingShopId } = useShopScope();
+  const [searchParams] = useSearchParams();
+  const purchaseOrderId = Number(searchParams.get("purchase_order_id")) || null;
   const [barcode, setBarcode] = useState("");
   const [reference, setReference] = useState("");
   const [notes, setNotes] = useState("");
+  const [overReceiptReason, setOverReceiptReason] = useState("");
   const [lines, setLines] = useState<ReceivingLine[]>([]);
   const [vendors, setVendors] = useState<VendorPublic[]>([]);
   const [vendorLinkEnabled, setVendorLinkEnabled] = useState<boolean | null>(null);
@@ -118,6 +124,26 @@ export function ReceivingPage() {
       .then(() => setCatalogReady(true))
       .catch((e) => setError(`Catalog load failed: ${e instanceof Error ? e.message : e}`));
   }, [actingShopId]);
+
+  useEffect(() => {
+    if (!purchaseOrderId) return;
+    let cancelled = false;
+    void getPurchaseOrder(purchaseOrderId).then((order) => {
+      if (cancelled) return;
+      const receivable = order.lines.filter((line) => line.product_barcode && line.remaining_bottles > 0);
+      setLines(receivable.map((line) => ({
+        lineId: uid(),
+        barcode: line.product_barcode!,
+        brand: line.product_brand ?? line.source_item_name,
+        sizeLabel: line.product_size_label ?? `${line.size_ml ?? "?"} ml`,
+        quantity: line.remaining_bottles,
+        purchaseOrderLineId: line.id,
+      })));
+      setReference(`OSBCL PO ${order.osbcl_token ?? `#${order.id}`}`);
+      setInfo(`Loaded ${receivable.length} remaining line(s) from PO #${order.id}. Remove or adjust lines for a partial receipt.`);
+    }).catch((e) => setError(e instanceof Error ? e.message : "Could not load purchase order."));
+    return () => { cancelled = true; };
+  }, [purchaseOrderId]);
 
   useEffect(() => {
     let cancelled = false;
@@ -279,6 +305,7 @@ export function ReceivingPage() {
     setLines([]);
     setReference("");
     setNotes("");
+    setOverReceiptReason("");
     setBarcode("");
   };
 
@@ -320,6 +347,8 @@ export function ReceivingPage() {
             : {}),
           reference: reference.trim() || undefined,
           notes: notes.trim() || undefined,
+          purchase_order_id: purchaseOrderId,
+          over_receipt_reason: overReceiptReason.trim() || null,
           lines: lines.map((line) => ({
             barcode: line.barcode,
             quantity: line.quantity,
@@ -327,6 +356,7 @@ export function ReceivingPage() {
             ...(vendorLinkEnabled === true
               ? { unit_cost: review.unitCosts[line.lineId]?.trim() }
               : {}),
+            purchase_order_line_id: line.purchaseOrderLineId,
           })),
         },
         actingShopId
@@ -491,6 +521,11 @@ export function ReceivingPage() {
         <h2 className="text-xl font-semibold tracking-tight text-slate-900">Inward Summary</h2>
 
         <div className="flex flex-col gap-4">
+          {purchaseOrderId && (
+            <div className="rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm font-semibold text-amber-900">
+              Receiving against purchase order #{purchaseOrderId}
+            </div>
+          )}
           <label className="flex flex-col gap-1.5 text-xs font-semibold uppercase tracking-wider text-slate-500">
             Reference (optional)
             <input
@@ -501,6 +536,12 @@ export function ReceivingPage() {
               className="h-11 w-full rounded-xl border border-slate-200 bg-white/50 px-4 text-sm font-medium text-slate-700 shadow-sm outline-none transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out hover:bg-white focus-visible:ring-2 focus-visible:ring-action/40 focus-visible:border-action"
             />
           </label>
+          {purchaseOrderId && (
+            <label className="flex flex-col gap-1.5 text-xs font-semibold uppercase tracking-wider text-slate-500">
+              Over-receipt reason (required only when quantity exceeds remaining)
+              <textarea value={overReceiptReason} onChange={(event) => setOverReceiptReason(event.target.value)} maxLength={500} rows={3} className="w-full rounded-xl border border-slate-200 bg-white/50 p-3 text-sm font-medium normal-case text-slate-700" />
+            </label>
+          )}
         </div>
 
         <div className="flex gap-4 rounded-xl bg-slate-50 p-4 ring-1 ring-slate-200/50">
