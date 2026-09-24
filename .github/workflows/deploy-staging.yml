@@ -25,7 +25,5 @@ jobs:
             set -euo pipefail
             cd /opt/barstock
             git pull --ff-only origin improved_ui
-            docker compose --env-file .env.staging -f deploy/compose.staging.yaml build
-            docker compose --env-file .env.staging -f deploy/compose.staging.yaml up -d
-            docker compose --env-file .env.staging -f deploy/compose.staging.yaml ps
+            bash scripts/deploy-remote.sh staging
           REMOTE

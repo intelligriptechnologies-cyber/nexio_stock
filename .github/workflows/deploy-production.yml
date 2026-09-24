@@ -26,7 +26,5 @@ jobs:
             set -euo pipefail
             cd /opt/barstock
             git pull --ff-only origin improved_ui
-            docker compose --env-file .env.production -f deploy/compose.production.yaml build
-            docker compose --env-file .env.production -f deploy/compose.production.yaml up -d
-            docker compose --env-file .env.production -f deploy/compose.production.yaml ps
+            bash scripts/deploy-remote.sh production
           REMOTE
