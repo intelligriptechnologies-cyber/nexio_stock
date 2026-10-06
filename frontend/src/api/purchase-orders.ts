@@ -104,6 +104,8 @@ export async function importPurchaseOrder(file: File, shopId?: number | null): P
   const form = withShopIdParams(new FormData(), shopId);
   form.set("file", file);
   const headers = new Headers();
+  const attemptId = globalThis.crypto?.randomUUID?.() ?? `import-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
+  headers.set("X-Import-Attempt-ID", attemptId);
   const token = getToken();
   if (token) headers.set("Authorization", `Bearer ${token}`);
   let response: Response;
@@ -115,7 +117,10 @@ export async function importPurchaseOrder(file: File, shopId?: number | null): P
   if (!response.ok) {
     const body = await response.json().catch(() => null) as { detail?: string | { message?: string } } | null;
     const detail = typeof body?.detail === "string" ? body.detail : body?.detail?.message ?? response.statusText;
-    throw new ApiError(response.status, detail, body);
+    // Keep the locally generated value when a proxy fails before it can add a
+    // response header. It is the same value in Caddy and API audit logs.
+    const supportId = response.headers.get("X-Import-Attempt-ID") ?? attemptId;
+    throw new ApiError(response.status, `${detail} (Support reference: ${supportId})`, body);
   }
   return response.json() as Promise<PurchaseOrder>;
 }

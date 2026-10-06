@@ -1,7 +1,9 @@
 """Local OCR and anchor-based parsing for image-only OSBCL purchase orders."""
+
 from __future__ import annotations
 
 import re
+import threading
 from contextlib import suppress
 from dataclasses import asdict, dataclass, field
 from datetime import datetime
@@ -9,6 +11,21 @@ from decimal import Decimal, InvalidOperation
 from pathlib import Path
 from statistics import mean
 from typing import Any
+
+_ocr_engine: Any | None = None
+_ocr_engine_lock = threading.Lock()
+
+
+def _get_ocr_engine() -> Any:
+    """Construct RapidOCR once per worker; model startup is expensive."""
+    global _ocr_engine
+    if _ocr_engine is None:
+        with _ocr_engine_lock:
+            if _ocr_engine is None:
+                from rapidocr_onnxruntime import RapidOCR
+
+                _ocr_engine = RapidOCR()
+    return _ocr_engine
 
 
 @dataclass
@@ -97,10 +114,9 @@ def inspect_pdf(path: Path, *, max_pages: int) -> int:
 
 def parse_osbcl_pdf(path: Path) -> ParsedOrder:
     import pymupdf
-    from rapidocr_onnxruntime import RapidOCR
 
     document = pymupdf.open(path)
-    engine = RapidOCR()
+    engine = _get_ocr_engine()
     pages: list[list[dict[str, Any]]] = []
     try:
         for page in document:
@@ -139,10 +155,16 @@ def parse_ocr_pages(pages: list[list[dict[str, Any]]]) -> ParsedOrder:
         match = re.search(r"\d{1,2}[-/]\d{1,2}[-/]\d{4}", raw_date)
         if match:
             with suppress(ValueError):
-                order.order_date = datetime.strptime(match.group().replace("/", "-"), "%d-%m-%Y").date().isoformat()
+                order.order_date = (
+                    datetime.strptime(match.group().replace("/", "-"), "%d-%m-%Y")
+                    .date()
+                    .isoformat()
+                )
     order.order_type = _header_value(first, "Order Type", 830, 1170)
     order.vehicle_number = _header_value(first, "Vehicle No", 830, 1170)
-    retailer_text = " ".join(w["text"] for w in first if 300 <= w["x0"] < 830 and 380 <= w["y0"] < 550)
+    retailer_text = " ".join(
+        w["text"] for w in first if 300 <= w["x0"] < 830 and 380 <= w["y0"] < 550
+    )
     code_match = re.search(r"Retailer\s*Code\s*[-:]?\s*([A-Z0-9]+)", retailer_text, re.I)
     order.retailer_code = code_match.group(1) if code_match else None
     order.retailer_name = retailer_text or None
@@ -179,12 +201,18 @@ def parse_ocr_pages(pages: list[list[dict[str, Any]]]) -> ParsedOrder:
     if order.lines and order.order_total is not None:
         line_total = sum((line.amount or Decimal(0)) for line in order.lines)
         if abs(line_total - order.order_total) > Decimal("0.05"):
-            order.review_flags.append(f"Line amounts total {line_total:.2f}, expected {order.order_total:.2f}")
+            order.review_flags.append(
+                f"Line amounts total {line_total:.2f}, expected {order.order_total:.2f}"
+            )
     if order.lines and order.mger_total is not None:
         line_mger = sum((line.mger or Decimal(0)) for line in order.lines)
         if abs(line_mger - order.mger_total) > Decimal("0.05"):
-            order.review_flags.append(f"Line MGER totals {line_mger:.2f}, expected {order.mger_total:.2f}")
-    if len({(line.source_item_name.casefold(), line.size_ml) for line in order.lines}) != len(order.lines):
+            order.review_flags.append(
+                f"Line MGER totals {line_mger:.2f}, expected {order.mger_total:.2f}"
+            )
+    if len({(line.source_item_name.casefold(), line.size_ml) for line in order.lines}) != len(
+        order.lines
+    ):
         order.review_flags.append("Duplicate item lines require review")
     order.confidence = mean(all_confidence) if all_confidence else 0.0
     if order.confidence < 0.85:
@@ -192,28 +220,53 @@ def parse_ocr_pages(pages: list[list[dict[str, Any]]]) -> ParsedOrder:
     return order
 
 
-def _header_value(words: list[dict[str, Any]], label: str, x0: float, x1: float, *, multiline: bool = False) -> str | None:
+def _header_value(
+    words: list[dict[str, Any]], label: str, x0: float, x1: float, *, multiline: bool = False
+) -> str | None:
     anchor = next((word for word in words if label.casefold() in word["text"].casefold()), None)
     if anchor is None:
         return None
     y0 = anchor["y0"] - 40
     y1 = anchor["y0"] + (60 if multiline else 55)
-    candidates = [w for w in words if x0 <= w["x0"] < x1 and y0 <= w["y0"] <= y1 and label.casefold() not in w["text"].casefold()]
+    candidates = [
+        w
+        for w in words
+        if x0 <= w["x0"] < x1
+        and y0 <= w["y0"] <= y1
+        and label.casefold() not in w["text"].casefold()
+    ]
     inline = re.sub(rf"^.*?{re.escape(label)}\s*:?\s*", "", anchor["text"], flags=re.I)
-    value = inline + "".join(w["text"] for w in sorted(candidates, key=lambda item: (item["y0"], item["x0"])))
+    value = inline + "".join(
+        w["text"] for w in sorted(candidates, key=lambda item: (item["y0"], item["x0"]))
+    )
     return value.strip(" :-") or None
 
 
 def _parse_table_page(words: list[dict[str, Any]], sequence_start: int) -> list[ParsedLine]:
     header = next((w for w in words if "Item Name" in w["text"]), None)
     table_y = header["y1"] if header else 250
-    rate_words = [w for w in words if 470 <= w["x0"] < 610 and w["y0"] > table_y and _decimal(w["text"]) is not None]
+    rate_words = [
+        w
+        for w in words
+        if 470 <= w["x0"] < 610 and w["y0"] > table_y and _decimal(w["text"]) is not None
+    ]
     rows: list[ParsedLine] = []
     for index, rate_word in enumerate(rate_words):
         y = rate_word["y0"]
         numeric = {}
-        for key, low, high in (("cases", 600, 695), ("bottles", 695, 805), ("mger", 805, 935), ("amount", 935, 1110)):
-            candidates = [w for w in words if low <= w["x0"] < high and abs(w["y0"] - y) <= 14 and _decimal(w["text"]) is not None]
+        for key, low, high in (
+            ("cases", 600, 695),
+            ("bottles", 695, 805),
+            ("mger", 805, 935),
+            ("amount", 935, 1110),
+        ):
+            candidates = [
+                w
+                for w in words
+                if low <= w["x0"] < high
+                and abs(w["y0"] - y) <= 14
+                and _decimal(w["text"]) is not None
+            ]
             numeric[key] = min(candidates, key=lambda w: abs(w["y0"] - y)) if candidates else None
         if not all(numeric.values()):
             continue
@@ -221,11 +274,17 @@ def _parse_table_page(words: list[dict[str, Any]], sequence_start: int) -> list[
         lower = y - 15
         upper = next_y - 15
         name_parts = [w for w in words if 105 <= w["x0"] < 470 and lower <= w["y0"] < upper]
-        name = " ".join(w["text"].strip() for w in sorted(name_parts, key=lambda w: (w["y0"], w["x0"]))).strip()
+        name = " ".join(
+            w["text"].strip() for w in sorted(name_parts, key=lambda w: (w["y0"], w["x0"]))
+        ).strip()
         if not name or name.casefold() == "total":
             continue
         size_match = re.search(r"\(\s*0*(\d{2,4})\s*\)\s*$", name)
-        confidences = [rate_word["confidence"], *(numeric[key]["confidence"] for key in numeric), *(w["confidence"] for w in name_parts)]
+        confidences = [
+            rate_word["confidence"],
+            *(numeric[key]["confidence"] for key in numeric),
+            *(w["confidence"] for w in name_parts),
+        ]
         rows.append(
             ParsedLine(
                 source_item_name=name,
@@ -237,7 +296,11 @@ def _parse_table_page(words: list[dict[str, Any]], sequence_start: int) -> list[
                 amount=_decimal(numeric["amount"]["text"]),
                 sequence=sequence_start + len(rows),
                 confidence=mean(confidences),
-                field_confidence={"item": mean(w["confidence"] for w in name_parts), "rate": rate_word["confidence"], **{key: numeric[key]["confidence"] for key in numeric}},
+                field_confidence={
+                    "item": mean(w["confidence"] for w in name_parts),
+                    "rate": rate_word["confidence"],
+                    **{key: numeric[key]["confidence"] for key in numeric},
+                },
             )
         )
     return rows

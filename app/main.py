@@ -1,4 +1,5 @@
 """FastAPI app factory + lifespan."""
+
 from __future__ import annotations
 
 import asyncio
@@ -95,9 +96,7 @@ async def _low_stock_loop() -> None:
             await asyncio.sleep(interval_s)
             session_factory = get_sessionmaker()
             async with session_factory() as session, session.begin():
-                shops = (
-                    await session.execute(select(Shop.id))
-                ).scalars().all()
+                shops = (await session.execute(select(Shop.id))).scalars().all()
                 total = 0
                 for shop_id in shops:
                     rows = await compute_low_stock(session, shop_id=shop_id)
@@ -143,7 +142,7 @@ def create_app() -> FastAPI:
             allow_credentials=True,
             allow_methods=["*"],
             allow_headers=["*"],
-            expose_headers=["X-Total-Count", "Content-Disposition"],
+            expose_headers=["X-Total-Count", "Content-Disposition", "X-Import-Attempt-ID"],
         )
 
     @app.exception_handler(Exception)

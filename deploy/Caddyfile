@@ -1,0 +1,38 @@
+# Production reverse proxy for the Hetzner deployment. Set SITE_ADDRESS,
+# CORS_ALLOW_ORIGIN, and BACKEND_UPSTREAM in the service environment.
+{
+	log {
+		output stdout
+		format json
+	}
+}
+
+{$SITE_ADDRESS} {
+	# Include the browser-generated import ID in structured access logs.
+	log_append import_attempt_id {http.request.header.X-Import-Attempt-ID}
+
+	# These headers are also applied to Caddy-generated 4xx/5xx responses.
+	header {
+		Access-Control-Allow-Origin "{$CORS_ALLOW_ORIGIN}"
+		Access-Control-Allow-Credentials "true"
+		Access-Control-Expose-Headers "X-Import-Attempt-ID"
+		Vary "Origin"
+	}
+
+	@preflight method OPTIONS
+	handle @preflight {
+		header Access-Control-Allow-Methods "GET, POST, PUT, PATCH, DELETE, OPTIONS"
+		header Access-Control-Allow-Headers "Authorization, Content-Type, X-Import-Attempt-ID"
+		respond "" 204
+	}
+
+	# 30 MiB leaves room for multipart framing above the application's 25 MB cap.
+	request_body {
+		max_size 30MB
+	}
+	reverse_proxy {$BACKEND_UPSTREAM:127.0.0.1:8000} {
+		transport http {
+			response_header_timeout 5m
+		}
+	}
+}
