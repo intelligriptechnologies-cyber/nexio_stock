@@ -83,12 +83,15 @@ jobs:
               mkdir -p "$REMOTE_BACKUP_DIR"
               dump="$REMOTE_BACKUP_DIR/production.dump"
               checksum="$dump.sha256"
-              trap 'rm -f -- "$dump" "$checksum"; rmdir "$REMOTE_BACKUP_DIR" 2>/dev/null || true' ERR
+              archive="$REMOTE_BACKUP_DIR/production-backup.tar"
+              trap 'rm -f -- "$dump" "$checksum" "$archive"; rmdir "$REMOTE_BACKUP_DIR" 2>/dev/null || true' ERR
 
               docker exec -i "$container_id" sh -ec 'exec pg_dump -Fc -U "$POSTGRES_USER" "$POSTGRES_DB"' > "$dump"
               [ -s "$dump" ] || { echo "Database dump is empty." >&2; exit 1; }
               docker exec -i "$container_id" pg_restore --list < "$dump" > /dev/null
               (cd "$REMOTE_BACKUP_DIR" && sha256sum production.dump > production.dump.sha256)
+              [ -s "$checksum" ] || { echo "Database checksum was not created." >&2; exit 1; }
+              tar -C "$REMOTE_BACKUP_DIR" -cf "$archive" production.dump production.dump.sha256
           REMOTE
 
       - name: Download and verify PostgreSQL dump
@@ -101,9 +104,10 @@ jobs:
           backup_dir="$RUNNER_TEMP/nexio-stock-production-backup"
           mkdir -p "$backup_dir"
           scp -q -i ~/.ssh/barstock_backup \
-            "$USER@$HOST:$REMOTE_BACKUP_DIR/production.dump" \
-            "$USER@$HOST:$REMOTE_BACKUP_DIR/production.dump.sha256" \
+            "$USER@$HOST:$REMOTE_BACKUP_DIR/production-backup.tar" \
             "$backup_dir/"
+          tar -xf "$backup_dir/production-backup.tar" -C "$backup_dir"
+          rm -f -- "$backup_dir/production-backup.tar"
           (cd "$backup_dir" && sha256sum --check production.dump.sha256)
           docker run --rm -v "$backup_dir:/backup:ro" postgres:16-alpine \
             pg_restore --list /backup/production.dump > /dev/null
@@ -125,7 +129,7 @@ jobs:
         run: |
           set -euo pipefail
           ssh -i ~/.ssh/barstock_backup "$USER@$HOST" \
-            "rm -f -- '$REMOTE_BACKUP_DIR/production.dump' '$REMOTE_BACKUP_DIR/production.dump.sha256' && rmdir -- '$REMOTE_BACKUP_DIR'"
+            "rm -f -- '$REMOTE_BACKUP_DIR/production.dump' '$REMOTE_BACKUP_DIR/production.dump.sha256' '$REMOTE_BACKUP_DIR/production-backup.tar' && rmdir -- '$REMOTE_BACKUP_DIR'"
 
       - name: Create Hetzner server snapshot and apply retention
         env:
