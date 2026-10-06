@@ -45,17 +45,23 @@ jobs:
     env:
       SERVER_ID: "165574147"
       SNAPSHOT_LABEL_SELECTOR: "managed-by=github-actions,application=nexio-stock,backup=production"
+      SSH_CONTROL_PATH: ${{ runner.temp }}/nexio-stock-backup-ssh-control
     steps:
       - name: Configure SSH access
         env:
           DEPLOY_KEY: ${{ secrets.HETZNER_DEPLOY_KEY }}
           HOST: ${{ secrets.HETZNER_HOST }}
+          USER: ${{ secrets.HETZNER_USER }}
         run: |
           set -euo pipefail
           install -m 700 -d ~/.ssh
           printf '%s\n' "$DEPLOY_KEY" > ~/.ssh/barstock_backup
           chmod 600 ~/.ssh/barstock_backup
           ssh-keyscan -H "$HOST" >> ~/.ssh/known_hosts
+          ssh -M -N -f -i ~/.ssh/barstock_backup \
+            -o ControlPath="$SSH_CONTROL_PATH" \
+            -o ControlPersist=10m \
+            "$USER@$HOST"
 
       - name: Create and validate PostgreSQL dump on production
         env:
@@ -64,7 +70,7 @@ jobs:
           REMOTE_BACKUP_DIR: /tmp/nexio-stock-production-backup-${{ github.run_id }}
         run: |
           set -euo pipefail
-          ssh -i ~/.ssh/barstock_backup "$USER@$HOST" \
+          ssh -i ~/.ssh/barstock_backup -o ControlPath="$SSH_CONTROL_PATH" "$USER@$HOST" \
             "REMOTE_BACKUP_DIR='$REMOTE_BACKUP_DIR' bash -s" <<'REMOTE'
               set -euo pipefail
               umask 077
@@ -92,6 +98,7 @@ jobs:
               (cd "$REMOTE_BACKUP_DIR" && sha256sum production.dump > production.dump.sha256)
               [ -s "$checksum" ] || { echo "Database checksum was not created." >&2; exit 1; }
               tar -C "$REMOTE_BACKUP_DIR" -cf "$archive" production.dump production.dump.sha256
+              [ -s "$archive" ] || { echo "Database backup archive was not created." >&2; exit 1; }
           REMOTE
 
       - name: Download and verify PostgreSQL dump
@@ -103,7 +110,7 @@ jobs:
           set -euo pipefail
           backup_dir="$RUNNER_TEMP/nexio-stock-production-backup"
           mkdir -p "$backup_dir"
-          scp -q -i ~/.ssh/barstock_backup \
+          scp -q -i ~/.ssh/barstock_backup -o ControlPath="$SSH_CONTROL_PATH" \
             "$USER@$HOST:$REMOTE_BACKUP_DIR/production-backup.tar" \
             "$backup_dir/"
           tar -xf "$backup_dir/production-backup.tar" -C "$backup_dir"
@@ -128,7 +135,7 @@ jobs:
           REMOTE_BACKUP_DIR: /tmp/nexio-stock-production-backup-${{ github.run_id }}
         run: |
           set -euo pipefail
-          ssh -i ~/.ssh/barstock_backup "$USER@$HOST" \
+          ssh -i ~/.ssh/barstock_backup -o ControlPath="$SSH_CONTROL_PATH" "$USER@$HOST" \
             "rm -f -- '$REMOTE_BACKUP_DIR/production.dump' '$REMOTE_BACKUP_DIR/production.dump.sha256' '$REMOTE_BACKUP_DIR/production-backup.tar' && rmdir -- '$REMOTE_BACKUP_DIR'"
 
       - name: Create Hetzner server snapshot and apply retention
@@ -189,3 +196,11 @@ jobs:
               --header "Authorization: Bearer $HETZNER_API_TOKEN" \
               "$api/images/$image_id" > /dev/null
           done <<<"$stale_ids"
+
+      - name: Close SSH control connection
+        if: always()
+        env:
+          HOST: ${{ secrets.HETZNER_HOST }}
+          USER: ${{ secrets.HETZNER_USER }}
+        run: |
+          ssh -O exit -i ~/.ssh/barstock_backup -o ControlPath="$SSH_CONTROL_PATH" "$USER@$HOST" || true
