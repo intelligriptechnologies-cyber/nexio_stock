@@ -45,6 +45,7 @@ from app.services.purchase_orders import (
     cancel_order,
     confirm_order,
     create_imported_order,
+    delete_draft,
     ensure_case_pack_rules,
     finalize_draft,
     find_duplicate,
@@ -75,6 +76,7 @@ def _error(exc: PurchaseOrderError) -> HTTPException:
         "duplicate": status.HTTP_409_CONFLICT,
         "immutable": status.HTTP_409_CONFLICT,
         "not_draft": status.HTTP_409_CONFLICT,
+        "referenced": status.HTTP_409_CONFLICT,
         "cancelled": status.HTTP_409_CONFLICT,
         "incomplete": status.HTTP_400_BAD_REQUEST,
         "invalid_product": status.HTTP_400_BAD_REQUEST,
@@ -214,6 +216,27 @@ async def put_order_detail(
     except PurchaseOrderError as exc:
         raise _error(exc) from exc
     return PurchaseOrderPublic.model_validate(order)
+
+
+@router.delete("/{order_id:int}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_order(order_id: int, db: DbSession, user: User = Depends(require_role(*_owners))) -> None:
+    """Permanently remove an unreferenced draft and its original PDF."""
+    try:
+        async with unit_of_work(db):
+            order = await get_order(
+                db,
+                order_id,
+                shop_id=None if user.role == UserRole.SUPERADMIN else user.shop_id,
+                lock=True,
+            )
+            source_path = resolve_source_path(get_settings().po_storage_root, order.source_path)
+            await delete_draft(db, order)
+    except PurchaseOrderError as exc:
+        raise _error(exc) from exc
+
+    # A missing file is already clean; filesystem errors are surfaced rather
+    # than silently reporting a successful complete deletion.
+    source_path.unlink(missing_ok=True)
 
 
 @router.post("/{order_id:int}/confirm", response_model=PurchaseOrderPublic)

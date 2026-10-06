@@ -1,0 +1,187 @@
+name: Backup production
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirmation:
+        description: "Type BACKUP_PRODUCTION to confirm a live production backup"
+        required: true
+        type: string
+      change_reference:
+        description: "Deployment, incident, or change reference for this backup"
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+# Share the deployment lock: a backup must not race a production deployment.
+concurrency:
+  group: barstock-production
+  cancel-in-progress: false
+
+jobs:
+  validate-request:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require an explicit production confirmation
+        env:
+          CONFIRMATION: ${{ inputs.confirmation }}
+          CHANGE_REFERENCE: ${{ inputs.change_reference }}
+        run: |
+          set -euo pipefail
+          [ "$CONFIRMATION" = "BACKUP_PRODUCTION" ] || {
+            echo "Confirmation must be exactly BACKUP_PRODUCTION." >&2
+            exit 1
+          }
+          [ -n "$CHANGE_REFERENCE" ] || {
+            echo "A deployment, incident, or change reference is required." >&2
+            exit 1
+          }
+
+  backup:
+    needs: validate-request
+    runs-on: ubuntu-latest
+    env:
+      SERVER_ID: "165574147"
+      SNAPSHOT_LABEL_SELECTOR: "managed-by=github-actions,application=nexio-stock,backup=production"
+    steps:
+      - name: Configure SSH access
+        env:
+          DEPLOY_KEY: ${{ secrets.HETZNER_DEPLOY_KEY }}
+          HOST: ${{ secrets.HETZNER_HOST }}
+        run: |
+          set -euo pipefail
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$DEPLOY_KEY" > ~/.ssh/barstock_backup
+          chmod 600 ~/.ssh/barstock_backup
+          ssh-keyscan -H "$HOST" >> ~/.ssh/known_hosts
+
+      - name: Create and validate PostgreSQL dump on production
+        env:
+          HOST: ${{ secrets.HETZNER_HOST }}
+          USER: ${{ secrets.HETZNER_USER }}
+          REMOTE_BACKUP_DIR: /tmp/nexio-stock-production-backup-${{ github.run_id }}
+        run: |
+          set -euo pipefail
+          ssh -i ~/.ssh/barstock_backup "$USER@$HOST" \
+            "REMOTE_BACKUP_DIR='$REMOTE_BACKUP_DIR' bash -s" <<'REMOTE'
+              set -euo pipefail
+              umask 077
+
+              container_ids="$(docker ps -q \
+                --filter 'label=com.docker.compose.project=barstock-production' \
+                --filter 'label=com.docker.compose.service=db')"
+              [ "$(printf '%s\n' "$container_ids" | sed '/^$/d' | wc -l)" -eq 1 ] || {
+                echo "Expected exactly one barstock-production db container." >&2
+                exit 1
+              }
+              container_id="$container_ids"
+              [ "$(docker inspect --format '{{ index .Config.Labels \"com.docker.compose.project\" }}' "$container_id")" = "barstock-production" ]
+              [ "$(docker inspect --format '{{ index .Config.Labels \"com.docker.compose.service\" }}' "$container_id")" = "db" ]
+
+              mkdir -p "$REMOTE_BACKUP_DIR"
+              dump="$REMOTE_BACKUP_DIR/production.dump"
+              checksum="$dump.sha256"
+              trap 'rm -f -- "$dump" "$checksum"; rmdir "$REMOTE_BACKUP_DIR" 2>/dev/null || true' ERR
+
+              docker exec -i "$container_id" sh -ec 'exec pg_dump -Fc -U "$POSTGRES_USER" "$POSTGRES_DB"' > "$dump"
+              [ -s "$dump" ] || { echo "Database dump is empty." >&2; exit 1; }
+              docker exec -i "$container_id" pg_restore --list < "$dump" > /dev/null
+              (cd "$REMOTE_BACKUP_DIR" && sha256sum production.dump > production.dump.sha256)
+          REMOTE
+
+      - name: Download and verify PostgreSQL dump
+        env:
+          HOST: ${{ secrets.HETZNER_HOST }}
+          USER: ${{ secrets.HETZNER_USER }}
+          REMOTE_BACKUP_DIR: /tmp/nexio-stock-production-backup-${{ github.run_id }}
+        run: |
+          set -euo pipefail
+          backup_dir="$RUNNER_TEMP/nexio-stock-production-backup"
+          mkdir -p "$backup_dir"
+          scp -q -i ~/.ssh/barstock_backup \
+            "$USER@$HOST:$REMOTE_BACKUP_DIR/production.dump" \
+            "$USER@$HOST:$REMOTE_BACKUP_DIR/production.dump.sha256" \
+            "$backup_dir/"
+          (cd "$backup_dir" && sha256sum --check production.dump.sha256)
+          docker run --rm -v "$backup_dir:/backup:ro" postgres:16-alpine \
+            pg_restore --list /backup/production.dump > /dev/null
+
+      - name: Upload verified database artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: nexio-stock-production-postgres-${{ github.run_id }}
+          path: ${{ runner.temp }}/nexio-stock-production-backup
+          if-no-files-found: error
+          retention-days: 7
+
+      - name: Remove temporary server-side dump
+        if: success()
+        env:
+          HOST: ${{ secrets.HETZNER_HOST }}
+          USER: ${{ secrets.HETZNER_USER }}
+          REMOTE_BACKUP_DIR: /tmp/nexio-stock-production-backup-${{ github.run_id }}
+        run: |
+          set -euo pipefail
+          ssh -i ~/.ssh/barstock_backup "$USER@$HOST" \
+            "rm -f -- '$REMOTE_BACKUP_DIR/production.dump' '$REMOTE_BACKUP_DIR/production.dump.sha256' && rmdir -- '$REMOTE_BACKUP_DIR'"
+
+      - name: Create Hetzner server snapshot and apply retention
+        env:
+          HETZNER_API_TOKEN: ${{ secrets.HETZNER_API_TOKEN }}
+          CHANGE_REFERENCE: ${{ inputs.change_reference }}
+        run: |
+          set -euo pipefail
+          [ -n "$HETZNER_API_TOKEN" ] || {
+            echo "Repository secret HETZNER_API_TOKEN is required." >&2
+            exit 1
+          }
+          api='https://api.hetzner.cloud/v1'
+          payload="$(jq -nc --arg description "Nexio Stock production backup ($CHANGE_REFERENCE)" \
+            '{description: $description, labels: {"managed-by": "github-actions", application: "nexio-stock", backup: "production"}}')"
+          response="$(curl --fail-with-body --silent --show-error \
+            --request POST "$api/servers/$SERVER_ID/actions/create_snapshot" \
+            --header "Authorization: Bearer $HETZNER_API_TOKEN" \
+            --header 'Content-Type: application/json' \
+            --data "$payload")"
+          action_id="$(jq -er '.action.id' <<<"$response")"
+
+          for attempt in $(seq 1 120); do
+            action="$(curl --fail-with-body --silent --show-error \
+              --header "Authorization: Bearer $HETZNER_API_TOKEN" \
+              "$api/actions/$action_id")"
+            status="$(jq -er '.action.status' <<<"$action")"
+            case "$status" in
+              success) break ;;
+              error)
+                jq -r '.action.error.message // "Hetzner snapshot action failed"' <<<"$action" >&2
+                exit 1
+                ;;
+              running) sleep 5 ;;
+              *) echo "Unexpected Hetzner action status: $status" >&2; exit 1 ;;
+            esac
+            [ "$attempt" -lt 120 ] || { echo "Timed out waiting for Hetzner snapshot." >&2; exit 1; }
+          done
+
+          images="$(curl --fail-with-body --silent --show-error \
+            --get "$api/images" \
+            --header "Authorization: Bearer $HETZNER_API_TOKEN" \
+            --data-urlencode 'type=snapshot' \
+            --data-urlencode "label_selector=$SNAPSHOT_LABEL_SELECTOR" \
+            --data-urlencode 'sort=created:desc' \
+            --data-urlencode 'per_page=50')"
+          stale_ids="$(jq -r --argjson server_id "$SERVER_ID" '
+            [.images[]
+              | select(.created_from.id == $server_id)
+              | select(.labels["managed-by"] == "github-actions")
+              | select(.labels.application == "nexio-stock")
+              | select(.labels.backup == "production")]
+            | sort_by(.created) | reverse | .[3:][]?.id' <<<"$images")"
+          while IFS= read -r image_id; do
+            [ -n "$image_id" ] || continue
+            curl --fail-with-body --silent --show-error \
+              --request DELETE \
+              --header "Authorization: Bearer $HETZNER_API_TOKEN" \
+              "$api/images/$image_id" > /dev/null
+          done <<<"$stale_ids"

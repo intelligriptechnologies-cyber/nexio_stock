@@ -114,6 +114,46 @@ async def test_rejects_wrong_document_without_creating_po_or_original(
 
 
 @pytest.mark.usefixtures("owner", "receiver")
+async def test_owner_deletes_draft_and_can_reimport_its_pdf(
+    owner_client: AsyncClient,
+    receiver_client: AsyncClient,
+    tmp_path,
+    monkeypatch,
+) -> None:
+    monkeypatch.setattr(get_settings(), "po_storage_root", tmp_path)
+    monkeypatch.setattr("app.api.purchase_orders.parse_osbcl_pdf", lambda _path: _parsed_order())
+    pdf = _pdf_bytes()
+
+    imported = await receiver_client.post(
+        "/purchase-orders/import", files={"file": ("order.pdf", pdf, "application/pdf")}
+    )
+    assert imported.status_code == 201, imported.text
+    order = imported.json()
+    assert len(list(tmp_path.rglob("*.pdf"))) == 1
+
+    # Draft deletion is an owner-only operation.
+    assert (await receiver_client.delete(f"/purchase-orders/{order['id']}")).status_code == 403
+    deleted = await owner_client.delete(f"/purchase-orders/{order['id']}")
+    assert deleted.status_code == 204, deleted.text
+    assert (await owner_client.get(f"/purchase-orders/{order['id']}")).status_code == 404
+    assert list(tmp_path.rglob("*.pdf")) == []
+
+    # Removing the PO also frees the per-shop PDF hash/token uniqueness keys.
+    reimported = await receiver_client.post(
+        "/purchase-orders/import", files={"file": ("order.pdf", pdf, "application/pdf")}
+    )
+    assert reimported.status_code == 201, reimported.text
+
+    cancelled = await owner_client.post(
+        f"/purchase-orders/{reimported.json()['id']}/cancel", json={"reason": "Imported in error"}
+    )
+    assert cancelled.status_code == 200, cancelled.text
+    rejected = await owner_client.delete(f"/purchase-orders/{reimported.json()['id']}")
+    assert rejected.status_code == 409
+    assert rejected.json()["detail"]["code"] == "not_draft"
+
+
+@pytest.mark.usefixtures("owner", "receiver")
 async def test_import_confirm_partial_and_audited_over_receipt(
     owner_client: AsyncClient,
     receiver_client: AsyncClient,

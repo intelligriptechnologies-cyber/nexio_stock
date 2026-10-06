@@ -180,6 +180,10 @@ export function cancelPurchaseOrder(id: number, reason: string): Promise<Purchas
   return api(`/purchase-orders/${id}/cancel`, { method: "POST", json: { reason } });
 }
 
+export function deletePurchaseOrder(id: number): Promise<void> {
+  return api<void>(`/purchase-orders/${id}`, { method: "DELETE" });
+}
+
 export function approvePurchaseOrderReceipt(id: number, payload: PurchaseOrderReceiptApprovalPayload): Promise<PurchaseOrderReceiptApprovalResponse> {
   return api(`/purchase-orders/${id}/approve-receipt`, { method: "POST", json: payload });
 }

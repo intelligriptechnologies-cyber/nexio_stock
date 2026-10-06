@@ -337,6 +337,30 @@ async def confirm_order(db: AsyncSession, order: PurchaseOrder, actor_user_id: i
     return order
 
 
+async def delete_draft(db: AsyncSession, order: PurchaseOrder) -> str:
+    """Delete an unreferenced draft and return its stored-PDF relative path."""
+    if order.status != PurchaseOrderStatus.DRAFT:
+        raise PurchaseOrderError("not_draft", "only draft purchase orders can be deleted")
+
+    referenced = (
+        await db.execute(
+            select(StockInward.id)
+            .where(StockInward.purchase_order_id == order.id)
+            .limit(1)
+        )
+    ).scalar_one_or_none()
+    if referenced is not None:
+        raise PurchaseOrderError(
+            "referenced",
+            "purchase order cannot be deleted because it is referenced by a stock inward record",
+        )
+
+    source_path = order.source_path
+    await db.delete(order)
+    await db.flush()
+    return source_path
+
+
 async def finalize_draft(db: AsyncSession, *, order: PurchaseOrder, actor_user_id: int) -> tuple[PurchaseOrder, StockInward]:
     """Atomically turn one fully-reviewed draft into its completed inward/lot."""
     if order.status != PurchaseOrderStatus.DRAFT:
