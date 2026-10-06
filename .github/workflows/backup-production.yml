@@ -77,8 +77,8 @@ jobs:
                 exit 1
               }
               container_id="$container_ids"
-              [ "$(docker inspect --format '{{ index .Config.Labels \"com.docker.compose.project\" }}' "$container_id")" = "barstock-production" ]
-              [ "$(docker inspect --format '{{ index .Config.Labels \"com.docker.compose.service\" }}' "$container_id")" = "db" ]
+              [ "$(docker inspect --format '{{ index .Config.Labels "com.docker.compose.project" }}' "$container_id")" = "barstock-production" ]
+              [ "$(docker inspect --format '{{ index .Config.Labels "com.docker.compose.service" }}' "$container_id")" = "db" ]
 
               mkdir -p "$REMOTE_BACKUP_DIR"
               dump="$REMOTE_BACKUP_DIR/production.dump"
