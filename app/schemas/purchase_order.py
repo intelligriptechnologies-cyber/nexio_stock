@@ -46,6 +46,9 @@ class PurchaseOrderLineUpdate(BaseModel):
     case_rate: Decimal | None = Field(default=None, max_digits=14, decimal_places=2)
     mger: Decimal | None = Field(default=None, max_digits=14, decimal_places=2)
     amount: Decimal | None = Field(default=None, max_digits=14, decimal_places=2)
+    delivered_bottles: int | None = Field(default=None, ge=0, le=100_000)
+    accepted_bottles: int | None = Field(default=None, ge=0, le=100_000)
+    unit_cost: Decimal | None = Field(default=None, ge=Decimal("0"), max_digits=12, decimal_places=2)
     sequence: int = Field(gt=0)
 
 
@@ -61,11 +64,55 @@ class PurchaseOrderDraftUpdate(BaseModel):
     total_loose_bottles: int | None = Field(default=None, ge=0)
     mger_total: Decimal | None = None
     order_total: Decimal | None = None
+    vendor_id: int | None = Field(default=None, gt=0)
+    purchase_date: date | None = None
+    vendor_invoice_number: str | None = Field(default=None, max_length=100)
+    invoice_value: Decimal | None = Field(default=None, ge=Decimal("0"), max_digits=12, decimal_places=2)
+    wastage_reason: str | None = Field(default=None, max_length=1000)
+    wastage_attested: bool = False
     lines: list[PurchaseOrderLineUpdate] = Field(min_length=1, max_length=1000)
 
 
 class PurchaseOrderCancel(BaseModel):
     reason: str = Field(min_length=3, max_length=1000)
+
+
+class PurchaseOrderReceiptLine(BaseModel):
+    """A transient owner review of one confirmed purchase-order line."""
+
+    model_config = ConfigDict(extra="forbid")
+    purchase_order_line_id: int = Field(gt=0)
+    product_id: int = Field(gt=0)
+    quantity: int = Field(ge=0, le=100_000)
+    good_condition_quantity: int = Field(ge=0, le=100_000)
+    unit_cost: Decimal | None = Field(default=None, max_digits=12, decimal_places=2)
+
+    @model_validator(mode="after")
+    def condition_cannot_exceed_received(self):
+        if self.good_condition_quantity > self.quantity:
+            raise ValueError("good_condition_quantity cannot exceed quantity")
+        return self
+
+
+class PurchaseOrderReceiptApproval(BaseModel):
+    """The one-shot PO receipt. Zero-quantity lines document a short delivery."""
+
+    model_config = ConfigDict(extra="forbid")
+    vendor_id: int | None = Field(default=None, gt=0)
+    purchase_date: date | None = None
+    vendor_invoice_number: str | None = Field(default=None, min_length=1, max_length=100)
+    invoice_value: Decimal | None = Field(default=None, ge=Decimal("0"), max_digits=12, decimal_places=2)
+    reference: str | None = Field(default=None, max_length=100)
+    notes: str | None = Field(default=None, max_length=500)
+    over_receipt_reason: str | None = Field(default=None, max_length=500)
+    lines: list[PurchaseOrderReceiptLine] = Field(min_length=1, max_length=1000)
+
+    @model_validator(mode="after")
+    def unique_purchase_order_lines(self):
+        ids = [line.purchase_order_line_id for line in self.lines]
+        if len(ids) != len(set(ids)):
+            raise ValueError("each purchase-order line may appear only once")
+        return self
 
 
 class PurchaseOrderLinePublic(BaseModel):
@@ -84,13 +131,14 @@ class PurchaseOrderLinePublic(BaseModel):
     case_rate: Decimal | None
     mger: Decimal | None
     amount: Decimal | None
+    unit_cost: Decimal | None
     sequence: int
     ocr_confidence: Decimal | None
     field_confidence: dict
     match_candidates: list
-    delivered_bottles: int = 0
-    accepted_bottles: int = 0
-    broken_bottles: int = 0
+    delivered_bottles: int | None
+    accepted_bottles: int | None
+    broken_bottles: int | None
     remaining_bottles: int = 0
     excess_bottles: int = 0
 
@@ -109,6 +157,14 @@ class PurchaseOrderPublic(BaseModel):
     total_loose_bottles: int | None
     mger_total: Decimal | None
     order_total: Decimal | None
+    vendor_id: int | None
+    purchase_date: date | None
+    vendor_invoice_number: str | None
+    invoice_value: Decimal | None
+    wastage_reason: str | None
+    wastage_attested: bool
+    wastage_attested_by_user_id: int | None
+    wastage_attested_at: datetime | None
     source_filename: str
     source_sha256: str
     page_count: int
@@ -122,6 +178,8 @@ class PurchaseOrderPublic(BaseModel):
     confirmed_at: datetime | None
     cancelled_at: datetime | None
     cancellation_reason: str | None
+    receipt_stock_inward_id: int | None = None
+    receipt_lot_id: int | None = None
     created_at: datetime
     updated_at: datetime
     lines: list[PurchaseOrderLinePublic]
@@ -129,3 +187,9 @@ class PurchaseOrderPublic(BaseModel):
 
 class PurchaseOrderListResponse(BaseModel):
     purchase_orders: list[PurchaseOrderPublic]
+
+
+class PurchaseOrderReceiptApprovalResponse(BaseModel):
+    purchase_order: PurchaseOrderPublic
+    stock_inward_id: int
+    lot_id: int

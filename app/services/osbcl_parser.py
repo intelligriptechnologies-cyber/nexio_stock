@@ -56,6 +56,28 @@ class OsbclParseError(ValueError):
     pass
 
 
+class OsbclValidationError(OsbclParseError):
+    """The document is readable, but cannot safely become an OSBCL PO."""
+
+
+def validate_osbcl_order(order: ParsedOrder) -> None:
+    """Enforce the minimum fields required to accept an import.
+
+    Extraction confidence, product matching, and totals reconciliation remain
+    review concerns.  These checks instead distinguish a usable OSBCL purchase
+    order from a document which should never create a draft PO.
+    """
+    if not order.osbcl_token or not order.osbcl_token.strip():
+        raise OsbclValidationError("OSBCL token number could not be read")
+    if not order.order_date:
+        raise OsbclValidationError("OSBCL token date could not be read")
+    if not any(
+        line.source_item_name.strip() and (line.cases > 0 or line.loose_bottles > 0)
+        for line in order.lines
+    ):
+        raise OsbclValidationError("No usable OSBCL order lines could be read")
+
+
 def inspect_pdf(path: Path, *, max_pages: int) -> int:
     import pymupdf
 

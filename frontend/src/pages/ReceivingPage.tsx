@@ -855,15 +855,15 @@ function PurchaseReviewModal({
     <ModalDialog
       labelledBy="purchase-review-title"
       onDismiss={onCancel}
-      className="fixed inset-0 z-50 flex overflow-hidden bg-white"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-3 sm:p-5 backdrop-blur-sm"
     >
       <form
         onSubmit={submit}
-        className="flex h-full w-full min-w-0 flex-col overflow-hidden bg-white"
+        className="flex h-[calc(100dvh-1.5rem)] w-[calc(100vw-1.5rem)] max-w-[1320px] min-w-0 flex-col overflow-hidden rounded-xl border border-slate-200 bg-white shadow-[0_20px_60px_rgba(15,23,42,0.18)] sm:h-[calc(100dvh-2.5rem)] sm:w-[calc(100vw-2.5rem)]"
       >
         <header
           data-testid="purchase-review-header"
-          className="flex flex-none items-center justify-between gap-4 border-b border-slate-200 px-4 py-4 sm:px-8"
+          className="flex flex-none items-center justify-between gap-4 border-b border-slate-200 px-4 py-3 sm:px-6"
         >
           <h2 id="purchase-review-title" className="flex min-w-0 items-center gap-3 truncate text-2xl font-semibold tracking-tight text-slate-900">
             <Save className="h-6 w-6 text-action" /> {vendorLinkEnabled ? "Review purchase details" : "Review inward"}
@@ -880,7 +880,7 @@ function PurchaseReviewModal({
 
         <div
           data-testid="purchase-review-content"
-          className="min-h-0 min-w-0 flex-1 space-y-6 overflow-y-auto px-4 py-6 sm:px-8"
+          className="min-h-0 min-w-0 flex-1 space-y-5 overflow-y-auto px-4 py-5 sm:px-6"
         >
         <div className="grid gap-6 md:grid-cols-2">
           {vendorLinkEnabled ? (
@@ -1086,7 +1086,7 @@ function PurchaseReviewModal({
 
         <div
           data-testid="purchase-review-footer"
-          className="flex flex-none flex-wrap justify-end gap-3 border-t border-slate-200 bg-white px-4 py-4 sm:px-8"
+          className="flex flex-none flex-wrap justify-end gap-3 border-t border-slate-200 bg-white px-4 py-3 sm:px-6"
         >
           <button
             type="button"

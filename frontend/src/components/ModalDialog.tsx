@@ -30,7 +30,7 @@ export function ModalDialog({
   labelledBy,
   describedBy,
   onDismiss,
-  className = "animate-fade-in fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4 backdrop-blur-sm transition-opacity",
+  className = "animate-fade-in fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-3 sm:p-5 backdrop-blur-sm transition-opacity",
 }: ModalDialogProps) {
   const rootRef = useRef<HTMLDivElement>(null);
   const previousActiveElementRef = useRef<HTMLElement | null>(null);

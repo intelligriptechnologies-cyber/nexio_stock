@@ -363,11 +363,17 @@ async def approve_stock_inward(
     await db.flush()
 
     for line in inward.lines:
+        if line.good_condition_quantity == 0:
+            # The inward still records a wholly broken/short delivered line;
+            # lots only contain inventory that can actually be sold.
+            continue
         db.add(
             LotLine(
                 lot_id=lot.id,
                 product_id=line.product_id,
-                quantity=line.quantity,
+                # Damaged bottles remain on the inward for delivery and invoice
+                # audit, but are never admitted into usable inventory.
+                quantity=line.good_condition_quantity,
                 good_condition_quantity=line.good_condition_quantity,
                 product_brand=line.product_brand,
                 product_size_label=line.product_size_label,

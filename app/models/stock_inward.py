@@ -7,7 +7,7 @@ from decimal import Decimal
 from enum import StrEnum
 from typing import TYPE_CHECKING
 
-from sqlalchemy import Date, DateTime, Enum, ForeignKey, Index, Numeric, String, func
+from sqlalchemy import Boolean, Date, DateTime, Enum, ForeignKey, Index, Numeric, String, Text, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db import Base
@@ -54,6 +54,10 @@ class StockInward(Base):
         ForeignKey("purchase_orders.id", ondelete="restrict"), nullable=True, index=True
     )
     over_receipt_reason: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    wastage_reason: Mapped[str | None] = mapped_column(Text, nullable=True)
+    wastage_attested: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False, server_default="0")
+    wastage_attested_by_user_id: Mapped[int | None] = mapped_column(ForeignKey("users.id", ondelete="restrict"), nullable=True)
+    wastage_attested_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     created_by_user_id: Mapped[int] = mapped_column(
         ForeignKey("users.id", ondelete="restrict"),
         nullable=False,
@@ -120,6 +124,7 @@ class StockInward(Base):
     created_by: Mapped[User] = relationship(foreign_keys=[created_by_user_id])
     approved_by: Mapped[User | None] = relationship(foreign_keys=[approved_by_user_id])
     rejected_by: Mapped[User | None] = relationship(foreign_keys=[rejected_by_user_id])
+    wastage_attested_by: Mapped[User | None] = relationship(foreign_keys=[wastage_attested_by_user_id])
     lines: Mapped[list[StockInwardLine]] = relationship(
         back_populates="stock_inward", cascade="all, delete-orphan"
     )

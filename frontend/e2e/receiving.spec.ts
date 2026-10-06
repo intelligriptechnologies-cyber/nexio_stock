@@ -441,17 +441,17 @@ test.describe("stock inward - quicksearch (issue #23)", () => {
     await expect(page.getByText("Rs 0.00")).toHaveCount(0);
   });
 
-  test("purchase review fills a 1280 by 800 viewport and keeps every item column visible", async ({
+  test("purchase review stays within a 1280 by 800 viewport and keeps every item column visible", async ({
     page,
   }) => {
     const dialog = await prepareMockedPurchaseReview(page);
-    const dialogBox = await dialog.boundingBox();
+    const dialogBox = await dialog.locator("form").boundingBox();
 
     expect(dialogBox).not.toBeNull();
-    expect(dialogBox?.x).toBe(0);
-    expect(dialogBox?.y).toBe(0);
-    expect(dialogBox?.width).toBe(1280);
-    expect(dialogBox?.height).toBe(800);
+    expect(dialogBox?.x).toBeGreaterThan(0);
+    expect(dialogBox?.y).toBeGreaterThan(0);
+    expect((dialogBox?.x ?? 0) + (dialogBox?.width ?? 0)).toBeLessThan(1280);
+    expect((dialogBox?.y ?? 0) + (dialogBox?.height ?? 0)).toBeLessThan(800);
 
     const lineItems = dialog.getByTestId("purchase-review-line-items");
     const horizontalMetrics = await lineItems.evaluate((element) => ({
@@ -500,13 +500,13 @@ test.describe("stock inward - quicksearch (issue #23)", () => {
   }) => {
     await page.setViewportSize({ width: 600, height: 700 });
     const dialog = await prepareMockedPurchaseReview(page);
-    const dialogBox = await dialog.boundingBox();
+    const dialogBox = await dialog.locator("form").boundingBox();
 
     expect(dialogBox).not.toBeNull();
-    expect(dialogBox?.x).toBe(0);
-    expect(dialogBox?.y).toBe(0);
-    expect(dialogBox?.width).toBe(600);
-    expect(dialogBox?.height).toBe(700);
+    expect(dialogBox?.x).toBeGreaterThan(0);
+    expect(dialogBox?.y).toBeGreaterThan(0);
+    expect((dialogBox?.x ?? 0) + (dialogBox?.width ?? 0)).toBeLessThan(600);
+    expect((dialogBox?.y ?? 0) + (dialogBox?.height ?? 0)).toBeLessThan(700);
 
     const lineItems = dialog.getByTestId("purchase-review-line-items");
     const horizontalMetrics = await lineItems.evaluate((element) => ({
@@ -525,7 +525,7 @@ test.describe("stock inward - quicksearch (issue #23)", () => {
     ).toBe(true);
   });
 
-  test("full-screen purchase review preserves focus trapping and every close action", async ({
+  test("bounded purchase review preserves focus trapping and every close action", async ({
     page,
   }) => {
     let dialog = await prepareMockedPurchaseReview(page);

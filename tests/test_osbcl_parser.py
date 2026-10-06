@@ -5,7 +5,7 @@ from decimal import Decimal
 
 import pytest
 
-from app.services.osbcl_parser import OsbclParseError, parse_ocr_pages
+from app.services.osbcl_parser import OsbclParseError, parse_ocr_pages, validate_osbcl_order
 
 
 def _word(text: str, x: float, y: float, confidence: float = 0.99) -> dict:
@@ -74,3 +74,22 @@ def test_low_confidence_and_duplicate_lines_are_review_flags() -> None:
 def test_rejects_non_osbcl_layout() -> None:
     with pytest.raises(OsbclParseError, match="Unsupported document"):
         parse_ocr_pages([[_word("unrelated invoice", 10, 10)]])
+
+
+def test_validation_requires_token_date_and_usable_line() -> None:
+    parsed = parse_ocr_pages([_page()])
+    validate_osbcl_order(parsed)
+
+    parsed.osbcl_token = None
+    with pytest.raises(OsbclParseError, match="token number"):
+        validate_osbcl_order(parsed)
+
+    parsed.osbcl_token = "OD-KHO(T)/9/2026-2027"
+    parsed.order_date = None
+    with pytest.raises(OsbclParseError, match="token date"):
+        validate_osbcl_order(parsed)
+
+    parsed.order_date = "2026-09-19"
+    parsed.lines = []
+    with pytest.raises(OsbclParseError, match="usable OSBCL order lines"):
+        validate_osbcl_order(parsed)

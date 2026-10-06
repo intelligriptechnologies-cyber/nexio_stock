@@ -34,6 +34,7 @@ class PurchaseOrderStatus(StrEnum):
     OPEN = "open"
     PARTIALLY_RECEIVED = "partially_received"
     FULFILLED = "fulfilled"
+    CLOSED_SHORT = "closed_short"
     CANCELLED = "cancelled"
 
 
@@ -78,6 +79,14 @@ class PurchaseOrder(Base):
     total_loose_bottles: Mapped[int | None] = mapped_column(nullable=True)
     mger_total: Mapped[Decimal | None] = mapped_column(Numeric(14, 2), nullable=True)
     order_total: Mapped[Decimal | None] = mapped_column(Numeric(14, 2), nullable=True)
+    vendor_id: Mapped[int | None] = mapped_column(ForeignKey("vendors.id", ondelete="restrict"), nullable=True)
+    purchase_date: Mapped[date | None] = mapped_column(Date, nullable=True)
+    vendor_invoice_number: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    invoice_value: Mapped[Decimal | None] = mapped_column(Numeric(12, 2), nullable=True)
+    wastage_reason: Mapped[str | None] = mapped_column(Text, nullable=True)
+    wastage_attested: Mapped[bool] = mapped_column(nullable=False, default=False, server_default="0")
+    wastage_attested_by_user_id: Mapped[int | None] = mapped_column(ForeignKey("users.id", ondelete="restrict"), nullable=True)
+    wastage_attested_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     source_filename: Mapped[str] = mapped_column(String(255), nullable=False)
     source_sha256: Mapped[str] = mapped_column(String(64), nullable=False)
     source_path: Mapped[str] = mapped_column(String(500), nullable=False)
@@ -108,6 +117,7 @@ class PurchaseOrder(Base):
     created_by: Mapped[User] = relationship(foreign_keys=[created_by_user_id])
     confirmed_by: Mapped[User | None] = relationship(foreign_keys=[confirmed_by_user_id])
     cancelled_by: Mapped[User | None] = relationship(foreign_keys=[cancelled_by_user_id])
+    wastage_attested_by: Mapped[User | None] = relationship(foreign_keys=[wastage_attested_by_user_id])
     lines: Mapped[list[PurchaseOrderLine]] = relationship(back_populates="purchase_order", cascade="all, delete-orphan", order_by="PurchaseOrderLine.sequence")
 
 
@@ -130,6 +140,9 @@ class PurchaseOrderLine(Base):
     case_rate: Mapped[Decimal | None] = mapped_column(Numeric(14, 2), nullable=True)
     mger: Mapped[Decimal | None] = mapped_column(Numeric(14, 2), nullable=True)
     amount: Mapped[Decimal | None] = mapped_column(Numeric(14, 2), nullable=True)
+    delivered_bottles: Mapped[int | None] = mapped_column(nullable=True)
+    accepted_bottles: Mapped[int | None] = mapped_column(nullable=True)
+    unit_cost: Mapped[Decimal | None] = mapped_column(Numeric(12, 2), nullable=True)
     sequence: Mapped[int] = mapped_column(nullable=False)
     ocr_confidence: Mapped[Decimal | None] = mapped_column(Numeric(5, 4), nullable=True)
     field_confidence: Mapped[dict] = mapped_column(JSON, nullable=False, default=dict)

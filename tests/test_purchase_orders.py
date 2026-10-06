@@ -8,7 +8,7 @@ import pytest
 from httpx import AsyncClient
 
 from app.config import get_settings
-from app.services.osbcl_parser import ParsedLine, ParsedOrder
+from app.services.osbcl_parser import OsbclParseError, ParsedLine, ParsedOrder
 
 
 def _parsed_order() -> ParsedOrder:
@@ -44,6 +44,73 @@ def _pdf_bytes() -> bytes:
     data = document.tobytes()
     document.close()
     return data
+
+
+@pytest.mark.usefixtures("receiver")
+@pytest.mark.parametrize("payload", [b"not a PDF", b"%PDF-not-a-readable-document"])
+async def test_rejects_invalid_upload_without_creating_po_or_original(
+    receiver_client: AsyncClient,
+    tmp_path,
+    monkeypatch,
+    payload: bytes,
+) -> None:
+    monkeypatch.setattr(get_settings(), "po_storage_root", tmp_path)
+
+    response = await receiver_client.post(
+        "/purchase-orders/import", files={"file": ("invalid.pdf", payload, "application/pdf")}
+    )
+
+    assert response.status_code == 422
+    assert response.json()["detail"]["code"] == "unsupported_po_content"
+    assert (await receiver_client.get("/purchase-orders")).json()["purchase_orders"] == []
+    assert list(tmp_path.rglob("*.pdf")) == []
+
+
+@pytest.mark.usefixtures("receiver")
+@pytest.mark.parametrize(
+    "parsed",
+    [
+        ParsedOrder(order_date="2026-09-19", lines=_parsed_order().lines),
+        ParsedOrder(osbcl_token="OD-1", lines=_parsed_order().lines),
+        ParsedOrder(osbcl_token="OD-1", order_date="2026-09-19"),
+    ],
+)
+async def test_rejects_unusable_parsed_po_without_creating_po_or_original(
+    receiver_client: AsyncClient,
+    tmp_path,
+    monkeypatch,
+    parsed: ParsedOrder,
+) -> None:
+    monkeypatch.setattr(get_settings(), "po_storage_root", tmp_path)
+    monkeypatch.setattr("app.api.purchase_orders.parse_osbcl_pdf", lambda _path: parsed)
+
+    response = await receiver_client.post(
+        "/purchase-orders/import", files={"file": ("order.pdf", _pdf_bytes(), "application/pdf")}
+    )
+
+    assert response.status_code == 422
+    assert (await receiver_client.get("/purchase-orders")).json()["purchase_orders"] == []
+    assert list(tmp_path.rglob("*.pdf")) == []
+
+
+@pytest.mark.usefixtures("receiver")
+async def test_rejects_wrong_document_without_creating_po_or_original(
+    receiver_client: AsyncClient,
+    tmp_path,
+    monkeypatch,
+) -> None:
+    monkeypatch.setattr(get_settings(), "po_storage_root", tmp_path)
+    monkeypatch.setattr(
+        "app.api.purchase_orders.parse_osbcl_pdf",
+        lambda _path: (_ for _ in ()).throw(OsbclParseError("Unsupported document")),
+    )
+
+    response = await receiver_client.post(
+        "/purchase-orders/import", files={"file": ("invoice.pdf", _pdf_bytes(), "application/pdf")}
+    )
+
+    assert response.status_code == 422
+    assert list(tmp_path.rglob("*.pdf")) == []
 
 
 @pytest.mark.usefixtures("owner", "receiver")
@@ -131,3 +198,58 @@ async def test_import_confirm_partial_and_audited_over_receipt(
     assert line["broken_bottles"] == 0
     assert line["remaining_bottles"] == 0
     assert line["excess_bottles"] == 1
+
+
+@pytest.mark.usefixtures("owner", "receiver")
+async def test_owner_approves_single_short_po_receipt_atomically(
+    owner_client: AsyncClient,
+    receiver_client: AsyncClient,
+    tmp_path,
+    monkeypatch,
+) -> None:
+    monkeypatch.setattr(get_settings(), "po_storage_root", tmp_path)
+    monkeypatch.setattr("app.api.purchase_orders.parse_osbcl_pdf", lambda _path: _parsed_order())
+    product = await owner_client.post(
+        "/products",
+        json={"barcode": "8900000000751", "brand": "Test Whisky", "size_label": "750ml", "price": "100.00"},
+    )
+    assert product.status_code == 201, product.text
+    vendor_id = (await owner_client.get("/vendors")).json()[0]["id"]
+    imported = await receiver_client.post(
+        "/purchase-orders/import", files={"file": ("order.pdf", _pdf_bytes(), "application/pdf")}
+    )
+    assert imported.status_code == 201, imported.text
+    order = imported.json()
+    assert (await owner_client.post(f"/purchase-orders/{order['id']}/confirm")).status_code == 200
+
+    payload = {
+        "vendor_id": vendor_id,
+        "purchase_date": "2026-09-23",
+        "vendor_invoice_number": "SHORT-1",
+        "invoice_value": "40.00",
+        "lines": [{
+            "purchase_order_line_id": order["lines"][0]["id"],
+            "product_id": product.json()["id"],
+            "quantity": 4,
+            "good_condition_quantity": 3,
+            "unit_cost": "10.00",
+        }],
+    }
+    assert (await receiver_client.post(f"/purchase-orders/{order['id']}/approve-receipt", json=payload)).status_code == 403
+    # Breakage validation happens before the inward or inventory lot is created.
+    rejected = await owner_client.post(f"/purchase-orders/{order['id']}/approve-receipt", json=payload)
+    assert rejected.status_code == 400
+    untouched = await owner_client.get(f"/purchase-orders/{order['id']}")
+    assert untouched.json()["status"] == "open"
+    assert untouched.json()["lines"][0]["delivered_bottles"] == 0
+
+    payload["notes"] = "One bottle broken during unloading"
+    approved = await owner_client.post(f"/purchase-orders/{order['id']}/approve-receipt", json=payload)
+    assert approved.status_code == 200, approved.text
+    body = approved.json()
+    assert body["stock_inward_id"] > 0
+    assert body["lot_id"] > 0
+    assert body["purchase_order"]["status"] == "closed_short"
+    line = body["purchase_order"]["lines"][0]
+    assert (line["delivered_bottles"], line["accepted_bottles"], line["broken_bottles"], line["remaining_bottles"]) == (4, 3, 1, 4)
+    assert (await owner_client.post(f"/purchase-orders/{order['id']}/approve-receipt", json=payload)).status_code == 409

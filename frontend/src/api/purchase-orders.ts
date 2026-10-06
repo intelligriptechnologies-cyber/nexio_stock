@@ -1,6 +1,6 @@
 import { API_BASE, ApiError, api, getToken, withShopId, withShopIdParams } from "./client";
 
-export type PurchaseOrderStatus = "draft" | "open" | "partially_received" | "fulfilled" | "cancelled";
+export type PurchaseOrderStatus = "draft" | "open" | "partially_received" | "fulfilled" | "closed_short" | "cancelled";
 
 export interface PurchaseOrderLine {
   id: number;
@@ -17,13 +17,14 @@ export interface PurchaseOrderLine {
   case_rate: string | null;
   mger: string | null;
   amount: string | null;
+  unit_cost: string | null;
   sequence: number;
   ocr_confidence: string | null;
   field_confidence: Record<string, number>;
   match_candidates: Array<{ product_id: number; brand: string; size_label: string; score: number }>;
-  delivered_bottles: number;
-  accepted_bottles: number;
-  broken_bottles: number;
+  delivered_bottles: number | null;
+  accepted_bottles: number | null;
+  broken_bottles: number | null;
   remaining_bottles: number;
   excess_bottles: number;
 }
@@ -41,6 +42,14 @@ export interface PurchaseOrder {
   total_loose_bottles: number | null;
   mger_total: string | null;
   order_total: string | null;
+  vendor_id: number | null;
+  purchase_date: string | null;
+  vendor_invoice_number: string | null;
+  invoice_value: string | null;
+  wastage_reason: string | null;
+  wastage_attested: boolean;
+  wastage_attested_by_user_id: number | null;
+  wastage_attested_at: string | null;
   source_filename: string;
   source_sha256: string;
   page_count: number;
@@ -54,6 +63,8 @@ export interface PurchaseOrder {
   confirmed_at: string | null;
   cancelled_at: string | null;
   cancellation_reason: string | null;
+  receipt_stock_inward_id: number | null;
+  receipt_lot_id: number | null;
   created_at: string;
   updated_at: string;
   lines: PurchaseOrderLine[];
@@ -64,6 +75,29 @@ export interface CasePackRule {
   shop_id: number;
   size_ml: number;
   bottles_per_case: number;
+}
+
+export interface PurchaseOrderReceiptApprovalPayload {
+  vendor_id?: number | null;
+  purchase_date?: string | null;
+  vendor_invoice_number?: string | null;
+  invoice_value?: string | null;
+  reference?: string | null;
+  notes?: string | null;
+  over_receipt_reason?: string | null;
+  lines: Array<{
+    purchase_order_line_id: number;
+    product_id: number;
+    quantity: number;
+    good_condition_quantity: number;
+    unit_cost?: string | null;
+  }>;
+}
+
+export interface PurchaseOrderReceiptApprovalResponse {
+  purchase_order: PurchaseOrder;
+  stock_inward_id: number;
+  lot_id: number;
 }
 
 export async function importPurchaseOrder(file: File, shopId?: number | null): Promise<PurchaseOrder> {
@@ -109,6 +143,12 @@ export function updatePurchaseOrder(order: PurchaseOrder): Promise<PurchaseOrder
       total_loose_bottles: order.total_loose_bottles,
       mger_total: order.mger_total,
       order_total: order.order_total,
+      vendor_id: order.vendor_id,
+      purchase_date: order.purchase_date,
+      vendor_invoice_number: order.vendor_invoice_number,
+      invoice_value: order.invoice_value,
+      wastage_reason: order.wastage_reason,
+      wastage_attested: order.wastage_attested,
       lines: order.lines.map((line) => ({
         id: line.id,
         source_item_name: line.source_item_name,
@@ -119,6 +159,9 @@ export function updatePurchaseOrder(order: PurchaseOrder): Promise<PurchaseOrder
         case_rate: line.case_rate,
         mger: line.mger,
         amount: line.amount,
+        delivered_bottles: line.delivered_bottles,
+        accepted_bottles: line.accepted_bottles,
+        unit_cost: line.unit_cost,
         sequence: line.sequence,
       })),
     },
@@ -129,8 +172,16 @@ export function confirmPurchaseOrder(id: number): Promise<PurchaseOrder> {
   return api(`/purchase-orders/${id}/confirm`, { method: "POST" });
 }
 
+export function finalizePurchaseOrder(id: number): Promise<PurchaseOrderReceiptApprovalResponse> {
+  return api(`/purchase-orders/${id}/finalize`, { method: "POST" });
+}
+
 export function cancelPurchaseOrder(id: number, reason: string): Promise<PurchaseOrder> {
   return api(`/purchase-orders/${id}/cancel`, { method: "POST", json: { reason } });
+}
+
+export function approvePurchaseOrderReceipt(id: number, payload: PurchaseOrderReceiptApprovalPayload): Promise<PurchaseOrderReceiptApprovalResponse> {
+  return api(`/purchase-orders/${id}/approve-receipt`, { method: "POST", json: payload });
 }
 
 export async function downloadPurchaseOrder(id: number, filename: string): Promise<void> {
