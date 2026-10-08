@@ -45,7 +45,6 @@ jobs:
     env:
       SERVER_ID: "165574147"
       SNAPSHOT_LABEL_SELECTOR: "managed-by=github-actions,application=nexio-stock,backup=production"
-      SSH_CONTROL_PATH: ${{ runner.temp }}/nexio-stock-backup-ssh-control
     steps:
       - name: Configure SSH access
         env:
@@ -54,6 +53,7 @@ jobs:
           USER: ${{ secrets.HETZNER_USER }}
         run: |
           set -euo pipefail
+          SSH_CONTROL_PATH="$RUNNER_TEMP/nexio-stock-backup-ssh-control"
           install -m 700 -d ~/.ssh
           printf '%s\n' "$DEPLOY_KEY" > ~/.ssh/barstock_backup
           chmod 600 ~/.ssh/barstock_backup
@@ -70,6 +70,7 @@ jobs:
           REMOTE_BACKUP_DIR: /tmp/nexio-stock-production-backup-${{ github.run_id }}
         run: |
           set -euo pipefail
+          SSH_CONTROL_PATH="$RUNNER_TEMP/nexio-stock-backup-ssh-control"
           ssh -i ~/.ssh/barstock_backup -o ControlPath="$SSH_CONTROL_PATH" "$USER@$HOST" \
             "REMOTE_BACKUP_DIR='$REMOTE_BACKUP_DIR' bash -s" <<'REMOTE'
               set -euo pipefail
@@ -108,6 +109,7 @@ jobs:
           REMOTE_BACKUP_DIR: /tmp/nexio-stock-production-backup-${{ github.run_id }}
         run: |
           set -euo pipefail
+          SSH_CONTROL_PATH="$RUNNER_TEMP/nexio-stock-backup-ssh-control"
           backup_dir="$RUNNER_TEMP/nexio-stock-production-backup"
           mkdir -p "$backup_dir"
           scp -q -i ~/.ssh/barstock_backup -o ControlPath="$SSH_CONTROL_PATH" \
@@ -135,6 +137,7 @@ jobs:
           REMOTE_BACKUP_DIR: /tmp/nexio-stock-production-backup-${{ github.run_id }}
         run: |
           set -euo pipefail
+          SSH_CONTROL_PATH="$RUNNER_TEMP/nexio-stock-backup-ssh-control"
           ssh -i ~/.ssh/barstock_backup -o ControlPath="$SSH_CONTROL_PATH" "$USER@$HOST" \
             "rm -f -- '$REMOTE_BACKUP_DIR/production.dump' '$REMOTE_BACKUP_DIR/production.dump.sha256' '$REMOTE_BACKUP_DIR/production-backup.tar' && rmdir -- '$REMOTE_BACKUP_DIR'"
 
@@ -203,4 +206,5 @@ jobs:
           HOST: ${{ secrets.HETZNER_HOST }}
           USER: ${{ secrets.HETZNER_USER }}
         run: |
+          SSH_CONTROL_PATH="$RUNNER_TEMP/nexio-stock-backup-ssh-control"
           ssh -O exit -i ~/.ssh/barstock_backup -o ControlPath="$SSH_CONTROL_PATH" "$USER@$HOST" || true
