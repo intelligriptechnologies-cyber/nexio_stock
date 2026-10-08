@@ -100,6 +100,8 @@ jobs:
               [ -s "$checksum" ] || { echo "Database checksum was not created." >&2; exit 1; }
               tar -C "$REMOTE_BACKUP_DIR" -cf "$archive" production.dump production.dump.sha256
               [ -s "$archive" ] || { echo "Database backup archive was not created." >&2; exit 1; }
+              echo "remote: $(id -un)@$(hostname) dir=$REMOTE_BACKUP_DIR"
+              ls -la "$REMOTE_BACKUP_DIR"
           REMOTE
 
       - name: Download and verify PostgreSQL dump
@@ -110,6 +112,8 @@ jobs:
         run: |
           set -euo pipefail
           SSH_CONTROL_PATH="$RUNNER_TEMP/nexio-stock-backup-ssh-control"
+          ssh -i ~/.ssh/barstock_backup -o ControlPath="$SSH_CONTROL_PATH" "$USER@$HOST" \
+            "id -un; hostname; ls -la '$REMOTE_BACKUP_DIR'; ls -ld /tmp/nexio-stock-production-backup-* || true"
           backup_dir="$RUNNER_TEMP/nexio-stock-production-backup"
           mkdir -p "$backup_dir"
           scp -q -i ~/.ssh/barstock_backup -o ControlPath="$SSH_CONTROL_PATH" \
