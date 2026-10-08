@@ -93,7 +93,7 @@ jobs:
               archive="$REMOTE_BACKUP_DIR/production-backup.tar"
               trap 'rm -f -- "$dump" "$checksum" "$archive"; rmdir "$REMOTE_BACKUP_DIR" 2>/dev/null || true' ERR
 
-              docker exec -i "$container_id" sh -ec 'exec pg_dump -Fc -U "$POSTGRES_USER" "$POSTGRES_DB"' > "$dump"
+              docker exec -i "$container_id" sh -ec 'exec pg_dump -Fc -U "$POSTGRES_USER" "$POSTGRES_DB"' > "$dump" < /dev/null
               [ -s "$dump" ] || { echo "Database dump is empty." >&2; exit 1; }
               docker exec -i "$container_id" pg_restore --list < "$dump" > /dev/null
               (cd "$REMOTE_BACKUP_DIR" && sha256sum production.dump > production.dump.sha256)
