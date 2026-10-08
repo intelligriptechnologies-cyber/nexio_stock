@@ -122,7 +122,7 @@ jobs:
           tar -xf "$backup_dir/production-backup.tar" -C "$backup_dir"
           rm -f -- "$backup_dir/production-backup.tar"
           (cd "$backup_dir" && sha256sum --check production.dump.sha256)
-          docker run --rm -v "$backup_dir:/backup:ro" postgres:16-alpine \
+          docker run --rm -v "$backup_dir:/backup:ro" postgres:18-alpine \
             pg_restore --list /backup/production.dump > /dev/null
 
       - name: Upload verified database artifact
